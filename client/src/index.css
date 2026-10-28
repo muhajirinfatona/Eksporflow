@@ -240,6 +240,8 @@ textarea:focus-visible {
 }
 
 .workspace-switcher.clean-workspace-box {
+  width: 100%;
+  text-align: left;
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 8px;
@@ -249,6 +251,12 @@ textarea:focus-visible {
   padding: 9px 10px;
   margin-bottom: 14px;
   white-space: nowrap;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.workspace-switcher.clean-workspace-box:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .workspace-switcher > div:nth-child(2) {
@@ -824,165 +832,20 @@ textarea:focus-visible {
   flex-wrap: wrap;
 }
 
-/* Global Connected Workflow & Active Transaction Bar */
-.connected-flow-bar {
-  background: #ffffff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  margin-bottom: 18px;
-  overflow: hidden;
-}
-
-.flow-active-context {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  background: #f8fafc;
-  border-bottom: 1px solid var(--line);
-  flex-wrap: wrap;
-}
-
-.flow-active-main {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.flow-ref-badge {
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--navy);
-  background: #e0f2fe;
-  border: 1px solid #bae6fd;
-  padding: 2px 8px;
-  border-radius: 6px;
-}
-
-.flow-active-main b {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.flow-meta-pill {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink-secondary);
-  background: #ffffff;
-  border: 1px solid var(--line);
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-variant-numeric: tabular-nums;
-}
-
-.flow-status-tag {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #475569;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: #e2e8f0;
-}
-
-.flow-switch-btn {
-  border: 1px solid var(--line-strong);
-  background: #ffffff;
-  color: var(--ink-secondary);
-  border-radius: 7px;
-  padding: 5px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.flow-switch-btn:hover {
-  color: var(--ink);
-  background: #f1f5f9;
-}
-
-.flow-stages-row {
-  display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-}
-
-.flow-stage-chip {
+.eyebrow-ref-link {
   border: 0;
-  border-right: 1px solid var(--line);
-  background: #ffffff;
-  padding: 9px 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  text-align: left;
-  min-width: 0;
-  transition: background 0.15s ease;
+  background: transparent;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  cursor: pointer;
 }
 
-.flow-stage-chip:last-child {
-  border-right: 0;
-}
-
-.flow-stage-chip:hover {
-  background: #f8fafc;
-}
-
-.flow-stage-chip.current {
-  background: #eff6ff;
-  box-shadow: inset 0 -2px 0 #2563eb;
-}
-
-.flow-stage-dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1.5px solid #cbd5e1;
-  background: #ffffff;
-  color: #ffffff;
-  display: inline-grid;
-  place-items: center;
-  flex: 0 0 auto;
-}
-
-.flow-stage-chip.done .flow-stage-dot {
-  background: var(--mint);
-  border-color: var(--mint);
-}
-
-.flow-stage-chip.current:not(.done) .flow-stage-dot {
-  border-color: #2563eb;
-  background: #dbeafe;
-}
-
-.flow-stage-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.flow-stage-copy b {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ink);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.flow-stage-copy small {
-  font-size: 11px;
-  color: var(--muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.eyebrow-ref-link:hover {
+  color: var(--navy);
+  text-decoration: underline;
 }
 
 /* ==========================================================================
@@ -4321,12 +4184,6 @@ textarea:focus-visible {
   .pricing-aside {
     position: static;
   }
-  .flow-stages-row {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-  .flow-stage-chip {
-    border-bottom: 1px solid var(--line);
-  }
 }
 
 @media (max-width: 1024px) {
@@ -4440,9 +4297,6 @@ textarea:focus-visible {
   .heading-actions {
     width: 100%;
     justify-content: space-between;
-  }
-  .flow-stages-row {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   /* Line-item cards reflow cleanly without horizontal scroll */
@@ -4563,7 +4417,6 @@ textarea:focus-visible {
     font-size: 20px;
   }
 
-  .flow-stages-row,
   .profile-grid,
   .document-settings-grid,
   .form-grid.three,
@@ -4576,10 +4429,6 @@ textarea:focus-visible {
   .document-sidebar,
   .template-options {
     grid-template-columns: 1fr !important;
-  }
-
-  .flow-stage-chip {
-    border-right: 0;
   }
 
   .hero-card {
@@ -4692,7 +4541,6 @@ textarea:focus-visible {
   .sidebar-collapse,
   .sidebar-reopen,
   .page-heading,
-  .connected-flow-bar,
   .document-sidebar,
   .document-settings,
   .preview-toolbar,

@@ -21,7 +21,6 @@ import { TransactionsModule } from "@/components/workspace/TransactionsModule";
 import { ALL_SCREENS, getScreenMeta, WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { useActiveShipment } from "@/hooks/useActiveShipment";
 import { useWorkspaceFlow } from "@/hooks/useWorkspaceFlow";
-import { formatMoney } from "@shared/format";
 import type { ScreenId } from "@shared/risk";
 import type { DocumentType } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
@@ -120,11 +119,6 @@ export default function Home() {
       navigate={navigate}
       exporterName={shipment.exporter}
       reference={shipment.reference}
-      buyerName={shipment.buyer}
-      incoterm={shipment.incoterm}
-      offerFormatted={formatMoney(pricing.active.offer, shipment.currency)}
-      shipmentStatus={shipment.shipmentStatus}
-      pipeline={flow.pipeline}
       user={user}
       saveState={saveState}
       statusNote={statusNote}

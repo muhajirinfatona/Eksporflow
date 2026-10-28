@@ -1,16 +1,13 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
-import type { PipelineStage } from "@/hooks/useWorkspaceFlow";
 import type { ScreenId } from "@shared/risk";
 import {
   AlertTriangle,
-  ArrowRightLeft,
   BarChart3,
   BookOpen,
   Bot,
   Box,
   Building2,
   Calculator,
-  Check,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
@@ -307,11 +304,6 @@ export function WorkspaceShell({
   navigate,
   exporterName,
   reference,
-  buyerName,
-  incoterm,
-  offerFormatted,
-  shipmentStatus,
-  pipeline,
   user,
   saveState,
   statusNote,
@@ -328,11 +320,6 @@ export function WorkspaceShell({
   navigate: (next: ScreenId) => void;
   exporterName: string;
   reference: string;
-  buyerName: string;
-  incoterm: string;
-  offerFormatted: string;
-  shipmentStatus: string;
-  pipeline: PipelineStage[];
   user: { name?: string | null; email?: string | null } | null;
   saveState: PersistenceSaveState;
   statusNote: string | null;
@@ -439,7 +426,15 @@ export function WorkspaceShell({
           </button>
         </div>
 
-        <div className="workspace-switcher clean-workspace-box">
+        <button
+          type="button"
+          className="workspace-switcher clean-workspace-box"
+          title="Kelola atau ganti transaksi aktif"
+          onClick={() => {
+            navigate("transactions");
+            if (window.innerWidth <= 1024) setSidebarOpen(false);
+          }}
+        >
           <div className="workspace-avatar">
             <Building2 size={14} />
           </div>
@@ -447,7 +442,7 @@ export function WorkspaceShell({
             <b>{exporterName}</b>
             <small>{user ? `Cloud aktif · ${reference}` : `Draft lokal · ${reference}`}</small>
           </div>
-        </div>
+        </button>
 
         <nav className="clean-nav-scroll" aria-label="Navigasi utama EksporFlow">
           {NAV_GROUPS.map((group) => (
@@ -635,7 +630,15 @@ export function WorkspaceShell({
           <section className="page-heading">
             <div>
               <span className="eyebrow">
-                {activeMeta.phase} · <span className="mono-code">{reference}</span>
+                {activeMeta.phase} ·{" "}
+                <button
+                  type="button"
+                  className="eyebrow-ref-link mono-code"
+                  title="Kelola atau ganti transaksi aktif"
+                  onClick={() => navigate("transactions")}
+                >
+                  {reference}
+                </button>
               </span>
               <h1>{activeMeta.title}</h1>
               <p>{activeMeta.description}</p>
@@ -647,49 +650,6 @@ export function WorkspaceShell({
               {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
             </div>
           </section>
-
-          {screen !== "settings" && (
-            <section className="connected-flow-bar" aria-label="Alur transaksi terhubung">
-              <div className="flow-active-context">
-                <div className="flow-active-main">
-                  <span className="flow-ref-badge">{reference}</span>
-                  <b>{buyerName || "Buyer belum dipilih"}</b>
-                  <span className="flow-meta-pill">{incoterm} · {offerFormatted}</span>
-                  <span className="flow-status-tag">{shipmentStatus}</span>
-                </div>
-                {screen !== "transactions" && (
-                  <button
-                    type="button"
-                    className="flow-switch-btn"
-                    onClick={() => navigate("transactions")}
-                  >
-                    <ArrowRightLeft size={13} /> Ganti / Kelola Transaksi
-                  </button>
-                )}
-              </div>
-              <div className="flow-stages-row">
-                {pipeline.map((stage) => {
-                  const isCurrent = stage.relatedScreens.includes(screen);
-                  return (
-                    <button
-                      type="button"
-                      key={stage.id}
-                      className={`flow-stage-chip ${isCurrent ? "current" : ""} ${stage.done ? "done" : ""}`}
-                      onClick={() => navigate(stage.screen)}
-                    >
-                      <span className="flow-stage-dot">
-                        {stage.done ? <Check size={11} /> : null}
-                      </span>
-                      <span className="flow-stage-copy">
-                        <b>{stage.label}</b>
-                        <small>{stage.shortMeta}</small>
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          )}
 
           {children}
         </div>
