@@ -33,8 +33,21 @@ import {
   Wallet,
 } from "lucide-react";
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { IconButton, StatusPill } from "./Primitives";
+
+export type TextScale = "normal" | "large" | "xlarge";
+const TEXT_SCALE_KEY = "eksporflow-text-scale";
+
+function readInitialTextScale(): TextScale {
+  try {
+    const saved = localStorage.getItem(TEXT_SCALE_KEY);
+    if (saved === "normal" || saved === "large" || saved === "xlarge") return saved;
+  } catch {
+    // Fallback ke standar senior-friendly.
+  }
+  return "normal";
+}
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -334,6 +347,20 @@ export function WorkspaceShell({
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [textScale, setTextScale] = useState<TextScale>(readInitialTextScale);
+
+  const changeTextScale = useCallback((next: TextScale) => {
+    setTextScale(next);
+    try {
+      localStorage.setItem(TEXT_SCALE_KEY, next);
+    } catch {
+      // Abaikan bila storage penuh.
+    }
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-text-scale", textScale);
+  }, [textScale]);
 
   const activeMeta = getScreenMeta(screen);
 
@@ -484,11 +511,38 @@ export function WorkspaceShell({
               </div>
             )}
 
+            <div className="text-scale-control" role="group" aria-label="Ukuran teks tampilan">
+              <button
+                type="button"
+                className={textScale === "normal" ? "active" : ""}
+                title="Ukuran teks nyaman (Standar)"
+                onClick={() => changeTextScale("normal")}
+              >
+                A
+              </button>
+              <button
+                type="button"
+                className={textScale === "large" ? "active" : ""}
+                title="Ukuran teks besar"
+                onClick={() => changeTextScale("large")}
+              >
+                A+
+              </button>
+              <button
+                type="button"
+                className={textScale === "xlarge" ? "active" : ""}
+                title="Ukuran teks ekstra besar"
+                onClick={() => changeTextScale("xlarge")}
+              >
+                A++
+              </button>
+            </div>
+
             <IconButton
               label="Cari halaman"
               onClick={() => setSearchOpen((open) => !open)}
             >
-              <Search size={17} />
+              <Search size={18} />
             </IconButton>
 
             <IconButton label="Pengaturan Workspace" onClick={() => navigate("settings")}>

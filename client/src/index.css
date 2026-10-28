@@ -436,3 +436,833 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 @media print {
   .conflict-banner, .clean-notice { display: none !important; }
 }
+
+
+/* ==========================================================================
+   Senior-Client Readability & High-Contrast Layer (Seluruh 18 Layar)
+   Menggantikan ukuran mikroskopis 7px–10px menjadi 13px–16px dengan kontras tegas
+   serta dukungan pengatur ukuran teks A / A+ / A++ di bar atas.
+   ========================================================================== */
+:root {
+  --ink: #13253c;
+  --muted: #4b5b6b;
+  --line: #d6dce2;
+}
+
+body {
+  font-size: 15.5px;
+  line-height: 1.55;
+  color: var(--ink);
+}
+
+html[data-text-scale="large"] .main-content {
+  zoom: 1.09;
+}
+html[data-text-scale="large"] .clean-sidebar {
+  width: 298px;
+  flex-basis: 298px;
+}
+html[data-text-scale="large"] .sidebar-collapse {
+  left: 284px;
+}
+html[data-text-scale="large"] .clean-nav-item {
+  font-size: 16px;
+}
+html[data-text-scale="xlarge"] .main-content {
+  zoom: 1.18;
+}
+html[data-text-scale="xlarge"] .clean-sidebar {
+  width: 312px;
+  flex-basis: 312px;
+}
+html[data-text-scale="xlarge"] .sidebar-collapse {
+  left: 298px;
+}
+html[data-text-scale="xlarge"] .clean-nav-item {
+  font-size: 17px;
+}
+
+/* Pengatur ukuran teks A / A+ / A++ di Topbar */
+.text-scale-control {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f4f6;
+  border: 1px solid #d4dce3;
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+.text-scale-control button {
+  border: 0;
+  background: transparent;
+  color: #465768;
+  font-size: 13px;
+  font-weight: 750;
+  padding: 6px 10px;
+  border-radius: 6px;
+  line-height: 1;
+}
+.text-scale-control button:hover {
+  color: var(--ink);
+  background: rgba(255, 255, 255, 0.7);
+}
+.text-scale-control button.active {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(19, 37, 60, 0.16);
+}
+
+/* Sidebar ramah klien senior */
+.clean-sidebar {
+  width: 288px;
+  flex: 0 0 288px;
+  padding: 22px 14px 16px;
+}
+.sidebar-collapse {
+  left: 274px;
+  width: 30px;
+  height: 30px;
+}
+.sidebar-reopen {
+  width: 34px;
+  height: 34px;
+}
+.brand-lockup strong {
+  font-size: 22px;
+}
+.brand-lockup small {
+  font-size: 10px;
+  color: #9bb1c6;
+  letter-spacing: 1.3px;
+}
+.workspace-switcher b {
+  font-size: 14px;
+}
+.workspace-switcher small,
+.user-row small {
+  font-size: 12px;
+  color: #a7bccf;
+}
+.workspace-avatar,
+.user-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 12px;
+}
+.user-row b {
+  font-size: 13.5px;
+}
+.sidebar-auth-btn {
+  width: 34px;
+  height: 34px;
+}
+.clean-nav-group {
+  gap: 3px;
+  margin-bottom: 4px;
+}
+.clean-nav-group-title {
+  font-size: 11.5px;
+  color: #9cb4ca;
+  padding: 8px 12px 4px;
+  letter-spacing: 1px;
+}
+.clean-nav-item {
+  font-size: 15px;
+  min-height: 42px;
+  padding: 9px 12px;
+  gap: 11px;
+  color: #dce7f2;
+}
+
+/* Topbar & Tombol Utama */
+.topbar {
+  height: 76px;
+  padding: 0 32px;
+}
+.breadcrumbs {
+  font-size: 14.5px;
+  color: #556575;
+}
+.icon-button {
+  width: 40px;
+  height: 40px;
+  color: #465666;
+}
+.top-search {
+  height: 40px;
+  padding: 0 12px;
+}
+.top-search input {
+  width: 190px;
+  font-size: 14px;
+}
+.top-search-dropdown {
+  width: 290px;
+}
+.top-search-dropdown button {
+  font-size: 14px;
+  padding: 10px 12px;
+}
+.top-search-dropdown small {
+  font-size: 12px;
+}
+.save-button,
+.dark-button {
+  font-size: 14px;
+  padding: 11px 18px;
+  min-height: 42px;
+  border-radius: 8px;
+}
+.ghost-button {
+  font-size: 14px;
+  padding: 10px 15px;
+  min-height: 42px;
+  color: #364759;
+  border-color: #cbd3db;
+  background: #fff;
+  border-radius: 8px;
+}
+.text-button {
+  font-size: 14px;
+  color: #2f5e88;
+  font-weight: 700;
+}
+.full-button {
+  font-size: 15px;
+  padding: 13px 16px;
+  min-height: 46px;
+  border-radius: 8px;
+}
+
+/* Judul Halaman, Eyebrow & Badge */
+.page-wrap {
+  max-width: 1520px;
+  padding: 32px 34px 56px;
+}
+.eyebrow {
+  font-size: 11.5px;
+  color: #5b6b7a;
+  letter-spacing: 1.2px;
+}
+.eyebrow.light {
+  color: #bdd0e0;
+}
+.page-heading h1 {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-weight: 750;
+  font-size: clamp(28px, 2.6vw, 35px);
+  letter-spacing: -0.6px;
+  line-height: 1.18;
+  margin: 8px 0 8px;
+}
+.page-heading p {
+  font-size: 15.5px;
+  color: #465666;
+  max-width: 720px;
+  line-height: 1.55;
+}
+.status-pill {
+  font-size: 12.5px;
+  padding: 6px 12px;
+  gap: 6px;
+}
+.status-pill i {
+  width: 7px;
+  height: 7px;
+}
+
+/* Panel, Kartu & Form Input */
+.panel-head h3,
+.section-title h2,
+.ops-title {
+  font-size: 21px;
+  line-height: 1.25;
+}
+.section-title p,
+.profile-description,
+.ops-description,
+.muted-note {
+  font-size: 14px;
+  color: #4d5d6d;
+  line-height: 1.55;
+  max-width: 640px;
+}
+.field > span,
+.file-field > span {
+  font-size: 13.5px;
+  color: #334456;
+  font-weight: 650;
+}
+.input-shell {
+  min-height: 44px;
+  border-color: #cbd3db;
+  background: #fff;
+  border-radius: 8px;
+}
+.input-shell input,
+.input-shell select {
+  font-size: 15px;
+  padding: 10px 12px;
+  color: var(--ink);
+  font-weight: 500;
+}
+.input-shell.has-prefix b,
+.input-shell.has-suffix em {
+  font-size: 13px;
+  color: #586878;
+}
+.file-field input {
+  min-height: 44px;
+  font-size: 13.5px;
+  border-color: #cbd3db;
+}
+.file-field small {
+  font-size: 12.5px;
+  color: #536474;
+}
+
+/* Strip Transaksi & Profil Terhubung */
+.transaction-strip {
+  min-height: 94px;
+}
+.transaction-cell > span,
+.route-cell small,
+.transaction-status small {
+  font-size: 11.5px;
+  color: #5c6c7c;
+}
+.transaction-cell b,
+.route-cell b {
+  font-size: 15.5px;
+}
+.transaction-cell small {
+  font-size: 13px;
+  color: #506070;
+}
+.incoterm-cell select {
+  font-size: 18px;
+}
+.profile-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.profile-grid .field > span {
+  font-size: 13.5px;
+  color: #334456;
+}
+.profile-grid .input-shell {
+  min-height: 44px;
+  background: #fff;
+}
+.profile-grid .input-shell input {
+  font-size: 15px;
+  padding: 10px 12px;
+}
+.connection-rail {
+  font-size: 12.5px;
+}
+.connection-rail em {
+  font-size: 12.5px;
+  color: #516272;
+}
+
+/* Dashboard Hero, Metrik, Checklist & Skenario */
+.hero-card p {
+  font-size: 15px;
+  max-width: 340px;
+  color: #d3e0ec;
+}
+.hero-meta {
+  font-size: 13.5px;
+  color: #c7d8e6;
+}
+.orbit-label {
+  font-size: 11px;
+}
+.hero-orbit {
+  width: 154px;
+  height: 154px;
+}
+.hero-orbit strong {
+  font-size: 24px;
+}
+.hero-orbit span {
+  font-size: 12px;
+}
+.metric-label {
+  font-size: 12px;
+  color: #4f5f6f;
+}
+.metric-card strong {
+  font-size: 28px;
+}
+.metric-foot {
+  font-size: 13px;
+  color: #4a5a6a;
+}
+.check-copy b,
+.quick-link b {
+  font-size: 15px;
+}
+.check-copy small,
+.quick-link small {
+  font-size: 13.5px;
+  color: #526272;
+}
+.quick-icon {
+  width: 36px;
+  height: 36px;
+}
+.scenario-row {
+  font-size: 14.5px;
+  padding: 14px 12px;
+}
+.scenario-row b {
+  font-size: 15.5px;
+}
+.scenario-header {
+  font-size: 12px;
+  color: #5b6b7b;
+}
+.scenario-header span {
+  color: #5b6b7b !important;
+}
+
+/* Kalkulator Harga, Line Items & Perbandingan Incoterm */
+.module-layout {
+  grid-template-columns: minmax(0, 1.5fr) minmax(340px, 0.85fr);
+  gap: 18px;
+}
+.section-number {
+  font-size: 12px;
+  padding: 6px 9px;
+}
+.form-section-title b {
+  font-size: 16px;
+}
+.form-section-title small {
+  font-size: 13.5px;
+  color: #526272;
+}
+.quote-label {
+  font-size: 12px;
+}
+.quote-card > strong {
+  font-size: 34px;
+}
+.quote-unit {
+  font-size: 14px;
+}
+.quote-breakdown div {
+  font-size: 14px;
+  color: #c6d7e4;
+}
+.quote-metadata {
+  font-size: 13px;
+  color: #4d5e6f;
+}
+.tip-card b {
+  font-size: 15px;
+}
+.tip-card p {
+  font-size: 13.5px;
+  color: #3f6657;
+}
+.comparison-cards {
+  grid-template-columns: repeat(auto-fit, minmax(168px, 1fr));
+  gap: 10px;
+}
+.comparison-term {
+  font-size: 14px;
+}
+.comparison-card > strong {
+  font-size: 17px;
+}
+.comparison-card > small {
+  font-size: 12.5px;
+  color: #536373;
+}
+.line-items-head b {
+  font-size: 15.5px;
+}
+.line-items-head small {
+  font-size: 13px;
+  color: #526272;
+}
+.add-line-item {
+  font-size: 13px;
+  padding: 9px 13px;
+}
+.line-item-card {
+  min-width: 680px;
+  padding: 12px;
+}
+.line-item-row {
+  grid-template-columns: 1.5fr 0.85fr 0.6fr 0.95fr 1fr 32px;
+  gap: 8px;
+}
+.line-item-header {
+  font-size: 11.5px;
+  color: #546474;
+}
+.line-item-row input {
+  font-size: 14.5px;
+  padding: 9px 10px;
+  min-height: 40px;
+  border-color: #cbd3db;
+}
+.line-money span {
+  font-size: 12.5px;
+  color: #536373;
+}
+.line-item-row > b {
+  font-size: 14.5px;
+}
+.line-item-detail {
+  gap: 10px;
+  padding-top: 10px;
+}
+.line-item-detail label {
+  flex: 0 0 128px;
+  min-width: 128px;
+  font-size: 12px;
+  color: #435364;
+}
+.line-item-detail label:first-child {
+  flex-basis: 156px;
+}
+.line-item-detail select,
+.line-item-detail input {
+  min-height: 38px;
+  font-size: 13.5px;
+  padding: 7px 9px;
+  border-color: #cbd3db;
+}
+.line-item-detail label > span {
+  font-size: 12px;
+  bottom: 10px;
+}
+.line-item-detail .pallet-toggle {
+  flex-basis: 185px;
+  min-width: 185px;
+  height: 38px;
+  font-size: 13px;
+}
+.custom-packaging-note {
+  font-size: 13px;
+  padding: 8px 10px;
+}
+
+/* Dokumen Ekspor */
+.documents-layout {
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+}
+.document-sidebar-head h3,
+.document-settings-head h3 {
+  font-size: 18px;
+}
+.document-settings-head p,
+.document-output-status {
+  font-size: 13.5px;
+  color: #4d5d6d;
+}
+.document-settings-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+.document-item {
+  padding: 12px 10px;
+}
+.document-item b {
+  font-size: 14.5px;
+}
+.document-item small {
+  font-size: 12.5px;
+  color: #546474;
+}
+.document-item .status-pill {
+  font-size: 11px;
+  padding: 4px 8px;
+}
+.mini-progress {
+  font-size: 13px;
+}
+.document-sidebar-footer > small {
+  font-size: 12.5px;
+  color: #546474;
+}
+.template-gallery > div:first-child small {
+  font-size: 13px;
+  color: #526272;
+}
+.template-options b {
+  font-size: 14px;
+}
+.template-options small {
+  font-size: 12.5px;
+  color: #526272;
+}
+.remove-letterhead {
+  font-size: 13px;
+  height: 40px;
+  padding: 0 12px;
+}
+.paper-title span,
+.paper-parties span,
+.bl-grid span,
+.paper-notes span,
+.signature-box span,
+.paper-table th,
+.paper-total span {
+  font-size: 11px;
+  color: #52606d;
+}
+.paper-title strong {
+  font-size: 19px;
+}
+.paper-title small,
+.paper-letterhead small {
+  font-size: 12px;
+  color: #52606d;
+}
+.paper-parties b,
+.bl-grid b {
+  font-size: 14px;
+}
+.paper-parties p,
+.paper-table td,
+.paper-summary > div {
+  font-size: 13px;
+}
+.paper-table td small,
+.paper-notes p,
+.bl-footer-note,
+.draft-warning {
+  font-size: 12px;
+}
+.paper-no-logo {
+  width: 120px;
+  min-height: 42px;
+  font-size: 11.5px;
+}
+
+/* Muatan Kontainer & Simulator 3D */
+.load-numbers span,
+.load-simulation-strip span,
+.container-3d-stats span {
+  font-size: 11px;
+}
+.load-numbers strong {
+  font-size: 24px;
+}
+.load-numbers > div > small {
+  font-size: 12.5px;
+}
+.load-simulation-strip b {
+  font-size: 15px;
+}
+.usage-label {
+  font-size: 14.5px;
+}
+.usage-row > small {
+  font-size: 13px;
+  color: #516171;
+}
+.load-alert b,
+.container-input-note b {
+  font-size: 14.5px;
+}
+.load-alert small,
+.container-input-note small,
+.packing-notes p {
+  font-size: 13.5px;
+}
+.note-number {
+  width: 26px;
+  height: 26px;
+  font-size: 11.5px;
+}
+.container-3d-head h3 {
+  font-size: 18px;
+}
+.container-3d-head small {
+  font-size: 13px;
+  color: #b4cad4;
+}
+.view-switcher button,
+.view-reset {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.container-3d-legend,
+.container-3d-badge {
+  font-size: 12px;
+}
+.container-3d-stats b {
+  font-size: 14px;
+}
+
+/* Operasional, Risk Center, Master Data & AI Advisor */
+.status-step span {
+  width: 32px;
+  height: 32px;
+  font-size: 12px;
+}
+.status-step small {
+  font-size: 12.5px;
+  color: #4f5f6f;
+  font-weight: 600;
+}
+.handoff-note b,
+.attachment-row > span,
+.ops-check b {
+  font-size: 14px;
+}
+.handoff-note small,
+.attachment-row small {
+  font-size: 12.5px;
+}
+.upload-button {
+  font-size: 13.5px;
+  padding: 10px 14px;
+}
+.empty-attachment {
+  font-size: 14px;
+  color: #546474;
+  padding: 16px 14px;
+}
+.ops-check .status-pill,
+.legal-check-row .status-pill {
+  font-size: 11.5px;
+  padding: 4px 9px;
+}
+.risk-hero h2 {
+  font-size: 30px;
+}
+.risk-hero p {
+  font-size: 14.5px;
+}
+.risk-score span {
+  font-size: 11.5px;
+}
+.risk-row b,
+.guardrail-list b,
+.legal-check-row b,
+.screening-status b,
+.recommendation-copy b,
+.copilot-recommendations b,
+.master-card b,
+.governance-grid b {
+  font-size: 15px;
+}
+.risk-row small,
+.guardrail-list p,
+.legal-check-row small,
+.screening-status small,
+.recommendation-copy small,
+.copilot-recommendations small,
+.master-card small,
+.master-card em,
+.governance-grid small,
+.copilot-disclaimer {
+  font-size: 13.5px;
+  color: #4c5c6c;
+}
+.recommendation-copy em {
+  font-size: 13px;
+}
+.legal-check-row input {
+  width: 18px;
+  height: 18px;
+}
+.master-card button {
+  font-size: 13px;
+  padding: 8px 12px;
+}
+.audit-grid span,
+.context-list span {
+  font-size: 11.5px;
+  color: #596979;
+}
+.audit-grid b,
+.context-list b {
+  font-size: 15px;
+}
+.validation-banner b {
+  font-size: 14.5px;
+}
+.validation-banner small {
+  font-size: 13.5px;
+}
+
+/* Tabel, Tab & Notice di Layar Clean v2.0 */
+.clean-notice,
+.conflict-banner {
+  font-size: 14px;
+  padding: 14px 18px;
+}
+.clean-search-box,
+.clean-select {
+  min-height: 42px;
+  font-size: 14.5px;
+}
+.clean-search-box input {
+  font-size: 14.5px;
+}
+.clean-table {
+  font-size: 14.5px;
+}
+.clean-table th {
+  font-size: 12px;
+  color: #4d5d6d;
+  padding: 12px 12px;
+}
+.clean-table td {
+  padding: 14px 12px;
+}
+.row-sub {
+  font-size: 12.5px;
+  color: #566676;
+}
+.clean-stat-card strong {
+  font-size: 28px;
+}
+.clean-stat-card small {
+  font-size: 13.5px;
+  color: #4f5f6f;
+}
+.clean-tabs button {
+  font-size: 14.5px;
+  padding: 11px 4px;
+}
+.clean-kv {
+  font-size: 14.5px;
+  padding: 12px 0;
+}
+
+@media (max-width: 1080px) {
+  .profile-grid,
+  .document-settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .module-layout,
+  .documents-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .profile-grid,
+  .document-settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .text-scale-control {
+    display: none;
+  }
+}
+@media print {
+  html[data-text-scale="large"] .main-content,
+  html[data-text-scale="xlarge"] .main-content {
+    zoom: 1 !important;
+  }
+}
