@@ -91,35 +91,35 @@ function ExportWorldBackdrop() {
       >
         <defs>
           <linearGradient id="eksporRouteGold" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.15" />
-            <stop offset="50%" stopColor="#f59e0b" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#10b981" stopOpacity="0.25" />
+            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.18" />
+            <stop offset="50%" stopColor="#fbbf24" stopOpacity="0.82" />
+            <stop offset="100%" stopColor="#34d399" stopOpacity="0.28" />
           </linearGradient>
           <linearGradient id="eksporRouteMint" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#10b981" stopOpacity="0.2" />
-            <stop offset="50%" stopColor="#0ea5e9" stopOpacity="0.7" />
-            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.25" />
+            <stop offset="0%" stopColor="#34d399" stopOpacity="0.22" />
+            <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.72" />
+            <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.26" />
           </linearGradient>
           <linearGradient id="eksporHullNavy" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#143758" />
-            <stop offset="100%" stopColor="#0b192c" />
+            <stop offset="0%" stopColor="#173d62" />
+            <stop offset="100%" stopColor="#091626" />
           </linearGradient>
           <linearGradient id="eksporWaveBack" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#9ab8d7" stopOpacity="0.38" />
-            <stop offset="100%" stopColor="#7ea3c8" stopOpacity="0.58" />
+            <stop offset="0%" stopColor="#355b82" stopOpacity="0.45" />
+            <stop offset="100%" stopColor="#1e3b5a" stopOpacity="0.68" />
           </linearGradient>
           <linearGradient id="eksporWaveMid" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#5d87b2" stopOpacity="0.34" />
-            <stop offset="100%" stopColor="#355e88" stopOpacity="0.52" />
+            <stop offset="0%" stopColor="#1c3b5b" stopOpacity="0.58" />
+            <stop offset="100%" stopColor="#122840" stopOpacity="0.78" />
           </linearGradient>
           <linearGradient id="eksporWaveFront" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="#1d446b" stopOpacity="0.32" />
-            <stop offset="100%" stopColor="#0f2942" stopOpacity="0.56" />
+            <stop offset="0%" stopColor="#10253c" stopOpacity="0.72" />
+            <stop offset="100%" stopColor="#091626" stopOpacity="0.9" />
           </linearGradient>
         </defs>
 
         {/* Grid garis lintang & bujur maritim halus */}
-        <g stroke="#0f2942" strokeOpacity="0.055" strokeWidth="1">
+        <g stroke="#cbd5e1" strokeOpacity="0.08" strokeWidth="1">
           <line x1="0" y1="160" x2="1600" y2="160" strokeDasharray="5 7" />
           <line x1="0" y1="320" x2="1600" y2="320" strokeDasharray="5 7" />
           <line x1="0" y1="480" x2="1600" y2="480" strokeDasharray="5 7" />
@@ -132,7 +132,7 @@ function ExportWorldBackdrop() {
         </g>
 
         {/* Siluet abstrak benua & kepulauan perdagangan dunia */}
-        <g fill="#0f2942" fillOpacity="0.055">
+        <g fill="#93c5fd" fillOpacity="0.08">
           {/* Eropa & Timur Tengah (kiri atas) */}
           <path d="M120 118C158 102 214 98 262 114C295 125 322 148 308 174C292 198 242 204 202 196C155 186 98 172 92 146C88 128 102 125 120 118Z" />
           <path d="M254 222C288 214 334 228 348 258C362 288 342 332 308 338C276 344 246 312 238 278C232 252 234 228 254 222Z" />
@@ -148,13 +148,13 @@ function ExportWorldBackdrop() {
         {/* Kompas Maritim Berputar Halus di Kanan Atas */}
         <g transform="translate(1476 142)">
           <g className="auth-compass-spin">
-            <circle cx="0" cy="0" r="46" stroke="#0f2942" strokeOpacity="0.16" strokeWidth="1.5" strokeDasharray="3 5" />
-            <circle cx="0" cy="0" r="32" stroke="#0f2942" strokeOpacity="0.12" strokeWidth="1" />
-            <path d="M0 -38L6 -8L36 0L6 8L0 38L-6 8L-36 0L-6 -8Z" fill="#0f2942" fillOpacity="0.12" />
-            <path d="M0 -38L4 -6L0 0L-4 -6Z" fill="#f59e0b" fillOpacity="0.65" />
-            <path d="M0 38L4 6L0 0L-4 6Z" fill="#10b981" fillOpacity="0.55" />
+            <circle cx="0" cy="0" r="46" stroke="#cbd5e1" strokeOpacity="0.22" strokeWidth="1.5" strokeDasharray="3 5" />
+            <circle cx="0" cy="0" r="32" stroke="#cbd5e1" strokeOpacity="0.16" strokeWidth="1" />
+            <path d="M0 -38L6 -8L36 0L6 8L0 38L-6 8L-36 0L-6 -8Z" fill="#cbd5e1" fillOpacity="0.16" />
+            <path d="M0 -38L4 -6L0 0L-4 -6Z" fill="#f59e0b" fillOpacity="0.75" />
+            <path d="M0 38L4 6L0 0L-4 6Z" fill="#34d399" fillOpacity="0.65" />
           </g>
-          <circle cx="0" cy="0" r="4" fill="#0f2942" fillOpacity="0.45" />
+          <circle cx="0" cy="0" r="4" fill="#e2e8f0" fillOpacity="0.55" />
         </g>
 
         {/* Lengkungan Jalur Ekspor Dunia (Animated Trade Routes) */}
@@ -162,8 +162,8 @@ function ExportWorldBackdrop() {
           {/* Jalur Utama 1: Indonesia -> Eropa -> Amerika (Melengkung di atas kartu) */}
           <path
             d="M174 374 C 190 148, 560 54, 920 86 C 1145 106, 1280 124, 1368 152"
-            stroke="#0f2942"
-            strokeOpacity="0.1"
+            stroke="#93c5fd"
+            strokeOpacity="0.14"
             strokeWidth="2"
           />
           <path
@@ -177,8 +177,8 @@ function ExportWorldBackdrop() {
           {/* Jalur Utama 2: Eropa (Rotterdam) -> Asia Timur (Tokyo) */}
           <path
             d="M236 148 C 520 34, 1020 38, 1344 278"
-            stroke="#0f2942"
-            strokeOpacity="0.08"
+            stroke="#93c5fd"
+            strokeOpacity="0.12"
             strokeWidth="1.8"
           />
           <path
@@ -202,25 +202,25 @@ function ExportWorldBackdrop() {
         {/* Pesawat Kargo Udara Melintas Halus di Jalur Atas */}
         <g className="auth-cargo-plane">
           <g transform="translate(590 73) rotate(4)">
-            <ellipse cx="0" cy="12" rx="18" ry="4" fill="#0f2942" fillOpacity="0.08" />
+            <ellipse cx="0" cy="12" rx="18" ry="4" fill="#091626" fillOpacity="0.25" />
             <path
               d="M-16 0 L8 0 L15 -3 L19 0 L15 3 L8 2 L-2 11 L-7 11 L-2 2 L-13 2 L-17 6 L-20 6 L-17 0 L-20 -6 L-17 -6 L-13 -1 L-2 -1 L-7 -10 L-2 -10 L8 -1 Z"
-              fill="#0f2942"
-              fillOpacity="0.72"
+              fill="#e2e8f0"
+              fillOpacity="0.78"
             />
             <circle cx="11" cy="0" r="2" fill="#f59e0b" />
           </g>
         </g>
 
-        {/* Titik Hub Pelabuhan Dunia & Label Kode Pelabuhan */}
+        {/* Titik Hub Pelabuhan Dunia & Label Kode Pelabuhan (Dark Glass agar Tidak Silau) */}
         {/* Hub 1: IDN · Tanjung Priok */}
         <g transform="translate(174 374)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="14" fill="#f59e0b" fillOpacity="0.28" />
-          <circle cx="0" cy="0" r="5.5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+          <circle className="auth-port-ping" cx="0" cy="0" r="14" fill="#f59e0b" fillOpacity="0.34" />
+          <circle cx="0" cy="0" r="5.5" fill="#f59e0b" stroke="#0f2942" strokeWidth="2" />
           <g transform="translate(-16 -36)">
-            <rect x="0" y="0" width="134" height="22" rx="11" fill="#ffffff" fillOpacity="0.86" stroke="#cbd5e1" />
+            <rect x="0" y="0" width="134" height="22" rx="11" fill="#0d2137" fillOpacity="0.76" stroke="#3b6088" strokeOpacity="0.65" />
             <circle cx="11" cy="11" r="3.5" fill="#f59e0b" />
-            <text x="20" y="14.5" fill="#0f2942" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
+            <text x="20" y="14.5" fill="#e2e8f0" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
               IDN · TANJUNG PRIOK
             </text>
           </g>
@@ -228,12 +228,12 @@ function ExportWorldBackdrop() {
 
         {/* Hub 2: EUR · Rotterdam */}
         <g transform="translate(236 148)">
-          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="13" fill="#10b981" fillOpacity="0.26" />
-          <circle cx="0" cy="0" r="5" fill="#10b981" stroke="#ffffff" strokeWidth="2" />
+          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="13" fill="#34d399" fillOpacity="0.32" />
+          <circle cx="0" cy="0" r="5" fill="#34d399" stroke="#0f2942" strokeWidth="2" />
           <g transform="translate(-14 -34)">
-            <rect x="0" y="0" width="118" height="22" rx="11" fill="#ffffff" fillOpacity="0.84" stroke="#cbd5e1" />
-            <circle cx="11" cy="11" r="3.5" fill="#10b981" />
-            <text x="20" y="14.5" fill="#0f2942" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
+            <rect x="0" y="0" width="118" height="22" rx="11" fill="#0d2137" fillOpacity="0.74" stroke="#3b6088" strokeOpacity="0.65" />
+            <circle cx="11" cy="11" r="3.5" fill="#34d399" />
+            <text x="20" y="14.5" fill="#e2e8f0" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
               NLD · ROTTERDAM
             </text>
           </g>
@@ -241,12 +241,12 @@ function ExportWorldBackdrop() {
 
         {/* Hub 3: USA · Los Angeles */}
         <g transform="translate(1368 152)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="13" fill="#f59e0b" fillOpacity="0.25" />
-          <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#ffffff" strokeWidth="2" />
+          <circle className="auth-port-ping" cx="0" cy="0" r="13" fill="#f59e0b" fillOpacity="0.32" />
+          <circle cx="0" cy="0" r="5" fill="#f59e0b" stroke="#0f2942" strokeWidth="2" />
           <g transform="translate(-108 -34)">
-            <rect x="0" y="0" width="124" height="22" rx="11" fill="#ffffff" fillOpacity="0.84" stroke="#cbd5e1" />
+            <rect x="0" y="0" width="124" height="22" rx="11" fill="#0d2137" fillOpacity="0.74" stroke="#3b6088" strokeOpacity="0.65" />
             <circle cx="11" cy="11" r="3.5" fill="#f59e0b" />
-            <text x="20" y="14.5" fill="#0f2942" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
+            <text x="20" y="14.5" fill="#e2e8f0" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
               USA · LOS ANGELES
             </text>
           </g>
@@ -254,57 +254,57 @@ function ExportWorldBackdrop() {
 
         {/* Hub 4: JPN · Tokyo */}
         <g transform="translate(1344 278)">
-          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="13" fill="#10b981" fillOpacity="0.25" />
-          <circle cx="0" cy="0" r="5" fill="#10b981" stroke="#ffffff" strokeWidth="2" />
+          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="13" fill="#34d399" fillOpacity="0.32" />
+          <circle cx="0" cy="0" r="5" fill="#34d399" stroke="#0f2942" strokeWidth="2" />
           <g transform="translate(-82 12)">
-            <rect x="0" y="0" width="102" height="22" rx="11" fill="#ffffff" fillOpacity="0.84" stroke="#cbd5e1" />
-            <circle cx="11" cy="11" r="3.5" fill="#10b981" />
-            <text x="20" y="14.5" fill="#0f2942" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
+            <rect x="0" y="0" width="102" height="22" rx="11" fill="#0d2137" fillOpacity="0.74" stroke="#3b6088" strokeOpacity="0.65" />
+            <circle cx="11" cy="11" r="3.5" fill="#34d399" />
+            <text x="20" y="14.5" fill="#e2e8f0" fontSize="9.5" fontWeight="700" fontFamily="Plus Jakarta Sans, sans-serif">
               JPN · TOKYO
             </text>
           </g>
         </g>
 
         {/* Siluet Pelabuhan Peti Kemas & Gantry Crane di Sisi Kiri */}
-        <g opacity="0.46" transform="translate(26 510)">
+        <g opacity="0.58" transform="translate(26 510)">
           {/* Dermaga */}
-          <rect x="0" y="258" width="290" height="16" rx="3" fill="#1e3a5f" />
+          <rect x="0" y="258" width="290" height="16" rx="3" fill="#0c1d31" />
           {/* Tumpukan Kontainer di Dermaga */}
           <rect x="18" y="236" width="34" height="22" rx="2" fill="#0f2942" />
-          <rect x="55" y="236" width="34" height="22" rx="2" fill="#f59e0b" />
+          <rect x="55" y="236" width="34" height="22" rx="2" fill="#d97706" />
           <rect x="36" y="212" width="34" height="22" rx="2" fill="#10b981" />
           <rect x="192" y="236" width="36" height="22" rx="2" fill="#1e4976" />
-          <rect x="231" y="236" width="36" height="22" rx="2" fill="#f59e0b" />
+          <rect x="231" y="236" width="36" height="22" rx="2" fill="#d97706" />
 
           {/* Menara STS Gantry Crane Utama */}
-          <path d="M96 258L112 78H146L162 258" stroke="#163a5c" strokeWidth="6" strokeLinejoin="round" />
-          <line x1="102" y1="186" x2="156" y2="186" stroke="#163a5c" strokeWidth="4" />
-          <line x1="107" y1="132" x2="151" y2="132" stroke="#163a5c" strokeWidth="4" />
+          <path d="M96 258L112 78H146L162 258" stroke="#0e243d" strokeWidth="6" strokeLinejoin="round" />
+          <line x1="102" y1="186" x2="156" y2="186" stroke="#0e243d" strokeWidth="4" />
+          <line x1="107" y1="132" x2="151" y2="132" stroke="#0e243d" strokeWidth="4" />
           {/* Boom Lengan Crane */}
-          <path d="M44 96H272L244 74H96L44 96Z" fill="#163a5c" />
-          <line x1="128" y1="36" x2="252" y2="92" stroke="#163a5c" strokeWidth="2.5" />
-          <line x1="128" y1="36" x2="64" y2="92" stroke="#163a5c" strokeWidth="2.5" />
-          <rect x="122" y="32" width="12" height="46" fill="#163a5c" />
+          <path d="M44 96H272L244 74H96L44 96Z" fill="#0e243d" />
+          <line x1="128" y1="36" x2="252" y2="92" stroke="#0e243d" strokeWidth="2.5" />
+          <line x1="128" y1="36" x2="64" y2="92" stroke="#0e243d" strokeWidth="2.5" />
+          <rect x="122" y="32" width="12" height="46" fill="#0e243d" />
 
           {/* Trolley Kontainer Bergerak */}
           <g className="auth-crane-trolley">
-            <rect x="196" y="96" width="18" height="7" rx="2" fill="#0b192c" />
-            <line x1="201" y1="103" x2="201" y2="146" stroke="#0f2942" strokeWidth="1.8" />
-            <line x1="209" y1="103" x2="209" y2="146" stroke="#0f2942" strokeWidth="1.8" />
-            <rect x="186" y="146" width="38" height="22" rx="2.5" fill="#f59e0b" stroke="#0f2942" strokeWidth="1.8" />
+            <rect x="196" y="96" width="18" height="7" rx="2" fill="#091626" />
+            <line x1="201" y1="103" x2="201" y2="146" stroke="#cbd5e1" strokeOpacity="0.5" strokeWidth="1.8" />
+            <line x1="209" y1="103" x2="209" y2="146" stroke="#cbd5e1" strokeOpacity="0.5" strokeWidth="1.8" />
+            <rect x="186" y="146" width="38" height="22" rx="2.5" fill="#f59e0b" stroke="#091626" strokeWidth="1.8" />
           </g>
         </g>
 
         {/* Siluet Mercusuar & Terminal Pelabuhan Tujuan di Sisi Kanan */}
-        <g opacity="0.38" transform="translate(1335 565)">
-          <rect x="15" y="205" width="235" height="14" rx="3" fill="#1e3a5f" />
+        <g opacity="0.52" transform="translate(1335 565)">
+          <rect x="15" y="205" width="235" height="14" rx="3" fill="#0c1d31" />
           <rect x="42" y="183" width="36" height="22" rx="2" fill="#10b981" />
           <rect x="82" y="183" width="36" height="22" rx="2" fill="#163a5c" />
-          <rect x="62" y="160" width="36" height="22" rx="2" fill="#f59e0b" />
+          <rect x="62" y="160" width="36" height="22" rx="2" fill="#d97706" />
           {/* Menara Suar Pelabuhan */}
-          <path d="M188 205L195 106H211L218 205Z" fill="#163a5c" />
+          <path d="M188 205L195 106H211L218 205Z" fill="#0e243d" />
           <rect x="191" y="94" width="24" height="12" rx="3" fill="#f59e0b" />
-          <path d="M191 100L95 66V122L191 104Z" fill="#f59e0b" fillOpacity="0.16" />
+          <path d="M191 100L95 66V122L191 104Z" fill="#fbbf24" fillOpacity="0.2" />
         </g>
 
         {/* Ombak Belakang */}
@@ -315,15 +315,15 @@ function ExportWorldBackdrop() {
         />
 
         {/* Kapal Kontainer Jarak Jauh (Sisi Kanan Berlayar Halus) */}
-        <g className="auth-ship-far" opacity="0.62">
+        <g className="auth-ship-far" opacity="0.72">
           <g transform="translate(1285 758)">
             <rect x="26" y="12" width="24" height="12" rx="1.5" fill="#f59e0b" />
             <rect x="52" y="12" width="24" height="12" rx="1.5" fill="#10b981" />
             <rect x="78" y="12" width="24" height="12" rx="1.5" fill="#1e4976" />
             <rect x="40" y="0" width="24" height="12" rx="1.5" fill="#38bdf8" />
             <rect x="66" y="0" width="24" height="12" rx="1.5" fill="#f59e0b" />
-            <rect x="108" y="4" width="22" height="20" rx="2" fill="#f8fafc" stroke="#163a5c" strokeWidth="1.5" />
-            <rect x="113" y="9" width="12" height="4" rx="1" fill="#163a5c" />
+            <rect x="108" y="4" width="22" height="20" rx="2" fill="#e2e8f0" stroke="#0f2942" strokeWidth="1.5" />
+            <rect x="113" y="9" width="12" height="4" rx="1" fill="#0f2942" />
             <path d="M6 24H142L130 42H20L6 24Z" fill="url(#eksporHullNavy)" />
             <line x1="16" y1="35" x2="133" y2="35" stroke="#f59e0b" strokeWidth="2" />
           </g>
@@ -337,26 +337,26 @@ function ExportWorldBackdrop() {
         />
 
         {/* Kapal Kontainer Utama EksporFlow (Berlayar di Jalur Depan Kiri) */}
-        <g className="auth-ship-main" opacity="0.84">
+        <g className="auth-ship-main" opacity="0.88">
           <g transform="translate(110 784)">
             {/* Anjungan Kapal */}
-            <rect x="20" y="6" width="30" height="32" rx="3" fill="#f8fafc" stroke="#0f2942" strokeWidth="2" />
+            <rect x="20" y="6" width="30" height="32" rx="3" fill="#e2e8f0" stroke="#091626" strokeWidth="2" />
             <rect x="26" y="12" width="18" height="6" rx="1.5" fill="#0f2942" />
             <rect x="28" y="-4" width="8" height="10" rx="1.5" fill="#f59e0b" />
 
             {/* Tumpukan Peti Kemas */}
-            <rect x="56" y="22" width="34" height="16" rx="2" fill="#163a5c" stroke="#0b192c" strokeWidth="1.2" />
-            <rect x="92" y="22" width="34" height="16" rx="2" fill="#f59e0b" stroke="#0b192c" strokeWidth="1.2" />
-            <rect x="128" y="22" width="34" height="16" rx="2" fill="#10b981" stroke="#0b192c" strokeWidth="1.2" />
-            <rect x="72" y="6" width="34" height="16" rx="2" fill="#34d399" stroke="#0b192c" strokeWidth="1.2" />
-            <rect x="108" y="6" width="34" height="16" rx="2" fill="#f59e0b" stroke="#0b192c" strokeWidth="1.2" />
+            <rect x="56" y="22" width="34" height="16" rx="2" fill="#1e4976" stroke="#091626" strokeWidth="1.2" />
+            <rect x="92" y="22" width="34" height="16" rx="2" fill="#f59e0b" stroke="#091626" strokeWidth="1.2" />
+            <rect x="128" y="22" width="34" height="16" rx="2" fill="#10b981" stroke="#091626" strokeWidth="1.2" />
+            <rect x="72" y="6" width="34" height="16" rx="2" fill="#34d399" stroke="#091626" strokeWidth="1.2" />
+            <rect x="108" y="6" width="34" height="16" rx="2" fill="#f59e0b" stroke="#091626" strokeWidth="1.2" />
 
             {/* Lambung Kapal Maritim */}
             <path d="M6 38H192L172 64H20L6 38Z" fill="url(#eksporHullNavy)" />
             <path d="M16 54H179" stroke="#f59e0b" strokeWidth="2.8" />
             <circle cx="170" cy="46" r="2.5" fill="#f8fafc" />
             {/* Buih Haluan */}
-            <path d="M0 64 Q 24 59, 48 64 T 96 64" stroke="#ffffff" strokeOpacity="0.65" strokeWidth="2.5" strokeLinecap="round" />
+            <path d="M0 64 Q 24 59, 48 64 T 96 64" stroke="#93c5fd" strokeOpacity="0.45" strokeWidth="2.5" strokeLinecap="round" />
           </g>
         </g>
 
@@ -367,6 +367,9 @@ function ExportWorldBackdrop() {
           fill="url(#eksporWaveFront)"
         />
       </svg>
+
+      {/* Lapisan Kabut & Soft Blur untuk Memperkuat Kontras Kartu Form di Depannya */}
+      <div className="auth-scene-veil" />
     </div>
   );
 }
