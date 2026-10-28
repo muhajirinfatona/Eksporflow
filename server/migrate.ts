@@ -5,6 +5,16 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 import postgres from "postgres";
 
+function normalizeDatabaseUrl(raw: string): string {
+  try {
+    const parsed = new URL(raw);
+    parsed.searchParams.delete("pgbouncer");
+    return parsed.toString();
+  } catch {
+    return raw;
+  }
+}
+
 function isLocalDatabase(connectionString: string): boolean {
   try {
     return ["localhost", "127.0.0.1", "::1"].includes(new URL(connectionString).hostname);
@@ -14,9 +24,9 @@ function isLocalDatabase(connectionString: string): boolean {
 }
 
 async function runMigrations() {
-  const connectionString = process.env.DATABASE_URL?.trim();
+  const rawUrl = process.env.DATABASE_URL?.trim();
 
-  if (!connectionString) {
+  if (!rawUrl) {
     console.error(
       "\n[EksporFlow] DATABASE_URL masih kosong di file D:\\Eksporflow\\.env.\n" +
         "Silakan tempel Connection String PostgreSQL dari Supabase (Connect -> Transaction pooler port 6543) ke variabel DATABASE_URL.\n",
@@ -24,13 +34,15 @@ async function runMigrations() {
     process.exit(1);
   }
 
-  if (connectionString.includes("[YOUR-PASSWORD]") || connectionString.includes("PROJECT_REF")) {
+  if (rawUrl.includes("[YOUR-PASSWORD]") || rawUrl.includes("PROJECT_REF")) {
     console.error(
       "\n[EksporFlow] DATABASE_URL di .env masih berisi teks contoh ([YOUR-PASSWORD] / PROJECT_REF).\n" +
         "Pastikan Anda mengganti [YOUR-PASSWORD] dengan password database Supabase asli Anda (tanpa tanda kurung siku []).\n",
     );
     process.exit(1);
   }
+
+  const connectionString = normalizeDatabaseUrl(rawUrl);
 
   const currentDir = path.dirname(fileURLToPath(import.meta.url));
   const migrationsFolder = path.resolve(currentDir, "../drizzle/migrations");

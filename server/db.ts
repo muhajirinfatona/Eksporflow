@@ -6,6 +6,16 @@ import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
 
+function normalizeDatabaseUrl(raw: string): string {
+  try {
+    const parsed = new URL(raw);
+    parsed.searchParams.delete("pgbouncer");
+    return parsed.toString();
+  } catch {
+    return raw;
+  }
+}
+
 function isLocalDatabase(connectionString: string) {
   try {
     return ["localhost", "127.0.0.1", "::1"].includes(new URL(connectionString).hostname);
@@ -18,7 +28,7 @@ function isLocalDatabase(connectionString: string) {
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      const connectionString = process.env.DATABASE_URL;
+      const connectionString = normalizeDatabaseUrl(process.env.DATABASE_URL.trim());
       // prepare:false diperlukan agar kompatibel dengan Supabase transaction pooler (pgbouncer).
       // SSL diwajibkan untuk database remote seperti Supabase; database lokal tanpa SSL.
       const client = postgres(connectionString, { prepare: false, max: 10, ssl: isLocalDatabase(connectionString) ? false : "require" });
