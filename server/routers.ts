@@ -1,0 +1,123 @@
+import { COOKIE_NAME } from "@shared/const";
+import { getSessionCookieOptions } from "./_core/cookies";
+import { systemRouter } from "./_core/systemRouter";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { invokeLLM } from "./_core/llm";
+import { TRPCError } from "@trpc/server";
+import { z } from "zod";
+import { createShipment, getShipment, listShipments, ShipmentPersistenceError, updateShipment } from "./shipmentDb";
+
+import { createRateLimiter } from "./rateLimit";
+
+const assistantRateLimiter = createRateLimiter({ limit: 20, windowMs: 60 * 60 * 1000 });
+
+const shipmentSnapshot = z.record(z.string(), z.unknown());
+const shipmentLineItems = z.array(shipmentSnapshot).max(200);
+
+function persistenceError(error: unknown): never {
+  if (error instanceof ShipmentPersistenceError) {
+    const code = error.code === "FORBIDDEN" ? "FORBIDDEN" : error.code === "NOT_FOUND" ? "NOT_FOUND" : error.code === "CONFLICT" ? "CONFLICT" : "INTERNAL_SERVER_ERROR";
+    throw new TRPCError({ code, message: error.message });
+  }
+  console.error("shipment persistence failed", error);
+  throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Penyimpanan transaksi sedang tidak tersedia." });
+}
+
+export const appRouter = router({
+    // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
+  system: systemRouter,
+  auth: router({
+    me: publicProcedure.query(opts => opts.ctx.user),
+    logout: publicProcedure.mutation(({ ctx }) => {
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      return {
+        success: true,
+      } as const;
+    }),
+  }),
+
+  shipments: router({
+    list: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(50).default(25), offset: z.number().int().min(0).default(0) }))
+      .query(async ({ ctx, input }) => {
+        try {
+          return await listShipments(ctx.user.id, input);
+        } catch (error) {
+          return persistenceError(error);
+        }
+      }),
+    get: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        try {
+          return await getShipment(ctx.user.id, input.id);
+        } catch (error) {
+          return persistenceError(error);
+        }
+      }),
+    create: protectedProcedure
+      .input(z.object({ reference: z.string().trim().min(1).max(80), status: z.string().trim().min(1).max(40).default("Draft"), snapshot: shipmentSnapshot, lineItems: shipmentLineItems }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await createShipment(ctx.user.id, input);
+        } catch (error) {
+          return persistenceError(error);
+        }
+      }),
+    update: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), version: z.number().int().min(1), reference: z.string().trim().min(1).max(80), status: z.string().trim().min(1).max(40), snapshot: shipmentSnapshot, lineItems: shipmentLineItems }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await updateShipment(ctx.user.id, input);
+        } catch (error) {
+          return persistenceError(error);
+        }
+      }),
+  }),
+
+  assistant: router({
+    // Wajib login dan dibatasi per user agar kuota LLM tidak bisa disalahgunakan.
+    ask: protectedProcedure
+      .input(z.object({ question: z.string().trim().min(2).max(2000), snapshot: z.string().max(8000) }))
+      .mutation(async ({ ctx, input }) => {
+        const limit = assistantRateLimiter.check(String(ctx.user.id));
+        if (!limit.allowed) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: `Batas pertanyaan Copilot tercapai. Coba lagi dalam ${Math.ceil(limit.retryAfterMs / 60_000)} menit.`,
+          });
+        }
+        try {
+          const result = await invokeLLM({
+            model: "gpt-5-mini",
+            maxTokens: 650,
+            messages: [
+              {
+                role: "system",
+                content: "Kamu adalah EksporFlow Copilot, asisten operasional ekspor untuk eksportir Indonesia. Jawab dalam bahasa Indonesia yang ringkas, praktis, dan berbasis konteks transaksi. Bantu menjelaskan incoterm, packing, dokumen, stuffing, dan risiko operasional. Jangan mengklaim dokumen legal valid secara final, jangan menjamin buyer/perusahaan asli, dan jangan menggantikan verifikasi bea cukai, bank, forwarder, atau penasihat hukum. Jika data kurang, sebutkan data yang perlu dilengkapi. Berikan langkah tindakan yang jelas dan prioritaskan risiko terbesar terlebih dahulu. Konteks transaksi akan dikirim dalam JSON berikut:\n" + input.snapshot,
+              },
+              { role: "user", content: input.question },
+            ],
+          });
+          const content = result.choices?.[0]?.message?.content;
+          if (typeof content !== "string" || !content.trim()) throw new Error("Asisten tidak menghasilkan jawaban.");
+          // Log metadata saja (tanpa isi pertanyaan/snapshot) untuk audit biaya dan penyalahgunaan.
+          console.info("assistant.ask", { userId: ctx.user.id, questionChars: input.question.length, model: result.model });
+          return { answer: content.trim(), model: result.model };
+        } catch (error) {
+          console.error("assistant.ask failed", error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Asisten AI sedang tidak tersedia. Coba lagi sebentar." });
+        }
+      }),
+  }),
+
+  // TODO: add feature routers here, e.g.
+  // todo: router({
+  //   list: protectedProcedure.query(({ ctx }) =>
+  //     db.getUserTodos(ctx.user.id)
+  //   ),
+  // }),
+});
+
+export type AppRouter = typeof appRouter;
