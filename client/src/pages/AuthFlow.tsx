@@ -1,9 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import {
-  ArrowLeft,
-  ArrowRight,
   Building2,
-  CheckCircle2,
+  Check,
   Copy,
   Eye,
   EyeOff,
@@ -11,8 +9,6 @@ import {
   Lock,
   Mail,
   RefreshCw,
-  ShieldCheck,
-  Sparkles,
   UserRound,
 } from "lucide-react";
 import type React from "react";
@@ -31,8 +27,134 @@ function readInitialAuthStep(): AuthStep {
   return "login";
 }
 
+const SLIDES = [
+  {
+    title: "Selamat Datang!",
+    subtitle:
+      "Kelola kalkulasi Incoterms® 2020, dokumen ekspor, dan muatan kontainer 3D di atas satu workspace terpadu.",
+  },
+  {
+    title: "Satu Sumber Data",
+    subtitle:
+      "Perubahan buyer, produk, dan harga langsung tersinkron ke Invoice, Packing List, B/L Draft, dan Keuangan.",
+  },
+  {
+    title: "Aman & Terverifikasi",
+    subtitle:
+      "Dilindungi verifikasi OTP 6 digit, enkripsi kata sandi, dan penyimpanan PostgreSQL / Supabase ber-RLS.",
+  },
+];
+
+function ExportClipboardIllustration() {
+  return (
+    <svg
+      className="auth-split-svg"
+      viewBox="0 0 300 230"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      {/* Ambient pill shapes matching reference style in EksporFlow Navy/Teal/Saffron */}
+      <rect x="48" y="68" width="168" height="22" rx="11" fill="#1b4368" opacity="0.65" />
+      <rect x="34" y="102" width="218" height="26" rx="13" fill="#1b4368" opacity="0.55" />
+      <rect x="70" y="142" width="166" height="22" rx="11" fill="#1b4368" opacity="0.65" />
+      <circle cx="244" cy="96" r="10" fill="#f59e0b" opacity="0.22" />
+      <circle cx="236" cy="134" r="3.5" fill="#f8fafc" opacity="0.85" />
+      <circle cx="62" cy="54" r="2.5" fill="#34d399" opacity="0.85" />
+
+      {/* Sparkle plus icons */}
+      <path
+        d="M112 34V42M108 38H116"
+        stroke="#f59e0b"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+      <path
+        d="M214 166V172M211 169H217"
+        stroke="#34d399"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+      />
+
+      {/* Tilted Export Checklist Clipboard */}
+      <g transform="translate(152 114) rotate(-18) translate(-66 -78)">
+        {/* Drop shadow */}
+        <rect x="6" y="14" width="124" height="148" rx="12" fill="#071220" opacity="0.38" />
+        {/* Clipboard board */}
+        <rect
+          x="0"
+          y="8"
+          width="124"
+          height="148"
+          rx="11"
+          fill="#163a5c"
+          stroke="#6495bf"
+          strokeWidth="2"
+        />
+        {/* Paper sheet */}
+        <rect x="10" y="20" width="104" height="126" rx="6" fill="#ffffff" />
+        {/* Top clip */}
+        <rect
+          x="39"
+          y="0"
+          width="46"
+          height="18"
+          rx="5"
+          fill="#f59e0b"
+          stroke="#0b192c"
+          strokeWidth="2"
+        />
+        <rect x="50" y="5" width="24" height="5" rx="2.5" fill="#fef3c7" />
+
+        {/* Row 1: Checked (Mint) */}
+        <path
+          d="M24 47L29 52L38 42"
+          stroke="#10b981"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect x="48" y="42" width="52" height="5" rx="2.5" fill="#0f2942" />
+        <rect x="48" y="51" width="36" height="4" rx="2" fill="#cbd5e1" />
+
+        {/* Row 2: Saffron highlight */}
+        <path
+          d="M24 79L29 84L38 74"
+          stroke="#f59e0b"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect x="48" y="74" width="48" height="5" rx="2.5" fill="#0f2942" />
+        <rect x="48" y="83" width="40" height="4" rx="2" fill="#cbd5e1" />
+
+        {/* Row 3: Checked (Mint) */}
+        <path
+          d="M24 111L29 116L38 106"
+          stroke="#10b981"
+          strokeWidth="2.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+        <rect x="48" y="106" width="54" height="5" rx="2.5" fill="#0f2942" />
+        <rect x="48" y="115" width="30" height="4" rx="2" fill="#cbd5e1" />
+      </g>
+
+      {/* Tilted Stylus / Pen on bottom-left */}
+      <g transform="translate(88 158) rotate(-42) translate(-10 -44)">
+        <rect x="0" y="8" width="18" height="68" rx="5" fill="#34d399" stroke="#0b192c" strokeWidth="2" />
+        <rect x="4" y="14" width="4" height="46" rx="2" fill="#a7f3d0" opacity="0.8" />
+        <rect x="2" y="0" width="14" height="10" rx="3" fill="#f59e0b" stroke="#0b192c" strokeWidth="2" />
+        <path d="M2 76L9 90L16 76H2Z" fill="#f8fafc" stroke="#0b192c" strokeWidth="2" strokeLinejoin="round" />
+        <circle cx="9" cy="88" r="2" fill="#0b192c" />
+      </g>
+    </svg>
+  );
+}
+
 export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<void> }) {
   const [step, setStep] = useState<AuthStep>(readInitialAuthStep);
+  const [slideIndex, setSlideIndex] = useState<number>(0);
 
   // Form states
   const [name, setName] = useState("");
@@ -40,6 +162,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
 
   // OTP state
@@ -56,6 +179,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
   const switchStep = (next: AuthStep) => {
     setErrorMessage(null);
     setStep(next);
+    setSlideIndex(next === "login" ? 0 : next === "register" ? 1 : 2);
     try {
       const url = new URL(window.location.href);
       url.searchParams.set("auth", next);
@@ -68,10 +192,10 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
   useEffect(() => {
     document.title =
       step === "register"
-        ? "EksporFlow · Registrasi Akun"
+        ? "EksporFlow · Buat Akun"
         : step === "verify"
-          ? "EksporFlow · Verifikasi Akun"
-          : "EksporFlow · Masuk ke Workspace";
+          ? "EksporFlow · Verifikasi OTP"
+          : "EksporFlow · Masuk";
   }, [step]);
 
   useEffect(() => {
@@ -116,7 +240,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       setOtpDigits(["", "", "", "", "", ""]);
       setDevOtpHint(result.devOtpCode ?? null);
       switchStep("verify");
-      toast.success("Akun berhasil didaftarkan!", {
+      toast.success("Akun berhasil dibuat!", {
         description: `Masukkan 6 digit kode verifikasi untuk mengaktifkan workspace ${companyName.trim()}.`,
       });
     } catch (error) {
@@ -146,7 +270,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         setDevOtpHint(result.devOtpCode ?? null);
         switchStep("verify");
         toast("Verifikasi email diperlukan", {
-          description: "Kami telah membuat kode verifikasi 6 digit baru untuk akun Anda.",
+          description: "Kami telah menerbitkan kode verifikasi 6 digit baru untuk akun Anda.",
         });
         return;
       }
@@ -159,7 +283,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         // Abaikan
       }
 
-      toast.success(`Selamat datang kembali, ${result.user?.name || "Pengguna"}!`);
+      toast.success(`Selamat datang, ${result.user?.name || "Pengguna"}!`);
       await onAuthenticated();
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Gagal masuk ke akun.";
@@ -202,7 +326,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
   const handleResendCode = async () => {
     setErrorMessage(null);
     if (!email.trim()) {
-      setErrorMessage("Email tidak ditemukan. Silakan kembali ke halaman Login atau Registrasi.");
+      setErrorMessage("Masukkan alamat email Anda terlebih dahulu.");
       return;
     }
     try {
@@ -210,7 +334,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       setOtpDigits(["", "", "", "", "", ""]);
       setDevOtpHint(result.devOtpCode ?? null);
       otpRefs.current[0]?.focus();
-      toast.success("Kode verifikasi 6 digit baru telah diterbitkan.");
+      toast.success("Kode verifikasi 6 digit baru telah dikirim.");
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Gagal mengirim ulang kode.";
       setErrorMessage(msg);
@@ -226,7 +350,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       return;
     }
 
-    // Jika paste atau mengetik lebih dari 1 angka sekaligus
     if (digitsOnly.length > 1) {
       const next = [...otpDigits];
       for (let offset = 0; offset < digitsOnly.length && index + offset < 6; offset += 1) {
@@ -276,372 +399,313 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     verifyMutation.isPending ||
     resendMutation.isPending;
 
+  const activeSlide = SLIDES[slideIndex] ?? SLIDES[0];
+
   return (
-    <div className="auth-gate-shell">
-      <aside className="auth-brand-aside">
-        <div className="auth-brand-top">
-          <div className="brand-lockup clean-brand-lockup">
+    <div className="auth-stage-backdrop">
+      <div className="auth-split-window">
+        {/* Panel Kiri: Identitas & Warna Logo EksporFlow */}
+        <aside className="auth-split-left">
+          <div className="auth-split-logo">
             <div className="brand-mark">
               <span />
               <span />
             </div>
-            <div className="brand-copy">
-              <strong>
-                Ekspor<span>Flow</span>
-              </strong>
-              <small>EXPORT OPERATIONS PLATFORM</small>
-            </div>
+            <strong>
+              Ekspor<span>Flow</span>
+            </strong>
           </div>
 
-          <div className="auth-brand-hero">
-            <span className="auth-hero-pill">
-              <Sparkles size={13} /> Workspace Operasional Ekspor Terpadu
-            </span>
-            <h1>Kelola penawaran, dokumen ekspor, kontainer 3D, dan keuangan dari satu sumber data.</h1>
-            <p>
-              Dirancang untuk tim eksportir Indonesia dengan kalkulasi 7 skenario Incoterms® 2020, pemeriksaan konsistensi 3-way, serta penyimpanan database PostgreSQL / Supabase ber-RLS.
-            </p>
+          <div className="auth-split-art">
+            <ExportClipboardIllustration />
           </div>
 
-          <div className="auth-feature-list">
-            <div>
-              <CheckCircle2 size={16} />
-              <span>
-                <b>Workspace bersih &amp; terisolasi per perusahaan</b>
-                <small>Data mitra, produk, harga, dokumen, dan jurnal terhubung untuk akun Anda sendiri.</small>
-              </span>
-            </div>
-            <div>
-              <CheckCircle2 size={16} />
-              <span>
-                <b>4 dokumen ekspor siap cetak (English A4/Letter)</b>
-                <small>Proforma Invoice, Commercial Invoice, Packing List, dan B/L Reference Draft.</small>
-              </span>
-            </div>
-            <div>
-              <CheckCircle2 size={16} />
-              <span>
-                <b>Keamanan sesi &amp; verifikasi OTP 6 digit</b>
-                <small>Password terenkripsi scrypt, optimistic locking, dan audit log setiap revisi.</small>
-              </span>
+          <div className="auth-split-welcome">
+            <h1>{activeSlide.title}</h1>
+            <p>{activeSlide.subtitle}</p>
+            <div className="auth-slide-dots" role="tablist" aria-label="Sorotan fitur">
+              {SLIDES.map((s, idx) => (
+                <button
+                  key={s.title}
+                  type="button"
+                  aria-label={s.title}
+                  className={slideIndex === idx ? "active" : ""}
+                  onClick={() => setSlideIndex(idx)}
+                />
+              ))}
             </div>
           </div>
-        </div>
+        </aside>
 
-        <div className="auth-brand-footer">
-          <ShieldCheck size={15} />
-          <span>Terhubung ke PostgreSQL / Supabase · Row Level Security (RLS) Aktif</span>
-        </div>
-      </aside>
-
-      <main className="auth-form-main">
-        <div className="auth-card">
-          {/* Progress indicator 3 tahap */}
-          <div className="auth-step-pills" role="tablist" aria-label="Tahap akses akun">
-            <button
-              type="button"
-              className={step === "register" ? "active" : ""}
-              onClick={() => switchStep("register")}
-            >
-              1. Registrasi
-            </button>
-            <button
-              type="button"
-              className={step === "verify" ? "active" : ""}
-              onClick={() => {
-                if (email.trim()) {
-                  switchStep("verify");
-                } else {
-                  toast("Masukkan email melalui Registrasi atau Login terlebih dahulu.");
-                }
-              }}
-            >
-              2. Verifikasi OTP
-            </button>
-            <button
-              type="button"
-              className={step === "login" ? "active" : ""}
-              onClick={() => switchStep("login")}
-            >
-              3. Login
-            </button>
-          </div>
-
-          {errorMessage && (
-            <div className="auth-error-box" role="alert">
-              {errorMessage}
-            </div>
-          )}
-
-          {step === "login" && (
-            <form className="auth-form" onSubmit={(e) => void handleLoginSubmit(e)}>
-              <div className="auth-card-head">
-                <span className="eyebrow">MASUK KE WORKSPACE</span>
-                <h2>Selamat datang di EksporFlow</h2>
-                <p>Masuk menggunakan akun yang telah terverifikasi, atau buat akun baru untuk mulai menguji dari awal.</p>
+        {/* Panel Kanan: Form Putih Bersih & Minimalis */}
+        <main className="auth-split-right">
+          <div className="auth-clean-pane">
+            {errorMessage && (
+              <div className="auth-clean-alert" role="alert">
+                {errorMessage}
               </div>
+            )}
 
-              <label className="field">
-                <span>Email kerja</span>
-                <div className="input-shell has-prefix">
-                  <b>
-                    <Mail size={14} />
-                  </b>
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="nama@perusahaanekspor.co.id"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
+            {step === "login" && (
+              <form className="auth-minimal-form" onSubmit={(e) => void handleLoginSubmit(e)}>
+                <div className="auth-minimal-head">
+                  <h2>Log In</h2>
+                  <p>
+                    Belum punya akun?{" "}
+                    <button type="button" onClick={() => switchStep("register")}>
+                      Buat akun baru
+                    </button>
+                    <br />
+                    Hanya butuh waktu kurang dari satu menit.
+                  </p>
                 </div>
-              </label>
 
-              <label className="field">
-                <span>Kata sandi</span>
-                <div className="input-shell has-prefix has-suffix">
-                  <b>
-                    <Lock size={14} />
-                  </b>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    autoComplete="current-password"
-                    placeholder="Masukkan kata sandi"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    className="auth-eye-btn"
-                    aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
-                    onClick={() => setShowPassword((prev) => !prev)}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-              </label>
-
-              <button type="submit" className="save-button auth-submit-btn" disabled={isBusy}>
-                {loginMutation.isPending ? "Memeriksa kredensial..." : "Masuk ke Tampilan Utama"}
-                <ArrowRight size={15} />
-              </button>
-
-              <div className="auth-switch-row">
-                <span>Belum punya akun workspace?</span>
-                <button type="button" className="text-button" onClick={() => switchStep("register")}>
-                  Daftar akun baru dari awal →
-                </button>
-              </div>
-            </form>
-          )}
-
-          {step === "register" && (
-            <form className="auth-form" onSubmit={(e) => void handleRegisterSubmit(e)}>
-              <div className="auth-card-head">
-                <span className="eyebrow">REGISTRASI WORKSPACE BARU</span>
-                <h2>Buat akun eksportir baru</h2>
-                <p>Workspace Anda akan dibuat dalam kondisi bersih (tanpa data contoh mentah) agar siap diuji dengan data baru.</p>
-              </div>
-
-              <div className="form-grid two">
-                <label className="field">
-                  <span>Nama lengkap</span>
-                  <div className="input-shell has-prefix">
-                    <b>
-                      <UserRound size={14} />
-                    </b>
+                <div className="auth-line-fields">
+                  <label className="auth-line-input">
                     <input
-                      type="text"
+                      type="email"
                       required
-                      placeholder="Contoh: Arif Pratama"
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      autoComplete="email"
+                      placeholder="Email kerja"
+                      aria-label="Email kerja"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
                     />
-                  </div>
-                </label>
+                    <UserRound size={16} />
+                  </label>
 
-                <label className="field">
-                  <span>Nama perusahaan eksportir</span>
-                  <div className="input-shell has-prefix">
-                    <b>
-                      <Building2 size={14} />
-                    </b>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Contoh: PT Samudra Niaga"
-                      value={companyName}
-                      onChange={(e) => setCompanyName(e.target.value)}
-                    />
-                  </div>
-                </label>
-              </div>
-
-              <label className="field">
-                <span>Email kerja</span>
-                <div className="input-shell has-prefix">
-                  <b>
-                    <Mail size={14} />
-                  </b>
-                  <input
-                    type="email"
-                    required
-                    autoComplete="email"
-                    placeholder="arif@perusahaan.co.id"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-              </label>
-
-              <div className="form-grid two">
-                <label className="field">
-                  <span>Kata sandi (min. 8 karakter)</span>
-                  <div className="input-shell has-prefix has-suffix">
-                    <b>
-                      <Lock size={14} />
-                    </b>
+                  <label className="auth-line-input">
                     <input
                       type={showPassword ? "text" : "password"}
                       required
-                      minLength={8}
-                      autoComplete="new-password"
-                      placeholder="Minimal 8 karakter"
+                      autoComplete="current-password"
+                      placeholder="Kata sandi"
+                      aria-label="Kata sandi"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                     />
                     <button
                       type="button"
-                      className="auth-eye-btn"
+                      className="auth-line-icon-btn"
                       aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
                       onClick={() => setShowPassword((prev) => !prev)}
                     >
-                      {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      {showPassword ? <EyeOff size={16} /> : <Lock size={16} />}
                     </button>
-                  </div>
-                </label>
+                  </label>
+                </div>
 
-                <label className="field">
-                  <span>Ulangi kata sandi</span>
-                  <div className="input-shell has-prefix">
-                    <b>
-                      <KeyRound size={14} />
-                    </b>
+                <div className="auth-action-bar">
+                  <button type="submit" className="auth-primary-btn" disabled={isBusy}>
+                    {loginMutation.isPending ? "Memproses..." : "Masuk"}
+                  </button>
+
+                  <label className="auth-remember">
                     <input
-                      type={showPassword ? "text" : "password"}
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                      placeholder="Ketik ulang sandi"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      type="checkbox"
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
                     />
-                  </div>
-                </label>
-              </div>
+                    <span>
+                      <Check size={11} />
+                    </span>
+                    Ingat sesi saya
+                  </label>
+                </div>
 
-              <button type="submit" className="save-button auth-submit-btn" disabled={isBusy}>
-                {registerMutation.isPending ? "Membuat akun & kode OTP..." : "Daftar & Lanjut Verifikasi"}
-                <ArrowRight size={15} />
-              </button>
-
-              <div className="auth-switch-row">
-                <span>Sudah mendaftar akun sebelumnya?</span>
-                <button type="button" className="text-button" onClick={() => switchStep("login")}>
-                  Masuk di halaman Login →
-                </button>
-              </div>
-            </form>
-          )}
-
-          {step === "verify" && (
-            <form className="auth-form" onSubmit={(e) => void handleVerifySubmit(e)}>
-              <div className="auth-card-head">
-                <span className="eyebrow">VERIFIKASI AKUN · 6 DIGIT OTP</span>
-                <h2>Verifikasi alamat email Anda</h2>
-                <p>
-                  Masukkan 6 digit kode verifikasi untuk mengaktifkan akun{" "}
-                  <strong>{email || "Anda"}</strong> sebelum masuk ke tampilan utama.
-                </p>
-              </div>
-
-              {devOtpHint && (
-                <div className="auth-dev-otp-box">
-                  <div>
-                    <span className="eyebrow">SIMULASI EMAIL LOKAL · MODE TESTING</span>
-                    <p>
-                      Karena berjalan di server lokal tanpa SMTP eksternal, kode OTP dari database Supabase ditampilkan di sini untuk pengujian:
-                    </p>
-                    <strong className="mono-code auth-dev-otp-code">{devOtpHint}</strong>
-                  </div>
-                  <button type="button" className="ghost-button" onClick={fillDevOtp}>
-                    <Copy size={13} /> Isi Kode Otomatis
+                <div className="auth-bottom-link">
+                  <button type="button" onClick={() => switchStep("verify")}>
+                    Punya kode verifikasi OTP? Verifikasi akun
                   </button>
                 </div>
-              )}
+              </form>
+            )}
 
-              {!email.trim() && (
-                <label className="field">
-                  <span>Email yang diverifikasi</span>
-                  <div className="input-shell has-prefix">
-                    <b>
-                      <Mail size={14} />
-                    </b>
+            {step === "register" && (
+              <form className="auth-minimal-form" onSubmit={(e) => void handleRegisterSubmit(e)}>
+                <div className="auth-minimal-head">
+                  <h2>Registrasi</h2>
+                  <p>
+                    Sudah punya akun?{" "}
+                    <button type="button" onClick={() => switchStep("login")}>
+                      Masuk di sini
+                    </button>
+                    <br />
+                    Workspace baru dibuat bersih tanpa data contoh.
+                  </p>
+                </div>
+
+                <div className="auth-line-fields compact">
+                  <label className="auth-line-input">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nama lengkap Anda"
+                      aria-label="Nama lengkap"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                    <UserRound size={16} />
+                  </label>
+
+                  <label className="auth-line-input">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Nama perusahaan eksportir"
+                      aria-label="Nama perusahaan eksportir"
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                    />
+                    <Building2 size={16} />
+                  </label>
+
+                  <label className="auth-line-input">
                     <input
                       type="email"
                       required
-                      placeholder="arif@perusahaan.co.id"
+                      autoComplete="email"
+                      placeholder="Email kerja"
+                      aria-label="Email kerja"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                     />
+                    <Mail size={16} />
+                  </label>
+
+                  <div className="auth-line-two-col">
+                    <label className="auth-line-input">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        placeholder="Sandi (min. 8)"
+                        aria-label="Kata sandi"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="auth-line-icon-btn"
+                        aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </label>
+
+                    <label className="auth-line-input">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        placeholder="Ulangi sandi"
+                        aria-label="Ulangi kata sandi"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                      <KeyRound size={15} />
+                    </label>
                   </div>
-                </label>
-              )}
+                </div>
 
-              <div className="auth-otp-grid" role="group" aria-label="6 digit kode verifikasi">
-                {otpDigits.map((digit, index) => (
-                  <input
-                    key={index}
-                    ref={(el) => {
-                      otpRefs.current[index] = el;
-                    }}
-                    type="text"
-                    inputMode="numeric"
-                    maxLength={6}
-                    aria-label={`Digit ke-${index + 1}`}
-                    className="auth-otp-input mono-code"
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                    onPaste={handleOtpPaste}
-                  />
-                ))}
-              </div>
+                <div className="auth-action-bar">
+                  <button type="submit" className="auth-primary-btn" disabled={isBusy}>
+                    {registerMutation.isPending ? "Mendaftarkan..." : "Daftar Akun"}
+                  </button>
+                </div>
+              </form>
+            )}
 
-              <button type="submit" className="save-button auth-submit-btn" disabled={isBusy}>
-                {verifyMutation.isPending ? "Memverifikasi kode..." : "Verifikasi & Masuk ke Workspace"}
-                <ArrowRight size={15} />
-              </button>
+            {step === "verify" && (
+              <form className="auth-minimal-form" onSubmit={(e) => void handleVerifySubmit(e)}>
+                <div className="auth-minimal-head">
+                  <h2>Verifikasi</h2>
+                  <p>
+                    Bukan email Anda?{" "}
+                    <button type="button" onClick={() => switchStep("register")}>
+                      Ubah alamat email
+                    </button>
+                    <br />
+                    Masukkan 6 digit kode OTP untuk{" "}
+                    <strong>{email || "akun Anda"}</strong>.
+                  </p>
+                </div>
 
-              <div className="auth-verify-actions">
-                <button
-                  type="button"
-                  className="ghost-button"
-                  disabled={isBusy}
-                  onClick={() => void handleResendCode()}
-                >
-                  <RefreshCw size={13} /> {resendMutation.isPending ? "Mengirim..." : "Kirim Ulang Kode"}
-                </button>
-                <button type="button" className="text-button" onClick={() => switchStep("register")}>
-                  <ArrowLeft size={13} /> Ganti email / kembali
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-      </main>
+                {!email.trim() && (
+                  <div className="auth-line-fields compact">
+                    <label className="auth-line-input">
+                      <input
+                        type="email"
+                        required
+                        placeholder="Email yang didaftarkan"
+                        aria-label="Email yang didaftarkan"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                      />
+                      <Mail size={16} />
+                    </label>
+                  </div>
+                )}
+
+                {devOtpHint && (
+                  <div className="auth-sim-pill">
+                    <span>
+                      Kode testing lokal: <b className="mono-code">{devOtpHint}</b>
+                    </span>
+                    <button type="button" onClick={fillDevOtp}>
+                      <Copy size={12} /> Isi otomatis
+                    </button>
+                  </div>
+                )}
+
+                <div className="auth-otp-clean-row" role="group" aria-label="6 digit kode verifikasi">
+                  {otpDigits.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => {
+                        otpRefs.current[index] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      aria-label={`Digit ke-${index + 1}`}
+                      className="auth-otp-clean-box mono-code"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={handleOtpPaste}
+                    />
+                  ))}
+                </div>
+
+                <div className="auth-action-bar">
+                  <button type="submit" className="auth-primary-btn" disabled={isBusy}>
+                    {verifyMutation.isPending ? "Memverifikasi..." : "Verifikasi Akun"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="auth-resend-inline"
+                    disabled={isBusy}
+                    onClick={() => void handleResendCode()}
+                  >
+                    <RefreshCw size={13} /> {resendMutation.isPending ? "Mengirim..." : "Kirim ulang"}
+                  </button>
+                </div>
+
+                <div className="auth-bottom-link">
+                  <button type="button" onClick={() => switchStep("login")}>
+                    Kembali ke halaman Log In
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
