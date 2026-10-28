@@ -20,6 +20,37 @@ import { toast } from "sonner";
 
 type AuthStep = "login" | "register" | "verify";
 
+const HAS_LOGGED_IN_STORAGE_KEY = "eksporflow:has_logged_in";
+
+function readHasLoggedInBefore(): boolean {
+  try {
+    if (window.localStorage.getItem(HAS_LOGGED_IN_STORAGE_KEY) === "1") {
+      return true;
+    }
+    for (let i = 0; i < window.localStorage.length; i += 1) {
+      const key = window.localStorage.key(i);
+      if (
+        key &&
+        (key.startsWith("eksporflow:shipment:v2-u") ||
+          key.startsWith("eksporflow:workspace-flow:v2-u"))
+      ) {
+        return true;
+      }
+    }
+  } catch {
+    // Abaikan
+  }
+  return false;
+}
+
+function markHasLoggedInBefore(): void {
+  try {
+    window.localStorage.setItem(HAS_LOGGED_IN_STORAGE_KEY, "1");
+  } catch {
+    // Abaikan
+  }
+}
+
 function readInitialAuthStep(): AuthStep {
   try {
     const raw = new URLSearchParams(window.location.search).get("auth");
@@ -123,24 +154,25 @@ void main() {
   float persp = mix(0.42, 1.32, clamp((imgUv.y - 0.14) / 0.86, 0.0, 1.0));
 
   // Riak-riak gelombang air laut berlapis yang mengalir realistis
-  float w1 = sin((imgUv.x * 58.0 / persp + imgUv.y * 112.0 / persp) - uTime * 2.85);
-  float w2 = sin((imgUv.x * -44.0 / persp + imgUv.y * 92.0 / persp) - uTime * 2.25 + 1.9);
-  float w3 = sin((imgUv.x * 28.0 + imgUv.y * 148.0 / persp) + uTime * 1.95);
-  float w4 = sin((imgUv.x * 85.0 + imgUv.y * 190.0) - uTime * 3.4) * 0.5;
+  float w1 = sin((imgUv.x * 70.0 / persp + imgUv.y * 150.0 / persp) - uTime * 2.4);
+  float w2 = sin((imgUv.x * -52.0 / persp + imgUv.y * 120.0 / persp) - uTime * 1.9 + 1.9);
+  float w3 = sin((imgUv.x * 30.0 + imgUv.y * 210.0 / persp) + uTime * 1.6);
+  float w4 = sin((imgUv.x * 140.0 / persp + imgUv.y * 260.0 / persp) - uTime * 3.1);
 
-  float wave = w1 * 0.42 + w2 * 0.33 + w3 * 0.17 + w4 * 0.08;
+  float wave = w1 * 0.36 + w2 * 0.3 + w3 * 0.2 + w4 * 0.14;
 
-  vec2 rippleOffset = vec2(wave * 0.0048, (w1 - w2) * 0.0034) * persp * waterMask;
+  vec2 rippleOffset = vec2(wave * 0.009, (w1 - w2) * 0.006) * persp * waterMask;
   vec2 sampleUv = clamp(imgUv + rippleOffset, vec2(0.002), vec2(0.998));
 
   vec3 color = texture2D(uTex, sampleUv).rgb;
 
   // Eksposur lebih cerah & segar untuk nuansa laut siang hari
-  color = pow(color, vec3(0.88)) * 1.12;
+  color = pow(color, vec3(0.86)) * 1.14;
 
-  // Kilau putih-biru lembut di puncak riak air (sunlit wave crests)
-  float crest = pow(max(0.0, wave), 2.6) * waterMask;
-  color += vec3(0.84, 0.96, 1.0) * crest * 0.125;
+  // Bayangan lembah ombak & terang puncak ombak agar riak terlihat jelas bergerak
+  color *= 1.0 + wave * 0.085 * waterMask;
+  float crest = pow(max(0.0, wave), 3.0) * waterMask;
+  color += vec3(0.86, 0.97, 1.0) * crest * 0.42;
 
   gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
@@ -154,10 +186,6 @@ function OceanRippleCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return undefined;
 
-    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
-      return undefined;
-    }
-
     const gl = canvas.getContext("webgl", {
       alpha: false,
       antialias: false,
@@ -165,7 +193,10 @@ function OceanRippleCanvas() {
       stencil: false,
       powerPreference: "low-power",
     });
-    if (!gl) return undefined;
+    if (!gl) {
+      console.warn("[EksporFlow] WebGL tidak tersedia, riak air memakai lapisan SVG.");
+      return undefined;
+    }
 
     const compileShader = (type: number, source: string) => {
       const shader = gl.createShader(type);
@@ -173,6 +204,7 @@ function OceanRippleCanvas() {
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
       if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.warn("[EksporFlow] Shader riak air gagal:", gl.getShaderInfoLog(shader));
         gl.deleteShader(shader);
         return null;
       }
@@ -306,6 +338,110 @@ function ExportWorldBackdrop() {
 
       {/* Gradasi Sangat Ringan agar Laut Tetap Cerah & Segar */}
       <div className="auth-scene-veil" />
+
+      {/* Riak-Riak Air, Ombak Kecil & Aktivitas Kapal yang Bergerak */}
+      <svg
+        className="auth-sea-life-svg"
+        viewBox="0 0 1600 960"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          {/* Pola ombak kecil yang terus mengalir */}
+          <pattern id="eksporRippleA" width="120" height="56" patternUnits="userSpaceOnUse">
+            <path d="M8 22 q 10 -7 20 0" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M66 46 q 12 -8 24 0" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M92 12 q 7 -5 14 0" stroke="#e0f2fe" strokeOpacity="0.5" strokeWidth="1.3" strokeLinecap="round" />
+            <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="120 28" dur="9s" repeatCount="indefinite" />
+          </pattern>
+          <pattern id="eksporRippleB" width="90" height="44" patternUnits="userSpaceOnUse">
+            <path d="M14 30 q 8 -6 16 0" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1.3" strokeLinecap="round" />
+            <path d="M56 12 q 9 -6 18 0" stroke="#ffffff" strokeOpacity="0.4" strokeWidth="1.2" strokeLinecap="round" />
+            <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="-90 22" dur="7s" repeatCount="indefinite" />
+          </pattern>
+          <linearGradient id="eksporSeaFade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
+            <stop offset="22%" stopColor="#ffffff" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
+          </linearGradient>
+          <mask id="eksporSeaMask">
+            <rect x="0" y="150" width="1600" height="810" fill="url(#eksporSeaFade)" />
+          </mask>
+
+          {/* Kapal kontainer tampak atas (menghadap ke kanan) */}
+          <g id="eksporShipTop">
+            <path d="M-96 0 L-340 -58" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="3" strokeLinecap="round" />
+            <path d="M-96 0 L-340 58" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="3" strokeLinecap="round" />
+            <ellipse className="auth-ship-foam" cx="-150" cy="0" rx="62" ry="11" fill="#ffffff" fillOpacity="0.55" />
+            <path d="M-92 -17 L58 -17 Q 92 -11 100 0 Q 92 11 58 17 L-92 17 Q -99 0 -92 -17 Z" fill="#1c2c3e" stroke="#0b192c" strokeWidth="2" />
+            <rect x="-56" y="-13" width="20" height="12" rx="1.5" fill="#f59e0b" />
+            <rect x="-34" y="-13" width="20" height="12" rx="1.5" fill="#1e4976" />
+            <rect x="-12" y="-13" width="20" height="12" rx="1.5" fill="#10b981" />
+            <rect x="10" y="-13" width="20" height="12" rx="1.5" fill="#f59e0b" />
+            <rect x="32" y="-13" width="20" height="12" rx="1.5" fill="#64748b" />
+            <rect x="-56" y="1" width="20" height="12" rx="1.5" fill="#10b981" />
+            <rect x="-34" y="1" width="20" height="12" rx="1.5" fill="#f59e0b" />
+            <rect x="-12" y="1" width="20" height="12" rx="1.5" fill="#64748b" />
+            <rect x="10" y="1" width="20" height="12" rx="1.5" fill="#1e4976" />
+            <rect x="32" y="1" width="20" height="12" rx="1.5" fill="#10b981" />
+            <rect x="-84" y="-13" width="18" height="26" rx="2" fill="#f8fafc" />
+            <path d="M92 -8 Q 112 0 92 8" stroke="#ffffff" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round" />
+          </g>
+
+          {/* Kapal tunda / feeder kecil */}
+          <g id="eksporTugTop">
+            <path d="M-26 0 L-150 -26" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="2.2" strokeLinecap="round" />
+            <path d="M-26 0 L-150 26" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="2.2" strokeLinecap="round" />
+            <ellipse className="auth-ship-foam" cx="-48" cy="0" rx="26" ry="6" fill="#ffffff" fillOpacity="0.55" />
+            <path d="M-26 -9 L14 -9 Q 30 -5 34 0 Q 30 5 14 9 L-26 9 Q -30 0 -26 -9 Z" fill="#f8fafc" stroke="#0b192c" strokeWidth="1.6" />
+            <rect x="-12" y="-6" width="16" height="12" rx="2" fill="#f59e0b" />
+          </g>
+
+          <path id="eksporShipLaneA" d="M-420 700 C 300 640, 1000 600, 2050 520" />
+          <path id="eksporShipLaneB" d="M2000 300 C 1300 330, 600 345, -400 380" />
+          <path id="eksporShipLaneC" d="M1900 960 C 1500 820, 1250 700, 900 560" />
+          <path id="eksporShipLaneD" d="M-200 860 C 300 880, 800 900, 1800 840" />
+        </defs>
+
+        {/* Lapisan riak air & ombak kecil yang mengalir */}
+        <g mask="url(#eksporSeaMask)">
+          <rect className="auth-ripple-layer" x="0" y="0" width="1600" height="960" fill="url(#eksporRippleA)" />
+          <rect className="auth-ripple-layer auth-ripple-layer-b" x="0" y="0" width="1600" height="960" fill="url(#eksporRippleB)" />
+        </g>
+
+        {/* Kapal kontainer utama melintas dari kiri ke kanan */}
+        <g>
+          <animateMotion dur="46s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporShipLaneA" />
+          </animateMotion>
+          <use href="#eksporShipTop" transform="scale(0.85)" />
+        </g>
+
+        {/* Kapal kontainer jauh di dekat cakrawala bergerak ke kiri */}
+        <g>
+          <animateMotion dur="70s" begin="-25s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporShipLaneB" />
+          </animateMotion>
+          <use href="#eksporShipTop" transform="scale(0.42)" opacity="0.85" />
+        </g>
+
+        {/* Kapal feeder menuju pelabuhan dari kanan bawah */}
+        <g>
+          <animateMotion dur="38s" begin="-12s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporShipLaneC" />
+          </animateMotion>
+          <use href="#eksporShipTop" transform="scale(0.6)" />
+        </g>
+
+        {/* Kapal tunda kecil di jalur depan */}
+        <g>
+          <animateMotion dur="26s" begin="-8s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporShipLaneD" />
+          </animateMotion>
+          <use href="#eksporTugTop" transform="scale(1.1)" />
+        </g>
+      </svg>
 
       {/* Koridor Jalur Ekspor Hidup: Pesawat Kargo, Sinyal Rute & Radar Pelabuhan */}
       <svg
@@ -705,6 +841,7 @@ function ActiveSlideIllustration({ index }: { index: number }) {
 
 export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<void> }) {
   const [step, setStep] = useState<AuthStep>(readInitialAuthStep);
+  const [hasLoggedInBefore, setHasLoggedInBefore] = useState<boolean>(readHasLoggedInBefore);
   const [[slideIndex, slideDirection], setSlideTuple] = useState<[number, number]>([0, 1]);
   const [isSlidePaused, setIsSlidePaused] = useState(false);
 
@@ -859,7 +996,9 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         // Abaikan
       }
 
-      toast.success(`Selamat datang, ${result.user?.name || "Pengguna"}!`);
+      markHasLoggedInBefore();
+      setHasLoggedInBefore(true);
+      toast.success(`Selamat datang kembali, ${result.user?.name || "Pengguna"}!`);
       await onAuthenticated();
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Gagal masuk ke akun.";
@@ -889,9 +1028,17 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       } catch {
         // Abaikan
       }
-      toast.success("Email berhasil diverifikasi!", {
-        description: `Workspace ${result.user.companyName || result.user.name || "EksporFlow"} siap digunakan.`,
-      });
+      const wasReturning = hasLoggedInBefore;
+      markHasLoggedInBefore();
+      setHasLoggedInBefore(true);
+      toast.success(
+        wasReturning
+          ? `Selamat datang kembali, ${result.user.name || "Pengguna"}!`
+          : `Selamat datang, ${result.user.name || "Pengguna"}!`,
+        {
+          description: `Workspace ${result.user.companyName || result.user.name || "EksporFlow"} siap digunakan.`,
+        }
+      );
       await onAuthenticated();
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Kode verifikasi tidak valid.";
@@ -976,6 +1123,8 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     resendMutation.isPending;
 
   const activeSlide = SLIDES[slideIndex] ?? SLIDES[0];
+  const isReturningWelcome = step === "login" && hasLoggedInBefore;
+  const welcomeHeading = isReturningWelcome ? "Selamat Datang Kembali!" : "Selamat Datang!";
 
   const pointerStartX = useRef<number | null>(null);
 
@@ -1037,6 +1186,19 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
           </div>
 
           <div className="auth-split-welcome">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.h1
+                key={welcomeHeading}
+                className="auth-welcome-heading"
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.22, ease: "easeOut" }}
+              >
+                {welcomeHeading}
+              </motion.h1>
+            </AnimatePresence>
+
             <div className="auth-split-copy-stage">
               <AnimatePresence mode="wait" custom={slideDirection} initial={false}>
                 <motion.div
@@ -1049,8 +1211,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                   exit="exit"
                   transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <span className="auth-slide-kicker">{activeSlide.badge}</span>
-                  <h1>{activeSlide.title}</h1>
+                  <strong className="auth-slide-kicker">{activeSlide.title}</strong>
                   <p>{activeSlide.subtitle}</p>
                 </motion.div>
               </AnimatePresence>

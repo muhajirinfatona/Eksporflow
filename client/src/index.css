@@ -4647,6 +4647,45 @@ textarea:focus-visible {
     linear-gradient(180deg, rgba(24, 68, 104, 0.1) 0%, rgba(20, 62, 96, 0.02) 50%, rgba(16, 50, 82, 0.09) 100%);
 }
 
+.auth-sea-life-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.auth-ripple-layer {
+  animation: authRippleBreath 4.5s ease-in-out infinite alternate;
+}
+
+.auth-ripple-layer-b {
+  animation-duration: 3.4s;
+  animation-delay: -1.7s;
+}
+
+.auth-ship-foam {
+  animation: authFoamFlicker 1.6s ease-in-out infinite alternate;
+}
+
+@keyframes authRippleBreath {
+  0% {
+    opacity: 0.35;
+  }
+  100% {
+    opacity: 0.95;
+  }
+}
+
+@keyframes authFoamFlicker {
+  0% {
+    opacity: 0.45;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
 .auth-export-routes-svg {
   position: absolute;
   inset: 0;
@@ -4889,6 +4928,25 @@ textarea:focus-visible {
 
 .auth-split-copy-slide {
   width: 100%;
+}
+
+.auth-welcome-heading {
+  font-size: 27px !important;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: #ffffff;
+  margin: 0 0 10px !important;
+}
+
+.auth-split-copy-slide .auth-slide-kicker {
+  display: flex;
+  text-transform: none;
+  letter-spacing: -0.005em;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: #fbbf24;
+  margin-bottom: 6px;
 }
 
 .auth-slide-kicker {
@@ -5376,19 +5434,8 @@ textarea:focus-visible {
   }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .auth-export-photo,
-  .auth-cloud-drift,
-  .auth-water-shimmer,
-  .auth-sea-wave-lines,
-  .auth-sun-glints,
-  .auth-route-flow-gold,
-  .auth-route-flow-mint,
-  .auth-port-ping,
-  .auth-split-art-float {
-    animation: none !important;
-  }
-}
+/* Catatan: animasi latar laut sengaja tetap aktif walau OS meminta "kurangi animasi",
+   karena gerakannya lembut dan merupakan bagian identitas visual halaman masuk. */
 
 /* ==========================================================================
    12. Print / PDF Styles (Clean English A4/Letter Export Documents)
