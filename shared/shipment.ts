@@ -143,3 +143,181 @@ export const initialShipment: Shipment = {
   attachments: ["Buyer_PO_NPI-2026-118.pdf"],
   lineItems: [{ id: "item-1", description: "Organic Coconut Sugar", hsCode: "1702.90", quantity: 2400, unit: "carton", unitPrice: 18.5, weight: 12, length: 40, width: 30, height: 25, packagingType: "Karton box", shrinkageRate: 1.5, palletEnabled: true, palletCount: 60, palletLength: 120, palletWidth: 100, palletHeight: 15, palletWeight: 22 }],
 };
+
+
+const REVISION_KEYS: (keyof Shipment)[] = [
+  "reference",
+  "exporter",
+  "buyer",
+  "buyerCountry",
+  "destination",
+  "product",
+  "hsCode",
+  "currency",
+  "incoterm",
+  "paymentTerms",
+  "quantity",
+  "unit",
+  "unitPrice",
+  "packaging",
+  "inlandTransport",
+  "originHandling",
+  "customs",
+  "freight",
+  "insurance",
+  "destinationHandling",
+  "importDuty",
+  "lastMile",
+  "margin",
+  "discount",
+  "contingency",
+  "namedPlace",
+  "lineItems",
+  "paperSize",
+  "documentOrientation",
+  "documentTemplate",
+  "letterheadText",
+  "letterheadImage",
+];
+
+/**
+ * Merekam ulang objek Shipment dari snapshot JSON database/localStorage dengan fallback aman.
+ */
+export function hydrateShipment(input: {
+  reference?: string;
+  status?: string;
+  snapshot?: Record<string, unknown> | Partial<Shipment>;
+  lineItems?: Record<string, unknown>[];
+}): Shipment {
+  const raw = (input.snapshot ?? {}) as Partial<Shipment>;
+  const merged = { ...initialShipment, ...raw } as Shipment;
+  if (input.reference) merged.reference = input.reference;
+  if (input.status) merged.shipmentStatus = input.status as ShipmentStatus;
+
+  const rawItems =
+    input.lineItems && input.lineItems.length > 0
+      ? (input.lineItems as Partial<LineItem>[])
+      : Array.isArray(raw.lineItems) && raw.lineItems.length > 0
+        ? (raw.lineItems as Partial<LineItem>[])
+        : null;
+
+  const migratedItems: LineItem[] = rawItems
+    ? rawItems.map((item, idx) => ({
+        ...initialShipment.lineItems[0],
+        ...item,
+        id: String(item.id ?? `item-${idx + 1}`),
+      }))
+    : [
+        {
+          ...initialShipment.lineItems[0],
+          description: merged.product,
+          hsCode: merged.hsCode,
+          quantity: merged.quantity,
+          unit: merged.unit,
+          unitPrice: merged.unitPrice,
+          weight: merged.cartonWeight,
+          length: merged.cartonLength,
+          width: merged.cartonWidth,
+          height: merged.cartonHeight,
+        },
+      ];
+
+  return {
+    ...merged,
+    lineItems: migratedItems,
+    exporter: !raw.exporter || raw.exporter === "PT Nusantara Rasa" ? initialShipment.exporter : raw.exporter,
+    letterheadText:
+      !raw.letterheadText || String(raw.letterheadText).includes("Nusantara Rasa")
+        ? initialShipment.letterheadText
+        : raw.letterheadText,
+  };
+}
+
+/**
+ * Mengubah state Shipment menjadi payload tRPC `shipments.create` / `shipments.update`.
+ */
+export function toShipmentPersistencePayload(shipment: Shipment): {
+  reference: string;
+  status: string;
+  snapshot: Record<string, unknown>;
+  lineItems: Record<string, unknown>[];
+} {
+  const { lineItems, ...rest } = shipment;
+  return {
+    reference: shipment.reference.trim() || initialShipment.reference,
+    status: shipment.shipmentStatus,
+    snapshot: rest as unknown as Record<string, unknown>,
+    lineItems: lineItems.map((item) => ({ ...item })),
+  };
+}
+
+export function applyShipmentFieldUpdate<K extends keyof Shipment>(
+  current: Shipment,
+  key: K,
+  value: Shipment[K],
+): Shipment {
+  const next = { ...current, [key]: value } as Shipment;
+  if (REVISION_KEYS.includes(key)) {
+    next.documentRevision = Math.max(1, current.documentRevision + 1);
+  }
+  if (current.lineItems.length && (key === "product" || key === "hsCode" || key === "unit")) {
+    const lineKey = key === "product" ? "description" : key;
+    next.lineItems = current.lineItems.map((item, index) =>
+      index === 0 ? { ...item, [lineKey]: value } : item,
+    ) as LineItem[];
+  }
+  if (current.lineItems.length && key === "unitPrice") {
+    next.lineItems = current.lineItems.map((item, index) =>
+      index === 0 ? { ...item, unitPrice: value } : item,
+    ) as LineItem[];
+  }
+  return next;
+}
+
+export function applyShipmentNumberUpdate(current: Shipment, key: keyof Shipment, rawValue: string): Shipment {
+  const parsed = Number(rawValue);
+  const numericValue = Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
+  const next = { ...current, [key]: numericValue } as Shipment;
+  if (REVISION_KEYS.includes(key)) {
+    next.documentRevision = Math.max(1, current.documentRevision + 1);
+  }
+  if (key === "quantity") {
+    next.cartonQty = numericValue;
+    next.lineItems = current.lineItems.map((item, index) =>
+      index === 0 ? { ...item, quantity: numericValue } : item,
+    );
+  }
+  if (key === "unitPrice") {
+    next.lineItems = current.lineItems.map((item, index) =>
+      index === 0 ? { ...item, unitPrice: numericValue } : item,
+    );
+  }
+  if (key === "cartonQty") {
+    next.quantity = numericValue;
+  }
+  return next;
+}
+
+export function applyLineItemsUpdate(current: Shipment, items: LineItem[]): Shipment {
+  const safeItems = (items.length ? items : initialShipment.lineItems).map((item) => ({
+    ...initialShipment.lineItems[0],
+    ...item,
+  }));
+  const first = safeItems[0];
+  const totalQuantity = safeItems.reduce((sum, item) => sum + item.quantity, 0);
+  return {
+    ...current,
+    documentRevision: Math.max(1, current.documentRevision + 1),
+    lineItems: safeItems,
+    product: first.description,
+    hsCode: first.hsCode,
+    quantity: totalQuantity,
+    cartonQty: totalQuantity,
+    unit: first.unit,
+    unitPrice: first.unitPrice,
+    cartonWeight: first.weight,
+    cartonLength: first.length,
+    cartonWidth: first.width,
+    cartonHeight: first.height,
+  };
+}

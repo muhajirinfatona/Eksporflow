@@ -96,7 +96,7 @@
 - [x] Seluruh 18 layar wireframe tersedia melalui navigasi klik/query: Dashboard, Asesmen Kesiapan, Transaksi Ekspor, Harga & Order, Persetujuan, Dokumen Ekspor, Rencana Muatan, Logistik & Pengiriman, Risk Center, AI Advisor, Pengetahuan Tim, Mitra & Kontak, Katalog Produk, Keuangan, Rekonsiliasi Bank, Jurnal & Bagan Akun, Laporan & Analitik, dan Pengaturan Workspace.
 - [x] Copy UI disesuaikan untuk pekerja ekspor senior: bahasa operasional singkat, CTA spesifik, status eksplisit, dan tidak bergantung pada warna saja.
 - [x] Keterbacaan desktop ditingkatkan dari wireframe mentah: body/table text sekitar 13–14px, label sekitar 11–12px, heading halaman sekitar 28px, target interaksi nyaman, kontras tetap profesional, dan layout tetap bersih pada layar sempit.
-- [ ] Integrasikan satu per satu data transaksi aktif, kalkulator PRD, dokumen, muatan, Risk Center, Copilot, dan persistence server-side ke layar wireframe baru tanpa menurunkan fidelity visual.
+- [x] Integrasikan satu per satu data transaksi aktif, kalkulator PRD, dokumen, muatan, Risk Center, Copilot, dan persistence server-side ke layar wireframe baru tanpa menurunkan fidelity visual.
 
 
 
@@ -104,17 +104,19 @@
 
 - [x] Migration database menambahkan `workspaces`, `workspaceMembers`, `shipments`, `shipmentLineItems`, dan `shipmentAuditLogs` dengan foreign key, tenant boundary, unique reference per workspace, role workspace, version, dan timestamp.
 - [x] Protected tRPC CRUD shipment tersedia dengan limit/offset, validasi input, tenant access check, role minimum viewer/editor, optimistic locking berbasis `version`, dan audit event create/update.
-- [ ] Bind shell wireframe aktif ke endpoint protected persistence dan auth flow; localStorage belum boleh dihapus sebelum UI baru dapat membaca/menulis source of record server-side secara terverifikasi.
+- [x] Bind shell wireframe aktif ke endpoint protected persistence dan auth flow; localStorage tetap dipakai sebagai cadangan draft lokal dengan label jujur `Draft lokal browser` sementara sesi terautentikasi membaca/menulis source of record server-side (`Tersimpan di Cloud · v{version}` + banner `Konflik versi`).
 
 
 
 ## Pengembangan lanjutan — 2026-10-28
 
-- [x] Logika harga dan muatan diekstrak dari `Home.tsx` ke `shared/pricing.ts` dan `shared/container.ts`, tipe dan data awal ke `shared/shipment.ts`; fixture test vitest untuk formula net price, Incoterm, diskon, validasi, volume/berat, shrinkage, dan jumlah kontainer.
-- [x] Perbaikan bug: net weight tidak lagi jatuh ke gross weight saat shrinkage 100%.
+- [x] Logika harga dan muatan diekstrak dari `Home.tsx` ke `shared/pricing.ts` dan `shared/container.ts`, tipe dan data awal ke `shared/shipment.ts`, helper format & risiko ke `shared/format.ts` dan `shared/risk.ts`; unit test vitest untuk formula net price, Incoterm, diskon, validasi, volume/berat, shrinkage, jumlah kontainer, hydrator shipment, dan evaluasi risiko.
+- [x] Perbaikan bug: net weight tidak lagi jatuh ke gross weight saat shrinkage 100%, serta checklist legal dimuat ulang saat nomor referensi transaksi berganti.
 - [x] `assistant.ask` kini protected, dibatasi 20 pertanyaan/jam per user (in-memory, per instance), dan mencatat metadata tanpa isi pertanyaan.
 - [x] `createShipment` dan `updateShipment` atomik dalam transaksi DB; reference duplikat menghasilkan `CONFLICT`, bukan error 500.
 - [x] Workspace di-resolve lewat membership tertua sehingga anggota non-owner memakai workspace yang mengundangnya; pembuatan workspace dan membership owner dalam satu transaksi.
-- [ ] Test integrasi DB (tenant isolation, role, optimistic locking) belum ada karena membutuhkan MySQL; perubahan transaksi baru diverifikasi lewat typecheck.
+- [x] Skema Drizzle, driver database (`postgres-js`), deteksi error SQLSTATE `23505`, dan migrasi SQL (`0000_init_postgres.sql`) dimigrasikan ke PostgreSQL / Supabase lengkap dengan `ENABLE ROW LEVEL SECURITY` pada keenam tabel.
+- [x] Mode autentikasi pengembangan lokal (`/api/dev/login`, nonaktif otomatis di production) ditambahkan agar pengujian lokal + Supabase berjalan tanpa ketergantungan server OAuth eksternal.
+- [x] `client/index.html` dikembalikan ke mount React (`#root` + `/src/main.tsx`), arsip statis disimpan di `wireframe-clean-v2-static.html`, dan `Home.tsx` dipecah menjadi modul terpisah di `client/src/components/workspace/` + hook `useActiveShipment.ts` yang melayani seluruh 18 layar Clean v2.0.
+- [ ] Test integrasi DB end-to-end (tenant isolation, role, optimistic locking terhadap instance PostgreSQL/Supabase nyata) menunggu konfigurasi `DATABASE_URL` pada file `.env`.
 - [ ] Rate limit multi-instance memerlukan penyimpanan bersama (mis. Redis).
-- [ ] Pecah sisa `Home.tsx` (572 baris) menjadi komponen per modul.

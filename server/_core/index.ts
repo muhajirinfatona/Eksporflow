@@ -3,6 +3,7 @@ import express from "express";
 import { createServer } from "http";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
+import { registerDevAuthRoutes } from "../devAuth";
 import { publicPlatformScript } from "./publicConfig";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
@@ -35,6 +36,7 @@ async function startServer() {
     res.json({ success: true });
   });
   registerOAuthRoutes(app);
+  registerDevAuthRoutes(app);
   // tRPC API
   app.use(
     "/api/trpc",

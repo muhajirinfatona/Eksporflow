@@ -1,0 +1,598 @@
+import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
+import type { ScreenId } from "@shared/risk";
+import {
+  AlertTriangle,
+  BarChart3,
+  BookOpen,
+  Bot,
+  Box,
+  Building2,
+  Calculator,
+  CheckCircle2,
+  ChevronRight,
+  ClipboardCheck,
+  Cloud,
+  FileSpreadsheet,
+  FileText,
+  Landmark,
+  LayoutGrid,
+  ListChecks,
+  LogIn,
+  LogOut,
+  Menu,
+  Package,
+  PanelLeftClose,
+  PanelLeftOpen,
+  RefreshCcw,
+  Save,
+  Search,
+  Settings2,
+  ShieldAlert,
+  Truck,
+  Users,
+  Wallet,
+} from "lucide-react";
+import type React from "react";
+import { useMemo, useState } from "react";
+import { IconButton, StatusPill } from "./Primitives";
+
+export type ScreenMeta = {
+  id: ScreenId;
+  label: string;
+  group: string;
+  phase: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+};
+
+export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
+  {
+    group: "Ringkasan",
+    items: [
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        group: "Ringkasan",
+        phase: "WORKSPACE · RINGKASAN",
+        title: "Siapkan ekspor tanpa pindah-pindah alat.",
+        description:
+          "Satu sumber data terhubung untuk memantau penawaran, kesiapan dokumen, muatan kontainer, dan langkah prioritas hari ini.",
+        icon: <LayoutGrid size={16} />,
+      },
+      {
+        id: "readiness",
+        label: "Asesmen Kesiapan",
+        group: "Ringkasan",
+        phase: "MULAI EKSPOR · PANDUAN KESIAPAN",
+        title: "Asesmen Kesiapan Ekspor",
+        description:
+          "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
+        icon: <CheckCircle2 size={16} />,
+      },
+    ],
+  },
+  {
+    group: "Penjualan",
+    items: [
+      {
+        id: "transactions",
+        label: "Transaksi Ekspor",
+        group: "Penjualan",
+        phase: "SALES · ORDER WORKSPACE",
+        title: "Transaksi Ekspor",
+        description:
+          "Kelola daftar transaksi workspace di database cloud, pantau nomor versi, dan buka kembali shipment kapan saja.",
+        icon: <ListChecks size={16} />,
+      },
+      {
+        id: "pricing",
+        label: "Harga & Order",
+        group: "Penjualan",
+        phase: "SALES · QUOTE BUILDER",
+        title: "Harga & Order",
+        description:
+          "Kalkulasi biaya logistik, kepabeanan, contingency, dan harga jual bersih di 7 skenario Incoterms® 2020.",
+        icon: <Calculator size={16} />,
+      },
+      {
+        id: "approvals",
+        label: "Persetujuan",
+        group: "Penjualan",
+        phase: "SALES · REVIEW & CONTROL",
+        title: "Persetujuan",
+        description:
+          "Tinjau perubahan harga, margin, atau Incoterm secara terstruktur sebelum quotation dikirim ke buyer.",
+        icon: <ClipboardCheck size={16} />,
+      },
+    ],
+  },
+  {
+    group: "Operasional Ekspor",
+    items: [
+      {
+        id: "documents",
+        label: "Dokumen Ekspor",
+        group: "Operasional Ekspor",
+        phase: "OPERASIONAL EKSPOR · DOCUMENT CENTER",
+        title: "Dokumen Ekspor",
+        description:
+          "Siapkan Proforma Invoice, Commercial Invoice, Packing List, dan B/L draft dari satu sumber data transaksi.",
+        icon: <FileText size={16} />,
+      },
+      {
+        id: "cargo",
+        label: "Rencana Muatan",
+        group: "Operasional Ekspor",
+        phase: "OPERASIONAL EKSPOR · PACKING PLAN",
+        title: "Rencana Muatan & Simulasi 3D",
+        description:
+          "Hitung kapasitas volume/berat kontainer, pallet kayu, dan susut komoditas tanpa mencampur layar dokumen.",
+        icon: <Box size={16} />,
+      },
+      {
+        id: "shipment",
+        label: "Logistik & Pengiriman",
+        group: "Operasional Ekspor",
+        phase: "OPERASIONAL EKSPOR · CONTROL TOWER",
+        title: "Logistik & Pengiriman",
+        description:
+          "Pantau tahapan shipment, nomor booking/kontainer/seal, handoff checklist, dan arsip bukti transaksi.",
+        icon: <Truck size={16} />,
+      },
+      {
+        id: "risk",
+        label: "Risk Center",
+        group: "Operasional Ekspor",
+        phase: "OPERASIONAL EKSPOR · REVIEW & EVIDENCE",
+        title: "Risk Center",
+        description:
+          "Tampilkan temuan konsistensi 3-way, kelengkapan bukti PO/email, dan checklist verifikasi sebelum keberangkatan.",
+        icon: <ShieldAlert size={16} />,
+      },
+    ],
+  },
+  {
+    group: "Advisor & Pengetahuan",
+    items: [
+      {
+        id: "advisor",
+        label: "AI Advisor",
+        group: "Advisor & Pengetahuan",
+        phase: "ADVISOR · MODE BELAJAR & TRANSAKSI",
+        title: "AI Advisor",
+        description:
+          "Tanyakan risiko, skenario Incoterm, atau kelengkapan dokumen berdasarkan snapshot transaksi yang sedang dibuka.",
+        icon: <Bot size={16} />,
+      },
+      {
+        id: "knowledge",
+        label: "Pengetahuan Tim",
+        group: "Advisor & Pengetahuan",
+        phase: "ADVISOR · GOVERNANCE SUMBER",
+        title: "Pengetahuan Tim",
+        description:
+          "Kelola SOP internal dan panduan pasar dengan batas scope, masa berlaku, dan pemisahan uploader vs reviewer.",
+        icon: <BookOpen size={16} />,
+      },
+    ],
+  },
+  {
+    group: "Data Utama",
+    items: [
+      {
+        id: "partners",
+        label: "Mitra & Kontak",
+        group: "Data Utama",
+        phase: "DATA UTAMA · BUYER & KONTAK",
+        title: "Mitra & Kontak",
+        description:
+          "Simpan identitas buyer, negara tujuan, dan terms pembayaran agar tidak diketik berulang kali.",
+        icon: <Users size={16} />,
+      },
+      {
+        id: "products",
+        label: "Katalog Produk",
+        group: "Data Utama",
+        phase: "DATA UTAMA · SPESIFIKASI PRODUK",
+        title: "Katalog Produk",
+        description:
+          "Kelola spesifikasi kemasan standar dan HS Code referensi untuk ditambahkan cepat ke transaksi.",
+        icon: <Package size={16} />,
+      },
+    ],
+  },
+  {
+    group: "Keuangan & Analitik",
+    items: [
+      {
+        id: "finance",
+        label: "Keuangan",
+        group: "Keuangan & Analitik",
+        phase: "P2 · AKUNTANSI INTI",
+        title: "Keuangan (AR / AP)",
+        description:
+          "Pantau rencana piutang dan kontrol pemisahan antara dokumen perdagangan dengan pengakuan pendapatan akuntansi.",
+        icon: <Wallet size={16} />,
+      },
+      {
+        id: "bank",
+        label: "Rekonsiliasi Bank",
+        group: "Keuangan & Analitik",
+        phase: "P2 · BANK MATCHING",
+        title: "Rekonsiliasi Bank",
+        description:
+          "Tinjau saran pencocokan pembayaran uang muka/pelunasan dan kurs realisasi sebelum posting Finance.",
+        icon: <Landmark size={16} />,
+      },
+      {
+        id: "journals",
+        label: "Jurnal & Bagan Akun",
+        group: "Keuangan & Analitik",
+        phase: "P2 · LEDGER CONTROL",
+        title: "Jurnal & Bagan Akun",
+        description:
+          "Pratinjau jurnal double-entry seimbang dengan kontrol jejak sumber dan kebijakan koreksi via reversal.",
+        icon: <FileSpreadsheet size={16} />,
+      },
+      {
+        id: "reports",
+        label: "Laporan & Analitik",
+        group: "Keuangan & Analitik",
+        phase: "P2 · MARGIN SHIPMENT",
+        title: "Laporan & Analitik",
+        description:
+          "Evaluasi struktur biaya, estimasi margin per shipment, dan pemisahan tegas antara asumsi quote vs realisasi.",
+        icon: <BarChart3 size={16} />,
+      },
+    ],
+  },
+  {
+    group: "Administrasi",
+    items: [
+      {
+        id: "settings",
+        label: "Pengaturan Workspace",
+        group: "Administrasi",
+        phase: "P0 · ADMIN & GOVERNANCE",
+        title: "Pengaturan Workspace",
+        description:
+          "Kelola sesi autentikasi, status koneksi PostgreSQL / Supabase, keamanan RLS, dan ekspor portabilitas data.",
+        icon: <Settings2 size={16} />,
+      },
+    ],
+  },
+];
+
+export const ALL_SCREENS: ScreenMeta[] = NAV_GROUPS.flatMap((g) => g.items);
+
+export function getScreenMeta(screen: ScreenId): ScreenMeta {
+  return ALL_SCREENS.find((item) => item.id === screen) ?? ALL_SCREENS[0];
+}
+
+function renderPersistenceBadge(
+  user: { name?: string | null } | null,
+  saveState: PersistenceSaveState,
+  version: number,
+  activeShipmentId: string | null,
+) {
+  if (!user) {
+    return <StatusPill tone="gray">Draft lokal browser</StatusPill>;
+  }
+  if (saveState === "saving") {
+    return <StatusPill tone="blue">Menyimpan ke Cloud...</StatusPill>;
+  }
+  if (saveState === "saved" && activeShipmentId) {
+    return <StatusPill tone="green">Tersimpan di Cloud · v{version}</StatusPill>;
+  }
+  if (saveState === "conflict") {
+    return <StatusPill tone="red">Konflik versi · muat ulang</StatusPill>;
+  }
+  if (saveState === "error") {
+    return <StatusPill tone="red">Gagal simpan</StatusPill>;
+  }
+  return (
+    <StatusPill tone="amber">
+      {activeShipmentId ? `Perubahan belum disimpan · v${version}` : "Draft baru belum di Cloud"}
+    </StatusPill>
+  );
+}
+
+export function WorkspaceShell({
+  screen,
+  navigate,
+  exporterName,
+  reference,
+  user,
+  saveState,
+  statusNote,
+  version,
+  activeShipmentId,
+  onSave,
+  onReloadLatest,
+  onReset,
+  onLogin,
+  onLogout,
+  children,
+}: {
+  screen: ScreenId;
+  navigate: (next: ScreenId) => void;
+  exporterName: string;
+  reference: string;
+  user: { name?: string | null; email?: string | null } | null;
+  saveState: PersistenceSaveState;
+  statusNote: string | null;
+  version: number;
+  activeShipmentId: string | null;
+  onSave: () => Promise<void>;
+  onReloadLatest: () => Promise<void>;
+  onReset: () => void;
+  onLogin: () => Promise<void>;
+  onLogout: () => Promise<void>;
+  children: React.ReactNode;
+}) {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const activeMeta = getScreenMeta(screen);
+
+  const matchingScreens = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return [];
+    return ALL_SCREENS.filter(
+      (item) =>
+        item.label.toLowerCase().includes(q) ||
+        item.group.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q),
+    ).slice(0, 6);
+  }, [searchTerm]);
+
+  const userInitials = (user?.name || "EF")
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
+  return (
+    <div className={`app-shell ${sidebarOpen ? "sidebar-is-open" : "sidebar-is-closed"}`}>
+      <aside className="sidebar clean-sidebar">
+        <div className="brand-lockup clean-brand-lockup">
+          <div className="brand-mark">
+            <span />
+            <span />
+          </div>
+          <div>
+            <strong>
+              Ekspor<span>Flow</span>
+            </strong>
+            <small>EXPORT OPERATIONS</small>
+          </div>
+        </div>
+
+        <div className="workspace-switcher clean-workspace-box">
+          <div className="workspace-avatar">
+            <Building2 size={14} />
+          </div>
+          <div>
+            <b>{exporterName}</b>
+            <small>{user ? `Cloud aktif · ${reference}` : `Draft lokal · ${reference}`}</small>
+          </div>
+        </div>
+
+        <nav className="clean-nav-scroll" aria-label="Navigasi utama EksporFlow">
+          {NAV_GROUPS.map((group) => (
+            <div className="clean-nav-group" key={group.group}>
+              <span className="clean-nav-group-title">{group.group}</span>
+              {group.items.map((item) => (
+                <button
+                  type="button"
+                  key={item.id}
+                  className={`clean-nav-item ${screen === item.id ? "active" : ""}`}
+                  onClick={() => {
+                    navigate(item.id);
+                    if (window.innerWidth <= 820) setSidebarOpen(false);
+                  }}
+                >
+                  <span className="nav-icon">{item.icon}</span>
+                  <span>{item.label}</span>
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+
+        <div className="sidebar-bottom clean-sidebar-footer">
+          <div className="user-row">
+            <div className="user-avatar">{userInitials}</div>
+            <div>
+              <b>{user ? user.name || "Pengguna Workspace" : "Belum Masuk Akun"}</b>
+              <small>{user ? "PostgreSQL / Supabase" : "Mode draft browser"}</small>
+            </div>
+            {user ? (
+              <button
+                type="button"
+                className="sidebar-auth-btn"
+                title="Keluar sesi"
+                onClick={() => void onLogout()}
+              >
+                <LogOut size={14} />
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="sidebar-auth-btn"
+                title="Masuk akun"
+                onClick={() => void onLogin()}
+              >
+                <LogIn size={14} />
+              </button>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      <main className="main-content">
+        <header className="topbar">
+          <div className="breadcrumbs">
+            <span>{activeMeta.group}</span>
+            <ChevronRight size={14} />
+            <b>{activeMeta.label}</b>
+          </div>
+
+          <div className="topbar-actions">
+            {searchOpen && (
+              <div className="top-search-wrap">
+                <div className="top-search">
+                  <Search size={15} />
+                  <input
+                    autoFocus
+                    value={searchTerm}
+                    onChange={(event) => setSearchTerm(event.target.value)}
+                    placeholder="Loncat ke menu..."
+                    onKeyDown={(event) => {
+                      if (event.key === "Escape") {
+                        setSearchOpen(false);
+                        setSearchTerm("");
+                      } else if (event.key === "Enter" && matchingScreens[0]) {
+                        navigate(matchingScreens[0].id);
+                        setSearchOpen(false);
+                        setSearchTerm("");
+                      }
+                    }}
+                  />
+                </div>
+                {matchingScreens.length > 0 && (
+                  <div className="top-search-dropdown">
+                    {matchingScreens.map((m) => (
+                      <button
+                        type="button"
+                        key={m.id}
+                        onClick={() => {
+                          navigate(m.id);
+                          setSearchOpen(false);
+                          setSearchTerm("");
+                        }}
+                      >
+                        <b>{m.label}</b>
+                        <small>{m.group}</small>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <IconButton
+              label="Cari halaman"
+              onClick={() => setSearchOpen((open) => !open)}
+            >
+              <Search size={17} />
+            </IconButton>
+
+            <IconButton label="Pengaturan Workspace" onClick={() => navigate("settings")}>
+              <Settings2 size={17} />
+            </IconButton>
+
+            {!user ? (
+              <button type="button" className="ghost-button" onClick={() => void onLogin()}>
+                <Cloud size={14} /> Masuk untuk Cloud
+              </button>
+            ) : null}
+
+            <button
+              type="button"
+              className="save-button"
+              disabled={saveState === "saving"}
+              onClick={() => void onSave()}
+            >
+              <Save size={15} />
+              {saveState === "saving"
+                ? "Menyimpan..."
+                : user
+                  ? "Simpan ke Cloud"
+                  : "Simpan Draft"}
+            </button>
+          </div>
+        </header>
+
+        <div className="page-wrap">
+          <div className="mobile-toolbar">
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Buka menu"
+            >
+              <Menu size={19} />
+            </button>
+            <span>EksporFlow · {activeMeta.label}</span>
+            <IconButton label="Simpan" onClick={() => void onSave()}>
+              <Save size={17} />
+            </IconButton>
+          </div>
+
+          {saveState === "conflict" && (
+            <div className="conflict-banner">
+              <div>
+                <AlertTriangle size={16} />
+                <span>
+                  <b>Konflik versi terdeteksi:</b> {statusNote || "Transaksi telah diperbarui dari sesi lain."} Muat versi terbaru sebelum menyimpan kembali agar tidak menimpa data tim.
+                </span>
+              </div>
+              {activeShipmentId && (
+                <button
+                  type="button"
+                  className="save-button"
+                  onClick={() => void onReloadLatest()}
+                >
+                  <RefreshCcw size={14} /> Muat Versi Terbaru
+                </button>
+              )}
+            </div>
+          )}
+
+          <section className="page-heading">
+            <div>
+              <span className="eyebrow">
+                {activeMeta.phase} · {reference}
+              </span>
+              <h1>{activeMeta.title}</h1>
+              <p>{activeMeta.description}</p>
+            </div>
+            <div className="heading-actions">
+              <button className="ghost-button" type="button" onClick={onReset}>
+                <RefreshCcw size={14} /> Reset contoh
+              </button>
+              {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
+            </div>
+          </section>
+
+          {children}
+        </div>
+      </main>
+
+      {!sidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-reopen"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Buka navigasi"
+        >
+          <PanelLeftOpen size={18} />
+        </button>
+      )}
+      {sidebarOpen && (
+        <button
+          type="button"
+          className="sidebar-collapse"
+          onClick={() => setSidebarOpen(false)}
+          aria-label="Tutup navigasi"
+        >
+          <PanelLeftClose size={16} />
+        </button>
+      )}
+    </div>
+  );
+}
