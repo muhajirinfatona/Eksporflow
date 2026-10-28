@@ -4564,42 +4564,279 @@ textarea:focus-visible {
 }
 
 .auth-stage-backdrop {
+  position: relative;
+  overflow: hidden;
   min-height: 100vh;
   width: 100%;
   display: grid;
   place-items: center;
   padding: 32px 20px;
   background:
-    radial-gradient(circle at 12% 16%, rgba(15, 41, 66, 0.08) 0%, transparent 42%),
-    radial-gradient(circle at 86% 22%, rgba(52, 211, 153, 0.1) 0%, transparent 38%),
-    radial-gradient(circle at 78% 88%, rgba(245, 158, 11, 0.09) 0%, transparent 42%),
-    linear-gradient(145deg, #e9f0f7 0%, #f4f7fb 52%, #eaf1f8 100%);
+    radial-gradient(circle at 14% 18%, rgba(15, 41, 66, 0.1) 0%, transparent 44%),
+    radial-gradient(circle at 86% 18%, rgba(16, 185, 129, 0.13) 0%, transparent 40%),
+    radial-gradient(circle at 82% 84%, rgba(245, 158, 11, 0.12) 0%, transparent 42%),
+    linear-gradient(180deg, #e7f0fa 0%, #f1f6fc 48%, #d7e6f5 100%);
+}
+
+/* Animated Maritime & Global Export Backdrop Scene */
+.auth-export-scene {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.auth-export-scene-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.auth-scene-glow {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(58px);
+  opacity: 0.48;
+  animation: authOrbDrift 14s ease-in-out infinite alternate;
+}
+
+.auth-scene-glow-navy {
+  width: 340px;
+  height: 340px;
+  left: -80px;
+  top: 12%;
+  background: rgba(20, 55, 88, 0.18);
+}
+
+.auth-scene-glow-mint {
+  width: 300px;
+  height: 300px;
+  right: 4%;
+  top: 8%;
+  background: rgba(52, 211, 153, 0.22);
+  animation-delay: -4s;
+}
+
+.auth-scene-glow-saffron {
+  width: 320px;
+  height: 320px;
+  left: 16%;
+  bottom: 6%;
+  background: rgba(245, 158, 11, 0.2);
+  animation-delay: -8s;
+}
+
+.auth-route-flow-gold {
+  animation: authRouteDash 22s linear infinite;
+}
+
+.auth-route-flow-mint {
+  animation: authRouteDashReverse 28s linear infinite;
+}
+
+.auth-port-ping {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: authPortPulse 3.2s ease-out infinite;
+}
+
+.auth-port-ping-delay {
+  animation-delay: 1.6s;
+}
+
+.auth-cargo-plane {
+  animation: authCargoPlaneGlide 18s ease-in-out infinite alternate;
+}
+
+.auth-crane-trolley {
+  animation: authCraneTrolleyMove 7.5s ease-in-out infinite alternate;
+}
+
+.auth-ship-main {
+  animation: authShipMainCruise 16s ease-in-out infinite alternate;
+}
+
+.auth-ship-far {
+  animation: authShipFarCruise 20s ease-in-out infinite alternate;
+}
+
+.auth-wave-slow {
+  animation: authWaveDrift 15s ease-in-out infinite alternate;
+}
+
+.auth-wave-mid {
+  animation: authWaveDriftReverse 11s ease-in-out infinite alternate;
+}
+
+.auth-wave-fast {
+  animation: authWaveDrift 8.5s ease-in-out infinite alternate;
+}
+
+.auth-compass-spin {
+  transform-origin: 0px 0px;
+  animation: authCompassRotate 64s linear infinite;
+}
+
+@keyframes authOrbDrift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  100% {
+    transform: translate3d(22px, -18px, 0) scale(1.08);
+  }
+}
+
+@keyframes authRouteDash {
+  to {
+    stroke-dashoffset: -220;
+  }
+}
+
+@keyframes authRouteDashReverse {
+  to {
+    stroke-dashoffset: 200;
+  }
+}
+
+@keyframes authPortPulse {
+  0% {
+    transform: scale(0.45);
+    opacity: 0.85;
+  }
+  75% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+@keyframes authCargoPlaneGlide {
+  0% {
+    transform: translate3d(-120px, 14px, 0);
+  }
+  50% {
+    transform: translate3d(120px, -8px, 0);
+  }
+  100% {
+    transform: translate3d(340px, 12px, 0);
+  }
+}
+
+@keyframes authCraneTrolleyMove {
+  0% {
+    transform: translateX(-28px);
+  }
+  100% {
+    transform: translateX(26px);
+  }
+}
+
+@keyframes authShipMainCruise {
+  0% {
+    transform: translate3d(-16px, 0px, 0) rotate(-0.4deg);
+  }
+  50% {
+    transform: translate3d(38px, -4px, 0) rotate(0.5deg);
+  }
+  100% {
+    transform: translate3d(92px, 1px, 0) rotate(-0.3deg);
+  }
+}
+
+@keyframes authShipFarCruise {
+  0% {
+    transform: translate3d(24px, 0px, 0);
+  }
+  100% {
+    transform: translate3d(-68px, -3px, 0);
+  }
+}
+
+@keyframes authWaveDrift {
+  0% {
+    transform: translateX(-28px);
+  }
+  100% {
+    transform: translateX(28px);
+  }
+}
+
+@keyframes authWaveDriftReverse {
+  0% {
+    transform: translateX(24px);
+  }
+  100% {
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes authCompassRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes authArtFloat {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
 }
 
 .auth-split-window {
+  position: relative;
+  z-index: 2;
   width: 100%;
-  max-width: 900px;
-  min-height: 545px;
+  max-width: 910px;
+  min-height: 556px;
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.82);
   overflow: hidden;
   display: grid;
   grid-template-columns: 1.12fr 1fr;
   box-shadow:
-    0 26px 65px rgba(11, 25, 44, 0.16),
-    0 4px 16px rgba(11, 25, 44, 0.06);
+    0 30px 70px rgba(11, 25, 44, 0.2),
+    0 8px 22px rgba(11, 25, 44, 0.08);
 }
 
 /* Left Panel — EksporFlow Logo Colors (Deep Navy + Saffron + Mint) */
 .auth-split-left {
   background: linear-gradient(155deg, #0b192c 0%, #0f2942 56%, #143758 100%);
   color: #f8fafc;
-  padding: 36px 40px 34px;
+  padding: 34px 38px 32px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   position: relative;
   overflow: hidden;
+  user-select: none;
+}
+
+.auth-split-left-orb {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 999px;
+  right: -70px;
+  top: 22%;
+  background: radial-gradient(circle, rgba(52, 211, 153, 0.14) 0%, rgba(245, 158, 11, 0.08) 45%, transparent 72%);
+  pointer-events: none;
+}
+
+.auth-split-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 1;
 }
 
 .auth-split-logo {
@@ -4620,45 +4857,109 @@ textarea:focus-visible {
   color: var(--saffron);
 }
 
+.auth-slide-counter {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: rgba(226, 232, 240, 0.72);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  padding: 3px 10px;
+}
+
 .auth-split-art {
+  position: relative;
+  height: 220px;
   display: grid;
   place-items: center;
-  margin: 10px 0 6px;
+  margin: 8px 0 4px;
   z-index: 1;
+}
+
+.auth-split-art-frame {
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+
+.auth-split-art-float {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  animation: authArtFloat 5s ease-in-out infinite;
 }
 
 .auth-split-svg {
   width: 100%;
-  max-width: 285px;
+  max-width: 288px;
   height: auto;
   display: block;
 }
 
 .auth-split-welcome {
   z-index: 1;
-  max-width: 340px;
+  max-width: 360px;
+}
+
+.auth-split-copy-stage {
+  min-height: 124px;
+  display: flex;
+  align-items: flex-end;
+  margin-bottom: 16px;
+}
+
+.auth-split-copy-slide {
+  width: 100%;
+}
+
+.auth-slide-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: #fbbf24;
+  margin-bottom: 7px;
+}
+
+.auth-slide-kicker::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #34d399;
 }
 
 .auth-split-welcome h1 {
-  font-size: 27px;
-  font-weight: 600;
+  font-size: 24px;
+  font-weight: 700;
   letter-spacing: -0.02em;
-  line-height: 1.2;
+  line-height: 1.24;
   color: #ffffff;
   margin: 0 0 8px;
 }
 
 .auth-split-welcome p {
   font-size: 13px;
-  line-height: 1.55;
+  line-height: 1.56;
   color: #cbd5e1;
-  margin: 0 0 18px;
+  margin: 0;
+}
+
+.auth-slide-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .auth-slide-dots {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 
 .auth-slide-dots button {
@@ -4666,15 +4967,46 @@ textarea:focus-visible {
   height: 9px;
   padding: 0;
   border-radius: 999px;
-  border: 1.5px solid rgba(248, 250, 252, 0.72);
-  background: transparent;
-  transition: all 0.18s ease;
+  border: 1.5px solid rgba(248, 250, 252, 0.65);
+  background: rgba(248, 250, 252, 0.14);
+  transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-slide-dots button:hover {
+  border-color: #ffffff;
+  background: rgba(248, 250, 252, 0.35);
 }
 
 .auth-slide-dots button.active {
+  width: 28px;
   background: var(--saffron);
   border-color: var(--saffron);
-  transform: scale(1.1);
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.45);
+}
+
+.auth-slide-arrows {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.auth-slide-arrows button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 252, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  color: #e2e8f0;
+  display: inline-grid;
+  place-items: center;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+.auth-slide-arrows button:hover {
+  background: rgba(245, 158, 11, 0.22);
+  border-color: var(--saffron);
+  color: #ffffff;
 }
 
 /* Right Panel — Clean Minimalist Form */
@@ -4989,19 +5321,26 @@ textarea:focus-visible {
     min-height: 0;
   }
   .auth-split-left {
-    padding: 26px 26px 24px;
-    gap: 14px;
+    padding: 24px 24px 22px;
+    gap: 10px;
   }
   .auth-split-art {
-    display: none;
+    height: 152px;
+    margin: 2px 0;
+  }
+  .auth-split-svg {
+    max-width: 196px;
+  }
+  .auth-split-copy-stage {
+    min-height: 102px;
+    margin-bottom: 12px;
   }
   .auth-split-welcome h1 {
-    font-size: 21px;
-    margin-bottom: 4px;
+    font-size: 20px;
+    margin-bottom: 5px;
   }
   .auth-split-welcome p {
     font-size: 12.5px;
-    margin-bottom: 12px;
   }
   .auth-split-right {
     padding: 30px 26px 32px;
@@ -5018,6 +5357,24 @@ textarea:focus-visible {
   }
   .auth-split-right {
     padding: 26px 20px 28px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-scene-glow,
+  .auth-route-flow-gold,
+  .auth-route-flow-mint,
+  .auth-port-ping,
+  .auth-cargo-plane,
+  .auth-crane-trolley,
+  .auth-ship-main,
+  .auth-ship-far,
+  .auth-wave-slow,
+  .auth-wave-mid,
+  .auth-wave-fast,
+  .auth-compass-spin,
+  .auth-split-art-float {
+    animation: none !important;
   }
 }
 
