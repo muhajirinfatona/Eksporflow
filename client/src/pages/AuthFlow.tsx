@@ -75,10 +75,221 @@ const SLIDE_VARIANTS = {
  * Latar belakang animasi bertema ekspor maritim & jaringan perdagangan global
  * yang mengelilingi kartu login tanpa mengganggu keterbacaan form.
  */
+const VERTEX_SHADER_SRC = `
+attribute vec2 aPos;
+varying vec2 vScreenUv;
+void main() {
+  vScreenUv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5);
+  gl_Position = vec4(aPos, 0.0, 1.0);
+}
+`;
+
+const FRAGMENT_SHADER_SRC = `
+precision highp float;
+varying vec2 vScreenUv;
+uniform sampler2D uTex;
+uniform vec2 uResolution;
+uniform vec2 uImageSize;
+uniform float uTime;
+
+float distToSegment(vec2 p, vec2 a, vec2 b) {
+  vec2 pa = p - a;
+  vec2 ba = b - a;
+  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+  return length(pa - ba * h);
+}
+
+void main() {
+  float screenAspect = uResolution.x / max(uResolution.y, 1.0);
+  float imageAspect = uImageSize.x / max(uImageSize.y, 1.0);
+
+  vec2 focal = screenAspect < 1.0 ? vec2(0.36, 0.58) : vec2(0.35, 0.52);
+  vec2 scale = screenAspect > imageAspect
+    ? vec2(1.0, imageAspect / screenAspect)
+    : vec2(screenAspect / imageAspect, 1.0);
+
+  // Gerakan kamera udara sangat halus di atas laut
+  vec2 camDrift = vec2(sin(uTime * 0.22) * 0.012, cos(uTime * 0.18) * 0.008);
+  vec2 imgUv = (vScreenUv - focal) * (scale * 0.94) + focal + camDrift;
+
+  // Mask area air laut (langit, dermaga crane kiri atas, dan badan kapal tetap tajam)
+  float horizonMask = smoothstep(0.14, 0.24, imgUv.y);
+  float pierZone = (1.0 - smoothstep(0.45, 0.53, imgUv.x)) * (1.0 - smoothstep(0.21, 0.27, imgUv.y));
+  float shipDist = distToSegment(imgUv, vec2(0.235, 0.535), vec2(0.525, 0.805));
+  float shipMask = smoothstep(0.058, 0.105, shipDist);
+  float waterMask = horizonMask * (1.0 - pierZone) * shipMask;
+
+  // Perspektif kedalaman laut: riak lebih rapat di cakrawala, lebih lebar di dekat kamera
+  float persp = mix(0.42, 1.32, clamp((imgUv.y - 0.14) / 0.86, 0.0, 1.0));
+
+  // Riak-riak gelombang air laut berlapis yang mengalir realistis
+  float w1 = sin((imgUv.x * 58.0 / persp + imgUv.y * 112.0 / persp) - uTime * 2.85);
+  float w2 = sin((imgUv.x * -44.0 / persp + imgUv.y * 92.0 / persp) - uTime * 2.25 + 1.9);
+  float w3 = sin((imgUv.x * 28.0 + imgUv.y * 148.0 / persp) + uTime * 1.95);
+  float w4 = sin((imgUv.x * 85.0 + imgUv.y * 190.0) - uTime * 3.4) * 0.5;
+
+  float wave = w1 * 0.42 + w2 * 0.33 + w3 * 0.17 + w4 * 0.08;
+
+  vec2 rippleOffset = vec2(wave * 0.0048, (w1 - w2) * 0.0034) * persp * waterMask;
+  vec2 sampleUv = clamp(imgUv + rippleOffset, vec2(0.002), vec2(0.998));
+
+  vec3 color = texture2D(uTex, sampleUv).rgb;
+
+  // Eksposur lebih cerah & segar untuk nuansa laut siang hari
+  color = pow(color, vec3(0.88)) * 1.12;
+
+  // Kilau putih-biru lembut di puncak riak air (sunlit wave crests)
+  float crest = pow(max(0.0, wave), 2.6) * waterMask;
+  color += vec3(0.84, 0.96, 1.0) * crest * 0.125;
+
+  gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
+}
+`;
+
+function OceanRippleCanvas() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return undefined;
+
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) {
+      return undefined;
+    }
+
+    const gl = canvas.getContext("webgl", {
+      alpha: false,
+      antialias: false,
+      depth: false,
+      stencil: false,
+      powerPreference: "low-power",
+    });
+    if (!gl) return undefined;
+
+    const compileShader = (type: number, source: string) => {
+      const shader = gl.createShader(type);
+      if (!shader) return null;
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    };
+
+    const vs = compileShader(gl.VERTEX_SHADER, VERTEX_SHADER_SRC);
+    const fs = compileShader(gl.FRAGMENT_SHADER, FRAGMENT_SHADER_SRC);
+    if (!vs || !fs) return undefined;
+
+    const program = gl.createProgram();
+    if (!program) return undefined;
+    gl.attachShader(program, vs);
+    gl.attachShader(program, fs);
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+      gl.deleteProgram(program);
+      return undefined;
+    }
+
+    gl.useProgram(program);
+
+    const buffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW
+    );
+
+    const aPos = gl.getAttribLocation(program, "aPos");
+    gl.enableVertexAttribArray(aPos);
+    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+    const uResolution = gl.getUniformLocation(program, "uResolution");
+    const uImageSize = gl.getUniformLocation(program, "uImageSize");
+    const uTime = gl.getUniformLocation(program, "uTime");
+
+    const texture = gl.createTexture();
+    let rafId = 0;
+    let disposed = false;
+    let imgWidth = 1600;
+    let imgHeight = 900;
+
+    const syncSize = () => {
+      if (!canvas || disposed) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+      const w = Math.max(1, Math.floor(window.innerWidth * dpr));
+      const h = Math.max(1, Math.floor(window.innerHeight * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      gl.viewport(0, 0, canvas.width, canvas.height);
+    };
+
+    syncSize();
+    window.addEventListener("resize", syncSize, { passive: true });
+
+    const img = new Image();
+    img.decoding = "async";
+    img.src = "/images/export-backdrop.jpg";
+
+    img.onload = () => {
+      if (disposed) return;
+      imgWidth = img.naturalWidth || 1600;
+      imgHeight = img.naturalHeight || 900;
+
+      gl.bindTexture(gl.TEXTURE_2D, texture);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
+
+      setReady(true);
+      const start = performance.now();
+
+      const render = (now: number) => {
+        if (disposed) return;
+        if (!document.hidden) {
+          syncSize();
+          gl.uniform2f(uResolution, canvas.width, canvas.height);
+          gl.uniform2f(uImageSize, imgWidth, imgHeight);
+          gl.uniform1f(uTime, (now - start) * 0.001);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        }
+        rafId = window.requestAnimationFrame(render);
+      };
+
+      rafId = window.requestAnimationFrame(render);
+    };
+
+    return () => {
+      disposed = true;
+      window.cancelAnimationFrame(rafId);
+      window.removeEventListener("resize", syncSize);
+      if (texture) gl.deleteTexture(texture);
+      if (buffer) gl.deleteBuffer(buffer);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
+      gl.deleteProgram(program);
+    };
+  }, []);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={`auth-ocean-canvas ${ready ? "ready" : ""}`}
+    />
+  );
+}
+
 function ExportWorldBackdrop() {
   return (
     <div className="auth-export-scene" aria-hidden="true">
-      {/* Fotografi Udara Pelabuhan & Kapal Kontainer Ekspor dengan Gerakan Kamera Drone Halus */}
+      {/* Gambar dasar instan + Kanvas WebGL Riak Air Laut Real-Time 60fps */}
       <div className="auth-export-photo-wrap">
         <img
           src="/images/export-backdrop.jpg"
@@ -86,17 +297,17 @@ function ExportWorldBackdrop() {
           className="auth-export-photo"
           decoding="async"
         />
+        <OceanRippleCanvas />
       </div>
 
-      {/* Awan Pesisir & Kilau Cahaya Permukaan Laut yang Bergerak Mengalir */}
+      {/* Awan Pesisir Tipis yang Berarak */}
       <div className="auth-cloud-drift auth-cloud-drift-a" />
       <div className="auth-cloud-drift auth-cloud-drift-b" />
-      <div className="auth-water-shimmer" />
 
-      {/* Gradasi Tipis Seimbang (Tetap Terang & Segar namun Kontras dengan Kartu) */}
+      {/* Gradasi Sangat Ringan agar Laut Tetap Cerah & Segar */}
       <div className="auth-scene-veil" />
 
-      {/* Koridor Jalur Ekspor Hidup: Pesawat Kargo, Sinyal Rute, Kilau Air & Radar Pelabuhan */}
+      {/* Koridor Jalur Ekspor Hidup: Pesawat Kargo, Sinyal Rute & Radar Pelabuhan */}
       <svg
         className="auth-export-routes-svg"
         viewBox="0 0 1600 960"
@@ -130,16 +341,8 @@ function ExportWorldBackdrop() {
           />
         </defs>
 
-        {/* Gelombang Kilau Permukaan Laut yang Mengalun Halus */}
-        <g className="auth-sea-wave-lines" stroke="#ffffff" strokeLinecap="round">
-          <path d="M90 610 Q 155 598, 220 610 T 350 610" strokeOpacity="0.26" strokeWidth="1.6" />
-          <path d="M1220 520 Q 1290 508, 1360 520 T 1500 520" strokeOpacity="0.24" strokeWidth="1.5" />
-          <path d="M1140 690 Q 1215 676, 1290 690 T 1440 690" strokeOpacity="0.28" strokeWidth="1.6" />
-          <path d="M140 855 Q 225 840, 310 855 T 480 855" strokeOpacity="0.25" strokeWidth="1.6" />
-        </g>
-
         {/* Jalur Udara Atas + Aliran Garis */}
-        <use href="#eksporPathSky" stroke="#ffffff" strokeOpacity="0.22" strokeWidth="1.4" />
+        <use href="#eksporPathSky" stroke="#ffffff" strokeOpacity="0.24" strokeWidth="1.4" />
         <use
           href="#eksporPathSky"
           className="auth-route-flow-gold"
@@ -150,7 +353,7 @@ function ExportWorldBackdrop() {
         />
 
         {/* Jalur Laut Bawah + Aliran Garis */}
-        <use href="#eksporPathSeaLower" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="1.2" />
+        <use href="#eksporPathSeaLower" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.2" />
         <use
           href="#eksporPathSeaLower"
           className="auth-route-flow-mint"
@@ -175,8 +378,7 @@ function ExportWorldBackdrop() {
           <animateMotion dur="10s" repeatCount="indefinite" rotate="auto">
             <mpath href="#eksporPathSky" />
           </animateMotion>
-          {/* Ekor cahaya pesawat */}
-          <line x1="-38" y1="0" x2="-8" y2="0" stroke="#fbbf24" strokeWidth="2.4" strokeOpacity="0.75" strokeLinecap="round" />
+          <line x1="-38" y1="0" x2="-8" y2="0" stroke="#fbbf24" strokeWidth="2.4" strokeOpacity="0.8" strokeLinecap="round" />
           <path
             d="M-11 0 L6 0 L12 -2.2 L15 0 L12 2.2 L6 1.5 L-1 9 L-5 9 L-1 1.5 L-9 1.5 L-12 5 L-14.5 5 L-12 0 L-14.5 -5 L-12 -5 L-9 -1.5 L-1 -1.5 L-5 -9 L-1 -9 L6 -1.5 Z"
             fill="#ffffff"
@@ -189,8 +391,8 @@ function ExportWorldBackdrop() {
           <animateMotion dur="8s" repeatCount="indefinite" rotate="auto">
             <mpath href="#eksporPathSeaLower" />
           </animateMotion>
-          <line x1="-32" y1="0" x2="0" y2="0" stroke="#34d399" strokeWidth="3" strokeOpacity="0.7" strokeLinecap="round" />
-          <circle cx="0" cy="0" r="7" fill="#34d399" fillOpacity="0.35" />
+          <line x1="-32" y1="0" x2="0" y2="0" stroke="#34d399" strokeWidth="3" strokeOpacity="0.75" strokeLinecap="round" />
+          <circle cx="0" cy="0" r="7" fill="#34d399" fillOpacity="0.38" />
           <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
         </g>
 
@@ -199,36 +401,27 @@ function ExportWorldBackdrop() {
           <animateMotion dur="7s" begin="-3s" repeatCount="indefinite" rotate="auto">
             <mpath href="#eksporPathEast" />
           </animateMotion>
-          <line x1="-26" y1="0" x2="0" y2="0" stroke="#fbbf24" strokeWidth="2.8" strokeOpacity="0.75" strokeLinecap="round" />
-          <circle cx="0" cy="0" r="6.5" fill="#fbbf24" fillOpacity="0.35" />
+          <line x1="-26" y1="0" x2="0" y2="0" stroke="#fbbf24" strokeWidth="2.8" strokeOpacity="0.8" strokeLinecap="round" />
+          <circle cx="0" cy="0" r="6.5" fill="#fbbf24" fillOpacity="0.38" />
           <circle cx="0" cy="0" r="3.2" fill="#ffffff" />
         </g>
 
         {/* Titik Radar Pelabuhan Berdenyut Aktif */}
         <g transform="translate(226 202)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.8" fill="#fbbf24" fillOpacity="0.22" />
+          <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.8" fill="#fbbf24" fillOpacity="0.24" />
           <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.4" fill="none" />
           <circle cx="0" cy="0" r="4.5" fill="#fbbf24" stroke="#ffffff" strokeWidth="1.6" />
         </g>
 
         <g transform="translate(1412 192)">
-          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.8" fill="#34d399" fillOpacity="0.22" />
+          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.8" fill="#34d399" fillOpacity="0.24" />
           <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.4" fill="none" />
           <circle cx="0" cy="0" r="4.5" fill="#34d399" stroke="#ffffff" strokeWidth="1.6" />
         </g>
 
         <g transform="translate(215 802)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="14" stroke="#34d399" strokeWidth="1.6" fill="#34d399" fillOpacity="0.2" />
+          <circle className="auth-port-ping" cx="0" cy="0" r="14" stroke="#34d399" strokeWidth="1.6" fill="#34d399" fillOpacity="0.22" />
           <circle cx="0" cy="0" r="4" fill="#34d399" stroke="#ffffff" strokeWidth="1.5" />
-        </g>
-
-        {/* Kilau Cahaya Matahari di Atas Air Laut */}
-        <g className="auth-sun-glints" fill="#ffffff">
-          <circle cx="152" cy="495" r="2.2" />
-          <circle cx="284" cy="548" r="1.8" />
-          <circle cx="1296" cy="438" r="2.2" />
-          <circle cx="1438" cy="592" r="2" />
-          <circle cx="1342" cy="768" r="2.4" />
         </g>
       </svg>
     </div>
