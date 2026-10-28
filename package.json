@@ -4,15 +4,15 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx watch server/_core/index.ts",
+    "dev": "tsx watch server/_core/index.ts",
     "build": "vite build && esbuild server/_core/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
-    "start": "NODE_ENV=production node dist/index.js",
+    "start": "node -e \"process.env.NODE_ENV='production';import('./dist/index.js')\"",
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
-    "db:push": "drizzle-kit generate && drizzle-kit migrate",
-    "db:migrate": "drizzle-kit migrate",
-    "dev:static": "vite --host 0.0.0.0 --port ${PORT:-3000} --strictPort",
+    "db:push": "drizzle-kit generate && tsx server/migrate.ts",
+    "db:migrate": "tsx server/migrate.ts",
+    "dev:static": "vite --host 0.0.0.0 --port 3000 --strictPort",
     "build:static": "vite build"
   },
   "dependencies": {

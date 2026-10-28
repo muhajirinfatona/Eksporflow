@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { defineConfig } from "drizzle-kit";
 
 // `drizzle-kit generate` hanya membaca schema dan tidak membutuhkan koneksi database;
