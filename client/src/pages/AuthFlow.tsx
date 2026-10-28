@@ -78,7 +78,7 @@ const SLIDE_VARIANTS = {
 function ExportWorldBackdrop() {
   return (
     <div className="auth-export-scene" aria-hidden="true">
-      {/* Fotografi Udara Pelabuhan & Kapal Kontainer Ekspor Resolusi Tinggi */}
+      {/* Fotografi Udara Pelabuhan & Kapal Kontainer Ekspor dengan Gerakan Kamera Drone Halus */}
       <div className="auth-export-photo-wrap">
         <img
           src="/images/export-backdrop.jpg"
@@ -88,10 +88,15 @@ function ExportWorldBackdrop() {
         />
       </div>
 
-      {/* Lapisan Gradasi Atmosfer agar Kontras Tajam dengan Panel Navy maupun Form Putih */}
+      {/* Awan Pesisir & Kilau Cahaya Permukaan Laut yang Bergerak Mengalir */}
+      <div className="auth-cloud-drift auth-cloud-drift-a" />
+      <div className="auth-cloud-drift auth-cloud-drift-b" />
+      <div className="auth-water-shimmer" />
+
+      {/* Gradasi Tipis Seimbang (Tetap Terang & Segar namun Kontras dengan Kartu) */}
       <div className="auth-scene-veil" />
 
-      {/* Aksen Garis Rute Navigasi Maritim Tipis & Tajam (Responsif Penuh Tanpa Teks Blur) */}
+      {/* Koridor Jalur Ekspor Hidup: Pesawat Kargo, Sinyal Rute, Kilau Air & Radar Pelabuhan */}
       <svg
         className="auth-export-routes-svg"
         viewBox="0 0 1600 960"
@@ -101,55 +106,129 @@ function ExportWorldBackdrop() {
       >
         <defs>
           <linearGradient id="eksporArcGold" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0" />
-            <stop offset="50%" stopColor="#fbbf24" stopOpacity="0.65" />
-            <stop offset="100%" stopColor="#34d399" stopOpacity="0" />
+            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.1" />
+            <stop offset="50%" stopColor="#fbbf24" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#34d399" stopOpacity="0.2" />
           </linearGradient>
           <linearGradient id="eksporArcMint" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#34d399" stopOpacity="0" />
-            <stop offset="50%" stopColor="#38bdf8" stopOpacity="0.55" />
-            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0" />
+            <stop offset="0%" stopColor="#34d399" stopOpacity="0.15" />
+            <stop offset="50%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.2" />
           </linearGradient>
+
+          <path
+            id="eksporPathSky"
+            d="M80 285 C 430 48, 1080 42, 1520 245"
+          />
+          <path
+            id="eksporPathSeaLower"
+            d="M120 760 C 540 905, 1070 895, 1510 700"
+          />
+          <path
+            id="eksporPathEast"
+            d="M1180 910 C 1275 650, 1385 430, 1515 190"
+          />
         </defs>
 
-        <path
-          d="M110 250 C 420 58, 1080 52, 1490 230"
-          stroke="#ffffff"
-          strokeOpacity="0.1"
-          strokeWidth="1.2"
-        />
-        <path
-          className="auth-route-flow-gold"
-          d="M110 250 C 420 58, 1080 52, 1490 230"
-          stroke="url(#eksporArcGold)"
-          strokeWidth="1.8"
-          strokeDasharray="8 14"
-          strokeLinecap="round"
-        />
-
-        <path
-          d="M160 760 C 560 885, 1060 875, 1480 715"
-          stroke="#ffffff"
-          strokeOpacity="0.08"
-          strokeWidth="1"
-        />
-        <path
-          className="auth-route-flow-mint"
-          d="M160 760 C 560 885, 1060 875, 1480 715"
-          stroke="url(#eksporArcMint)"
-          strokeWidth="1.6"
-          strokeDasharray="6 14"
-          strokeLinecap="round"
-        />
-
-        <g transform="translate(218 192)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="10" fill="#fbbf24" fillOpacity="0.35" />
-          <circle cx="0" cy="0" r="3.5" fill="#fbbf24" />
+        {/* Gelombang Kilau Permukaan Laut yang Mengalun Halus */}
+        <g className="auth-sea-wave-lines" stroke="#ffffff" strokeLinecap="round">
+          <path d="M90 610 Q 155 598, 220 610 T 350 610" strokeOpacity="0.26" strokeWidth="1.6" />
+          <path d="M1220 520 Q 1290 508, 1360 520 T 1500 520" strokeOpacity="0.24" strokeWidth="1.5" />
+          <path d="M1140 690 Q 1215 676, 1290 690 T 1440 690" strokeOpacity="0.28" strokeWidth="1.6" />
+          <path d="M140 855 Q 225 840, 310 855 T 480 855" strokeOpacity="0.25" strokeWidth="1.6" />
         </g>
 
-        <g transform="translate(1394 184)">
-          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="10" fill="#34d399" fillOpacity="0.35" />
-          <circle cx="0" cy="0" r="3.5" fill="#34d399" />
+        {/* Jalur Udara Atas + Aliran Garis */}
+        <use href="#eksporPathSky" stroke="#ffffff" strokeOpacity="0.22" strokeWidth="1.4" />
+        <use
+          href="#eksporPathSky"
+          className="auth-route-flow-gold"
+          stroke="url(#eksporArcGold)"
+          strokeWidth="2.4"
+          strokeDasharray="10 12"
+          strokeLinecap="round"
+        />
+
+        {/* Jalur Laut Bawah + Aliran Garis */}
+        <use href="#eksporPathSeaLower" stroke="#ffffff" strokeOpacity="0.18" strokeWidth="1.2" />
+        <use
+          href="#eksporPathSeaLower"
+          className="auth-route-flow-mint"
+          stroke="url(#eksporArcMint)"
+          strokeWidth="2.2"
+          strokeDasharray="8 12"
+          strokeLinecap="round"
+        />
+
+        {/* Jalur Laut Sisi Kanan */}
+        <use
+          href="#eksporPathEast"
+          className="auth-route-flow-gold"
+          stroke="url(#eksporArcGold)"
+          strokeWidth="2"
+          strokeDasharray="7 12"
+          strokeLinecap="round"
+        />
+
+        {/* Pesawat Kargo Ekspor Melintas Aktif Mengikuti Lengkungan Jalur Atas */}
+        <g>
+          <animateMotion dur="10s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporPathSky" />
+          </animateMotion>
+          {/* Ekor cahaya pesawat */}
+          <line x1="-38" y1="0" x2="-8" y2="0" stroke="#fbbf24" strokeWidth="2.4" strokeOpacity="0.75" strokeLinecap="round" />
+          <path
+            d="M-11 0 L6 0 L12 -2.2 L15 0 L12 2.2 L6 1.5 L-1 9 L-5 9 L-1 1.5 L-9 1.5 L-12 5 L-14.5 5 L-12 0 L-14.5 -5 L-12 -5 L-9 -1.5 L-1 -1.5 L-5 -9 L-1 -9 L6 -1.5 Z"
+            fill="#ffffff"
+          />
+          <circle cx="8" cy="0" r="1.8" fill="#f59e0b" />
+        </g>
+
+        {/* Sinyal Kargo Maritim #1 Meluncur di Jalur Laut Bawah */}
+        <g>
+          <animateMotion dur="8s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporPathSeaLower" />
+          </animateMotion>
+          <line x1="-32" y1="0" x2="0" y2="0" stroke="#34d399" strokeWidth="3" strokeOpacity="0.7" strokeLinecap="round" />
+          <circle cx="0" cy="0" r="7" fill="#34d399" fillOpacity="0.35" />
+          <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+        </g>
+
+        {/* Sinyal Kargo Maritim #2 Meluncur di Jalur Timur */}
+        <g>
+          <animateMotion dur="7s" begin="-3s" repeatCount="indefinite" rotate="auto">
+            <mpath href="#eksporPathEast" />
+          </animateMotion>
+          <line x1="-26" y1="0" x2="0" y2="0" stroke="#fbbf24" strokeWidth="2.8" strokeOpacity="0.75" strokeLinecap="round" />
+          <circle cx="0" cy="0" r="6.5" fill="#fbbf24" fillOpacity="0.35" />
+          <circle cx="0" cy="0" r="3.2" fill="#ffffff" />
+        </g>
+
+        {/* Titik Radar Pelabuhan Berdenyut Aktif */}
+        <g transform="translate(226 202)">
+          <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.8" fill="#fbbf24" fillOpacity="0.22" />
+          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.4" fill="none" />
+          <circle cx="0" cy="0" r="4.5" fill="#fbbf24" stroke="#ffffff" strokeWidth="1.6" />
+        </g>
+
+        <g transform="translate(1412 192)">
+          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.8" fill="#34d399" fillOpacity="0.22" />
+          <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.4" fill="none" />
+          <circle cx="0" cy="0" r="4.5" fill="#34d399" stroke="#ffffff" strokeWidth="1.6" />
+        </g>
+
+        <g transform="translate(215 802)">
+          <circle className="auth-port-ping" cx="0" cy="0" r="14" stroke="#34d399" strokeWidth="1.6" fill="#34d399" fillOpacity="0.2" />
+          <circle cx="0" cy="0" r="4" fill="#34d399" stroke="#ffffff" strokeWidth="1.5" />
+        </g>
+
+        {/* Kilau Cahaya Matahari di Atas Air Laut */}
+        <g className="auth-sun-glints" fill="#ffffff">
+          <circle cx="152" cy="495" r="2.2" />
+          <circle cx="284" cy="548" r="1.8" />
+          <circle cx="1296" cy="438" r="2.2" />
+          <circle cx="1438" cy="592" r="2" />
+          <circle cx="1342" cy="768" r="2.4" />
         </g>
       </svg>
     </div>

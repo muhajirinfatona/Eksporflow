@@ -4531,9 +4531,9 @@ textarea:focus-visible {
    ========================================================================== */
 .auth-loading-screen {
   min-height: 100vh;
-  background: radial-gradient(circle at 18% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
-    radial-gradient(circle at 82% 80%, rgba(245, 158, 11, 0.1), transparent 45%),
-    linear-gradient(160deg, #1b324b 0%, #24405e 48%, #15283d 100%);
+  background: radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.16), transparent 45%),
+    radial-gradient(circle at 82% 80%, rgba(52, 211, 153, 0.14), transparent 45%),
+    linear-gradient(160deg, #3a6485 0%, #48779a 48%, #2e5473 100%);
   display: grid;
   place-items: center;
   padding: 24px;
@@ -4572,10 +4572,10 @@ textarea:focus-visible {
   display: grid;
   place-items: center;
   padding: clamp(16px, 3.5vw, 36px) clamp(12px, 3vw, 28px);
-  background: #27445f;
+  background: #3d6889;
 }
 
-/* Responsive Aerial Maritime Export Backdrop (All Devices) */
+/* Responsive Aerial Maritime Export Backdrop (Bright, Fluid & Alive Across All Devices) */
 .auth-export-scene {
   position: fixed;
   inset: 0;
@@ -4584,7 +4584,7 @@ textarea:focus-visible {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-  background: #27445f;
+  background: #3d6889;
 }
 
 .auth-export-photo-wrap {
@@ -4601,18 +4601,55 @@ textarea:focus-visible {
   display: block;
   object-fit: cover;
   object-position: 34% 52%;
-  filter: brightness(0.92) contrast(1.04) saturate(1.05);
+  filter: brightness(1.07) contrast(1.03) saturate(1.12);
   transform-origin: center center;
   will-change: transform;
-  animation: authPhotoKenBurns 24s ease-in-out infinite alternate;
+  animation: authPhotoDroneGlide 13s ease-in-out infinite alternate;
+}
+
+/* Lapisan Awan Pesisir & Kilau Air Bergerak Mengalir agar Tidak Kaku */
+.auth-cloud-drift {
+  position: absolute;
+  inset: -10% -35%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.auth-cloud-drift-a {
+  background:
+    radial-gradient(ellipse 34% 16% at 22% 16%, rgba(255, 255, 255, 0.34) 0%, transparent 72%),
+    radial-gradient(ellipse 38% 18% at 76% 22%, rgba(255, 255, 255, 0.28) 0%, transparent 72%);
+  animation: authCloudGlideRight 18s ease-in-out infinite alternate;
+}
+
+.auth-cloud-drift-b {
+  background:
+    radial-gradient(ellipse 30% 15% at 48% 12%, rgba(255, 255, 255, 0.25) 0%, transparent 70%),
+    radial-gradient(ellipse 32% 16% at 84% 78%, rgba(186, 230, 253, 0.22) 0%, transparent 72%);
+  animation: authCloudGlideLeft 22s ease-in-out infinite alternate;
+}
+
+.auth-water-shimmer {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      112deg,
+      transparent 20%,
+      rgba(255, 255, 255, 0.14) 38%,
+      rgba(52, 211, 153, 0.1) 50%,
+      transparent 66%
+    );
+  background-size: 220% 220%;
+  animation: authOceanShimmer 9s ease-in-out infinite alternate;
 }
 
 .auth-scene-veil {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 50% 50%, rgba(11, 25, 44, 0.24) 0%, rgba(9, 21, 36, 0.42) 100%),
-    linear-gradient(180deg, rgba(16, 38, 60, 0.5) 0%, rgba(19, 45, 70, 0.2) 46%, rgba(11, 27, 45, 0.44) 100%);
+    radial-gradient(circle at 50% 50%, rgba(15, 38, 62, 0.12) 0%, rgba(12, 32, 54, 0.24) 100%),
+    linear-gradient(180deg, rgba(24, 62, 96, 0.22) 0%, rgba(20, 56, 88, 0.05) 50%, rgba(14, 40, 66, 0.18) 100%);
 }
 
 .auth-export-routes-svg {
@@ -4624,29 +4661,89 @@ textarea:focus-visible {
 }
 
 .auth-route-flow-gold {
-  animation: authRouteDash 22s linear infinite;
+  animation: authRouteDash 9s linear infinite;
 }
 
 .auth-route-flow-mint {
-  animation: authRouteDashReverse 28s linear infinite;
+  animation: authRouteDashReverse 11s linear infinite;
+}
+
+.auth-sea-wave-lines {
+  animation: authSeaWaveSway 5.5s ease-in-out infinite alternate;
+}
+
+.auth-sun-glints {
+  animation: authSunTwinkle 3.2s ease-in-out infinite alternate;
 }
 
 .auth-port-ping {
   transform-box: fill-box;
   transform-origin: center;
-  animation: authPortPulse 3.2s ease-out infinite;
+  animation: authPortPulse 2.8s ease-out infinite;
 }
 
 .auth-port-ping-delay {
-  animation-delay: 1.6s;
+  animation-delay: 1.4s;
 }
 
-@keyframes authPhotoKenBurns {
+@keyframes authPhotoDroneGlide {
   0% {
-    transform: scale(1.03) translate3d(0%, 0%, 0);
+    transform: scale(1.07) translate3d(-2.2%, -1.2%, 0);
+  }
+  50% {
+    transform: scale(1.11) translate3d(0.4%, 1%, 0);
   }
   100% {
-    transform: scale(1.085) translate3d(-1.4%, -0.8%, 0);
+    transform: scale(1.08) translate3d(2.2%, -0.8%, 0);
+  }
+}
+
+@keyframes authCloudGlideRight {
+  0% {
+    transform: translate3d(-6%, 0, 0);
+  }
+  100% {
+    transform: translate3d(6%, 1.5%, 0);
+  }
+}
+
+@keyframes authCloudGlideLeft {
+  0% {
+    transform: translate3d(5%, 0, 0);
+  }
+  100% {
+    transform: translate3d(-5%, -1.5%, 0);
+  }
+}
+
+@keyframes authOceanShimmer {
+  0% {
+    background-position: 0% 40%;
+    opacity: 0.55;
+  }
+  100% {
+    background-position: 100% 60%;
+    opacity: 0.95;
+  }
+}
+
+@keyframes authSeaWaveSway {
+  0% {
+    transform: translate3d(-18px, 0, 0);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate3d(18px, -4px, 0);
+    opacity: 1;
+  }
+}
+
+@keyframes authSunTwinkle {
+  0% {
+    opacity: 0.25;
+  }
+  100% {
+    opacity: 0.9;
   }
 }
 
@@ -4664,15 +4761,15 @@ textarea:focus-visible {
 
 @keyframes authPortPulse {
   0% {
-    transform: scale(0.45);
-    opacity: 0.85;
+    transform: scale(0.35);
+    opacity: 0.95;
   }
-  75% {
-    transform: scale(1.55);
+  80% {
+    transform: scale(1.85);
     opacity: 0;
   }
   100% {
-    transform: scale(1.55);
+    transform: scale(1.85);
     opacity: 0;
   }
 }
@@ -5286,6 +5383,10 @@ textarea:focus-visible {
 
 @media (prefers-reduced-motion: reduce) {
   .auth-export-photo,
+  .auth-cloud-drift,
+  .auth-water-shimmer,
+  .auth-sea-wave-lines,
+  .auth-sun-glints,
   .auth-route-flow-gold,
   .auth-route-flow-mint,
   .auth-port-ping,
