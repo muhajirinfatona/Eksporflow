@@ -6,7 +6,7 @@ import {
   type RiskEvaluation,
   type ScreenId,
 } from "@shared/risk";
-import type { ContainerCalc, LineItem, Shipment } from "@shared/shipment";
+import { emptyLineItem, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 export type PartnerEntry = {
@@ -68,123 +68,42 @@ export type ReadinessRecord = {
   certReady: boolean;
 };
 
-export type PipelineStage = {
-  id: string;
-  label: string;
-  shortMeta: string;
-  screen: ScreenId;
-  relatedScreens: ScreenId[];
-  done: boolean;
-};
-
-const STORAGE_KEYS = {
-  partners: "eksporflow-partners-v1",
-  products: "eksporflow-products-v1",
-  approvals: "eksporflow-approvals-v1",
-  finance: "eksporflow-finance-v1",
-  knowledge: "eksporflow-knowledge-v1",
-  readiness: "eksporflow-readiness-v1",
-};
-
-const DEFAULT_PARTNERS: PartnerEntry[] = [
-  {
-    id: "partner-1",
-    name: "Nordic Pantry AB",
-    country: "Swedia",
-    destination: "Gothenburg, Swedia",
-    terms: "30% DP / 70% before shipment",
-  },
-  {
-    id: "partner-2",
-    name: "Global Foods Sdn Bhd",
-    country: "Malaysia",
-    destination: "Port Klang, Malaysia",
-    terms: "T/T 30% advance / 70% copy B/L",
-  },
-  {
-    id: "partner-3",
-    name: "Baltic Organics OÜ",
-    country: "Estonia",
-    destination: "Tallinn, Estonia",
-    terms: "50% DP / 50% before shipment",
-  },
-  {
-    id: "partner-4",
-    name: "Kyoto Trading Co.",
-    country: "Jepang",
-    destination: "Osaka, Jepang",
-    terms: "Irrevocable L/C at sight",
-  },
+const LEGACY_KEYS = [
+  "eksporflow-shipment",
+  "eksporflow-partners-v1",
+  "eksporflow-products-v1",
+  "eksporflow-approvals-v1",
+  "eksporflow-finance-v1",
+  "eksporflow-knowledge-v1",
+  "eksporflow-readiness-v1",
+  "eksporflow-legal-EXP-2026-084",
 ];
 
-const DEFAULT_PRODUCTS: CatalogProduct[] = [
-  {
-    id: "prod-1",
-    name: "Organic Coconut Sugar",
-    sku: "CS-01",
-    hsCode: "1702.90",
-    unit: "carton",
-    unitPrice: 18.5,
-    packagingType: "Karton box",
-    weight: 12,
-    length: 40,
-    width: 30,
-    height: 25,
-  },
-  {
-    id: "prod-2",
-    name: "Java Robusta Green Bean",
-    sku: "RC-03",
-    hsCode: "0901.11",
-    unit: "bag",
-    unitPrice: 145,
-    packagingType: "Karung goni",
-    weight: 60,
-    length: 75,
-    width: 50,
-    height: 28,
-  },
-  {
-    id: "prod-3",
-    name: "Cassia Cinnamon Powder",
-    sku: "CP-02",
-    hsCode: "0906.20",
-    unit: "carton",
-    unitPrice: 32,
-    packagingType: "Karton box",
-    weight: 10,
-    length: 38,
-    width: 28,
-    height: 24,
-  },
-];
+function purgeLegacyDummyStorage() {
+  if (typeof window === "undefined") return;
+  try {
+    if (localStorage.getItem("eksporflow-clean-slate-v2") === "1") return;
+    for (const key of LEGACY_KEYS) {
+      localStorage.removeItem(key);
+    }
+    localStorage.setItem("eksporflow-clean-slate-v2", "1");
+  } catch {
+    // Abaikan jika akses localStorage terbatas.
+  }
+}
 
-const DEFAULT_KNOWLEDGE: KnowledgeSource[] = [
-  {
-    id: "sop-1",
-    title: "SOP Dokumen Ekspor & Pemeriksaan 3-Way",
-    scope: "Organisasi · Global",
-    version: "v2.1 · Berlaku s/d Jan 2027",
-    governance: "Rina → Dimas (Compliance)",
-    status: "Published",
-  },
-  {
-    id: "sop-2",
-    title: "Checklist Freight Booking & Cut-Off Pelabuhan",
-    scope: "Organisasi · Operasional",
-    version: "v1.4 · Review Des 2026",
-    governance: "Bayu → Sari",
-    status: "In review",
-  },
-  {
-    id: "sop-3",
-    title: "Panduan Label Pangan Pasar Eropa / Nordik",
-    scope: "Uni Eropa · Food Grade",
-    version: "v3.0 · Berlaku s/d Jun 2027",
-    governance: "Admin → Dimas",
-    status: "Published",
-  },
-];
+function buildUserKeys(userId?: number | null) {
+  const scope = userId ? `u${userId}` : "guest";
+  return {
+    partners: `eksporflow-v2-${scope}-partners`,
+    products: `eksporflow-v2-${scope}-products`,
+    approvals: `eksporflow-v2-${scope}-approvals`,
+    finance: `eksporflow-v2-${scope}-finance`,
+    knowledge: `eksporflow-v2-${scope}-knowledge`,
+    readiness: `eksporflow-v2-${scope}-readiness`,
+    legalPrefix: `eksporflow-v2-${scope}-legal-`,
+  };
+}
 
 function readJson<T>(key: string, fallback: T): T {
   try {
@@ -204,9 +123,9 @@ function writeJson<T>(key: string, value: T): void {
   }
 }
 
-function readLegalChecklist(reference: string): LegalChecklist {
+function readLegalChecklist(prefix: string, reference: string): LegalChecklist {
   try {
-    const raw = localStorage.getItem(`eksporflow-legal-${reference}`);
+    const raw = localStorage.getItem(`${prefix}${reference}`);
     if (!raw) return defaultLegalChecklist;
     return {
       ...defaultLegalChecklist,
@@ -248,58 +167,71 @@ export type WorkspaceFlow = {
   readiness: ReadinessRecord;
   readinessScore: number;
   setReadiness: (patch: Partial<ReadinessRecord>) => void;
-  pipeline: PipelineStage[];
 };
 
 export function useWorkspaceFlow({
+  userId,
   shipment,
   pricing,
   container,
   update,
   updateLineItems,
 }: {
+  userId?: number | null;
   shipment: Shipment;
   pricing: Pricing;
   container: ContainerCalc;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   updateLineItems: (items: LineItem[]) => void;
 }): WorkspaceFlow {
-  const [partners, setPartners] = useState<PartnerEntry[]>(() =>
-    readJson(STORAGE_KEYS.partners, DEFAULT_PARTNERS),
-  );
-  const [products, setProducts] = useState<CatalogProduct[]>(() =>
-    readJson(STORAGE_KEYS.products, DEFAULT_PRODUCTS),
-  );
+  useEffect(() => {
+    purgeLegacyDummyStorage();
+  }, []);
+
+  const keys = useMemo(() => buildUserKeys(userId), [userId]);
+
+  const [partners, setPartners] = useState<PartnerEntry[]>(() => readJson(keys.partners, []));
+  const [products, setProducts] = useState<CatalogProduct[]>(() => readJson(keys.products, []));
   const [approvalsMap, setApprovalsMap] = useState<Record<string, StoredApproval>>(() =>
-    readJson(STORAGE_KEYS.approvals, {}),
+    readJson(keys.approvals, {}),
   );
   const [financeMap, setFinanceMap] = useState<Record<string, FinanceRecord>>(() =>
-    readJson(STORAGE_KEYS.finance, {}),
+    readJson(keys.finance, {}),
   );
   const [knowledge, setKnowledge] = useState<KnowledgeSource[]>(() =>
-    readJson(STORAGE_KEYS.knowledge, DEFAULT_KNOWLEDGE),
+    readJson(keys.knowledge, []),
   );
   const [readinessMap, setReadinessMap] = useState<Record<string, ReadinessRecord>>(() =>
-    readJson(STORAGE_KEYS.readiness, {}),
+    readJson(keys.readiness, {}),
   );
   const [legalChecklist, setLegalChecklist] = useState<LegalChecklist>(() =>
-    readLegalChecklist(shipment.reference),
+    readLegalChecklist(keys.legalPrefix, shipment.reference),
   );
 
+  // Muat ulang state saat akun user berganti (isolasi antar-user).
   useEffect(() => {
-    setLegalChecklist(readLegalChecklist(shipment.reference));
-  }, [shipment.reference]);
+    setPartners(readJson(keys.partners, []));
+    setProducts(readJson(keys.products, []));
+    setApprovalsMap(readJson(keys.approvals, {}));
+    setFinanceMap(readJson(keys.finance, {}));
+    setKnowledge(readJson(keys.knowledge, []));
+    setReadinessMap(readJson(keys.readiness, {}));
+  }, [keys]);
 
   useEffect(() => {
-    writeJson(`eksporflow-legal-${shipment.reference}`, legalChecklist);
-  }, [legalChecklist, shipment.reference]);
+    setLegalChecklist(readLegalChecklist(keys.legalPrefix, shipment.reference));
+  }, [keys.legalPrefix, shipment.reference]);
 
-  useEffect(() => writeJson(STORAGE_KEYS.partners, partners), [partners]);
-  useEffect(() => writeJson(STORAGE_KEYS.products, products), [products]);
-  useEffect(() => writeJson(STORAGE_KEYS.approvals, approvalsMap), [approvalsMap]);
-  useEffect(() => writeJson(STORAGE_KEYS.finance, financeMap), [financeMap]);
-  useEffect(() => writeJson(STORAGE_KEYS.knowledge, knowledge), [knowledge]);
-  useEffect(() => writeJson(STORAGE_KEYS.readiness, readinessMap), [readinessMap]);
+  useEffect(() => {
+    writeJson(`${keys.legalPrefix}${shipment.reference}`, legalChecklist);
+  }, [keys.legalPrefix, legalChecklist, shipment.reference]);
+
+  useEffect(() => writeJson(keys.partners, partners), [keys.partners, partners]);
+  useEffect(() => writeJson(keys.products, products), [keys.products, products]);
+  useEffect(() => writeJson(keys.approvals, approvalsMap), [keys.approvals, approvalsMap]);
+  useEffect(() => writeJson(keys.finance, financeMap), [keys.finance, financeMap]);
+  useEffect(() => writeJson(keys.knowledge, knowledge), [keys.knowledge, knowledge]);
+  useEffect(() => writeJson(keys.readiness, readinessMap), [keys.readiness, readinessMap]);
 
   const addPartner = useCallback((entry: Omit<PartnerEntry, "id">) => {
     setPartners((prev) => [{ ...entry, id: `partner-${Date.now()}` }, ...prev]);
@@ -353,13 +285,14 @@ export function useWorkspaceFlow({
 
   const addProductToShipment = useCallback(
     (prod: CatalogProduct) => {
-      const base = shipment.lineItems[0];
+      const base = shipment.lineItems[0] ?? emptyLineItem;
       const nextItem: LineItem = {
+        ...emptyLineItem,
         ...base,
         id: `item-${Date.now()}`,
         description: prod.name,
         hsCode: prod.hsCode,
-        quantity: 100,
+        quantity: 1,
         unit: prod.unit,
         unitPrice: prod.unitPrice,
         packagingType: prod.packagingType,
@@ -368,7 +301,15 @@ export function useWorkspaceFlow({
         width: prod.width,
         height: prod.height,
       };
-      updateLineItems([...shipment.lineItems, nextItem]);
+      const isSingleEmptyPlaceholder =
+        shipment.lineItems.length === 1 &&
+        !shipment.lineItems[0].description.trim() &&
+        shipment.lineItems[0].quantity === 0 &&
+        shipment.lineItems[0].unitPrice === 0;
+
+      updateLineItems(
+        isSingleEmptyPlaceholder ? [nextItem] : [...shipment.lineItems, nextItem],
+      );
     },
     [shipment.lineItems, updateLineItems],
   );
@@ -426,34 +367,33 @@ export function useWorkspaceFlow({
   const finance: FinanceRecord = financeMap[shipment.reference] ?? {
     dpConfirmed: false,
     settlementConfirmed: false,
-    realizedRate: shipment.exchangeRate,
+    realizedRate: shipment.exchangeRate || 16000,
     arStatus: "Menunggu posting",
     updatedAt: null,
   };
 
   const paidAmount = useMemo(() => {
-    const dp = finance.dpConfirmed ? pricing.active.offer * 0.3 : 0;
-    const settlement = finance.settlementConfirmed ? pricing.active.offer * 0.7 : 0;
-    return dp + settlement;
+    const dpPart = finance.dpConfirmed ? pricing.active.offer * 0.3 : 0;
+    const balPart = finance.settlementConfirmed ? pricing.active.offer * 0.7 : 0;
+    return dpPart + balPart;
   }, [finance.dpConfirmed, finance.settlementConfirmed, pricing.active.offer]);
 
   const remainingReceivable = Math.max(0, pricing.active.offer - paidAmount);
 
   const patchFinance = useCallback(
-    (patch: Partial<FinanceRecord>) => {
+    (updater: (current: FinanceRecord) => FinanceRecord) => {
       setFinanceMap((prev) => {
         const current = prev[shipment.reference] ?? {
           dpConfirmed: false,
           settlementConfirmed: false,
-          realizedRate: shipment.exchangeRate,
-          arStatus: "Menunggu posting" as const,
+          realizedRate: shipment.exchangeRate || 16000,
+          arStatus: "Menunggu posting",
           updatedAt: null,
         };
         return {
           ...prev,
           [shipment.reference]: {
-            ...current,
-            ...patch,
+            ...updater(current),
             updatedAt: new Date().toISOString(),
           },
         };
@@ -462,20 +402,25 @@ export function useWorkspaceFlow({
     [shipment.exchangeRate, shipment.reference],
   );
 
-  const toggleDpConfirmed = useCallback(
-    () => patchFinance({ dpConfirmed: !finance.dpConfirmed }),
-    [finance.dpConfirmed, patchFinance],
-  );
-  const toggleSettlementConfirmed = useCallback(
-    () => patchFinance({ settlementConfirmed: !finance.settlementConfirmed }),
-    [finance.settlementConfirmed, patchFinance],
-  );
+  const toggleDpConfirmed = useCallback(() => {
+    patchFinance((cur) => ({ ...cur, dpConfirmed: !cur.dpConfirmed }));
+  }, [patchFinance]);
+
+  const toggleSettlementConfirmed = useCallback(() => {
+    patchFinance((cur) => ({ ...cur, settlementConfirmed: !cur.settlementConfirmed }));
+  }, [patchFinance]);
+
   const setRealizedRate = useCallback(
-    (rate: number) => patchFinance({ realizedRate: Math.max(0, rate) }),
+    (rate: number) => {
+      patchFinance((cur) => ({ ...cur, realizedRate: Math.max(0, rate) }));
+    },
     [patchFinance],
   );
+
   const setArStatus = useCallback(
-    (arStatus: FinanceRecord["arStatus"]) => patchFinance({ arStatus }),
+    (arStatus: FinanceRecord["arStatus"]) => {
+      patchFinance((cur) => ({ ...cur, arStatus }));
+    },
     [patchFinance],
   );
 
@@ -508,7 +453,7 @@ export function useWorkspaceFlow({
   );
 
   const readiness: ReadinessRecord = readinessMap[shipment.reference] ?? {
-    experience: "Pernah 1–3 kali",
+    experience: "",
     certReady: false,
   };
 
@@ -517,7 +462,7 @@ export function useWorkspaceFlow({
       setReadinessMap((prev) => ({
         ...prev,
         [shipment.reference]: {
-          ...(prev[shipment.reference] ?? { experience: "Pernah 1–3 kali", certReady: false }),
+          ...(prev[shipment.reference] ?? { experience: "", certReady: false }),
           ...patch,
         },
       }));
@@ -531,77 +476,6 @@ export function useWorkspaceFlow({
     (shipment.buyerCountry.trim() ? 20 : 0) +
     (shipment.packaging > 0 ? 15 : 0) +
     (readiness.certReady ? 20 : 0);
-
-  const pipeline = useMemo<PipelineStage[]>(
-    () => [
-      {
-        id: "stage-data",
-        label: "1. Mitra & Produk",
-        shortMeta: `${shipment.buyer || "Pilih buyer"} · ${shipment.lineItems.length} item`,
-        screen: "partners",
-        relatedScreens: ["readiness", "partners", "products", "transactions"],
-        done: Boolean(shipment.buyer.trim() && shipment.product.trim()),
-      },
-      {
-        id: "stage-pricing",
-        label: "2. Harga & Persetujuan",
-        shortMeta: `${shipment.incoterm} · ${effectiveApprovalStatus}`,
-        screen: "pricing",
-        relatedScreens: ["pricing", "approvals"],
-        done: pricing.validationErrors.length === 0 && effectiveApprovalStatus === "Tercatat direview",
-      },
-      {
-        id: "stage-docs",
-        label: "3. Dokumen & Muatan",
-        shortMeta: `${shipment.documentReviewed ? "Direview" : "Draft R" + shipment.documentRevision} · ${container.containers}×${shipment.containerType}`,
-        screen: "documents",
-        relatedScreens: ["documents", "cargo"],
-        done:
-          shipment.documentReviewed &&
-          container.volumeUtilization <= 100 &&
-          container.weightUtilization <= 100,
-      },
-      {
-        id: "stage-ops",
-        label: "4. Pengiriman & Risiko",
-        shortMeta: `${shipment.shipmentStatus} · ${riskEvaluation.readinessPercent}% cek`,
-        screen: "shipment",
-        relatedScreens: ["shipment", "risk", "advisor", "knowledge"],
-        done: riskEvaluation.readinessPercent >= 80,
-      },
-      {
-        id: "stage-finance",
-        label: "5. Keuangan & Laporan",
-        shortMeta:
-          finance.arStatus === "Posted"
-            ? "AR Posted"
-            : paidAmount > 0
-              ? "DP tercatat"
-              : "Pratinjau AR",
-        screen: "finance",
-        relatedScreens: ["finance", "bank", "journals", "reports"],
-        done: finance.arStatus === "Posted" && paidAmount > 0,
-      },
-    ],
-    [
-      container.containers,
-      container.volumeUtilization,
-      container.weightUtilization,
-      effectiveApprovalStatus,
-      finance.arStatus,
-      paidAmount,
-      pricing.validationErrors.length,
-      riskEvaluation.readinessPercent,
-      shipment.buyer,
-      shipment.containerType,
-      shipment.documentReviewed,
-      shipment.documentRevision,
-      shipment.incoterm,
-      shipment.lineItems.length,
-      shipment.product,
-      shipment.shipmentStatus,
-    ],
-  );
 
   return {
     partners,
@@ -631,6 +505,5 @@ export function useWorkspaceFlow({
     readiness,
     readinessScore,
     setReadiness,
-    pipeline,
   };
 }

@@ -645,7 +645,7 @@ export function WorkspaceShell({
             </div>
             <div className="heading-actions">
               <button className="ghost-button" type="button" onClick={onReset}>
-                <RefreshCcw size={14} /> Reset contoh
+                <RefreshCcw size={14} /> Kosongkan form
               </button>
               {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
             </div>

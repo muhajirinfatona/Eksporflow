@@ -58,7 +58,7 @@ async function runMigrations() {
     const db = drizzle(client);
     await migrate(db, { migrationsFolder });
     console.log(
-      "✅ [EksporFlow] Migrasi selesai! Seluruh 6 tabel beserta Row Level Security (RLS) sudah siap di database Anda.",
+      "✅ [EksporFlow] Migrasi selesai! Seluruh 7 tabel beserta Row Level Security (RLS) sudah siap di database Anda.",
     );
   } finally {
     await client.end({ timeout: 5 });

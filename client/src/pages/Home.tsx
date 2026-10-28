@@ -21,6 +21,7 @@ import { TransactionsModule } from "@/components/workspace/TransactionsModule";
 import { ALL_SCREENS, getScreenMeta, WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { useActiveShipment } from "@/hooks/useActiveShipment";
 import { useWorkspaceFlow } from "@/hooks/useWorkspaceFlow";
+import { AuthFlow } from "@/pages/AuthFlow";
 import type { ScreenId } from "@shared/risk";
 import type { DocumentType } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
@@ -44,6 +45,7 @@ export default function Home() {
 
   const {
     user,
+    isAuthLoading,
     shipment,
     activeShipmentId,
     version,
@@ -61,11 +63,12 @@ export default function Home() {
     reloadLatest,
     createNewDraft,
     resetTransaction,
-    login,
+    refreshAuth,
     logout,
   } = useActiveShipment();
 
   const flow = useWorkspaceFlow({
+    userId: user?.id ?? null,
     shipment,
     pricing,
     container,
@@ -92,9 +95,10 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    if (!user) return;
     const meta = getScreenMeta(screen);
     document.title = `EksporFlow · ${meta.label}`;
-  }, [screen]);
+  }, [screen, user]);
 
   // PRD v1.8: Dokumen cetak / PDF wajib berbahasa Inggris meskipun pratinjau memakai Bahasa Indonesia.
   const printDocument = useCallback(() => {
@@ -113,11 +117,31 @@ export default function Home() {
     }
   }, [shipment.previewLanguage, shipment.paperSize, shipment.documentOrientation, update]);
 
+  if (isAuthLoading) {
+    return (
+      <div className="auth-loading-screen">
+        <div className="auth-loading-card">
+          <div className="brand-mark">
+            <span />
+            <span />
+          </div>
+          <b>Memeriksa sesi workspace EksporFlow...</b>
+          <small>Menghubungkan ke PostgreSQL / Supabase</small>
+        </div>
+      </div>
+    );
+  }
+
+  // Wajib Registrasi -> Verifikasi -> Login sebelum masuk ke tampilan utama workspace.
+  if (!user || !user.emailVerifiedAt) {
+    return <AuthFlow onAuthenticated={refreshAuth} />;
+  }
+
   return (
     <WorkspaceShell
       screen={screen}
       navigate={navigate}
-      exporterName={shipment.exporter}
+      exporterName={shipment.exporter || user.companyName || "Workspace Baru"}
       reference={shipment.reference}
       user={user}
       saveState={saveState}
@@ -127,7 +151,7 @@ export default function Home() {
       onSave={saveShipment}
       onReloadLatest={reloadLatest}
       onReset={resetTransaction}
-      onLogin={login}
+      onLogin={refreshAuth}
       onLogout={logout}
     >
       {screen === "dashboard" && (
@@ -156,7 +180,7 @@ export default function Home() {
           loadShipment={loadShipment}
           saveShipment={saveShipment}
           createNewDraft={createNewDraft}
-          login={login}
+          login={refreshAuth}
           navigate={navigate}
         />
       )}
@@ -222,7 +246,7 @@ export default function Home() {
           container={container}
           navigate={navigate}
           isAuthenticated={Boolean(user)}
-          onLogin={() => void login()}
+          onLogin={() => void refreshAuth()}
           publishedKnowledge={flow.publishedKnowledge}
         />
       )}
@@ -257,7 +281,7 @@ export default function Home() {
           version={version}
           saveState={saveState}
           activeShipmentId={activeShipmentId}
-          login={login}
+          login={refreshAuth}
           logout={logout}
           navigate={navigate}
         />

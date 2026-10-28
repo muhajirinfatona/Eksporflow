@@ -17,16 +17,34 @@ const updatedAt = () => timestamp("updatedAt", { withTimezone: true }).defaultNo
 export const users = pgTable("users", {
   /** Surrogate primary key untuk relasi antar tabel. */
   id: serial("id").primaryKey(),
-  /** Manus OAuth identifier (openId) dari callback OAuth. Unik per user. */
+  /** Identifier unik per user (OAuth openId atau akun lokal). */
   openId: varchar("openId", { length: 64 }).notNull().unique(),
   name: text("name"),
+  companyName: varchar("companyName", { length: 160 }),
   email: varchar("email", { length: 320 }),
+  passwordHash: text("passwordHash"),
+  emailVerifiedAt: timestamp("emailVerifiedAt", { withTimezone: true }),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: userRole("role").default("user").notNull(),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
   lastSignedIn: timestamp("lastSignedIn", { withTimezone: true }).defaultNow().notNull(),
+}, table => [
+  uniqueIndex("users_email_idx").on(table.email),
+]).enableRLS();
+
+export const emailVerificationCodes = pgTable("emailVerificationCodes", {
+  id: serial("id").primaryKey(),
+  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  email: varchar("email", { length: 320 }).notNull(),
+  codeHash: varchar("codeHash", { length: 128 }).notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  expiresAt: timestamp("expiresAt", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumedAt", { withTimezone: true }),
+  createdAt: createdAt(),
 }).enableRLS();
+
+export type EmailVerificationCode = typeof emailVerificationCodes.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;

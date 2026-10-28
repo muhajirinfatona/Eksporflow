@@ -1,15 +1,23 @@
 import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import {
+  AuthFlowError,
+  buildLocalAwareCookieOptions,
+  loginWithEmailPassword,
+  registerUserAccount,
+  resendVerificationChallenge,
+  verifyEmailCodeAndSignIn,
+} from "./authService";
 import { createShipment, getShipment, listShipments, ShipmentPersistenceError, updateShipment } from "./shipmentDb";
 
 import { createRateLimiter } from "./rateLimit";
 
 const assistantRateLimiter = createRateLimiter({ limit: 20, windowMs: 60 * 60 * 1000 });
+const authRateLimiter = createRateLimiter({ limit: 25, windowMs: 15 * 60 * 1000 });
 
 const shipmentSnapshot = z.record(z.string(), z.unknown());
 const shipmentLineItems = z.array(shipmentSnapshot).max(200);
@@ -23,13 +31,107 @@ function persistenceError(error: unknown): never {
   throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Penyimpanan transaksi sedang tidak tersedia." });
 }
 
+function authError(error: unknown): never {
+  if (error instanceof AuthFlowError) {
+    const code =
+      error.code === "BAD_REQUEST"
+        ? "BAD_REQUEST"
+        : error.code === "UNAUTHORIZED"
+          ? "UNAUTHORIZED"
+          : error.code === "FORBIDDEN"
+            ? "FORBIDDEN"
+            : error.code === "CONFLICT"
+              ? "CONFLICT"
+              : error.code === "TOO_MANY_REQUESTS"
+                ? "TOO_MANY_REQUESTS"
+                : "INTERNAL_SERVER_ERROR";
+    throw new TRPCError({ code, message: error.message });
+  }
+  console.error("auth flow failed", error);
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Layanan autentikasi sedang tidak tersedia. Pastikan koneksi database aktif.",
+  });
+}
+
+function checkAuthRateLimit(key: string) {
+  const result = authRateLimiter.check(key);
+  if (!result.allowed) {
+    throw new TRPCError({
+      code: "TOO_MANY_REQUESTS",
+      message: `Terlalu banyak percobaan. Silakan coba lagi dalam ${Math.ceil(result.retryAfterMs / 60_000)} menit.`,
+    });
+  }
+}
+
 export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    register: publicProcedure
+      .input(
+        z.object({
+          name: z.string().trim().min(2, "Nama lengkap minimal 2 karakter.").max(120),
+          companyName: z.string().trim().min(2, "Nama perusahaan minimal 2 karakter.").max(160),
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+          password: z.string().min(8, "Kata sandi minimal 8 karakter.").max(128),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        checkAuthRateLimit(`register:${ctx.req.ip || "local"}`);
+        try {
+          return await registerUserAccount(input);
+        } catch (error) {
+          return authError(error);
+        }
+      }),
+    login: publicProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+          password: z.string().min(1, "Kata sandi wajib diisi.").max(128),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        checkAuthRateLimit(`login:${input.email.toLowerCase()}`);
+        try {
+          return await loginWithEmailPassword(ctx.req, ctx.res, input);
+        } catch (error) {
+          return authError(error);
+        }
+      }),
+    verifyEmail: publicProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+          code: z.string().trim().min(6).max(12),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        checkAuthRateLimit(`verify:${input.email.toLowerCase()}`);
+        try {
+          return await verifyEmailCodeAndSignIn(ctx.req, ctx.res, input);
+        } catch (error) {
+          return authError(error);
+        }
+      }),
+    resendVerification: publicProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        checkAuthRateLimit(`resend:${input.email.toLowerCase()}`);
+        try {
+          return await resendVerificationChallenge(input);
+        } catch (error) {
+          return authError(error);
+        }
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
+      const cookieOptions = buildLocalAwareCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return {
         success: true,

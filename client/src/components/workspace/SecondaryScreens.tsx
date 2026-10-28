@@ -102,7 +102,7 @@ export function DashboardView({
               <strong>
                 {formatNumber(shipment.quantity)} {shipment.unit}
               </strong>{" "}
-              {shipment.product} ke {shipment.destination}.
+              {shipment.product || "produk ekspor Anda"} ke {shipment.destination || "tujuan pengiriman"}.
             </p>
             <div className="hero-meta">
               <span>
@@ -161,7 +161,7 @@ export function DashboardView({
             <ChecklistItem
               done={Boolean(shipment.buyer.trim() && shipment.destination.trim())}
               label="Profil buyer, tujuan & referensi HS Code"
-              meta={`${shipment.buyer} · HS ${shipment.hsCode || "belum diisi"}`}
+              meta={`${shipment.buyer || "Buyer belum diisi"} · HS ${shipment.hsCode || "belum diisi"}`}
               onClick={() => navigate("partners")}
             />
             <ChecklistItem
@@ -791,33 +791,41 @@ export function KnowledgeView({
                 </tr>
               </thead>
               <tbody>
-                {visible.map((row) => (
-                  <tr key={row.id}>
-                    <td>
-                      <b>{row.title}</b>
-                    </td>
-                    <td>{row.scope}</td>
-                    <td>{row.version}</td>
-                    <td>{row.governance}</td>
-                    <td>
-                      <div className="row-actions">
-                        <StatusPill tone={row.status === "Published" ? "green" : "amber"}>
-                          {row.status}
-                        </StatusPill>
-                        <button
-                          type="button"
-                          className="table-inline-btn"
-                          onClick={() => {
-                            flow.toggleKnowledgeStatus(row.id);
-                            toast.success(`Status SOP diubah ke ${row.status === "Published" ? "In review" : "Published"}`);
-                          }}
-                        >
-                          {row.status === "Published" ? "Tarik Review" : "Publish"}
-                        </button>
-                      </div>
+                {visible.length === 0 ? (
+                  <tr>
+                    <td colSpan={5} style={{ textAlign: "center", color: "var(--muted)", padding: "20px 14px" }}>
+                      Belum ada dokumen SOP / pedoman tim. Tambahkan pedoman pertama di sebelah kanan agar terhubung ke AI Advisor.
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  visible.map((row) => (
+                    <tr key={row.id}>
+                      <td>
+                        <b>{row.title}</b>
+                      </td>
+                      <td>{row.scope}</td>
+                      <td>{row.version}</td>
+                      <td>{row.governance}</td>
+                      <td>
+                        <div className="row-actions">
+                          <StatusPill tone={row.status === "Published" ? "green" : "amber"}>
+                            {row.status}
+                          </StatusPill>
+                          <button
+                            type="button"
+                            className="table-inline-btn"
+                            onClick={() => {
+                              flow.toggleKnowledgeStatus(row.id);
+                              toast.success(`Status SOP diubah ke ${row.status === "Published" ? "In review" : "Published"}`);
+                            }}
+                          >
+                            {row.status === "Published" ? "Tarik Review" : "Publish"}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -919,26 +927,32 @@ export function PartnersView({
             </div>
           </div>
           <div className="master-list">
-            {flow.partners.map((buyer) => (
-              <div
-                className={`master-card ${buyer.name === shipment.buyer ? "selected" : ""}`}
-                key={buyer.id}
-              >
-                <div className="master-card-icon">
-                  <UserRound size={16} />
-                </div>
-                <div>
-                  <b>{buyer.name}</b>
-                  <small>
-                    {buyer.country} · {buyer.destination}
-                  </small>
-                  <em>{buyer.terms}</em>
-                </div>
-                <button type="button" onClick={() => handleApply(buyer)}>
-                  {buyer.name === shipment.buyer ? "Sedang Dipakai" : "Pakai di Transaksi"}
-                </button>
+            {flow.partners.length === 0 ? (
+              <div className="empty-attachment">
+                Direktori mitra masih kosong. Silakan isi formulir profil buyer baru di sebelah kanan untuk memulai pengujian.
               </div>
-            ))}
+            ) : (
+              flow.partners.map((buyer) => (
+                <div
+                  className={`master-card ${buyer.name === shipment.buyer ? "selected" : ""}`}
+                  key={buyer.id}
+                >
+                  <div className="master-card-icon">
+                    <UserRound size={16} />
+                  </div>
+                  <div>
+                    <b>{buyer.name}</b>
+                    <small>
+                      {buyer.country} · {buyer.destination}
+                    </small>
+                    <em>{buyer.terms}</em>
+                  </div>
+                  <button type="button" onClick={() => handleApply(buyer)}>
+                    {buyer.name === shipment.buyer ? "Sedang Dipakai" : "Pakai di Transaksi"}
+                  </button>
+                </div>
+              ))
+            )}
           </div>
           <div className="clean-notice" style={{ marginTop: 12 }}>
             Profil master data tidak menilai apakah buyer aman. Bukti PO dan screening ditampilkan terpisah pada Risk Center.
@@ -975,8 +989,8 @@ export function ProductsView({
 }) {
   const [prodName, setProdName] = useState("");
   const [prodHs, setProdHs] = useState("");
-  const [prodPrice, setProdPrice] = useState("20");
-  const [prodWeight, setProdWeight] = useState("12");
+  const [prodPrice, setProdPrice] = useState("");
+  const [prodWeight, setProdWeight] = useState("");
 
   const handleAddToShipment = (prod: WorkspaceFlow["products"][number]) => {
     flow.addProductToShipment(prod);
@@ -1029,27 +1043,33 @@ export function ProductsView({
             </div>
           </div>
           <div className="master-list">
-            {flow.products.map((prod) => (
-              <div className="master-card" key={prod.id}>
-                <div className="master-card-icon product">
-                  <Package size={16} />
-                </div>
-                <div>
-                  <b>
-                    {prod.name} · <span className="mono-code">{prod.sku}</span>
-                  </b>
-                  <small>
-                    HS ref. {prod.hsCode || "belum diisi"}* · {prod.packagingType} ({prod.weight} kg)
-                  </small>
-                  <em>
-                    {formatMoney(prod.unitPrice, shipment.currency)} / {prod.unit}
-                  </em>
-                </div>
-                <button type="button" onClick={() => handleAddToShipment(prod)}>
-                  + Tambah ke Transaksi
-                </button>
+            {flow.products.length === 0 ? (
+              <div className="empty-attachment">
+                Katalog produk masih kosong. Tambahkan spesifikasi produk pertama Anda di sebelah kanan, lalu klik &ldquo;+ Tambah ke Transaksi&rdquo;.
               </div>
-            ))}
+            ) : (
+              flow.products.map((prod) => (
+                <div className="master-card" key={prod.id}>
+                  <div className="master-card-icon product">
+                    <Package size={16} />
+                  </div>
+                  <div>
+                    <b>
+                      {prod.name} · <span className="mono-code">{prod.sku}</span>
+                    </b>
+                    <small>
+                      HS ref. {prod.hsCode || "belum diisi"}* · {prod.packagingType} ({prod.weight} kg)
+                    </small>
+                    <em>
+                      {formatMoney(prod.unitPrice, shipment.currency)} / {prod.unit}
+                    </em>
+                  </div>
+                  <button type="button" onClick={() => handleAddToShipment(prod)}>
+                    + Tambah ke Transaksi
+                  </button>
+                </div>
+              ))
+            )}
           </div>
           <div className="clean-notice warn" style={{ marginTop: 12 }}>
             *HS Code hanya referensi input dan wajib dikonfirmasi dengan PPJK/bea cukai yang berwenang. Sistem tidak melakukan klasifikasi resmi otomatis.

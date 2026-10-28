@@ -185,8 +185,8 @@ export function TransactionsModule({
                   </span>
                 </td>
                 <td>
-                  <b>{shipment.buyer}</b>
-                  <span className="row-sub">{shipment.destination}</span>
+                  <b>{shipment.buyer || "Buyer belum diisi"}</b>
+                  <span className="row-sub">{shipment.destination || "Tujuan belum diisi"}</span>
                 </td>
                 <td>
                   <b>{formatMoney(pricing.active.offer, shipment.currency)}</b>

@@ -145,6 +145,86 @@ export const initialShipment: Shipment = {
 };
 
 
+export const emptyLineItem: LineItem = {
+  id: "item-1",
+  description: "",
+  hsCode: "",
+  quantity: 0,
+  unit: "carton",
+  unitPrice: 0,
+  weight: 0,
+  length: 0,
+  width: 0,
+  height: 0,
+  packagingType: "Karton box",
+  shrinkageRate: 0,
+  palletEnabled: false,
+  palletCount: 0,
+  palletLength: 120,
+  palletWidth: 100,
+  palletHeight: 15,
+  palletWeight: 20,
+};
+
+export function createEmptyShipment(options?: { exporter?: string; reference?: string }): Shipment {
+  const company = options?.exporter?.trim() ?? "";
+  const year = new Date().getFullYear();
+  return {
+    reference: options?.reference?.trim() || `EXP-${year}-001`,
+    exporter: company,
+    buyer: "",
+    buyerCountry: "",
+    destination: "",
+    product: "",
+    hsCode: "",
+    currency: "USD",
+    incoterm: "FOB",
+    paymentTerms: "",
+    quantity: 0,
+    unit: "carton",
+    unitPrice: 0,
+    packaging: 0,
+    inlandTransport: 0,
+    originHandling: 0,
+    customs: 0,
+    freight: 0,
+    insurance: 0,
+    destinationHandling: 0,
+    importDuty: 0,
+    lastMile: 0,
+    margin: 15,
+    discount: 0,
+    contingency: 0,
+    exchangeRate: 16000,
+    exchangeRateSource: "Kurs referensi internal",
+    exchangeRateDate: new Date().toISOString().slice(0, 10),
+    formulaVersion: "v1.8 · cost/(1-target margin)",
+    namedPlace: "",
+    cartonLength: 0,
+    cartonWidth: 0,
+    cartonHeight: 0,
+    cartonWeight: 0,
+    cartonQty: 0,
+    containerType: "20GP",
+    packageType: "Karton box",
+    paperSize: "A4",
+    documentOrientation: "Portrait",
+    documentTemplate: "Corporate Clean",
+    previewLanguage: "English",
+    documentReviewed: false,
+    documentRevision: 1,
+    letterheadText: company,
+    letterheadImage: "",
+    poNumber: "",
+    bookingNumber: "",
+    containerNumber: "",
+    sealNumber: "",
+    shipmentStatus: "Draft",
+    attachments: [],
+    lineItems: [{ ...emptyLineItem }],
+  };
+}
+
 const REVISION_KEYS: (keyof Shipment)[] = [
   "reference",
   "exporter",
@@ -189,8 +269,9 @@ export function hydrateShipment(input: {
   snapshot?: Record<string, unknown> | Partial<Shipment>;
   lineItems?: Record<string, unknown>[];
 }): Shipment {
+  const base = createEmptyShipment();
   const raw = (input.snapshot ?? {}) as Partial<Shipment>;
-  const merged = { ...initialShipment, ...raw } as Shipment;
+  const merged = { ...base, ...raw } as Shipment;
   if (input.reference) merged.reference = input.reference;
   if (input.status) merged.shipmentStatus = input.status as ShipmentStatus;
 
@@ -203,13 +284,13 @@ export function hydrateShipment(input: {
 
   const migratedItems: LineItem[] = rawItems
     ? rawItems.map((item, idx) => ({
-        ...initialShipment.lineItems[0],
+        ...emptyLineItem,
         ...item,
         id: String(item.id ?? `item-${idx + 1}`),
       }))
     : [
         {
-          ...initialShipment.lineItems[0],
+          ...emptyLineItem,
           description: merged.product,
           hsCode: merged.hsCode,
           quantity: merged.quantity,
@@ -225,11 +306,8 @@ export function hydrateShipment(input: {
   return {
     ...merged,
     lineItems: migratedItems,
-    exporter: !raw.exporter || raw.exporter === "PT Nusantara Rasa" ? initialShipment.exporter : raw.exporter,
-    letterheadText:
-      !raw.letterheadText || String(raw.letterheadText).includes("Nusantara Rasa")
-        ? initialShipment.letterheadText
-        : raw.letterheadText,
+    exporter: typeof raw.exporter === "string" ? raw.exporter : base.exporter,
+    letterheadText: typeof raw.letterheadText === "string" ? raw.letterheadText : base.letterheadText,
   };
 }
 
@@ -244,7 +322,7 @@ export function toShipmentPersistencePayload(shipment: Shipment): {
 } {
   const { lineItems, ...rest } = shipment;
   return {
-    reference: shipment.reference.trim() || initialShipment.reference,
+    reference: shipment.reference.trim() || `EXP-${new Date().getFullYear()}-001`,
     status: shipment.shipmentStatus,
     snapshot: rest as unknown as Record<string, unknown>,
     lineItems: lineItems.map((item) => ({ ...item })),
@@ -299,8 +377,8 @@ export function applyShipmentNumberUpdate(current: Shipment, key: keyof Shipment
 }
 
 export function applyLineItemsUpdate(current: Shipment, items: LineItem[]): Shipment {
-  const safeItems = (items.length ? items : initialShipment.lineItems).map((item) => ({
-    ...initialShipment.lineItems[0],
+  const safeItems = (items.length ? items : [emptyLineItem]).map((item) => ({
+    ...emptyLineItem,
     ...item,
   }));
   const first = safeItems[0];

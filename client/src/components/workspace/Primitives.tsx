@@ -323,31 +323,37 @@ export function TransactionProfile({
         <Field
           label="Nomor transaksi"
           value={shipment.reference}
+          placeholder="EXP-2026-001"
           onChange={(value) => update("reference", value)}
         />
         <Field
           label="Nama buyer"
           value={shipment.buyer}
+          placeholder="Masukkan nama perusahaan buyer"
           onChange={(value) => update("buyer", value)}
         />
         <Field
           label="Negara buyer"
           value={shipment.buyerCountry}
+          placeholder="Contoh: Jepang"
           onChange={(value) => update("buyerCountry", value)}
         />
         <Field
           label="Tujuan pengiriman"
           value={shipment.destination}
+          placeholder="Contoh: Port of Tokyo"
           onChange={(value) => update("destination", value)}
         />
         <Field
           label="Eksportir"
           value={shipment.exporter}
+          placeholder="Nama perusahaan eksportir Anda"
           onChange={(value) => update("exporter", value)}
         />
         <Field
           label="HS code referensi"
           value={shipment.hsCode}
+          placeholder="Contoh: 0901.11"
           onChange={(value) => update("hsCode", value)}
         />
       </div>
@@ -478,6 +484,7 @@ export function LineItemsEditor({
                 <span className="line-mobile-label">Produk</span>
                 <input
                   aria-label="Nama produk"
+                  placeholder="Nama produk ekspor..."
                   value={item.description}
                   onChange={(event) => updateItem(item.id, "description", event.target.value)}
                 />
@@ -486,6 +493,7 @@ export function LineItemsEditor({
                 <span className="line-mobile-label">HS Code</span>
                 <input
                   aria-label="HS Code"
+                  placeholder="HS Code"
                   value={item.hsCode}
                   onChange={(event) => updateItem(item.id, "hsCode", event.target.value)}
                 />

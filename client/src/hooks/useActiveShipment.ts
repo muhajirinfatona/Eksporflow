@@ -1,4 +1,3 @@
-import { startLogin } from "@/const";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { calculateContainer } from "@shared/container";
@@ -7,8 +6,8 @@ import {
   applyLineItemsUpdate,
   applyShipmentFieldUpdate,
   applyShipmentNumberUpdate,
+  createEmptyShipment,
   hydrateShipment,
-  initialShipment,
   toShipmentPersistencePayload,
   type LineItem,
   type Shipment,
@@ -24,28 +23,27 @@ export type PersistenceSaveState =
   | "conflict"
   | "error";
 
-const LOCAL_DRAFT_KEY = "eksporflow-shipment";
+function getDraftStorageKey(userId?: number | null): string {
+  return `eksporflow-draft-v2-${userId ? `u${userId}` : "guest"}`;
+}
 
-function readLocalDraft(): Shipment {
+function readUserDraft(userId?: number | null, companyName?: string | null): Shipment {
   try {
-    const raw = localStorage.getItem(LOCAL_DRAFT_KEY);
-    if (!raw) return initialShipment;
+    // Bersihkan sisa key lama yang dulu menyimpan data contoh mentah
+    localStorage.removeItem("eksporflow-shipment");
+    const raw = localStorage.getItem(getDraftStorageKey(userId));
+    if (!raw) {
+      return createEmptyShipment({ exporter: companyName || "" });
+    }
     const parsed = JSON.parse(raw) as Record<string, unknown>;
     return hydrateShipment({ snapshot: parsed });
   } catch {
-    return initialShipment;
+    return createEmptyShipment({ exporter: companyName || "" });
   }
 }
 
 export function useActiveShipment() {
   const utils = trpc.useUtils();
-  const [shipment, setShipment] = useState<Shipment>(readLocalDraft);
-  const [activeShipmentId, setActiveShipmentId] = useState<string | null>(null);
-  const [version, setVersion] = useState<number>(1);
-  const [saveState, setSaveState] = useState<PersistenceSaveState>("local-draft");
-  const [statusNote, setStatusNote] = useState<string | null>(null);
-  const [devLoginEnabled, setDevLoginEnabled] = useState<boolean>(false);
-  const autoLoadedRef = useRef(false);
 
   const authQuery = trpc.auth.me.useQuery(undefined, {
     retry: false,
@@ -53,20 +51,12 @@ export function useActiveShipment() {
   });
   const user = authQuery.data ?? null;
 
-  useEffect(() => {
-    let active = true;
-    fetch("/api/dev/status", { credentials: "include" })
-      .then((res) => (res.ok ? res.json() : { enabled: false }))
-      .then((data: { enabled?: boolean }) => {
-        if (active) setDevLoginEnabled(Boolean(data.enabled));
-      })
-      .catch(() => {
-        if (active) setDevLoginEnabled(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, []);
+  const [shipment, setShipment] = useState<Shipment>(() => createEmptyShipment());
+  const [activeShipmentId, setActiveShipmentId] = useState<string | null>(null);
+  const [version, setVersion] = useState<number>(1);
+  const [saveState, setSaveState] = useState<PersistenceSaveState>("unsaved");
+  const [statusNote, setStatusNote] = useState<string | null>(null);
+  const loadedForUserIdRef = useRef<number | null>(null);
 
   const shipmentsQuery = trpc.shipments.list.useQuery(
     { limit: 50, offset: 0 },
@@ -80,16 +70,6 @@ export function useActiveShipment() {
   const createMutation = trpc.shipments.create.useMutation();
   const updateMutation = trpc.shipments.update.useMutation();
   const logoutMutation = trpc.auth.logout.useMutation();
-
-  // Simpan salinan draft lokal sebagai cadangan bila koneksi putus, tetapi jangan pernah
-  // dipresentasikan sebagai cloud source of record.
-  useEffect(() => {
-    try {
-      localStorage.setItem(LOCAL_DRAFT_KEY, JSON.stringify(shipment));
-    } catch {
-      // Abaikan bila kuota localStorage penuh.
-    }
-  }, [shipment]);
 
   const loadShipment = useCallback(
     async (id: string, silent = false) => {
@@ -121,19 +101,38 @@ export function useActiveShipment() {
     [utils.shipments.get],
   );
 
-  // Saat user login pertama kali dan punya shipment di cloud, muat transaksi terbaru otomatis
-  // bila belum ada draft baru yang sedang diedit.
+  // Saat sesi user aktif, muat transaksi cloud terbaru milik user atau siapkan form kosong bersih.
   useEffect(() => {
-    if (!user || autoLoadedRef.current) return;
-    const list = shipmentsQuery.data;
-    if (!list) return;
-    autoLoadedRef.current = true;
-    if (list.length > 0 && !activeShipmentId && shipment.reference === initialShipment.reference) {
-      void loadShipment(list[0].id, true);
-    } else if (!activeShipmentId) {
-      setSaveState("unsaved");
+    if (!user) {
+      loadedForUserIdRef.current = null;
+      return;
     }
-  }, [user, shipmentsQuery.data, activeShipmentId, shipment.reference, loadShipment]);
+    if (loadedForUserIdRef.current === user.id) return;
+    if (shipmentsQuery.isLoading) return;
+
+    loadedForUserIdRef.current = user.id;
+    const list = shipmentsQuery.data ?? [];
+    if (list.length > 0) {
+      void loadShipment(list[0].id, true);
+    } else {
+      const cleanDraft = readUserDraft(user.id, user.companyName);
+      setShipment(cleanDraft);
+      setActiveShipmentId(null);
+      setVersion(1);
+      setSaveState("unsaved");
+      setStatusNote(null);
+    }
+  }, [user, shipmentsQuery.isLoading, shipmentsQuery.data, loadShipment]);
+
+  // Simpan cadangan draft lokal terisolasi per user bila sedang mengedit sebelum klik Simpan ke Cloud.
+  useEffect(() => {
+    if (!user) return;
+    try {
+      localStorage.setItem(getDraftStorageKey(user.id), JSON.stringify(shipment));
+    } catch {
+      // Abaikan bila kuota localStorage penuh.
+    }
+  }, [shipment, user]);
 
   const markDirty = useCallback(() => {
     setSaveState((prev) => (prev === "conflict" ? "conflict" : user ? "unsaved" : "local-draft"));
@@ -165,10 +164,7 @@ export function useActiveShipment() {
 
   const saveShipment = useCallback(async () => {
     if (!user) {
-      setSaveState("local-draft");
-      toast("Tersimpan sebagai draft browser lokal", {
-        description: "Masuk akun terlebih dahulu untuk menyimpan transaksi ke database cloud (Supabase).",
-      });
+      toast.error("Silakan masuk ke akun Anda terlebih dahulu.");
       return;
     }
 
@@ -184,7 +180,7 @@ export function useActiveShipment() {
         setSaveState("saved");
         await utils.shipments.list.invalidate();
         toast.success("Transaksi tersimpan ke Cloud", {
-          description: `${created.reference} · v${created.version} tercatat di audit log.`,
+          description: `${created.reference} · v${created.version} tercatat di audit log Supabase.`,
         });
       } else {
         const updated = await updateMutation.mutateAsync({
@@ -223,90 +219,71 @@ export function useActiveShipment() {
 
   const createNewDraft = useCallback(
     (customRef?: string) => {
-      const suffix = String(Math.floor(100 + Math.random() * 900));
-      const nextRef = customRef?.trim() || `EXP-${new Date().getFullYear()}-${suffix}`;
-      setShipment({
-        ...initialShipment,
+      const nextIndex = String((shipmentsQuery.data?.length ?? 0) + 1).padStart(3, "0");
+      const nextRef = customRef?.trim() || `EXP-${new Date().getFullYear()}-${nextIndex}`;
+      const empty = createEmptyShipment({
+        exporter: user?.companyName || shipment.exporter || "",
         reference: nextRef,
-        shipmentStatus: "Draft",
-        documentRevision: 1,
-        bookingNumber: "",
-        containerNumber: "",
-        sealNumber: "",
-        attachments: [],
       });
+      setShipment(empty);
       setActiveShipmentId(null);
       setVersion(1);
-      setSaveState(user ? "unsaved" : "local-draft");
+      setSaveState("unsaved");
       setStatusNote(null);
-      toast.success(`Draft baru ${nextRef} siap diisi`, {
-        description: user ? "Klik Simpan ke Cloud untuk mencatat transaksi baru di workspace." : "Mode draft lokal aktif.",
+      toast.success(`Transaksi baru ${nextRef} siap diisi`, {
+        description: "Seluruh kolom dikosongkan. Isi data baru lalu klik Simpan ke Cloud.",
       });
     },
-    [user],
+    [shipmentsQuery.data?.length, shipment.exporter, user?.companyName],
   );
 
   const resetTransaction = useCallback(() => {
-    setShipment(initialShipment);
+    const clean = createEmptyShipment({
+      exporter: user?.companyName || "",
+      reference: shipment.reference || `EXP-${new Date().getFullYear()}-001`,
+    });
+    setShipment(clean);
     setActiveShipmentId(null);
     setVersion(1);
-    setSaveState(user ? "unsaved" : "local-draft");
+    setSaveState("unsaved");
     setStatusNote(null);
-    toast("Draft dikembalikan ke contoh awal");
-  }, [user]);
-
-  const login = useCallback(async () => {
-    if (devLoginEnabled) {
+    if (user) {
       try {
-        const res = await fetch("/api/dev/login", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          credentials: "include",
-          body: JSON.stringify({ name: "Arif · Workspace Owner" }),
-        });
-        const data = (await res.json()) as { success?: boolean; error?: string };
-        if (!res.ok || !data.success) {
-          toast.error("Login lokal belum siap", {
-            description: data.error || "Periksa konfigurasi DATABASE_URL di .env.",
-          });
-          return;
-        }
-        autoLoadedRef.current = false;
-        await utils.auth.me.invalidate();
-        await utils.shipments.list.invalidate();
-        toast.success("Berhasil masuk (Mode Dev Lokal)", {
-          description: "Penyimpanan cloud PostgreSQL / Supabase kini aktif.",
-        });
+        localStorage.removeItem(getDraftStorageKey(user.id));
       } catch {
-        toast.error("Tidak dapat menghubungi server lokal.");
+        // Abaikan
       }
-      return;
     }
-    await startLogin();
-  }, [devLoginEnabled, utils.auth.me, utils.shipments.list]);
+    toast("Formulir transaksi dikosongkan untuk input baru");
+  }, [shipment.reference, user]);
+
+  const refreshAuth = useCallback(async () => {
+    loadedForUserIdRef.current = null;
+    await utils.auth.me.invalidate();
+    await utils.shipments.list.invalidate();
+  }, [utils.auth.me, utils.shipments.list]);
 
   const logout = useCallback(async () => {
     try {
-      if (devLoginEnabled) {
-        await fetch("/api/dev/logout", { method: "POST", credentials: "include" }).catch(() => undefined);
-      }
       await logoutMutation.mutateAsync();
+      loadedForUserIdRef.current = null;
       setActiveShipmentId(null);
-      setSaveState("local-draft");
-      autoLoadedRef.current = false;
+      setShipment(createEmptyShipment());
+      setVersion(1);
+      setSaveState("unsaved");
       await utils.auth.me.invalidate();
-      toast("Anda telah keluar dari sesi cloud");
+      toast("Anda telah keluar dari akun EksporFlow");
     } catch {
       toast.error("Gagal keluar sesi");
     }
-  }, [devLoginEnabled, logoutMutation, utils.auth.me]);
+  }, [logoutMutation, utils.auth.me]);
 
   const pricing = useMemo(() => calculatePricing(shipment), [shipment]);
   const container = useMemo(() => calculateContainer(shipment), [shipment]);
 
   return {
     user,
-    devLoginEnabled,
+    isAuthLoading: authQuery.isLoading,
     shipment,
     activeShipmentId,
     version,
@@ -324,7 +301,7 @@ export function useActiveShipment() {
     reloadLatest,
     createNewDraft,
     resetTransaction,
-    login,
+    refreshAuth,
     logout,
   };
 }

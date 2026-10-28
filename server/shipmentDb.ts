@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { and, asc, desc, eq } from "drizzle-orm";
 import { getDb } from "./db";
 import { isDuplicateEntryError } from "./dbErrors";
-import { shipmentAuditLogs, shipmentLineItems, shipments, workspaceMembers, workspaces } from "../drizzle/schema";
+import { shipmentAuditLogs, shipmentLineItems, shipments, users, workspaceMembers, workspaces } from "../drizzle/schema";
 
 type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
@@ -49,7 +49,7 @@ async function findMemberWorkspace(db: Database, userId: number) {
  * dimiliki orang lain dan mengundang user). Jika user belum punya membership,
  * workspace pribadi dibuat bersama membership owner dalam satu transaksi.
  */
-async function resolveWorkspace(db: Database, userId: number, name = "Indico Export Indonesia") {
+async function resolveWorkspace(db: Database, userId: number, fallbackName?: string) {
   const existing = await findMemberWorkspace(db, userId);
   if (existing) return existing;
 
@@ -64,10 +64,16 @@ async function resolveWorkspace(db: Database, userId: number, name = "Indico Exp
     return owned[0];
   }
 
+  const userRows = await db.select({ companyName: users.companyName, name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+  const resolvedName =
+    fallbackName?.trim() ||
+    userRows[0]?.companyName?.trim() ||
+    (userRows[0]?.name?.trim() ? `Workspace ${userRows[0].name.trim()}` : "Workspace Ekspor");
+
   try {
     await db.transaction(async (tx) => {
       const id = randomUUID();
-      await tx.insert(workspaces).values({ id, name, ownerUserId: userId });
+      await tx.insert(workspaces).values({ id, name: resolvedName, ownerUserId: userId });
       await tx.insert(workspaceMembers).values({ workspaceId: id, userId, role: "owner" });
     });
   } catch (error) {

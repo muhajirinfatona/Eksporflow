@@ -30,7 +30,7 @@ export function AssistantModule({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Saya **AI Advisor EksporFlow**. Saya siap membantu membaca transaksi **${shipment.reference}** untuk ${shipment.buyer}. Tanyakan tentang skenario Incoterms® 2020, struktur harga, kelengkapan dokumen, rencana muatan, atau temuan risiko yang perlu ditangani terlebih dahulu.`,
+      content: `Saya **AI Advisor EksporFlow**. Saya siap membantu membaca transaksi **${shipment.reference}**${shipment.buyer ? ` untuk ${shipment.buyer}` : ""}. Tanyakan tentang skenario Incoterms® 2020, struktur harga, kelengkapan dokumen, rencana muatan, atau temuan risiko yang perlu ditangani terlebih dahulu.`,
     },
   ]);
 
@@ -38,7 +38,7 @@ export function AssistantModule({
     setMessages([
       {
         role: "assistant",
-        content: `Saya **AI Advisor EksporFlow**. Konteks aktif saat ini: **${shipment.reference}** (${shipment.buyer} · ${shipment.incoterm}). Apa yang ingin Anda periksa hari ini?`,
+        content: `Saya **AI Advisor EksporFlow**. Konteks aktif saat ini: **${shipment.reference}** (${shipment.buyer || "Buyer belum diisi"} · ${shipment.incoterm}). Apa yang ingin Anda periksa hari ini?`,
       },
     ]);
   }, [shipment.reference]);
@@ -222,7 +222,7 @@ export function AssistantModule({
           <div className="context-list">
             <div>
               <span>BUYER</span>
-              <b>{shipment.buyer}</b>
+              <b>{shipment.buyer || "Belum diisi"}</b>
             </div>
             <div>
               <span>OFFER</span>

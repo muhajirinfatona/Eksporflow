@@ -1,6 +1,6 @@
 import { formatNumber } from "@shared/format";
 import type { ScreenId } from "@shared/risk";
-import { initialShipment, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
+import { emptyLineItem, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
 import { ArrowDownRight, ArrowUpRight, Check, FileText, Package, PenLine, RotateCcw, Truck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -298,7 +298,7 @@ function Container3DSimulator({
     "Kemasan custom": 0x9d7bd9,
   };
   const items = useMemo(
-    () => shipment.lineItems.map((item) => ({ ...initialShipment.lineItems[0], ...item })),
+    () => shipment.lineItems.map((item) => ({ ...emptyLineItem, ...item })),
     [shipment.lineItems],
   );
   const previewUnits = Math.min(

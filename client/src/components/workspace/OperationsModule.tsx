@@ -61,7 +61,7 @@ export function OperationsModule({
           <div>
             <span className="eyebrow">SHIPMENT CONTROL TOWER</span>
             <h2 className="ops-title">
-              {shipment.reference} · {shipment.buyer}
+              {shipment.reference} · {shipment.buyer || "Buyer belum diisi"}
             </h2>
             <p className="ops-description">
               Satu timeline untuk menjaga shipment bergerak dan memastikan setiap handoff memiliki bukti. Milestone dicatat oleh tim operasional (bukan live carrier tracking).
