@@ -31,6 +31,7 @@ import {
   Truck,
   Users,
   Wallet,
+  X,
 } from "lucide-react";
 import type React from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -344,7 +345,12 @@ export function WorkspaceShell({
   onLogout: () => Promise<void>;
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth > 1024 : true,
+  );
+  const [isCompactViewport, setIsCompactViewport] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.innerWidth <= 1024 : false,
+  );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [textScale, setTextScale] = useState<TextScale>(readInitialTextScale);
@@ -361,6 +367,35 @@ export function WorkspaceShell({
   useEffect(() => {
     document.documentElement.setAttribute("data-text-scale", textScale);
   }, [textScale]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const media = window.matchMedia("(max-width: 1024px)");
+    const syncViewport = (matches: boolean) => {
+      setIsCompactViewport(matches);
+      setSidebarOpen(!matches);
+    };
+    setIsCompactViewport(media.matches);
+    const handler = (event: MediaQueryListEvent) => syncViewport(event.matches);
+    media.addEventListener("change", handler);
+    return () => media.removeEventListener("change", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!isCompactViewport || !sidebarOpen) {
+      document.body.style.removeProperty("overflow");
+      return;
+    }
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSidebarOpen(false);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.removeProperty("overflow");
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [isCompactViewport, sidebarOpen]);
 
   const activeMeta = getScreenMeta(screen);
 
@@ -384,18 +419,34 @@ export function WorkspaceShell({
 
   return (
     <div className={`app-shell ${sidebarOpen ? "sidebar-is-open" : "sidebar-is-closed"}`}>
+      {isCompactViewport && sidebarOpen && (
+        <div
+          className="sidebar-backdrop"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       <aside className="sidebar clean-sidebar">
         <div className="brand-lockup clean-brand-lockup">
           <div className="brand-mark">
             <span />
             <span />
           </div>
-          <div>
+          <div className="brand-copy">
             <strong>
               Ekspor<span>Flow</span>
             </strong>
             <small>EXPORT OPERATIONS</small>
           </div>
+          <button
+            type="button"
+            className="sidebar-mobile-close"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Tutup menu navigasi"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         <div className="workspace-switcher clean-workspace-box">
@@ -419,7 +470,7 @@ export function WorkspaceShell({
                   className={`clean-nav-item ${screen === item.id ? "active" : ""}`}
                   onClick={() => {
                     navigate(item.id);
-                    if (window.innerWidth <= 820) setSidebarOpen(false);
+                    if (window.innerWidth <= 1024) setSidebarOpen(false);
                   }}
                 >
                   <span className="nav-icon">{item.icon}</span>
@@ -462,10 +513,20 @@ export function WorkspaceShell({
 
       <main className="main-content">
         <header className="topbar">
-          <div className="breadcrumbs">
-            <span>{activeMeta.group}</span>
-            <ChevronRight size={14} />
-            <b>{activeMeta.label}</b>
+          <div className="topbar-left">
+            <button
+              type="button"
+              className="topbar-menu-btn"
+              onClick={() => setSidebarOpen((open) => !open)}
+              aria-label={sidebarOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="breadcrumbs">
+              <span className="breadcrumb-group">{activeMeta.group}</span>
+              <ChevronRight size={14} className="breadcrumb-sep" />
+              <b>{activeMeta.label}</b>
+            </div>
           </div>
 
           <div className="topbar-actions">
@@ -489,6 +550,17 @@ export function WorkspaceShell({
                       }
                     }}
                   />
+                  <button
+                    type="button"
+                    className="top-search-close"
+                    aria-label="Tutup pencarian"
+                    onClick={() => {
+                      setSearchOpen(false);
+                      setSearchTerm("");
+                    }}
+                  >
+                    <X size={14} />
+                  </button>
                 </div>
                 {matchingScreens.length > 0 && (
                   <div className="top-search-dropdown">
@@ -550,43 +622,33 @@ export function WorkspaceShell({
             </IconButton>
 
             {!user ? (
-              <button type="button" className="ghost-button" onClick={() => void onLogin()}>
-                <Cloud size={14} /> Masuk untuk Cloud
+              <button type="button" className="ghost-button topbar-login-btn" onClick={() => void onLogin()}>
+                <Cloud size={14} /> <span className="btn-label-desktop">Masuk untuk Cloud</span><span className="btn-label-mobile">Masuk</span>
               </button>
             ) : null}
 
             <button
               type="button"
-              className="save-button"
+              className="save-button topbar-save-btn"
               disabled={saveState === "saving"}
               onClick={() => void onSave()}
             >
               <Save size={15} />
-              {saveState === "saving"
-                ? "Menyimpan..."
-                : user
-                  ? "Simpan ke Cloud"
-                  : "Simpan Draft"}
+              <span className="btn-label-desktop">
+                {saveState === "saving"
+                  ? "Menyimpan..."
+                  : user
+                    ? "Simpan ke Cloud"
+                    : "Simpan Draft"}
+              </span>
+              <span className="btn-label-mobile">
+                {saveState === "saving" ? "..." : "Simpan"}
+              </span>
             </button>
           </div>
         </header>
 
         <div className="page-wrap">
-          <div className="mobile-toolbar">
-            <button
-              type="button"
-              className="icon-button"
-              onClick={() => setSidebarOpen(true)}
-              aria-label="Buka menu"
-            >
-              <Menu size={19} />
-            </button>
-            <span>EksporFlow · {activeMeta.label}</span>
-            <IconButton label="Simpan" onClick={() => void onSave()}>
-              <Save size={17} />
-            </IconButton>
-          </div>
-
           {saveState === "conflict" && (
             <div className="conflict-banner">
               <div>
@@ -627,7 +689,7 @@ export function WorkspaceShell({
         </div>
       </main>
 
-      {!sidebarOpen && (
+      {!isCompactViewport && !sidebarOpen && (
         <button
           type="button"
           className="sidebar-reopen"
@@ -637,7 +699,7 @@ export function WorkspaceShell({
           <PanelLeftOpen size={18} />
         </button>
       )}
-      {sidebarOpen && (
+      {!isCompactViewport && sidebarOpen && (
         <button
           type="button"
           className="sidebar-collapse"

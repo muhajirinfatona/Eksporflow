@@ -447,41 +447,56 @@ export function LineItemsEditor({
         {items.map((item) => (
           <div className="line-item-card" key={item.id}>
             <div className="line-item-row">
-              <input
-                aria-label="Nama produk"
-                value={item.description}
-                onChange={(event) => updateItem(item.id, "description", event.target.value)}
-              />
-              <input
-                aria-label="HS Code"
-                value={item.hsCode}
-                onChange={(event) => updateItem(item.id, "hsCode", event.target.value)}
-              />
-              <input
-                aria-label="Quantity"
-                type="number"
-                min="0"
-                value={item.quantity}
-                onChange={(event) => updateItem(item.id, "quantity", event.target.value)}
-              />
-              <div className="line-money">
-                <span>{currency}</span>
+              <div className="line-cell line-cell-product">
+                <span className="line-mobile-label">Produk</span>
                 <input
-                  aria-label="Harga unit"
-                  type="number"
-                  min="0"
-                  value={item.unitPrice}
-                  onChange={(event) => updateItem(item.id, "unitPrice", event.target.value)}
+                  aria-label="Nama produk"
+                  value={item.description}
+                  onChange={(event) => updateItem(item.id, "description", event.target.value)}
                 />
               </div>
-              <b>{formatMoney(item.quantity * item.unitPrice, currency)}</b>
+              <div className="line-cell line-cell-hs">
+                <span className="line-mobile-label">HS Code</span>
+                <input
+                  aria-label="HS Code"
+                  value={item.hsCode}
+                  onChange={(event) => updateItem(item.id, "hsCode", event.target.value)}
+                />
+              </div>
+              <div className="line-cell line-cell-qty">
+                <span className="line-mobile-label">Quantity</span>
+                <input
+                  aria-label="Quantity"
+                  type="number"
+                  min="0"
+                  value={item.quantity}
+                  onChange={(event) => updateItem(item.id, "quantity", event.target.value)}
+                />
+              </div>
+              <div className="line-cell line-cell-price">
+                <span className="line-mobile-label">Harga Unit</span>
+                <div className="line-money">
+                  <span>{currency}</span>
+                  <input
+                    aria-label="Harga unit"
+                    type="number"
+                    min="0"
+                    value={item.unitPrice}
+                    onChange={(event) => updateItem(item.id, "unitPrice", event.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="line-cell line-cell-total">
+                <span className="line-mobile-label">Subtotal</span>
+                <b>{formatMoney(item.quantity * item.unitPrice, currency)}</b>
+              </div>
               <button
                 type="button"
                 className="remove-line-item"
                 aria-label="Hapus item"
                 onClick={() => removeItem(item.id)}
               >
-                <X size={13} />
+                <X size={15} />
               </button>
             </div>
             <div className="line-item-detail">

@@ -1241,28 +1241,665 @@ html[data-text-scale="xlarge"] .clean-nav-item {
   padding: 12px 0;
 }
 
-@media (max-width: 1080px) {
-  .profile-grid,
-  .document-settings-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+/* ==========================================================================
+   Multi-Device Responsive System (Desktop, Laptop, Tablet/iPad, & Smartphone)
+   Menjamin tanpa geser halaman liar, laci menu sentuh mulus, & form nyaman di HP.
+   ========================================================================== */
+.app-shell {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+.main-content {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+.brand-copy {
+  min-width: 0;
+  flex: 1;
+}
+.sidebar-mobile-close {
+  display: none;
+}
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.topbar-menu-btn {
+  display: none;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid #d4dce3;
+  background: #fff;
+  color: var(--ink);
+  flex: 0 0 auto;
+}
+.topbar-menu-btn:hover {
+  background: #f2f5f8;
+}
+.sidebar-is-closed .topbar-menu-btn {
+  display: inline-grid;
+}
+.top-search-close {
+  border: 0;
+  background: transparent;
+  color: #667585;
+  padding: 4px;
+  border-radius: 5px;
+  display: inline-grid;
+  place-items: center;
+}
+.top-search-close:hover {
+  background: #e4e9ee;
+  color: var(--ink);
+}
+.btn-label-mobile {
+  display: none;
+}
+.btn-label-desktop {
+  display: inline;
+}
+
+/* Sel Line-Item (Desktop tabel 6 kolom, Mobile kartu berlabel) */
+.line-cell {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.line-cell-total {
+  justify-content: center;
+}
+.line-cell-total b {
+  font-size: 14.5px;
+  white-space: nowrap;
+}
+.line-money {
+  border-color: #cbd3db;
+  background: #fff;
+}
+.line-mobile-label {
+  display: none;
+}
+.auth-banner {
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.auth-banner-copy {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 260px;
+}
+.clean-table-wrap {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (min-width: 1025px) {
+  html .sidebar-is-closed .clean-sidebar {
+    width: 0 !important;
+    flex-basis: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+}
+
+/* Breakpoint 1: Laptop Kecil & Tablet Landscape (<= 1200px) */
+@media (max-width: 1200px) {
+  .topbar {
+    padding: 0 22px;
+  }
+  .page-wrap {
+    padding: 26px 24px 48px;
   }
   .module-layout,
-  .documents-layout {
+  .copilot-layout {
     grid-template-columns: 1fr;
   }
-}
-@media (max-width: 640px) {
-  .profile-grid,
-  .document-settings-grid {
-    grid-template-columns: 1fr;
+  .pricing-aside {
+    position: static;
   }
-  .text-scale-control {
-    display: none;
+  .transaction-strip {
+    grid-template-columns: 1fr 1.2fr 1.75fr 0.95fr;
+  }
+  .transaction-status {
+    display: flex;
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--line);
+    padding: 10px 17px;
+    background: #fafbf9;
   }
 }
-@media print {
+
+/* Breakpoint 2: Tablet Portrait / iPad & Mode Drawer Menu (<= 1024px) */
+@media (max-width: 1024px) {
+  .sidebar-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 45;
+    background: rgba(15, 28, 45, 0.48);
+    backdrop-filter: blur(3px);
+  }
+  .sidebar.clean-sidebar,
+  html[data-text-scale="large"] .clean-sidebar,
+  html[data-text-scale="xlarge"] .clean-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 50;
+    width: min(308px, 86vw) !important;
+    flex: 0 0 auto !important;
+    padding: 20px 14px 16px !important;
+    transform: translateX(0);
+    transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+    box-shadow: 18px 0 38px rgba(13, 27, 45, 0.28);
+    overflow-y: auto;
+  }
+  .sidebar-is-closed .sidebar.clean-sidebar {
+    transform: translateX(-105%);
+    box-shadow: none;
+    pointer-events: none;
+  }
+  .sidebar-mobile-close {
+    display: inline-grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.08);
+    color: #eef4f9;
+    flex: 0 0 auto;
+  }
+  .topbar-menu-btn {
+    display: inline-grid;
+  }
+  .sidebar-collapse,
+  .sidebar-reopen {
+    display: none !important;
+  }
+
+  /* Skala teks A+ / A++ aman tanpa mendorong topbar keluar layar sentuh */
   html[data-text-scale="large"] .main-content,
   html[data-text-scale="xlarge"] .main-content {
+    zoom: 1;
+  }
+  html[data-text-scale="large"] .page-wrap {
+    zoom: 1.07;
+  }
+  html[data-text-scale="xlarge"] .page-wrap {
+    zoom: 1.14;
+  }
+
+  .overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .hero-card {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+  .content-grid.two-thirds,
+  .container-top-grid,
+  .documents-layout,
+  .master-columns,
+  .clean-grid-3,
+  .governance-grid {
+    grid-template-columns: 1fr;
+  }
+  .profile-grid,
+  .document-settings-grid,
+  .form-grid.three,
+  .ops-checks,
+  .audit-grid,
+  .clean-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* Dokumen sidebar menjadi grid 2x2 rapi di Tablet */
+  .document-sidebar {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    padding: 16px;
+  }
+  .document-sidebar-head {
+    grid-column: 1 / -1;
+    padding-bottom: 6px;
+  }
+  .document-item {
+    display: flex;
+    width: 100%;
+    margin: 0;
+  }
+  .document-sidebar-footer {
+    display: block;
+    grid-column: 1 / -1;
+    margin-top: 8px;
+  }
+
+  /* Timeline 9 tahap menjadi grid kartu sentuh 3x3 tanpa paksa lebar 690px */
+  .status-track {
+    min-width: 0 !important;
+    overflow: visible;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 20px;
+  }
+  .status-step::before {
+    display: none;
+  }
+  .status-step {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 10px 12px;
+    border: 1px solid #dfe6ec;
+    border-radius: 9px;
+    background: #fbfcfa;
+    text-align: left;
+    gap: 10px;
+  }
+  .status-step.current {
+    border-color: var(--saffron);
+    background: #fffaf0;
+  }
+  .status-step small {
+    text-align: left;
+    font-size: 13px;
+  }
+}
+
+/* Breakpoint 3: Reflow Line-Items Menjadi Kartu Tanpa Geser Kiri-Kanan (<= 900px) */
+@media (max-width: 900px) {
+  .page-heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .heading-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .line-items-table {
+    overflow-x: visible;
+    gap: 12px;
+  }
+  .line-item-header {
+    display: none !important;
+  }
+  .line-item-card {
+    min-width: 0 !important;
+    width: 100%;
+    padding: 14px;
+    border-radius: 10px;
+    position: relative;
+  }
+  .line-mobile-label {
+    display: block;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: #526272;
+    margin-bottom: 5px;
+  }
+  .line-item-row {
+    min-width: 0 !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    align-items: end;
+  }
+  .line-cell-product {
+    grid-column: 1 / -1;
+    padding-right: 42px;
+  }
+  .remove-line-item {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 34px;
+    height: 34px;
+    border-radius: 7px;
+    border: 1px solid #e2e8ee;
+    background: #f8fafb;
+    display: inline-grid;
+    place-items: center;
+  }
+  .line-cell-total {
+    justify-content: center;
+    min-height: 42px;
+    padding: 6px 12px;
+    background: #f4f7fa;
+    border-radius: 7px;
+    border: 1px solid #e1e8ef;
+  }
+  .line-item-detail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    overflow-x: visible;
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  .line-item-detail label,
+  .line-item-detail label:first-child,
+  .line-item-detail .pallet-toggle {
+    flex: none;
+    min-width: 0;
+    width: 100%;
+  }
+  .clean-table {
+    min-width: 620px;
+  }
+}
+
+/* Breakpoint 4: Smartphone Standar & Besar (<= 640px) */
+@media (max-width: 640px) {
+  html[data-text-scale="large"] .page-wrap {
+    zoom: 1.05;
+  }
+  html[data-text-scale="xlarge"] .page-wrap {
+    zoom: 1.1;
+  }
+
+  .topbar {
+    height: auto;
+    min-height: 64px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .topbar-left {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+  }
+  .topbar .breadcrumbs {
+    display: flex !important;
+    min-width: 0;
+    font-size: 14px;
+  }
+  .breadcrumb-group,
+  .breadcrumb-sep {
+    display: none;
+  }
+  .breadcrumbs b {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 135px;
+  }
+  .topbar-actions {
+    gap: 6px;
+    margin-left: auto;
+  }
+  .text-scale-control {
+    display: inline-flex !important;
+    padding: 2px;
+  }
+  .text-scale-control button {
+    padding: 6px 7px;
+    font-size: 12px;
+  }
+  .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+  .topbar-save-btn {
+    display: inline-flex !important;
+    padding: 8px 11px;
+    min-height: 38px;
+    font-size: 13px;
+  }
+  .topbar-login-btn {
+    padding: 8px 10px;
+    min-height: 38px;
+    font-size: 13px;
+  }
+  .btn-label-desktop {
+    display: none;
+  }
+  .btn-label-mobile {
+    display: inline;
+  }
+  .top-search-wrap {
+    order: 10;
+    flex: 1 1 100%;
+    width: 100%;
+  }
+  .top-search {
+    width: 100%;
+  }
+  .top-search input {
+    width: 100%;
+    flex: 1;
+  }
+  .top-search-dropdown {
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+
+  .page-wrap {
+    padding: 18px 14px 38px;
+  }
+  .panel-padding {
+    padding: 16px;
+  }
+  .page-heading h1 {
+    font-size: clamp(24px, 6.8vw, 30px);
+  }
+  .heading-actions {
+    justify-content: flex-start;
+  }
+
+  /* Seluruh form & kartu menjadi 1 kolom penuh agar input lebar & mudah diketik di HP */
+  .profile-grid,
+  .document-settings-grid,
+  .form-grid.three,
+  .form-grid.two,
+  .overview-grid,
+  .ops-checks,
+  .recommendation-grid,
+  .context-list,
+  .clean-grid-4,
+  .document-sidebar,
+  .template-options {
+    grid-template-columns: 1fr !important;
+  }
+  .profile-grid .field:nth-child(3),
+  .profile-grid .field:nth-child(4),
+  .form-grid.three .field:first-child {
+    grid-column: auto;
+  }
+
+  /* Strip Transaksi di HP */
+  .transaction-strip {
+    grid-template-columns: 1fr 1fr;
+  }
+  .transaction-strip > .transaction-cell:nth-child(2) {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+  }
+  .transaction-strip > .incoterm-cell {
+    grid-row: 1;
+    grid-column: 2;
+    border-right: 0;
+  }
+  .route-cell {
+    grid-column: 1 / -1;
+    border-right: 0;
+    border-top: 1px solid var(--line);
+    padding: 13px 14px;
+  }
+  .connection-rail {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .connection-rail i {
+    display: none;
+  }
+
+  /* Hero Dashboard & Risk Center di HP */
+  .hero-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 18px;
+    padding: 20px;
+    min-height: 0;
+  }
+  .hero-card p {
+    max-width: 100%;
+  }
+  .hero-meta {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-top: 16px;
+  }
+  .hero-orbit {
+    align-self: center;
+    margin: 4px 0 0;
+    width: 132px;
+    height: 132px;
+  }
+  .hero-orbit::before {
+    width: 154px;
+    height: 154px;
+  }
+  .risk-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+  }
+  .risk-score {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 10px;
+    margin-right: 0;
+  }
+
+  /* Line items, Timeline, Toolbar, Dokumen & 3D Viewport di HP */
+  .line-item-detail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .line-item-detail .pallet-toggle {
+    grid-column: 1 / -1;
+  }
+  .status-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .clean-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .clean-search-box,
+  .clean-select,
+  .clean-toolbar-actions {
+    width: 100%;
+    flex: none;
+  }
+  .clean-toolbar-actions {
+    flex-wrap: wrap;
+  }
+  .clean-toolbar-actions button {
+    flex: 1 1 140px;
+    justify-content: center;
+  }
+  .preview-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .preview-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+  .preview-actions button {
+    flex: 1 1 180px;
+    justify-content: center;
+  }
+  .paper-document {
+    padding: 18px 14px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .container-3d-viewport {
+    height: 285px;
+  }
+  .container-3d-legend {
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    padding: 7px 9px;
+    font-size: 11px;
+    pointer-events: none;
+  }
+  .container-3d-badge {
+    top: 8px;
+    right: 8px;
+    font-size: 11px;
+    pointer-events: none;
+  }
+  .load-simulation-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .comparison-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Breakpoint 5: HP Layar Ringkas / Compact (<= 420px) */
+@media (max-width: 420px) {
+  .topbar .breadcrumbs {
+    display: none !important;
+  }
+  .comparison-cards,
+  .load-numbers,
+  .status-track,
+  .audit-grid,
+  .line-item-row,
+  .line-item-detail,
+  .load-simulation-strip {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media print {
+  .sidebar-backdrop,
+  .topbar-menu-btn,
+  .sidebar-mobile-close {
+    display: none !important;
+  }
+  html[data-text-scale="large"] .main-content,
+  html[data-text-scale="xlarge"] .main-content,
+  html[data-text-scale="large"] .page-wrap,
+  html[data-text-scale="xlarge"] .page-wrap {
     zoom: 1 !important;
+  }
+  .paper-document {
+    overflow: visible !important;
+    padding: 28px !important;
   }
 }

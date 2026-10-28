@@ -149,8 +149,8 @@ export function AssistantModule({
         </div>
 
         {!isAuthenticated && (
-          <div className="validation-banner" style={{ alignItems: "center", justifyContent: "space-between" }}>
-            <div style={{ flexDirection: "row", alignItems: "center", gap: 9, display: "flex" }}>
+          <div className="validation-banner auth-banner">
+            <div className="auth-banner-copy">
               <Lock size={16} />
               <div>
                 <b>Sesi login diperlukan untuk tanya-jawab AI Advisor</b>
@@ -166,10 +166,11 @@ export function AssistantModule({
         )}
 
         <AIChatBox
+          className="advisor-chat-box"
           messages={messages}
           onSendMessage={sendMessage}
           isLoading={assistant.isPending}
-          height={450}
+          height="clamp(340px, 58vh, 460px)"
           placeholder="Contoh: risiko terbesar sebelum saya kirim quotation ini apa?"
           emptyStateMessage="Mulai percakapan dengan AI Advisor EksporFlow"
           suggestedPrompts={[
