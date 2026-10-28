@@ -1,13 +1,16 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
+import type { PipelineStage } from "@/hooks/useWorkspaceFlow";
 import type { ScreenId } from "@shared/risk";
 import {
   AlertTriangle,
+  ArrowRightLeft,
   BarChart3,
   BookOpen,
   Bot,
   Box,
   Building2,
   Calculator,
+  Check,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
@@ -34,21 +37,8 @@ import {
   X,
 } from "lucide-react";
 import type React from "react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IconButton, StatusPill } from "./Primitives";
-
-export type TextScale = "normal" | "large" | "xlarge";
-const TEXT_SCALE_KEY = "eksporflow-text-scale";
-
-function readInitialTextScale(): TextScale {
-  try {
-    const saved = localStorage.getItem(TEXT_SCALE_KEY);
-    if (saved === "normal" || saved === "large" || saved === "xlarge") return saved;
-  } catch {
-    // Fallback ke standar senior-friendly.
-  }
-  return "normal";
-}
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -317,6 +307,11 @@ export function WorkspaceShell({
   navigate,
   exporterName,
   reference,
+  buyerName,
+  incoterm,
+  offerFormatted,
+  shipmentStatus,
+  pipeline,
   user,
   saveState,
   statusNote,
@@ -333,6 +328,11 @@ export function WorkspaceShell({
   navigate: (next: ScreenId) => void;
   exporterName: string;
   reference: string;
+  buyerName: string;
+  incoterm: string;
+  offerFormatted: string;
+  shipmentStatus: string;
+  pipeline: PipelineStage[];
   user: { name?: string | null; email?: string | null } | null;
   saveState: PersistenceSaveState;
   statusNote: string | null;
@@ -353,20 +353,10 @@ export function WorkspaceShell({
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [textScale, setTextScale] = useState<TextScale>(readInitialTextScale);
-
-  const changeTextScale = useCallback((next: TextScale) => {
-    setTextScale(next);
-    try {
-      localStorage.setItem(TEXT_SCALE_KEY, next);
-    } catch {
-      // Abaikan bila storage penuh.
-    }
-  }, []);
 
   useEffect(() => {
-    document.documentElement.setAttribute("data-text-scale", textScale);
-  }, [textScale]);
+    document.documentElement.removeAttribute("data-text-scale");
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -583,38 +573,11 @@ export function WorkspaceShell({
               </div>
             )}
 
-            <div className="text-scale-control" role="group" aria-label="Ukuran teks tampilan">
-              <button
-                type="button"
-                className={textScale === "normal" ? "active" : ""}
-                title="Ukuran teks nyaman (Standar)"
-                onClick={() => changeTextScale("normal")}
-              >
-                A
-              </button>
-              <button
-                type="button"
-                className={textScale === "large" ? "active" : ""}
-                title="Ukuran teks besar"
-                onClick={() => changeTextScale("large")}
-              >
-                A+
-              </button>
-              <button
-                type="button"
-                className={textScale === "xlarge" ? "active" : ""}
-                title="Ukuran teks ekstra besar"
-                onClick={() => changeTextScale("xlarge")}
-              >
-                A++
-              </button>
-            </div>
-
             <IconButton
               label="Cari halaman"
               onClick={() => setSearchOpen((open) => !open)}
             >
-              <Search size={18} />
+              <Search size={17} />
             </IconButton>
 
             <IconButton label="Pengaturan Workspace" onClick={() => navigate("settings")}>
@@ -623,7 +586,7 @@ export function WorkspaceShell({
 
             {!user ? (
               <button type="button" className="ghost-button topbar-login-btn" onClick={() => void onLogin()}>
-                <Cloud size={14} /> <span className="btn-label-desktop">Masuk untuk Cloud</span><span className="btn-label-mobile">Masuk</span>
+                <Cloud size={14} /> <span className="btn-label-desktop">Masuk Cloud</span><span className="btn-label-mobile">Masuk</span>
               </button>
             ) : null}
 
@@ -633,7 +596,7 @@ export function WorkspaceShell({
               disabled={saveState === "saving"}
               onClick={() => void onSave()}
             >
-              <Save size={15} />
+              <Save size={14} />
               <span className="btn-label-desktop">
                 {saveState === "saving"
                   ? "Menyimpan..."
@@ -672,7 +635,7 @@ export function WorkspaceShell({
           <section className="page-heading">
             <div>
               <span className="eyebrow">
-                {activeMeta.phase} · {reference}
+                {activeMeta.phase} · <span className="mono-code">{reference}</span>
               </span>
               <h1>{activeMeta.title}</h1>
               <p>{activeMeta.description}</p>
@@ -684,6 +647,49 @@ export function WorkspaceShell({
               {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
             </div>
           </section>
+
+          {screen !== "settings" && (
+            <section className="connected-flow-bar" aria-label="Alur transaksi terhubung">
+              <div className="flow-active-context">
+                <div className="flow-active-main">
+                  <span className="flow-ref-badge">{reference}</span>
+                  <b>{buyerName || "Buyer belum dipilih"}</b>
+                  <span className="flow-meta-pill">{incoterm} · {offerFormatted}</span>
+                  <span className="flow-status-tag">{shipmentStatus}</span>
+                </div>
+                {screen !== "transactions" && (
+                  <button
+                    type="button"
+                    className="flow-switch-btn"
+                    onClick={() => navigate("transactions")}
+                  >
+                    <ArrowRightLeft size={13} /> Ganti / Kelola Transaksi
+                  </button>
+                )}
+              </div>
+              <div className="flow-stages-row">
+                {pipeline.map((stage) => {
+                  const isCurrent = stage.relatedScreens.includes(screen);
+                  return (
+                    <button
+                      type="button"
+                      key={stage.id}
+                      className={`flow-stage-chip ${isCurrent ? "current" : ""} ${stage.done ? "done" : ""}`}
+                      onClick={() => navigate(stage.screen)}
+                    >
+                      <span className="flow-stage-dot">
+                        {stage.done ? <Check size={11} /> : null}
+                      </span>
+                      <span className="flow-stage-copy">
+                        <b>{stage.label}</b>
+                        <small>{stage.shortMeta}</small>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {children}
         </div>

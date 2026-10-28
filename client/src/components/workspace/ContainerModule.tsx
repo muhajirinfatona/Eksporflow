@@ -1,6 +1,7 @@
 import { formatNumber } from "@shared/format";
+import type { ScreenId } from "@shared/risk";
 import { initialShipment, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
-import { ArrowDownRight, Check, Package, PenLine, RotateCcw } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, Check, FileText, Package, PenLine, RotateCcw, Truck } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -20,12 +21,14 @@ export function ContainerModule({
   updateNumber,
   updateLineItems,
   container,
+  navigate,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   updateNumber: (key: keyof Shipment, value: string) => void;
   updateLineItems: (items: LineItem[]) => void;
   container: ContainerCalc;
+  navigate: (screen: ScreenId) => void;
 }) {
   const overload = container.weightUtilization > 100 || container.volumeUtilization > 100;
   return (
@@ -102,7 +105,16 @@ export function ContainerModule({
             items={shipment.lineItems}
             updateItems={updateLineItems}
             currency={shipment.currency}
+            onOpenCatalog={() => navigate("products")}
           />
+          <div className="row-actions" style={{ marginTop: 14 }}>
+            <button type="button" className="ghost-button" onClick={() => navigate("documents")}>
+              <FileText size={14} /> Lihat Packing List
+            </button>
+            <button type="button" className="save-button" onClick={() => navigate("shipment")}>
+              <Truck size={14} /> Lanjut ke Logistik &amp; Kontainer <ArrowUpRight size={14} />
+            </button>
+          </div>
         </section>
 
         <section className={`load-result ${overload ? "overload" : ""}`}>

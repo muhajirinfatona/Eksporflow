@@ -20,6 +20,8 @@ import {
 import { TransactionsModule } from "@/components/workspace/TransactionsModule";
 import { ALL_SCREENS, getScreenMeta, WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { useActiveShipment } from "@/hooks/useActiveShipment";
+import { useWorkspaceFlow } from "@/hooks/useWorkspaceFlow";
+import { formatMoney } from "@shared/format";
 import type { ScreenId } from "@shared/risk";
 import type { DocumentType } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
@@ -63,6 +65,14 @@ export default function Home() {
     login,
     logout,
   } = useActiveShipment();
+
+  const flow = useWorkspaceFlow({
+    shipment,
+    pricing,
+    container,
+    update,
+    updateLineItems,
+  });
 
   const navigate = useCallback((next: ScreenId) => {
     setScreen(next);
@@ -110,6 +120,11 @@ export default function Home() {
       navigate={navigate}
       exporterName={shipment.exporter}
       reference={shipment.reference}
+      buyerName={shipment.buyer}
+      incoterm={shipment.incoterm}
+      offerFormatted={formatMoney(pricing.active.offer, shipment.currency)}
+      shipmentStatus={shipment.shipmentStatus}
+      pipeline={flow.pipeline}
       user={user}
       saveState={saveState}
       statusNote={statusNote}
@@ -128,10 +143,11 @@ export default function Home() {
           pricing={pricing}
           container={container}
           navigate={navigate}
+          flow={flow}
         />
       )}
       {screen === "readiness" && (
-        <ReadinessView shipment={shipment} update={update} navigate={navigate} />
+        <ReadinessView shipment={shipment} update={update} navigate={navigate} flow={flow} />
       )}
       {screen === "transactions" && (
         <TransactionsModule
@@ -158,10 +174,13 @@ export default function Home() {
           updateLineItems={updateLineItems}
           pricing={pricing}
           navigate={navigate}
+          partners={flow.partners}
+          applyPartner={flow.applyPartner}
+          effectiveApprovalStatus={flow.effectiveApprovalStatus}
         />
       )}
       {screen === "approvals" && (
-        <ApprovalsView shipment={shipment} pricing={pricing} navigate={navigate} />
+        <ApprovalsView shipment={shipment} pricing={pricing} navigate={navigate} flow={flow} />
       )}
       {screen === "documents" && (
         <DocumentsModule
@@ -172,6 +191,8 @@ export default function Home() {
           selectedDocument={selectedDocument}
           setSelectedDocument={setSelectedDocument}
           printDocument={printDocument}
+          navigate={navigate}
+          effectiveApprovalStatus={flow.effectiveApprovalStatus}
         />
       )}
       {screen === "cargo" && (
@@ -181,9 +202,12 @@ export default function Home() {
           updateNumber={updateNumber}
           updateLineItems={updateLineItems}
           container={container}
+          navigate={navigate}
         />
       )}
-      {screen === "shipment" && <OperationsModule shipment={shipment} update={update} />}
+      {screen === "shipment" && (
+        <OperationsModule shipment={shipment} update={update} navigate={navigate} />
+      )}
       {screen === "risk" && (
         <RiskModule
           shipment={shipment}
@@ -191,6 +215,10 @@ export default function Home() {
           pricing={pricing}
           container={container}
           navigate={navigate}
+          legalChecklist={flow.legalChecklist}
+          toggleLegalCheck={flow.toggleLegalCheck}
+          evaluation={flow.riskEvaluation}
+          effectiveApprovalStatus={flow.effectiveApprovalStatus}
         />
       )}
       {screen === "advisor" && (
@@ -201,25 +229,33 @@ export default function Home() {
           navigate={navigate}
           isAuthenticated={Boolean(user)}
           onLogin={() => void login()}
+          publishedKnowledge={flow.publishedKnowledge}
         />
       )}
-      {screen === "knowledge" && <KnowledgeView navigate={navigate} />}
+      {screen === "knowledge" && <KnowledgeView navigate={navigate} flow={flow} />}
       {screen === "partners" && (
-        <PartnersView shipment={shipment} update={update} navigate={navigate} />
+        <PartnersView shipment={shipment} navigate={navigate} flow={flow} />
       )}
       {screen === "products" && (
         <ProductsView
           shipment={shipment}
           updateLineItems={updateLineItems}
           navigate={navigate}
+          flow={flow}
         />
       )}
       {screen === "finance" && (
-        <FinanceView shipment={shipment} pricing={pricing} navigate={navigate} />
+        <FinanceView shipment={shipment} pricing={pricing} navigate={navigate} flow={flow} />
       )}
-      {screen === "bank" && <BankView shipment={shipment} pricing={pricing} />}
-      {screen === "journals" && <JournalsView shipment={shipment} pricing={pricing} />}
-      {screen === "reports" && <ReportsView shipment={shipment} pricing={pricing} />}
+      {screen === "bank" && (
+        <BankView shipment={shipment} pricing={pricing} navigate={navigate} flow={flow} />
+      )}
+      {screen === "journals" && (
+        <JournalsView shipment={shipment} pricing={pricing} navigate={navigate} flow={flow} />
+      )}
+      {screen === "reports" && (
+        <ReportsView shipment={shipment} pricing={pricing} navigate={navigate} flow={flow} />
+      )}
       {screen === "settings" && (
         <SettingsView
           user={user}
@@ -229,6 +265,7 @@ export default function Home() {
           activeShipmentId={activeShipmentId}
           login={login}
           logout={logout}
+          navigate={navigate}
         />
       )}
     </WorkspaceShell>

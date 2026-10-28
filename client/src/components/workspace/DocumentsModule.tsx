@@ -1,5 +1,7 @@
+import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
 import { formatMoney, formatNumber, getDocumentNumber } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
+import type { ScreenId } from "@shared/risk";
 import type {
   ContainerCalc,
   DocumentOrientation,
@@ -36,6 +38,8 @@ export function DocumentsModule({
   selectedDocument,
   setSelectedDocument,
   printDocument,
+  navigate,
+  effectiveApprovalStatus,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
@@ -44,6 +48,8 @@ export function DocumentsModule({
   selectedDocument: DocumentType;
   setSelectedDocument: (doc: DocumentType) => void;
   printDocument: () => void;
+  navigate: (screen: ScreenId) => void;
+  effectiveApprovalStatus: ApprovalDecision;
 }) {
   const documents: { type: DocumentType; caption: string; icon: React.ReactNode; status: string }[] = [
     { type: "Proforma Invoice", caption: "Penawaran awal & terms", icon: <FileText size={19} />, status: "Ready" },
@@ -122,8 +128,22 @@ export function DocumentsModule({
             <i style={{ width: "100%" }} />
           </div>
           <small>
-            Draft memakai snapshot transaksi R{shipment.documentRevision}. Terbitkan hanya setelah review manusia.
+            Draft memakai snapshot transaksi R{shipment.documentRevision} ({effectiveApprovalStatus}). Terbitkan hanya setelah review manusia.
           </small>
+          <div className="doc-linked-actions">
+            <button type="button" className="ghost-button" onClick={() => navigate("pricing")}>
+              Ubah Harga
+            </button>
+            <button type="button" className="ghost-button" onClick={() => navigate("cargo")}>
+              Muatan 3D
+            </button>
+            <button type="button" className="ghost-button" onClick={() => navigate("shipment")}>
+              Logistik
+            </button>
+            <button type="button" className="ghost-button" onClick={() => navigate("risk")}>
+              Risk Center
+            </button>
+          </div>
         </div>
       </aside>
 

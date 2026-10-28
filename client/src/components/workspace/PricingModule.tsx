@@ -1,8 +1,9 @@
+import type { ApprovalDecision, PartnerEntry } from "@/hooks/useWorkspaceFlow";
 import { formatMoney } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
 import type { Incoterm, LineItem, Shipment } from "@shared/shipment";
-import { ArrowUpRight, Check, ShieldAlert, Sparkles } from "lucide-react";
+import { ArrowUpRight, Check, ClipboardCheck, ShieldAlert, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Field, LineItemsEditor, SectionTitle, SelectField, StatusPill, TransactionProfile } from "./Primitives";
 
@@ -13,6 +14,9 @@ export function PricingModule({
   updateLineItems,
   pricing,
   navigate,
+  partners,
+  applyPartner,
+  effectiveApprovalStatus,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
@@ -20,6 +24,9 @@ export function PricingModule({
   updateLineItems: (items: LineItem[]) => void;
   pricing: Pricing;
   navigate: (screen: ScreenId) => void;
+  partners: PartnerEntry[];
+  applyPartner: (partner: PartnerEntry) => void;
+  effectiveApprovalStatus: ApprovalDecision;
 }) {
   const maxScenarioOffer = Math.max(
     1,
@@ -28,13 +35,36 @@ export function PricingModule({
 
   return (
     <div className="module-stack">
-      <TransactionProfile shipment={shipment} update={update} />
+      <TransactionProfile shipment={shipment} update={update} navigate={navigate} />
       <div className="module-layout">
         <section className="panel panel-padding input-panel">
           <SectionTitle
             eyebrow="INPUT TRANSAKSI"
             title="Komponen harga & order"
             description="Masukkan biaya aktual atau estimasi. Ruleset ditampilkan sebagai Incoterms® 2020; named place tetap wajib direview tim operasional."
+            action={
+              partners.length > 0 ? (
+                <select
+                  className="clean-select"
+                  value=""
+                  aria-label="Isi cepat dari direktori mitra"
+                  onChange={(event) => {
+                    const found = partners.find((p) => p.id === event.target.value);
+                    if (found) {
+                      applyPartner(found);
+                      toast.success(`Buyer ${found.name} diterapkan`);
+                    }
+                  }}
+                >
+                  <option value="">Isi cepat buyer dari direktori...</option>
+                  {partners.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name} ({p.country})
+                    </option>
+                  ))}
+                </select>
+              ) : null
+            }
           />
           <div className="form-section">
             <div className="form-section-title">
@@ -69,6 +99,7 @@ export function PricingModule({
               items={shipment.lineItems}
               updateItems={updateLineItems}
               currency={shipment.currency}
+              onOpenCatalog={() => navigate("products")}
             />
           </div>
 
@@ -247,20 +278,33 @@ export function PricingModule({
                 <span>Diskon</span>
                 <b>{shipment.discount ? `- ${formatMoney(shipment.discount, shipment.currency)}` : "—"}</b>
               </div>
+              <div>
+                <span>Status Persetujuan</span>
+                <b>{effectiveApprovalStatus}</b>
+              </div>
             </div>
-            <button
-              type="button"
-              className="full-button"
-              disabled={pricing.validationErrors.length > 0}
-              onClick={() => {
-                toast.success("Harga siap dipakai di dokumen", {
-                  description: "Membuka Dokumen Ekspor dengan nilai penawaran terbaru.",
-                });
-                navigate("documents");
-              }}
-            >
-              Lanjut ke Dokumen Ekspor <ArrowUpRight size={16} />
-            </button>
+            <div className="module-stack" style={{ gap: 8 }}>
+              <button
+                type="button"
+                className="full-button"
+                disabled={pricing.validationErrors.length > 0}
+                onClick={() => {
+                  toast.success("Harga siap dipakai di dokumen", {
+                    description: "Membuka Dokumen Ekspor dengan nilai penawaran terbaru.",
+                  });
+                  navigate("documents");
+                }}
+              >
+                Lanjut ke Dokumen Ekspor <ArrowUpRight size={15} />
+              </button>
+              <button
+                type="button"
+                className="quote-secondary-btn"
+                onClick={() => navigate("approvals")}
+              >
+                <ClipboardCheck size={14} /> Buka Review Persetujuan ({effectiveApprovalStatus})
+              </button>
+            </div>
           </div>
           <div className="quote-metadata">
             <span>Formula: {shipment.formulaVersion}</span>

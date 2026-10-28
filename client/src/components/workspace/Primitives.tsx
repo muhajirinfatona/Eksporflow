@@ -12,7 +12,9 @@ import {
   FileText,
   MessageCircle,
   Package,
+  ShieldAlert,
   Truck,
+  Users,
   WandSparkles,
   X,
 } from "lucide-react";
@@ -42,6 +44,7 @@ export function Field({
   prefix,
   suffix,
   step,
+  placeholder,
 }: {
   label: string;
   value: string | number;
@@ -50,6 +53,7 @@ export function Field({
   prefix?: string;
   suffix?: string;
   step?: string;
+  placeholder?: string;
 }) {
   return (
     <label className="field">
@@ -60,6 +64,7 @@ export function Field({
           type={type}
           step={step}
           value={value}
+          placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
         />
         {suffix && <em>{suffix}</em>}
@@ -287,9 +292,11 @@ export function TransactionStrip({
 export function TransactionProfile({
   shipment,
   update,
+  navigate,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
+  navigate?: (screen: ScreenId) => void;
 }) {
   return (
     <section className="panel panel-padding connected-profile">
@@ -301,9 +308,16 @@ export function TransactionProfile({
             Perubahan di sini otomatis dipakai oleh kalkulator harga, invoice, Packing List, B/L draft, dan rencana muatan.
           </p>
         </div>
-        <StatusPill tone="blue">
-          <Check size={11} /> Semua modul sinkron
-        </StatusPill>
+        <div className="row-actions">
+          {navigate && (
+            <button type="button" className="ghost-button" onClick={() => navigate("partners")}>
+              <Users size={13} /> Pilih Mitra Tersimpan
+            </button>
+          )}
+          <StatusPill tone="blue">
+            <Check size={11} /> Semua modul sinkron
+          </StatusPill>
+        </div>
       </div>
       <div className="profile-grid">
         <Field
@@ -338,18 +352,22 @@ export function TransactionProfile({
         />
       </div>
       <div className="connection-rail">
-        <span>
-          <Calculator size={13} /> Harga
-        </span>
+        <button type="button" className="rail-chip" onClick={() => navigate?.("pricing")}>
+          <Calculator size={13} /> Harga &amp; Order
+        </button>
         <i />
-        <span>
-          <FileText size={13} /> Dokumen
-        </span>
+        <button type="button" className="rail-chip" onClick={() => navigate?.("documents")}>
+          <FileText size={13} /> Dokumen Ekspor
+        </button>
         <i />
-        <span>
-          <Package size={13} /> Muatan
-        </span>
-        <em>Live sync</em>
+        <button type="button" className="rail-chip" onClick={() => navigate?.("cargo")}>
+          <Package size={13} /> Rencana Muatan
+        </button>
+        <i />
+        <button type="button" className="rail-chip" onClick={() => navigate?.("risk")}>
+          <ShieldAlert size={13} /> Risk Center
+        </button>
+        <em>Sinkron otomatis</em>
       </div>
     </section>
   );
@@ -359,10 +377,12 @@ export function LineItemsEditor({
   items,
   updateItems,
   currency,
+  onOpenCatalog,
 }: {
   items: LineItem[];
   updateItems: (items: LineItem[]) => void;
   currency: string;
+  onOpenCatalog?: () => void;
 }) {
   const packagingOptions = ["Karton box", "Karung goni", "Drum", "Sack", "Crate kayu"];
   const numericFields = [
@@ -431,9 +451,16 @@ export function LineItemsEditor({
             {items.length} produk · otomatis masuk ke invoice, Packing List, dan simulasi muatan
           </small>
         </div>
-        <button type="button" className="add-line-item" onClick={addItem}>
-          <Copy size={13} /> Tambah item
-        </button>
+        <div className="row-actions">
+          {onOpenCatalog && (
+            <button type="button" className="ghost-button" onClick={onOpenCatalog}>
+              <Package size={13} /> Pilih dari Katalog
+            </button>
+          )}
+          <button type="button" className="add-line-item" onClick={addItem}>
+            <Copy size={13} /> Tambah item
+          </button>
+        </div>
       </div>
       <div className="line-items-table">
         <div className="line-item-row line-item-header">

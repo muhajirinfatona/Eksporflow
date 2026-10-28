@@ -1,5 +1,6 @@
+import type { ScreenId } from "@shared/risk";
 import type { Shipment, ShipmentStatus } from "@shared/shipment";
-import { Check, FileDown, FileText, Truck, UploadCloud, X } from "lucide-react";
+import { ArrowUpRight, Check, FileDown, FileText, ShieldAlert, Truck, UploadCloud, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { Field, StatusPill } from "./Primitives";
 
@@ -28,9 +29,11 @@ function OpsCheck({ label, ok }: { label: string; ok: boolean }) {
 export function OperationsModule({
   shipment,
   update,
+  navigate,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
+  navigate: (screen: ScreenId) => void;
 }) {
   const currentIndex = SHIPMENT_STATUSES.indexOf(shipment.shipmentStatus);
 
@@ -210,6 +213,17 @@ export function OperationsModule({
                 shipment.sealNumber.trim(),
             )}
           />
+        </div>
+        <div className="row-actions" style={{ marginTop: 16 }}>
+          <button type="button" className="ghost-button" onClick={() => navigate("documents")}>
+            <FileText size={14} /> Periksa B/L Draft &amp; Invoice
+          </button>
+          <button type="button" className="save-button" onClick={() => navigate("risk")}>
+            <ShieldAlert size={14} /> Lanjut ke Risk Center <ArrowUpRight size={14} />
+          </button>
+          <button type="button" className="ghost-button" onClick={() => navigate("finance")}>
+            <Wallet size={14} /> Lihat Tagihan Keuangan
+          </button>
         </div>
       </section>
     </div>

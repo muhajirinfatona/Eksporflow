@@ -1,10 +1,11 @@
 import { AIChatBox, type Message } from "@/components/AIChatBox";
+import type { KnowledgeSource } from "@/hooks/useWorkspaceFlow";
 import { trpc } from "@/lib/trpc";
 import { formatMoney } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import { computeRecommendations, type ScreenId } from "@shared/risk";
 import type { ContainerCalc, Shipment } from "@shared/shipment";
-import { Bot, ChevronRight, Lock, ShieldCheck, WandSparkles } from "lucide-react";
+import { BookOpen, Bot, ChevronRight, Lock, ShieldCheck, WandSparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { recommendationIcon, StatusPill } from "./Primitives";
 
@@ -15,6 +16,7 @@ export function AssistantModule({
   navigate,
   isAuthenticated,
   onLogin,
+  publishedKnowledge,
 }: {
   shipment: Shipment;
   pricing: Pricing;
@@ -22,6 +24,7 @@ export function AssistantModule({
   navigate: (screen: ScreenId) => void;
   isAuthenticated: boolean;
   onLogin: () => void;
+  publishedKnowledge: KnowledgeSource[];
 }) {
   const [mode, setMode] = useState<"transaction" | "learn">("transaction");
   const [messages, setMessages] = useState<Message[]>([
@@ -70,6 +73,11 @@ export function AssistantModule({
       seal: shipment.sealNumber,
       attachments: shipment.attachments,
     },
+    publishedSOPs: publishedKnowledge.map((item) => ({
+      title: item.title,
+      scope: item.scope,
+      version: item.version,
+    })),
   }).slice(0, 8000);
 
   const sendMessage = (content: string) => {
@@ -230,6 +238,22 @@ export function AssistantModule({
               <span>STATUS</span>
               <b>{shipment.shipmentStatus}</b>
             </div>
+            <div>
+              <span>SOP PUBLISHED</span>
+              <b>{publishedKnowledge.length} dokumen aktif</b>
+            </div>
+          </div>
+          <div className="published-sop-list">
+            {publishedKnowledge.map((sop) => (
+              <button
+                type="button"
+                key={sop.id}
+                className="sop-mini-pill"
+                onClick={() => navigate("knowledge")}
+              >
+                <BookOpen size={12} /> {sop.title}
+              </button>
+            ))}
           </div>
           <div className="copilot-disclaimer">
             <ShieldCheck size={14} />

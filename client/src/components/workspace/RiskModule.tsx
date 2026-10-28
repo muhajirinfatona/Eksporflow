@@ -1,13 +1,15 @@
+import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
 import { formatMoney } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
-import {
-  defaultLegalChecklist,
-  evaluateRiskChecks,
-  type LegalChecklist,
-  type ScreenId,
+import type {
+  LegalChecklist,
+  RiskEvaluation,
+  ScreenId,
 } from "@shared/risk";
 import type { ContainerCalc, Shipment } from "@shared/shipment";
 import {
+  ArrowUpRight,
+  Bot,
   Check,
   ChevronRight,
   FileSearch,
@@ -16,23 +18,10 @@ import {
   ShieldAlert,
   ShieldCheck,
   UploadCloud,
+  Wallet,
 } from "lucide-react";
-import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { StatusPill } from "./Primitives";
-
-function readLegalChecklist(reference: string): LegalChecklist {
-  try {
-    const raw = localStorage.getItem(`eksporflow-legal-${reference}`);
-    if (!raw) return defaultLegalChecklist;
-    return {
-      ...defaultLegalChecklist,
-      ...(JSON.parse(raw) as Partial<LegalChecklist>),
-    };
-  } catch {
-    return defaultLegalChecklist;
-  }
-}
 
 const LEGAL_ITEMS: { key: keyof LegalChecklist; label: string; detail: string }[] = [
   {
@@ -61,37 +50,22 @@ export function RiskModule({
   shipment,
   update,
   pricing,
-  container,
   navigate,
+  legalChecklist,
+  toggleLegalCheck,
+  evaluation,
+  effectiveApprovalStatus,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   pricing: Pricing;
   container: ContainerCalc;
   navigate: (screen: ScreenId) => void;
+  legalChecklist: LegalChecklist;
+  toggleLegalCheck: (key: keyof LegalChecklist) => void;
+  evaluation: RiskEvaluation;
+  effectiveApprovalStatus: ApprovalDecision;
 }) {
-  const [legalChecklist, setLegalChecklist] = useState<LegalChecklist>(() =>
-    readLegalChecklist(shipment.reference),
-  );
-
-  useEffect(() => {
-    setLegalChecklist(readLegalChecklist(shipment.reference));
-  }, [shipment.reference]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(
-        `eksporflow-legal-${shipment.reference}`,
-        JSON.stringify(legalChecklist),
-      );
-    } catch {
-      // Abaikan bila localStorage tidak tersedia.
-    }
-  }, [legalChecklist, shipment.reference]);
-
-  const toggleLegal = (key: keyof LegalChecklist) =>
-    setLegalChecklist((current) => ({ ...current, [key]: !current[key] }));
-
   const addScreeningEvidence = (file?: File) => {
     if (!file) return;
     if (!/pdf|image|msword|officedocument|text/.test(file.type) && !/\.(pdf|png|jpe?g|docx?|txt)$/i.test(file.name)) {
@@ -108,7 +82,6 @@ export function RiskModule({
     });
   };
 
-  const evaluation = evaluateRiskChecks(shipment, pricing, container, legalChecklist);
   const { checks, passed, total, readinessPercent, riskLevel, hasPoEvidence, hasEmailEvidence } =
     evaluation;
 
@@ -223,7 +196,7 @@ export function RiskModule({
                 <input
                   type="checkbox"
                   checked={Boolean(legalChecklist[item.key])}
-                  onChange={() => toggleLegal(item.key)}
+                  onChange={() => toggleLegalCheck(item.key)}
                 />
                 <span>
                   <b>{item.label}</b>
@@ -316,9 +289,17 @@ export function RiskModule({
             <b>{Object.values(legalChecklist).filter(Boolean).length} / 4 ditandai</b>
           </div>
           <div>
-            <span>REVISI DOKUMEN</span>
-            <b>Rev R{shipment.documentRevision}</b>
+            <span>PERSETUJUAN QUOTE</span>
+            <b>{effectiveApprovalStatus}</b>
           </div>
+        </div>
+        <div className="row-actions" style={{ marginTop: 16 }}>
+          <button type="button" className="ghost-button" onClick={() => navigate("advisor")}>
+            <Bot size={14} /> Diskusikan Temuan di AI Advisor
+          </button>
+          <button type="button" className="save-button" onClick={() => navigate("finance")}>
+            <Wallet size={14} /> Lanjut ke Keuangan &amp; AR <ArrowUpRight size={14} />
+          </button>
         </div>
       </section>
     </div>
