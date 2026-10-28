@@ -992,7 +992,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                       Masuk di sini
                     </button>
                     <br />
-                    Workspace baru dibuat bersih tanpa data contoh.
+                    Daftarkan perusahaan Anda untuk mulai mengelola ekspor.
                   </p>
                 </div>
 
@@ -1114,7 +1114,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                 {devOtpHint && (
                   <div className="auth-sim-pill">
                     <span>
-                      Kode testing lokal: <b className="mono-code">{devOtpHint}</b>
+                      Kode verifikasi Anda: <b className="mono-code">{devOtpHint}</b>
                     </span>
                     <button type="button" onClick={fillDevOtp}>
                       <Copy size={12} /> Isi otomatis
