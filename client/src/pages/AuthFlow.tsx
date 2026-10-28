@@ -332,10 +332,6 @@ function ExportWorldBackdrop() {
         <OceanRippleCanvas />
       </div>
 
-      {/* Awan Pesisir Tipis yang Berarak */}
-      <div className="auth-cloud-drift auth-cloud-drift-a" />
-      <div className="auth-cloud-drift auth-cloud-drift-b" />
-
       {/* Gradasi Sangat Ringan agar Laut Tetap Cerah & Segar */}
       <div className="auth-scene-veil" />
 
