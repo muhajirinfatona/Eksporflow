@@ -169,10 +169,8 @@ void main() {
   // Eksposur lebih cerah & segar untuk nuansa laut siang hari
   color = pow(color, vec3(0.86)) * 1.14;
 
-  // Bayangan lembah ombak & terang puncak ombak agar riak terlihat jelas bergerak
-  color *= 1.0 + wave * 0.085 * waterMask;
-  float crest = pow(max(0.0, wave), 3.0) * waterMask;
-  color += vec3(0.86, 0.97, 1.0) * crest * 0.42;
+  // Riak terlihat lewat bayangan lembah ombak saja (tanpa kilau putih di air)
+  color *= 1.0 - max(0.0, -wave) * 0.07 * waterMask;
 
   gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
 }
@@ -346,14 +344,14 @@ function ExportWorldBackdrop() {
         <defs>
           {/* Pola ombak kecil yang terus mengalir */}
           <pattern id="eksporRippleA" width="120" height="56" patternUnits="userSpaceOnUse">
-            <path d="M8 22 q 10 -7 20 0" stroke="#ffffff" strokeOpacity="0.55" strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M66 46 q 12 -8 24 0" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M92 12 q 7 -5 14 0" stroke="#e0f2fe" strokeOpacity="0.5" strokeWidth="1.3" strokeLinecap="round" />
+            <path d="M8 22 q 10 -7 20 0" stroke="#0e3a5a" strokeOpacity="0.38" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M66 46 q 12 -8 24 0" stroke="#0e3a5a" strokeOpacity="0.32" strokeWidth="1.5" strokeLinecap="round" />
+            <path d="M92 12 q 7 -5 14 0" stroke="#164e6e" strokeOpacity="0.34" strokeWidth="1.3" strokeLinecap="round" />
             <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="120 28" dur="9s" repeatCount="indefinite" />
           </pattern>
           <pattern id="eksporRippleB" width="90" height="44" patternUnits="userSpaceOnUse">
-            <path d="M14 30 q 8 -6 16 0" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="1.3" strokeLinecap="round" />
-            <path d="M56 12 q 9 -6 18 0" stroke="#ffffff" strokeOpacity="0.4" strokeWidth="1.2" strokeLinecap="round" />
+            <path d="M14 30 q 8 -6 16 0" stroke="#0e3a5a" strokeOpacity="0.3" strokeWidth="1.3" strokeLinecap="round" />
+            <path d="M56 12 q 9 -6 18 0" stroke="#164e6e" strokeOpacity="0.28" strokeWidth="1.2" strokeLinecap="round" />
             <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="-90 22" dur="7s" repeatCount="indefinite" />
           </pattern>
           <linearGradient id="eksporSeaFade" x1="0" y1="0" x2="0" y2="1">
