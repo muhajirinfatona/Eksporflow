@@ -636,7 +636,7 @@ export function PricingModule({
             <div className="quote-dual-box">
               <div className="quote-dual-header">
                 <span className="quote-dual-title">
-                  Konversi ({activeDualCurrency}):
+                  Konversi Valas:
                 </span>
                 <select
                   className="quote-dual-select"
@@ -646,7 +646,7 @@ export function PricingModule({
                 >
                   {SUPPORTED_CURRENCIES.map((c) => (
                     <option key={c.code} value={c.code}>
-                      {c.code} · {c.name} ({c.country})
+                      {c.code} ({c.symbol})
                     </option>
                   ))}
                 </select>
