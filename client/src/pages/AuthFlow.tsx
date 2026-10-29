@@ -105,15 +105,15 @@ const SLIDE_VARIANTS = {
  * yang mengelilingi kartu login tanpa mengganggu keterbacaan form.
  */
 /**
- * Latar belakang Minimalist Clean Ribbon Curve (Soft Sky Blue & White)
+ * Latar belakang Minimalist Clean Teal Curve Flow (Deep Teal & Seafoam Green)
  * Sesuai gambar referensi yang dipilih pengguna
  */
 function ExportWorldBackdrop() {
   return (
     <div className="auth-export-scene" aria-hidden="true">
       <img
-        src="/images/auth-backdrop.jpg"
-        alt="EksporFlow Minimalist Abstract Background"
+        src="/images/auth-teal-flow.jpg"
+        alt="EksporFlow Minimalist Abstract Teal Background"
         className="auth-image-backdrop"
       />
       <div className="auth-export-veil" />
