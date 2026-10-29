@@ -4866,10 +4866,11 @@ textarea:focus-visible {
 
 .auth-split-art {
   position: relative;
-  height: 220px;
+  height: 215px;
   display: grid;
   place-items: center;
-  margin: 8px 0 4px;
+  margin: 24px 0 12px;
+  padding-top: 8px;
   z-index: 1;
 }
 
@@ -4888,7 +4889,7 @@ textarea:focus-visible {
 
 .auth-split-svg {
   width: 100%;
-  max-width: 288px;
+  max-width: 280px;
   height: auto;
   display: block;
 }
@@ -4896,13 +4897,14 @@ textarea:focus-visible {
 .auth-split-welcome {
   z-index: 1;
   max-width: 360px;
+  margin-top: auto;
 }
 
 .auth-split-copy-stage {
-  min-height: 124px;
+  min-height: 122px;
   display: flex;
   align-items: flex-end;
-  margin-bottom: 16px;
+  margin-bottom: 22px;
 }
 
 .auth-split-copy-slide {
@@ -4910,22 +4912,22 @@ textarea:focus-visible {
 }
 
 .auth-welcome-heading {
-  font-size: 27px !important;
+  font-size: 26px !important;
   font-weight: 700;
   letter-spacing: -0.02em;
   line-height: 1.2;
   color: #ffffff;
-  margin: 0 0 10px !important;
+  margin: 0 0 6px !important;
 }
 
 .auth-split-copy-slide .auth-slide-kicker {
   display: flex;
   text-transform: none;
   letter-spacing: -0.005em;
-  font-size: 14.5px;
-  font-weight: 700;
+  font-size: 14px;
+  font-weight: 600;
   color: #fbbf24;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .auth-slide-kicker {
