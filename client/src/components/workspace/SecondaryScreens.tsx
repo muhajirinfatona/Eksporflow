@@ -31,7 +31,6 @@ import {
 import { useState } from "react";
 import { toast } from "sonner";
 import {
-  ChecklistItem,
   Field,
   MetricCard,
   QuickLink,
@@ -168,98 +167,44 @@ export function DashboardView({
         />
       </div>
 
-      <div className="content-grid two-thirds">
-        <section className="panel panel-padding">
-          <div className="panel-head">
-            <div>
-              <span className="eyebrow">ALUR OPERASIONAL TERHUBUNG</span>
-              <h3>Checklist kesiapan transaksi {shipment.reference}</h3>
-            </div>
-            <button className="text-button" type="button" onClick={() => navigate("risk")}>
-              Risk Center ({flow.riskEvaluation.readinessPercent}%) <ChevronRight size={15} />
-            </button>
+      {/* Akses Cepat Modul Ekspor */}
+      <section className="panel panel-padding">
+        <div className="panel-head">
+          <div>
+            <span className="eyebrow">AKSES CEPAT MODUL EKSPOR</span>
+            <h3>Pusat Kerja Operasional</h3>
           </div>
-          <div className="checklist">
-            <ChecklistItem
-              done={Boolean(shipment.buyer.trim() && shipment.destination.trim())}
-              label="Profil buyer, tujuan & referensi HS Code"
-              meta={`${shipment.buyer || "Buyer belum diisi"} · HS ${shipment.hsCode || "belum diisi"}`}
-              onClick={() => navigate("partners")}
-            />
-            <ChecklistItem
-              done={
-                pricing.validationErrors.length === 0 &&
-                flow.effectiveApprovalStatus === "Tercatat direview"
-              }
-              label={`Harga ${shipment.incoterm} & persetujuan internal`}
-              meta={`${formatMoney(pricing.active.offer, shipment.currency)} · ${flow.effectiveApprovalStatus}`}
-              onClick={() => navigate("approvals")}
-            />
-            <ChecklistItem
-              done={container.volumeUtilization <= 100 && container.weightUtilization <= 100}
-              label="Kapasitas kemasan & kontainer 3D"
-              meta={`${container.containers} × ${shipment.containerType} · Berat ${container.weightUtilization.toFixed(0)}%`}
-              onClick={() => navigate("cargo")}
-            />
-            <ChecklistItem
-              done={shipment.documentReviewed}
-              label="Review 4 dokumen ekspor"
-              meta={
-                shipment.documentReviewed
-                  ? `Direview · Rev R${shipment.documentRevision}`
-                  : "Proforma, Commercial Invoice, Packing List & B/L Draft"
-              }
-              onClick={() => navigate("documents")}
-            />
-            <ChecklistItem
-              done={flow.paidAmount > 0}
-              label="Pencocokan pembayaran & AR Finance"
-              meta={
-                flow.paidAmount > 0
-                  ? `Tercatat masuk ${formatMoney(flow.paidAmount, shipment.currency)} · AR ${flow.finance.arStatus}`
-                  : "Belum ada pembayaran dicocokkan di Rekonsiliasi Bank"
-              }
-              onClick={() => navigate("finance")}
-            />
-          </div>
-        </section>
-
-        <section className="panel panel-padding">
-          <div className="panel-head">
-            <div>
-              <span className="eyebrow">AKSES CEPAT MODUL</span>
-              <h3>Lanjutkan pekerjaan</h3>
-            </div>
-            <Sparkles size={16} className="panel-spark" />
-          </div>
-          <div className="quick-links">
-            <QuickLink
-              icon={<Calculator size={16} />}
-              title="Kalkulator Harga & Order"
-              caption="Uji 7 skenario Incoterms® 2020 & line items"
-              onClick={() => navigate("pricing")}
-            />
-            <QuickLink
-              icon={<FileCheck2 size={16} />}
-              title="Dokumen Ekspor (Print / PDF)"
-              caption="Invoice, Packing List & B/L draft satu sumber data"
-              onClick={() => navigate("documents")}
-            />
-            <QuickLink
-              icon={<Ship size={16} />}
-              title="Simulasi Muatan Kontainer 3D"
-              caption="Atur dimensi koli, pallet kayu, dan utilisasi"
-              onClick={() => navigate("cargo")}
-            />
-            <QuickLink
-              icon={<Wallet size={16} />}
-              title="Keuangan, Bank & Jurnal"
-              caption={`Sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)}`}
-              onClick={() => navigate("finance")}
-            />
-          </div>
-        </section>
-      </div>
+          <span style={{ fontSize: "12px", color: "var(--muted)" }}>
+            Buka langsung modul terkait untuk mengelola transaksi aktif
+          </span>
+        </div>
+        <div className="quick-links-grid">
+          <QuickLink
+            icon={<Calculator size={16} />}
+            title="Kalkulator Harga & Order"
+            caption="Uji 7 skenario Incoterms® 2020 & margin"
+            onClick={() => navigate("pricing")}
+          />
+          <QuickLink
+            icon={<FileCheck2 size={16} />}
+            title="Dokumen Ekspor"
+            caption="Invoice, Packing List & B/L draft terintegrasi"
+            onClick={() => navigate("documents")}
+          />
+          <QuickLink
+            icon={<Ship size={16} />}
+            title="Rencana Muatan Kontainer"
+            caption="Simulasi 3D, pallet kayu & beban muatan"
+            onClick={() => navigate("cargo")}
+          />
+          <QuickLink
+            icon={<Wallet size={16} />}
+            title="Keuangan & Piutang"
+            caption={`Sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)}`}
+            onClick={() => navigate("finance")}
+          />
+        </div>
+      </section>
 
       <section className="panel panel-padding scenario-panel">
         <div className="panel-head">

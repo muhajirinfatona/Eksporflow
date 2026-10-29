@@ -1,11 +1,11 @@
-﻿@import "tailwindcss";
+@import "tailwindcss";
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   --ink: #0f172a;
   --ink-secondary: #334155;
@@ -90,10 +90,12 @@ body {
   background: var(--surface-app);
   color: var(--ink);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 13.5px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 button,
@@ -796,11 +798,11 @@ textarea:focus-visible {
 .eyebrow {
   display: block;
   color: var(--muted);
-  font-size: 11px;
-  line-height: 1.25;
-  letter-spacing: 0.06em;
+  font-size: 10.5px;
+  line-height: 1.2;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .eyebrow.light {
@@ -1431,6 +1433,24 @@ textarea:focus-visible {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (max-width: 1080px) {
+  .quick-links-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .quick-links-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .quick-link {
@@ -4527,7 +4547,7 @@ textarea:focus-visible {
 }
 
 /* ==========================================================================
-   11b. Auth Gate (Centered Split Window Â· EksporFlow Logo Palette)
+   11b. Auth Gate (Centered Split Window · EksporFlow Logo Palette)
    ========================================================================== */
 .auth-loading-screen {
   min-height: 100vh;
@@ -4796,7 +4816,7 @@ textarea:focus-visible {
     0 8px 24px rgba(7, 18, 33, 0.22);
 }
 
-/* Left Panel â€” EksporFlow Logo Colors (Deep Navy + Saffron + Mint) */
+/* Left Panel — EksporFlow Logo Colors (Deep Navy + Saffron + Mint) */
 .auth-split-left {
   background: linear-gradient(155deg, #0b192c 0%, #0f2942 58%, #143758 100%);
   color: #f8fafc;
@@ -4971,7 +4991,7 @@ textarea:focus-visible {
   color: #ffffff;
 }
 
-/* Right Panel â€” Clean Minimalist Form */
+/* Right Panel — Clean Minimalist Form */
 .auth-split-right {
   background: #ffffff;
   padding: 46px 44px;
