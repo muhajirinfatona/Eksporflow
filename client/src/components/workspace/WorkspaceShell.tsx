@@ -454,7 +454,15 @@ export function WorkspaceShell({
           </div>
           <div>
             <b>{exporterName}</b>
-            <small>{user ? `Cloud aktif · ${reference}` : `Draft lokal · ${reference}`}</small>
+            <small>
+              {user
+                ? reference && !reference.startsWith("EXP-")
+                  ? `Cloud aktif · ${reference}`
+                  : "Cloud aktif · Workspace"
+                : reference && !reference.startsWith("EXP-")
+                  ? `Draft lokal · ${reference}`
+                  : "Draft lokal"}
+            </small>
           </div>
         </button>
 

@@ -321,7 +321,9 @@ export function toShipmentPersistencePayload(shipment: Shipment): {
 } {
   const { lineItems, ...rest } = shipment;
   return {
-    reference: shipment.reference.trim() || `EXP-${new Date().getFullYear()}-001`,
+    reference:
+      shipment.reference.trim() ||
+      (shipment.buyer.trim() ? `Ekspor ${shipment.buyer.trim()}` : "Transaksi Ekspor"),
     status: shipment.shipmentStatus,
     snapshot: rest as unknown as Record<string, unknown>,
     lineItems: lineItems.map((item) => ({ ...item })),

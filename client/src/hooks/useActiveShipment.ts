@@ -36,7 +36,11 @@ function readUserDraft(userId?: number | null, companyName?: string | null): Shi
       return createEmptyShipment({ exporter: companyName || "" });
     }
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    return hydrateShipment({ snapshot: parsed });
+    const hydrated = hydrateShipment({ snapshot: parsed });
+    if (hydrated.reference === "EXP-2026-001" || hydrated.reference === "EXP-2026-084") {
+      hydrated.reference = "";
+    }
+    return hydrated;
   } catch {
     return createEmptyShipment({ exporter: companyName || "" });
   }
@@ -75,19 +79,24 @@ export function useActiveShipment() {
     async (id: string, silent = false) => {
       try {
         const record = await utils.shipments.get.fetch({ id });
+        const isDefaultMock = record.reference === "EXP-2026-001" || record.reference === "EXP-2026-084";
         const hydrated = hydrateShipment({
-          reference: record.reference,
+          reference: isDefaultMock ? "" : record.reference,
           status: record.status,
           snapshot: record.snapshot,
           lineItems: record.lineItems,
         });
+        if (isDefaultMock) {
+          hydrated.reference = "";
+        }
         setShipment(hydrated);
         setActiveShipmentId(record.id);
         setVersion(record.version);
         setSaveState("saved");
         setStatusNote(null);
         if (!silent) {
-          toast.success(`Transaksi ${record.reference} dimuat`, {
+          const displayLabel = !isDefaultMock && record.reference ? `Transaksi ${record.reference}` : "Transaksi";
+          toast.success(`${displayLabel} dimuat`, {
             description: `Versi cloud v${record.version} aktif di workspace.`,
           });
         }
@@ -242,7 +251,7 @@ export function useActiveShipment() {
   const resetTransaction = useCallback(() => {
     const clean = createEmptyShipment({
       exporter: user?.companyName || "",
-      reference: shipment.reference || `EXP-${new Date().getFullYear()}-001`,
+      reference: "",
     });
     setShipment(clean);
     setActiveShipmentId(null);

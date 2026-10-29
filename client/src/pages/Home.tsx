@@ -182,6 +182,8 @@ export default function Home() {
           shipmentsList={shipmentsList}
           isLoadingList={isLoadingList}
           pricing={pricing}
+          container={container}
+          flow={flow}
           loadShipment={loadShipment}
           saveShipment={saveShipment}
           createNewDraft={createNewDraft}

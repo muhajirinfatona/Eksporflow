@@ -58,14 +58,19 @@ export function getScreenAdvisorInsight(
         screenId: screen,
         riskLevel: "info",
         badgeText: "Kesiapan Operasional Terpantau",
-        title: `Transaksi Aktif ${shipment.reference}: ${shipment.incoterm} · ${formatMoney(pricing.active.offer, shipment.currency)}`,
+        title:
+          shipment.reference && !shipment.reference.startsWith("EXP-")
+            ? `Transaksi Aktif (${shipment.reference}): ${shipment.incoterm} · ${formatMoney(pricing.active.offer, shipment.currency)}`
+            : `Transaksi Aktif: ${shipment.incoterm} · ${formatMoney(pricing.active.offer, shipment.currency)}`,
         mitigationText: `Seluruh parameter inti terhubung dengan modul kalkulator harga, kargo 3D, dan dokumen ekspor. Verifikasi klausul pembayaran dan izin ekspor sebelum jadwal closing kapal.`,
         suggestedQuestions: [
-          `Ringkas risiko terbesar pada transaksi ${shipment.reference} saat ini`,
+          shipment.reference && !shipment.reference.startsWith("EXP-")
+            ? `Ringkas risiko terbesar pada transaksi ${shipment.reference} saat ini`
+            : "Ringkas risiko terbesar pada transaksi ekspor ini saat ini",
           "Kapan batas waktu aman konfirmasi booking kapal ke forwarder?",
           "Apa saja dokumen yang wajib siap sebelum kontainer masuk pelabuhan?",
         ],
-        initialPrompt: `Bantu tinjau kesiapan menyeluruh transaksi ${shipment.reference} ke ${shipment.destination || "pelabuhan tujuan"} dan mitigasi risiko operasionalnya.`,
+        initialPrompt: `Bantu tinjau kesiapan menyeluruh transaksi ekspor ke ${shipment.destination || "pelabuhan tujuan"} dan mitigasi risiko operasionalnya.`,
       };
 
     case "pricing":
@@ -286,7 +291,7 @@ export function getScreenAdvisorInsight(
         screenId: screen,
         riskLevel: "info",
         badgeText: "Integritas Master Data",
-        title: `Basis Data Single Source of Truth Transaksi ${shipment.reference}`,
+        title: "Basis Data Master Transaksi Ekspor",
         mitigationText: `Akurasi nama badan hukum buyer, pelabuhan bongkar (POD), dan HS code pada kartu master ini krusial karena otomatis menjadi rujukan kalkulasi harga, packing list, dan draft dokumen legal.`,
         suggestedQuestions: [
           "Mengapa nama entitas buyer di master transaksi harus sama persis dengan izin usaha di negaranya?",

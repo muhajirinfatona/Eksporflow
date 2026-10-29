@@ -1093,10 +1093,18 @@ textarea:focus-visible {
 .connection-rail {
   display: flex;
   align-items: center;
-  gap: 7px;
+  justify-content: space-between;
+  gap: 12px;
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.connection-rail .rail-chips {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -1118,6 +1126,17 @@ textarea:focus-visible {
   background: #eff6ff;
   border-color: #93c5fd;
   color: #1d4ed8;
+}
+
+.connection-rail .rail-status {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
 }
 
 .connection-rail i {
@@ -2128,9 +2147,51 @@ textarea:focus-visible {
    ========================================================================== */
 .active-order-header-actions {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.select-partner-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  border-radius: 6px;
+  border: 1px solid var(--line-strong);
+  background: #ffffff;
+  color: var(--ink);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.select-partner-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.connection-pill-sync {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 9999px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  color: #1d4ed8;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+
+.connection-pill-sync .sync-dot {
+  color: #2563eb;
+  font-size: 14px;
+  line-height: 1;
 }
 
 .active-order-pills {
