@@ -66,6 +66,8 @@ const SLIDE_INTERVAL_MS = 5200;
 const SLIDES = [
   {
     id: "global-vessel",
+    greetingNew: "Selamat Datang!",
+    greetingReturning: "Selamat Datang Kembali!",
     badge: "Jalur Perdagangan Dunia",
     title: "Jangkau Pasar Dunia Lebih Pasti",
     subtitle:
@@ -73,6 +75,8 @@ const SLIDES = [
   },
   {
     id: "smart-docs",
+    greetingNew: "Siap Ekspor Hari Ini?",
+    greetingReturning: "Lanjutkan Ekspor Anda",
     badge: "Kalkulasi & Dokumen Otomatis",
     title: "Hitung Harga & Dokumen Sekejap",
     subtitle:
@@ -80,6 +84,8 @@ const SLIDES = [
   },
   {
     id: "container-shield",
+    greetingNew: "Mari Mulai Bersama!",
+    greetingReturning: "Senang Bertemu Lagi!",
     badge: "Muatan Presisi & Terlindungi",
     title: "Muatan Optimal, Transaksi Aman",
     subtitle:
@@ -1118,7 +1124,9 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
   const activeSlide = SLIDES[slideIndex] ?? SLIDES[0];
   const isReturningWelcome = step === "login" && hasLoggedInBefore;
-  const welcomeHeading = isReturningWelcome ? "Selamat Datang Kembali!" : "Selamat Datang!";
+  const welcomeHeading = isReturningWelcome
+    ? activeSlide.greetingReturning
+    : activeSlide.greetingNew;
 
   const pointerStartX = useRef<number | null>(null);
 
@@ -1180,23 +1188,10 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
           </div>
 
           <div className="auth-split-welcome">
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.h1
-                key={welcomeHeading}
-                className="auth-welcome-heading"
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: "easeOut" }}
-              >
-                {welcomeHeading}
-              </motion.h1>
-            </AnimatePresence>
-
             <div className="auth-split-copy-stage">
               <AnimatePresence mode="wait" custom={slideDirection} initial={false}>
                 <motion.div
-                  key={activeSlide.id}
+                  key={`${activeSlide.id}-${welcomeHeading}`}
                   className="auth-split-copy-slide"
                   custom={slideDirection}
                   variants={SLIDE_VARIANTS}
@@ -1205,6 +1200,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                   exit="exit"
                   transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                 >
+                  <h1 className="auth-welcome-heading">{welcomeHeading}</h1>
                   <strong className="auth-slide-kicker">{activeSlide.title}</strong>
                   <p>{activeSlide.subtitle}</p>
                 </motion.div>
