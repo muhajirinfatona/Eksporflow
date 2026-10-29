@@ -246,21 +246,30 @@ export function TransactionsModule({
 
         <div className="checklist">
           <ChecklistItem
-            done={Boolean(shipment.buyer.trim() && shipment.destination.trim())}
-            label="Profil buyer, tujuan &amp; referensi HS Code"
+            done={Boolean(shipment.buyer.trim() && shipment.destination.trim() && shipment.hsCode.trim())}
+            label="Profil buyer, tujuan & referensi HS Code"
             meta={`${shipment.buyer.trim() || "Buyer belum diisi"} · HS ${shipment.hsCode.trim() || "belum diisi"}`}
             onClick={() => navigate("partners")}
           />
           <ChecklistItem
-            done={pricing.validationErrors.length === 0 && flow?.effectiveApprovalStatus === "Tercatat direview"}
-            label={`Harga ${shipment.incoterm || "FOB"} &amp; persetujuan internal`}
+            done={pricing.active.offer > 0 && pricing.validationErrors.length === 0 && flow?.effectiveApprovalStatus === "Tercatat direview"}
+            label={`Harga ${shipment.incoterm || "FOB"} & persetujuan internal`}
             meta={`${formatMoney(pricing.active.offer, shipment.currency)} · ${flow?.effectiveApprovalStatus || "Menunggu review"}`}
             onClick={() => navigate("approvals")}
           />
           <ChecklistItem
-            done={Boolean(container && container.volumeUtilization <= 100 && container.weightUtilization <= 100)}
-            label="Kapasitas kemasan &amp; kontainer 3D"
-            meta={`${container ? `${container.containers} × ${shipment.containerType}` : `1 × ${shipment.containerType}`} · Berat ${container ? container.weightUtilization.toFixed(0) : "0"}%`}
+            done={Boolean(
+              container &&
+              (container.volumeUtilization > 0 || container.weightUtilization > 0) &&
+              container.volumeUtilization <= 100 &&
+              container.weightUtilization <= 100
+            )}
+            label="Kapasitas kemasan & kontainer 3D"
+            meta={
+              container && (container.volumeUtilization > 0 || container.weightUtilization > 0)
+                ? `${container.containers} × ${shipment.containerType} · Berat ${container.weightUtilization.toFixed(0)}%`
+                : `1 × ${shipment.containerType} · Berat 0%`
+            }
             onClick={() => navigate("cargo")}
           />
           <ChecklistItem
@@ -275,7 +284,7 @@ export function TransactionsModule({
           />
           <ChecklistItem
             done={Boolean(flow?.paidAmount && flow.paidAmount > 0)}
-            label="Pencocokan pembayaran &amp; AR Finance"
+            label="Pencocokan pembayaran & AR Finance"
             meta={
               flow?.paidAmount && flow.paidAmount > 0
                 ? `Tercatat masuk ${formatMoney(flow.paidAmount, shipment.currency)} · AR ${flow.finance.arStatus}`
