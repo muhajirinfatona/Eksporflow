@@ -4572,10 +4572,10 @@ textarea:focus-visible {
   display: grid;
   place-items: center;
   padding: clamp(16px, 3.5vw, 36px) clamp(12px, 3vw, 28px);
-  background: #5282a4;
+  background: #e0f2fe;
 }
 
-/* Animated Flat Design Seaport & Harbor Backdrop (Soft-Blurred Depth of Field) */
+/* Animated Flat Design Seaport & Harbor Backdrop (Bright Daylight + Soft Blur) */
 .auth-export-scene {
   position: fixed;
   inset: 0;
@@ -4584,7 +4584,7 @@ textarea:focus-visible {
   pointer-events: none;
   z-index: 0;
   overflow: hidden;
-  background: #bae6fd;
+  background: #f0f9ff;
 }
 
 .auth-flat-seaport-svg {
@@ -4594,7 +4594,7 @@ textarea:focus-visible {
   height: calc(100% + 32px);
   display: block;
   user-select: none;
-  filter: blur(4px) saturate(0.94);
+  filter: blur(4px) saturate(1.02);
   transform: translateZ(0);
 }
 
@@ -4602,8 +4602,8 @@ textarea:focus-visible {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.08) 0%, rgba(15, 34, 56, 0.16) 100%),
-    linear-gradient(180deg, rgba(186, 230, 253, 0.1) 0%, rgba(10, 38, 64, 0.14) 100%);
+    radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.45) 0%, rgba(240, 249, 255, 0.22) 100%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.32) 0%, rgba(224, 242, 254, 0.18) 100%);
   pointer-events: none;
 }
 
