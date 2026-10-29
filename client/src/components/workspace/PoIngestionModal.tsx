@@ -10,6 +10,7 @@ import {
   ChevronRight,
   FileText,
   Globe,
+  Info,
   Loader2,
   Mail,
   Phone,
@@ -108,7 +109,7 @@ export function PoIngestionModal({
             </div>
             <h2>Impor Dokumen Purchase Order (PO) Buyer</h2>
             <p>
-              Impor dokumen PO buyer untuk verifikasi identitas resmi (nama, email, kontak, website) dan mengisi form secara otomatis.
+              AI Advisor melakukan penapisan (*screening*) data legal buyer dan memberikan rekomendasi risiko. Keputusan penerimaan pesanan sepenuhnya merupakan wewenang Anda.
             </p>
           </div>
           <button
@@ -189,6 +190,14 @@ export function PoIngestionModal({
           {/* LANGKAH 2: Hasil Validasi 4 Pilar Identitas & Parameter Transaksi */}
           {screeningResult && !isAnalyzing && (
             <div className="po-validated-view">
+              {/* Disclaimer Peran AI Advisor */}
+              <div className="po-advisory-disclaimer">
+                <Info size={15} />
+                <span>
+                  <b>Peran AI Advisor:</b> Sistem hanya melakukan penapisan (*screening*) identitas dan memberikan saran mitigasi risiko. AI tidak mengambil keputusan transaksi — keputusan akhir menerima atau menolak pesanan sepenuhnya adalah wewenang perusahaan Anda.
+                </span>
+              </div>
+
               {/* Status Validasi Buyer */}
               <div className={`po-validation-header tone-${screeningResult.validation.status}`}>
                 <div className="validation-header-left">
@@ -340,7 +349,7 @@ export function PoIngestionModal({
                   className="save-button apply-btn"
                   onClick={handleConfirmApply}
                 >
-                  <CheckCircle2 size={15} /> Lanjutkan ke Form Transaksi
+                  <CheckCircle2 size={15} /> Setujui &amp; Terapkan ke Form Transaksi
                 </button>
               </>
             )}
