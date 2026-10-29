@@ -2632,7 +2632,7 @@ textarea:focus-visible {
 
 /* Modal Footer */
 .clean-po-footer {
-  padding: 12px 24px;
+  padding: 14px 24px;
   background: #f8fafc;
   border-top: 1px solid var(--line);
   display: flex;
@@ -2641,13 +2641,60 @@ textarea:focus-visible {
   gap: 10px;
 }
 
-.apply-btn {
-  background: #2563eb;
-  color: #ffffff;
+.clean-po-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
-.apply-btn:hover {
+.po-validate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--line-strong);
+  background: #ffffff;
+  color: var(--navy);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.po-validate-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+}
+
+.po-validate-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  border: 0;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.apply-btn:hover:not(:disabled) {
   background: #1d4ed8;
+}
+
+.apply-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (max-width: 640px) {

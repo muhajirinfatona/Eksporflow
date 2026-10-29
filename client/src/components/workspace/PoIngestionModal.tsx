@@ -7,6 +7,7 @@ import {
   AlertCircle,
   Building2,
   CheckCircle2,
+  ChevronRight,
   FileText,
   Globe,
   Loader2,
@@ -172,15 +173,6 @@ export function PoIngestionModal({
                     Kyoto Trading (Jepang)
                   </button>
                 </div>
-
-                <button
-                  type="button"
-                  className="save-button"
-                  onClick={() => runValidation(poText)}
-                  disabled={!poText.trim()}
-                >
-                  <Sparkles size={14} /> Validasi Dokumen PO
-                </button>
               </div>
             </div>
           )}
@@ -311,18 +303,48 @@ export function PoIngestionModal({
 
         {/* Footer Actions */}
         <div className="clean-po-footer">
-          <button type="button" className="ghost-button" onClick={handleClose}>
-            Batal
-          </button>
-          {screeningResult && (
-            <button
-              type="button"
-              className="save-button apply-btn"
-              onClick={handleConfirmApply}
-            >
-              <CheckCircle2 size={15} /> Terapkan ke Form Transaksi
+          <div className="clean-po-footer-actions">
+            <button type="button" className="ghost-button" onClick={handleClose}>
+              Batal
             </button>
-          )}
+            {!screeningResult ? (
+              <>
+                <button
+                  type="button"
+                  className="po-validate-btn"
+                  onClick={() => runValidation(poText)}
+                  disabled={!poText.trim() || isAnalyzing}
+                >
+                  <Sparkles size={14} /> Validasi Dokumen PO
+                </button>
+                <button
+                  type="button"
+                  className="save-button apply-btn"
+                  onClick={() => runValidation(poText)}
+                  disabled={!poText.trim() || isAnalyzing}
+                >
+                  Lanjutkan <ChevronRight size={15} />
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={() => setScreeningResult(null)}
+                >
+                  <RefreshCw size={13} /> Ganti Dokumen
+                </button>
+                <button
+                  type="button"
+                  className="save-button apply-btn"
+                  onClick={handleConfirmApply}
+                >
+                  <CheckCircle2 size={15} /> Lanjutkan ke Form Transaksi
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
