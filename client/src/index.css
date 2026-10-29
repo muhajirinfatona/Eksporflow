@@ -4866,11 +4866,11 @@ textarea:focus-visible {
 
 .auth-split-art {
   position: relative;
-  height: 215px;
+  height: 210px;
   display: grid;
   place-items: center;
-  margin: 24px 0 12px;
-  padding-top: 8px;
+  margin: 32px 0 16px;
+  padding-top: 14px;
   z-index: 1;
 }
 
@@ -4898,13 +4898,15 @@ textarea:focus-visible {
   z-index: 1;
   max-width: 360px;
   margin-top: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .auth-split-copy-stage {
-  min-height: 122px;
+  min-height: 98px;
   display: flex;
   align-items: flex-end;
-  margin-bottom: 22px;
+  margin-bottom: 18px;
 }
 
 .auth-split-copy-slide {
@@ -4912,56 +4914,17 @@ textarea:focus-visible {
 }
 
 .auth-welcome-heading {
-  font-size: 26px !important;
+  font-size: 24px !important;
   font-weight: 700;
-  letter-spacing: -0.02em;
-  line-height: 1.2;
-  color: #ffffff;
-  margin: 0 0 6px !important;
-}
-
-.auth-split-copy-slide .auth-slide-kicker {
-  display: flex;
-  text-transform: none;
-  letter-spacing: -0.005em;
-  font-size: 14px;
-  font-weight: 600;
-  color: #fbbf24;
-  margin-bottom: 8px;
-}
-
-.auth-slide-kicker {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.09em;
-  color: #fbbf24;
-  margin-bottom: 7px;
-}
-
-.auth-slide-kicker::before {
-  content: "";
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: #34d399;
-}
-
-.auth-split-welcome h1 {
-  font-size: 24px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   line-height: 1.24;
   color: #ffffff;
-  margin: 0 0 8px;
+  margin: 0 0 8px !important;
 }
 
-.auth-split-welcome p {
+.auth-split-copy-slide p {
   font-size: 13px;
-  line-height: 1.56;
+  line-height: 1.58;
   color: #cbd5e1;
   margin: 0;
 }

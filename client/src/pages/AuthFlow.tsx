@@ -66,27 +66,19 @@ const SLIDE_INTERVAL_MS = 5200;
 const SLIDES = [
   {
     id: "global-vessel",
-    greetingNew: "Selamat Datang!",
-    greetingReturning: "Selamat Datang Kembali!",
-    badge: "Jalur Perdagangan Dunia",
-    title: "Jangkau Pasar Dunia Lebih Pasti",
+    titleNew: "Selamat Datang!",
+    titleReturning: "Selamat Datang Kembali!",
     subtitle:
-      "Pantau kesiapan kargo, jadwal keberangkatan kapal, hingga pengiriman ke pelabuhan tujuan dalam satu kendali yang rapi.",
+      "Jangkau pasar dunia lebih pasti. Pantau kesiapan kargo, jadwal keberangkatan kapal, hingga pengiriman ke pelabuhan tujuan dalam satu kendali yang rapi.",
   },
   {
     id: "smart-docs",
-    greetingNew: "Siap Ekspor Hari Ini?",
-    greetingReturning: "Lanjutkan Ekspor Anda",
-    badge: "Kalkulasi & Dokumen Otomatis",
     title: "Hitung Harga & Dokumen Sekejap",
     subtitle:
       "Susun penawaran harga ekspor yang kompetitif dan terbitkan dokumen perdagangan secara konsisten tanpa input berulang.",
   },
   {
     id: "container-shield",
-    greetingNew: "Mari Mulai Bersama!",
-    greetingReturning: "Senang Bertemu Lagi!",
-    badge: "Muatan Presisi & Terlindungi",
     title: "Muatan Optimal, Transaksi Aman",
     subtitle:
       "Maksimalkan ruang kontainer secara presisi serta jaga keamanan setiap tahap pembayaran dan kepatuhan ekspor Anda.",
@@ -339,7 +331,7 @@ function ExportWorldBackdrop() {
       {/* Gradasi Sangat Ringan agar Laut Tetap Cerah & Segar */}
       <div className="auth-scene-veil" />
 
-      {/* Riak-Riak Air, Ombak Kecil & Aktivitas Kapal yang Bergerak */}
+      {/* Riak-Riak Air & Ombak Kecil yang Mengalir Halus */}
       <svg
         className="auth-sea-life-svg"
         viewBox="0 0 1600 960"
@@ -368,78 +360,12 @@ function ExportWorldBackdrop() {
           <mask id="eksporSeaMask">
             <rect x="0" y="150" width="1600" height="810" fill="url(#eksporSeaFade)" />
           </mask>
-
-          {/* Kapal kontainer tampak atas (menghadap ke kanan) */}
-          <g id="eksporShipTop">
-            <path d="M-96 0 L-340 -58" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="3" strokeLinecap="round" />
-            <path d="M-96 0 L-340 58" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="3" strokeLinecap="round" />
-            <ellipse className="auth-ship-foam" cx="-150" cy="0" rx="62" ry="11" fill="#ffffff" fillOpacity="0.55" />
-            <path d="M-92 -17 L58 -17 Q 92 -11 100 0 Q 92 11 58 17 L-92 17 Q -99 0 -92 -17 Z" fill="#1c2c3e" stroke="#0b192c" strokeWidth="2" />
-            <rect x="-56" y="-13" width="20" height="12" rx="1.5" fill="#f59e0b" />
-            <rect x="-34" y="-13" width="20" height="12" rx="1.5" fill="#1e4976" />
-            <rect x="-12" y="-13" width="20" height="12" rx="1.5" fill="#10b981" />
-            <rect x="10" y="-13" width="20" height="12" rx="1.5" fill="#f59e0b" />
-            <rect x="32" y="-13" width="20" height="12" rx="1.5" fill="#64748b" />
-            <rect x="-56" y="1" width="20" height="12" rx="1.5" fill="#10b981" />
-            <rect x="-34" y="1" width="20" height="12" rx="1.5" fill="#f59e0b" />
-            <rect x="-12" y="1" width="20" height="12" rx="1.5" fill="#64748b" />
-            <rect x="10" y="1" width="20" height="12" rx="1.5" fill="#1e4976" />
-            <rect x="32" y="1" width="20" height="12" rx="1.5" fill="#10b981" />
-            <rect x="-84" y="-13" width="18" height="26" rx="2" fill="#f8fafc" />
-            <path d="M92 -8 Q 112 0 92 8" stroke="#ffffff" strokeOpacity="0.7" strokeWidth="2.5" strokeLinecap="round" />
-          </g>
-
-          {/* Kapal tunda / feeder kecil */}
-          <g id="eksporTugTop">
-            <path d="M-26 0 L-150 -26" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="2.2" strokeLinecap="round" />
-            <path d="M-26 0 L-150 26" stroke="#ffffff" strokeOpacity="0.45" strokeWidth="2.2" strokeLinecap="round" />
-            <ellipse className="auth-ship-foam" cx="-48" cy="0" rx="26" ry="6" fill="#ffffff" fillOpacity="0.55" />
-            <path d="M-26 -9 L14 -9 Q 30 -5 34 0 Q 30 5 14 9 L-26 9 Q -30 0 -26 -9 Z" fill="#f8fafc" stroke="#0b192c" strokeWidth="1.6" />
-            <rect x="-12" y="-6" width="16" height="12" rx="2" fill="#f59e0b" />
-          </g>
-
-          <path id="eksporShipLaneA" d="M-420 700 C 300 640, 1000 600, 2050 520" />
-          <path id="eksporShipLaneB" d="M2000 300 C 1300 330, 600 345, -400 380" />
-          <path id="eksporShipLaneC" d="M1900 960 C 1500 820, 1250 700, 900 560" />
-          <path id="eksporShipLaneD" d="M-200 860 C 300 880, 800 900, 1800 840" />
         </defs>
 
         {/* Lapisan riak air & ombak kecil yang mengalir */}
         <g mask="url(#eksporSeaMask)">
           <rect className="auth-ripple-layer" x="0" y="0" width="1600" height="960" fill="url(#eksporRippleA)" />
           <rect className="auth-ripple-layer auth-ripple-layer-b" x="0" y="0" width="1600" height="960" fill="url(#eksporRippleB)" />
-        </g>
-
-        {/* Kapal kontainer utama melintas dari kiri ke kanan */}
-        <g>
-          <animateMotion dur="46s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporShipLaneA" />
-          </animateMotion>
-          <use href="#eksporShipTop" transform="scale(0.85)" />
-        </g>
-
-        {/* Kapal kontainer jauh di dekat cakrawala bergerak ke kiri */}
-        <g>
-          <animateMotion dur="70s" begin="-25s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporShipLaneB" />
-          </animateMotion>
-          <use href="#eksporShipTop" transform="scale(0.42)" opacity="0.85" />
-        </g>
-
-        {/* Kapal feeder menuju pelabuhan dari kanan bawah */}
-        <g>
-          <animateMotion dur="38s" begin="-12s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporShipLaneC" />
-          </animateMotion>
-          <use href="#eksporShipTop" transform="scale(0.6)" />
-        </g>
-
-        {/* Kapal tunda kecil di jalur depan */}
-        <g>
-          <animateMotion dur="26s" begin="-8s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporShipLaneD" />
-          </animateMotion>
-          <use href="#eksporTugTop" transform="scale(1.1)" />
         </g>
       </svg>
 
@@ -1124,9 +1050,12 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
   const activeSlide = SLIDES[slideIndex] ?? SLIDES[0];
   const isReturningWelcome = step === "login" && hasLoggedInBefore;
-  const welcomeHeading = isReturningWelcome
-    ? activeSlide.greetingReturning
-    : activeSlide.greetingNew;
+  const activeSlideTitle =
+    "titleNew" in activeSlide
+      ? isReturningWelcome
+        ? activeSlide.titleReturning
+        : activeSlide.titleNew
+      : activeSlide.title;
 
   const pointerStartX = useRef<number | null>(null);
 
@@ -1191,7 +1120,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
             <div className="auth-split-copy-stage">
               <AnimatePresence mode="wait" custom={slideDirection} initial={false}>
                 <motion.div
-                  key={`${activeSlide.id}-${welcomeHeading}`}
+                  key={`${activeSlide.id}-${activeSlideTitle}`}
                   className="auth-split-copy-slide"
                   custom={slideDirection}
                   variants={SLIDE_VARIANTS}
@@ -1200,8 +1129,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                   exit="exit"
                   transition={{ duration: 0.34, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <h1 className="auth-welcome-heading">{welcomeHeading}</h1>
-                  <strong className="auth-slide-kicker">{activeSlide.title}</strong>
+                  <h1 className="auth-welcome-heading">{activeSlideTitle}</h1>
                   <p>{activeSlide.subtitle}</p>
                 </motion.div>
               </AnimatePresence>
@@ -1209,17 +1137,20 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
             <div className="auth-slide-footer">
               <div className="auth-slide-dots" role="tablist" aria-label="Sorotan fitur ekspor">
-                {SLIDES.map((s, idx) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    role="tab"
-                    aria-selected={slideIndex === idx}
-                    aria-label={`Slide ${idx + 1}: ${s.title}`}
-                    className={slideIndex === idx ? "active" : ""}
-                    onClick={() => goToSlide(idx)}
-                  />
-                ))}
+                {SLIDES.map((s, idx) => {
+                  const sTitle = "titleNew" in s ? s.titleNew : s.title;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={slideIndex === idx}
+                      aria-label={`Slide ${idx + 1}: ${sTitle}`}
+                      className={slideIndex === idx ? "active" : ""}
+                      onClick={() => goToSlide(idx)}
+                    />
+                  );
+                })}
               </div>
 
               <div className="auth-slide-arrows">
