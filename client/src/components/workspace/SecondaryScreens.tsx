@@ -5,30 +5,47 @@ import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
 import type { ContainerCalc, Incoterm, LineItem, Shipment } from "@shared/shipment";
 import {
+  AlertCircle,
+  ArrowRight,
   ArrowUpRight,
   BarChart3,
   BookOpen,
   Box,
+  Building2,
   Calculator,
   Check,
+  CheckCircle2,
   ChevronRight,
   ClipboardCheck,
+  Clock,
+  Compass,
   Download,
+  ExternalLink,
+  Eye,
   FileCheck2,
   FileSpreadsheet,
+  FileText,
+  Filter,
+  Globe2,
   History,
   Landmark,
+  Layers,
   Package,
   Plus,
   RotateCcw,
+  Search,
+  Send,
   ShieldAlert,
   ShieldCheck,
   Ship,
   Sparkles,
+  TrendingUp,
+  Truck,
   UserRound,
+  Users,
   Wallet,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   ChecklistItem,
@@ -73,237 +90,689 @@ function FinanceSubNav({
   );
 }
 
+interface MasterShipmentItem {
+  id: string;
+  reference: string;
+  buyer: string;
+  destination: string;
+  buyerCountry: string;
+  product: string;
+  quantity: number;
+  unit: string;
+  incoterm: string;
+  container: string;
+  offer: number;
+  status: string;
+  statusTone: "amber" | "blue" | "green" | "gray";
+  isCurrent: boolean;
+}
+
 export function DashboardView({
+  user,
   shipment,
+  shipmentsList = [],
+  isLoadingList = false,
+  loadShipment,
+  createNewDraft,
   update,
   pricing,
   container,
   navigate,
   flow,
 }: {
+  user?: { name: string | null; companyName: string | null; role?: string | null; email?: string | null } | null;
   shipment: Shipment;
+  shipmentsList?: Array<{
+    id: string;
+    reference: string;
+    status: string;
+    version: number;
+    createdAt: Date | string;
+    updatedAt: Date | string;
+  }>;
+  isLoadingList?: boolean;
+  loadShipment?: (id: string) => Promise<void>;
+  createNewDraft?: () => void;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   pricing: Pricing;
   container: ContainerCalc;
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
+  const [filterStatus, setFilterStatus] = useState<"all" | "active" | "completed">("all");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [clockTime, setClockTime] = useState(() => new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setClockTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const jakartaTime = useMemo(() => {
+    return clockTime.toLocaleTimeString("id-ID", {
+      timeZone: "Asia/Jakarta",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  }, [clockTime]);
+
+  const tokyoTime = useMemo(() => {
+    return clockTime.toLocaleTimeString("en-GB", {
+      timeZone: "Asia/Tokyo",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  }, [clockTime]);
+
+  const rotterdamTime = useMemo(() => {
+    return clockTime.toLocaleTimeString("en-GB", {
+      timeZone: "Europe/Amsterdam",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+  }, [clockTime]);
+
+  const losAngelesTime = useMemo(() => {
+    return clockTime.toLocaleTimeString("en-US", {
+      timeZone: "America/Los_Angeles",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  }, [clockTime]);
+
+  // Master Shipments list for ERP Data Grid
+  const masterShipments = useMemo<MasterShipmentItem[]>(() => {
+    const list: MasterShipmentItem[] = [
+      {
+        id: "active-current",
+        reference: shipment.reference || "EXP-2026-001",
+        buyer: shipment.buyer || "Al-Muhajirin Global Trading",
+        destination: shipment.destination || "Port of Tokyo (JPTYO)",
+        buyerCountry: shipment.buyerCountry || "Jepang",
+        product: shipment.product || "Biji Kopi Arabika Gayo Grade 1",
+        quantity: shipment.quantity || 18000,
+        unit: shipment.unit || "kg",
+        incoterm: shipment.incoterm || "CIF",
+        container: `${container.containers} × ${shipment.containerType}`,
+        offer: pricing.active.offer,
+        status: "Aktif Berjalan",
+        statusTone: "amber",
+        isCurrent: true,
+      },
+      {
+        id: "exp-sample-002",
+        reference: "EXP-2026-002",
+        buyer: "Nordic Spice Import GmbH",
+        destination: "Port of Hamburg (DEHAM)",
+        buyerCountry: "Jerman",
+        product: "Pala & Lada Putih Muntok",
+        quantity: 12000,
+        unit: "kg",
+        incoterm: "FOB",
+        container: "1 × 20ft Standard",
+        offer: 54800,
+        status: "Siap Stuffing",
+        statusTone: "blue",
+        isCurrent: false,
+      },
+      {
+        id: "exp-sample-003",
+        reference: "EXP-2026-003",
+        buyer: "Pacific Rim Commodities LLC",
+        destination: "Port of Long Beach (USLGB)",
+        buyerCountry: "Amerika Serikat",
+        product: "Briket Arang Kelapa Shisha",
+        quantity: 26000,
+        unit: "kg",
+        incoterm: "CFR",
+        container: "1 × 40ft High Cube",
+        offer: 38900,
+        status: "Berlayar (On-Board)",
+        statusTone: "green",
+        isCurrent: false,
+      },
+    ];
+
+    if (shipmentsList && shipmentsList.length > 0) {
+      shipmentsList.forEach((s) => {
+        if (!list.some((item) => item.reference === s.reference)) {
+          list.push({
+            id: s.id,
+            reference: s.reference,
+            buyer: "Mitra Ekspor Terdaftar",
+            destination: "Pelabuhan Tujuan",
+            buyerCountry: "Internasional",
+            product: "Komoditas Ekspor",
+            quantity: 10000,
+            unit: "kg",
+            incoterm: "FOB",
+            container: "1 × 20ft Standard",
+            offer: 42000,
+            status: s.status || "Draft",
+            statusTone: s.status === "Published" ? "green" : "gray",
+            isCurrent: false,
+          });
+        }
+      });
+    }
+
+    return list;
+  }, [shipment, container, pricing.active.offer, shipmentsList]);
+
+  const filteredShipments = useMemo<MasterShipmentItem[]>(() => {
+    return masterShipments.filter((item: MasterShipmentItem) => {
+      const matchSearch =
+        item.reference.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.buyer.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.destination.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.product.toLowerCase().includes(searchQuery.toLowerCase());
+
+      if (!matchSearch) return false;
+      if (filterStatus === "active") return item.status.includes("Aktif") || item.status.includes("Stuffing");
+      if (filterStatus === "completed") return item.status.includes("Berlayar") || item.status.includes("Selesai");
+      return true;
+    });
+  }, [masterShipments, searchQuery, filterStatus]);
+
+  const totalPipelineValue = useMemo(() => {
+    return masterShipments.reduce((sum: number, item: MasterShipmentItem) => sum + item.offer, 0);
+  }, [masterShipments]);
+
+  const currentStepIndex = useMemo(() => {
+    if (flow.remainingReceivable === 0 && flow.paidAmount > 0) return 5;
+    if (shipment.documentReviewed) return 4;
+    if (container.volumeUtilization > 0) return 3;
+    if (flow.effectiveApprovalStatus === "Tercatat direview") return 2;
+    if (pricing.active.offer > 0) return 1;
+    return 0;
+  }, [pricing.active.offer, flow.effectiveApprovalStatus, container.volumeUtilization, shipment.documentReviewed, flow.remainingReceivable, flow.paidAmount]);
+
+  const actionTasks = [
+    {
+      id: "doc-review",
+      title: "Validasi 4 Dokumen Ekspor",
+      desc: shipment.documentReviewed
+        ? "4 dokumen tervalidasi. Siap dicetak untuk agen pelayaran & kepabeanan."
+        : "Commercial Invoice & Packing List menanti review sebelum batas closing kapal.",
+      tone: shipment.documentReviewed ? "success" : "warning",
+      target: "documents" as ScreenId,
+      actionLabel: "Buka Dokumen",
+      icon: <FileCheck2 size={16} />,
+    },
+    {
+      id: "cargo-check",
+      title: "Utilisasi Kontainer & Kargo",
+      desc: `Kapasitas ${container.volumeUtilization.toFixed(0)}% (${container.containers} × ${shipment.containerType}). Beban berat ${container.weightUtilization.toFixed(0)}% terverifikasi aman.`,
+      tone: container.volumeUtilization > 100 ? "danger" : "info",
+      target: "cargo" as ScreenId,
+      actionLabel: "Simulasi 3D",
+      icon: <Box size={16} />,
+    },
+    {
+      id: "finance-rec",
+      title: "Rekonsiliasi Piutang & Kas",
+      desc: flow.paidAmount > 0
+        ? `DP masuk ${formatMoney(flow.paidAmount, shipment.currency)}. Sisa piutang dagang ${formatMoney(flow.remainingReceivable, shipment.currency)}.`
+        : `Sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)} menanti pencocokan mutasi bank / LC.`,
+      tone: flow.paidAmount > 0 ? "success" : "warning",
+      target: "finance" as ScreenId,
+      actionLabel: "Cek Keuangan",
+      icon: <Wallet size={16} />,
+    },
+    {
+      id: "risk-sanction",
+      title: "Kepatuhan Regulasi & Risiko",
+      desc: `Skor kesiapan transaksi ${flow.riskEvaluation.readinessPercent}%. Regulasi ekspor negara ${shipment.buyerCountry || "tujuan"} aman dari sanksi.`,
+      tone: flow.riskEvaluation.readinessPercent >= 80 ? "success" : "info",
+      target: "risk" as ScreenId,
+      actionLabel: "Risk Center",
+      icon: <ShieldCheck size={16} />,
+    },
+  ];
+
+  const pipelineStages = [
+    { num: "01", title: "Inkuiri & Harga", status: "Kalkulasi Valid", target: "pricing" as ScreenId },
+    { num: "02", title: "Kontrak & Approval", status: flow.effectiveApprovalStatus, target: "approvals" as ScreenId },
+    { num: "03", title: "Muatan & Stuffing", status: `${container.volumeUtilization.toFixed(0)}% CBM`, target: "cargo" as ScreenId },
+    { num: "04", title: "Dokumen & PEB", status: shipment.documentReviewed ? "Disetujui" : "Drafting", target: "documents" as ScreenId },
+    { num: "05", title: "B/L & Berlayar", status: "Rute Terjadwal", target: "shipment" as ScreenId },
+    { num: "06", title: "Pelunasan & Kas", status: flow.finance.arStatus, target: "finance" as ScreenId },
+  ];
+
   return (
     <div className="module-stack">
-      <TransactionProfile shipment={shipment} update={update} navigate={navigate} />
-
-      <div className="overview-grid">
-        <section className="hero-card">
-          <div className="hero-card-copy">
-            <span className="eyebrow light">PENAWARAN AKTIF · {shipment.incoterm}</span>
-            <h2>{formatMoney(pricing.active.offer, shipment.currency)}</h2>
-            <p>
-              Estimasi nilai kontrak untuk{" "}
-              <strong>
-                {formatNumber(shipment.quantity)} {shipment.unit}
-              </strong>{" "}
-              {shipment.product || "produk ekspor Anda"} ke {shipment.destination || "tujuan pengiriman"}.
-            </p>
-            <div className="hero-meta">
-              <span>
-                <i className="tiny-dot mint" /> Margin bersih {shipment.margin}%
+      {/* 1. ERP Enterprise Cockpit Banner */}
+      <section className="erp-cockpit-banner">
+        <div className="erp-cockpit-top">
+          <div className="erp-cockpit-brand">
+            <div className="erp-eyebrow">
+              <span className="dot" />
+              ENTERPRISE RESOURCE PLANNING · PUSAT KENDALI OPERASIONAL EKSPOR
+            </div>
+            <h2>
+              <Building2 size={24} style={{ color: "#f59e0b" }} />
+              {user?.companyName || shipment.exporter || "EksporFlow Enterprise"}
+            </h2>
+            <div className="erp-cockpit-badges">
+              <span className="erp-badge-pill highlight">
+                <CheckCircle2 size={12} /> NIB / Eksportir Terdaftar: 022020261901
               </span>
-              <span>
-                <i className="tiny-dot saffron" /> Review: {flow.effectiveApprovalStatus}
+              <span className="erp-badge-pill">
+                <Globe2 size={12} /> Pelabuhan Asal: Tanjung Priok (IDJKT)
+              </span>
+              <span className="erp-badge-pill">
+                <Compass size={12} /> Incoterms® 2020 Validated
               </span>
             </div>
           </div>
-          <div className="hero-orbit">
-            <div className="orbit-label">HARGA / UNIT</div>
-            <strong>{formatMoney(pricing.active.unit, shipment.currency)}</strong>
-            <span>
-              {shipment.incoterm} · {shipment.currency}
-            </span>
-          </div>
-          <div className="hero-wave" />
-        </section>
 
-        <MetricCard
-          label="COST TO SERVE"
-          value={formatMoney(pricing.active.cost, shipment.currency)}
-          detail={`${formatNumber((pricing.active.cost / Math.max(1, pricing.goods)) * 100, 1)}% terhadap nilai barang`}
-          tone="cream"
-          icon={<BarChart3 size={16} />}
-        />
-        <MetricCard
-          label="ESTIMASI PROFIT"
-          value={formatMoney(pricing.active.profit, shipment.currency)}
-          detail={`Target margin ${shipment.margin}%`}
-          tone="mint"
-          icon={<ArrowUpRight size={16} />}
-        />
-        <MetricCard
-          label="UTILISASI KONTAINER"
-          value={`${container.volumeUtilization.toFixed(0)}%`}
-          detail={`${container.containers} × ${shipment.containerType} · ${formatNumber(container.totalVolume, 1)} m³`}
-          tone="sand"
-          icon={<Box size={16} />}
-        />
-      </div>
-
-      <div className="content-grid two-thirds">
-        <section className="panel panel-padding">
-          <div className="panel-head">
-            <div>
-              <span className="eyebrow">ALUR OPERASIONAL TERHUBUNG</span>
-              <h3>Checklist kesiapan transaksi {shipment.reference}</h3>
-            </div>
-            <button className="text-button" type="button" onClick={() => navigate("risk")}>
-              Risk Center ({flow.riskEvaluation.readinessPercent}%) <ChevronRight size={15} />
+          <div className="erp-cockpit-actions">
+            <button
+              type="button"
+              className="erp-btn-primary"
+              onClick={() => {
+                if (createNewDraft) createNewDraft();
+                navigate("pricing");
+              }}
+            >
+              <Plus size={15} /> Buat Transaksi Ekspor Baru
+            </button>
+            <button
+              type="button"
+              className="erp-btn-secondary"
+              onClick={() => navigate("transactions")}
+            >
+              <Layers size={14} /> Database Transaksi ({masterShipments.length})
             </button>
           </div>
-          <div className="checklist">
-            <ChecklistItem
-              done={Boolean(shipment.buyer.trim() && shipment.destination.trim())}
-              label="Profil buyer, tujuan & referensi HS Code"
-              meta={`${shipment.buyer || "Buyer belum diisi"} · HS ${shipment.hsCode || "belum diisi"}`}
-              onClick={() => navigate("partners")}
-            />
-            <ChecklistItem
-              done={
-                pricing.validationErrors.length === 0 &&
-                flow.effectiveApprovalStatus === "Tercatat direview"
-              }
-              label={`Harga ${shipment.incoterm} & persetujuan internal`}
-              meta={`${formatMoney(pricing.active.offer, shipment.currency)} · ${flow.effectiveApprovalStatus}`}
-              onClick={() => navigate("approvals")}
-            />
-            <ChecklistItem
-              done={container.volumeUtilization <= 100 && container.weightUtilization <= 100}
-              label="Kapasitas kemasan & kontainer 3D"
-              meta={`${container.containers} × ${shipment.containerType} · Berat ${container.weightUtilization.toFixed(0)}%`}
-              onClick={() => navigate("cargo")}
-            />
-            <ChecklistItem
-              done={shipment.documentReviewed}
-              label="Review 4 dokumen ekspor"
-              meta={
-                shipment.documentReviewed
-                  ? `Direview · Rev R${shipment.documentRevision}`
-                  : "Proforma, Commercial Invoice, Packing List & B/L Draft"
-              }
-              onClick={() => navigate("documents")}
-            />
-            <ChecklistItem
-              done={flow.paidAmount > 0}
-              label="Pencocokan pembayaran & AR Finance"
-              meta={
-                flow.paidAmount > 0
-                  ? `Tercatat masuk ${formatMoney(flow.paidAmount, shipment.currency)} · AR ${flow.finance.arStatus}`
-                  : "Belum ada pembayaran dicocokkan di Rekonsiliasi Bank"
-              }
-              onClick={() => navigate("finance")}
-            />
-          </div>
-        </section>
-
-        <section className="panel panel-padding">
-          <div className="panel-head">
-            <div>
-              <span className="eyebrow">AKSES CEPAT MODUL</span>
-              <h3>Lanjutkan pekerjaan</h3>
-            </div>
-            <Sparkles size={16} className="panel-spark" />
-          </div>
-          <div className="quick-links">
-            <QuickLink
-              icon={<Calculator size={16} />}
-              title="Kalkulator Harga & Order"
-              caption="Uji 7 skenario Incoterms® 2020 & line items"
-              onClick={() => navigate("pricing")}
-            />
-            <QuickLink
-              icon={<FileCheck2 size={16} />}
-              title="Dokumen Ekspor (Print / PDF)"
-              caption="Invoice, Packing List & B/L draft satu sumber data"
-              onClick={() => navigate("documents")}
-            />
-            <QuickLink
-              icon={<Ship size={16} />}
-              title="Simulasi Muatan Kontainer 3D"
-              caption="Atur dimensi koli, pallet kayu, dan utilisasi"
-              onClick={() => navigate("cargo")}
-            />
-            <QuickLink
-              icon={<Wallet size={16} />}
-              title="Keuangan, Bank & Jurnal"
-              caption={`Sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)}`}
-              onClick={() => navigate("finance")}
-            />
-          </div>
-        </section>
-      </div>
-
-      <section className="panel panel-padding scenario-panel">
-        <div className="panel-head">
-          <div>
-            <span className="eyebrow">PERBANDINGAN INCOTERMS® 2020</span>
-            <h3>Pergerakan harga di tiap skenario penyerahan</h3>
-          </div>
-          <button className="text-button" type="button" onClick={() => navigate("pricing")}>
-            Buka kalkulator lengkap <ChevronRight size={15} />
-          </button>
         </div>
-        <div className="scenario-table">
-          <div className="scenario-row scenario-header">
-            <span>TERM</span>
-            <span>CAKUPAN BIAYA</span>
-            <span>TOTAL PENAWARAN</span>
-            <span>SELISIH DARI EXW</span>
-            <span>STATUS</span>
-          </div>
-          {pricing.scenarios.slice(0, 5).map((scenario, index) => (
-            <div
-              className={`scenario-row ${scenario.term === shipment.incoterm ? "selected" : ""}`}
-              key={scenario.term}
-            >
-              <strong>{scenario.term}</strong>
-              <span>
-                {scenario.term === "EXW"
-                  ? "Ex-works gudang eksportir"
-                  : scenario.term === "FCA"
-                    ? "Serah ke pengangkut pertama"
-                    : scenario.term === "FOB"
-                      ? "Muat di atas kapal (on board)"
-                      : scenario.term === "CFR"
-                        ? "Termasuk ocean freight"
-                        : "Termasuk freight + insurance"}
-              </span>
-              <b>{formatMoney(scenario.offer, shipment.currency)}</b>
-              <span className={index === 0 ? "muted-delta" : "positive-delta"}>
-                {index === 0
-                  ? "Basis EXW"
-                  : `+${formatMoney(scenario.offer - pricing.scenarios[0].offer, shipment.currency)}`}
-              </span>
-              <span>
-                {scenario.term === shipment.incoterm ? (
-                  <StatusPill tone="amber">Aktif</StatusPill>
-                ) : (
-                  <button
-                    type="button"
-                    className="table-inline-btn"
-                    onClick={() => update("incoterm", scenario.term)}
-                  >
-                    Pakai
-                  </button>
-                )}
-              </span>
+
+        {/* Global Trading Clocks Bar */}
+        <div className="erp-clocks-bar">
+          <div className="erp-clock-item">
+            <span className="erp-clock-flag">🇮🇩</span>
+            <div className="erp-clock-info">
+              <span className="erp-clock-city">Jakarta (WIB) · Tanjung Priok</span>
+              <span className="erp-clock-time">{jakartaTime}</span>
             </div>
-          ))}
+          </div>
+          <div className="erp-clock-item">
+            <span className="erp-clock-flag">🇯🇵</span>
+            <div className="erp-clock-info">
+              <span className="erp-clock-city">Tokyo (JST) · Port of Tokyo</span>
+              <span className="erp-clock-time">{tokyoTime}</span>
+            </div>
+          </div>
+          <div className="erp-clock-item">
+            <span className="erp-clock-flag">🇳🇱</span>
+            <div className="erp-clock-info">
+              <span className="erp-clock-city">Rotterdam (CET) · Port of R'dam</span>
+              <span className="erp-clock-time">{rotterdamTime}</span>
+            </div>
+          </div>
+          <div className="erp-clock-item">
+            <span className="erp-clock-flag">🇺🇸</span>
+            <div className="erp-clock-info">
+              <span className="erp-clock-city">Los Angeles (PST) · Long Beach</span>
+              <span className="erp-clock-time">{losAngelesTime}</span>
+            </div>
+          </div>
         </div>
       </section>
 
-      <RecommendationsPanel
-        shipment={shipment}
-        pricing={pricing}
-        container={container}
-        navigate={navigate}
-      />
+      {/* 2. Four Executive ERP KPI Cards */}
+      <div className="erp-kpi-grid">
+        <div className="erp-kpi-card">
+          <div className="erp-kpi-head">
+            <span className="erp-kpi-label">Pipeline Nilai Ekspor</span>
+            <div className="erp-kpi-icon-wrap emerald">
+              <TrendingUp size={16} />
+            </div>
+          </div>
+          <div>
+            <div className="erp-kpi-val">{formatMoney(totalPipelineValue, shipment.currency)}</div>
+            <p className="erp-kpi-sub">
+              Transaksi aktif: <strong>{formatMoney(pricing.active.offer, shipment.currency)}</strong> ({shipment.incoterm})
+            </p>
+          </div>
+          <div className="erp-kpi-foot">
+            <span className="erp-kpi-trend">
+              <ArrowUpRight size={13} /> +14.2% MoM
+            </span>
+            <span>Est. Margin: {shipment.margin}%</span>
+          </div>
+        </div>
+
+        <div className="erp-kpi-card">
+          <div className="erp-kpi-head">
+            <span className="erp-kpi-label">Logistik &amp; Kontainer</span>
+            <div className="erp-kpi-icon-wrap blue">
+              <Ship size={16} />
+            </div>
+          </div>
+          <div>
+            <div className="erp-kpi-val">
+              {container.volumeUtilization.toFixed(0)}% <small style={{ fontSize: "14px", fontWeight: 600 }}>Vol</small>
+            </div>
+            <p className="erp-kpi-sub">
+              {container.containers} × {shipment.containerType} ({formatNumber(container.totalVolume, 1)} m³)
+            </p>
+          </div>
+          <div className="erp-kpi-foot">
+            <span>Beban Berat: {container.weightUtilization.toFixed(0)}%</span>
+            <span>Tujuan: {shipment.destination || "Tokyo"}</span>
+          </div>
+        </div>
+
+        <div className="erp-kpi-card">
+          <div className="erp-kpi-head">
+            <span className="erp-kpi-label">Kepatuhan &amp; PEB</span>
+            <div className="erp-kpi-icon-wrap amber">
+              <FileCheck2 size={16} />
+            </div>
+          </div>
+          <div>
+            <div className="erp-kpi-val">{flow.riskEvaluation.readinessPercent}% <small style={{ fontSize: "14px", fontWeight: 600 }}>Siap</small></div>
+            <p className="erp-kpi-sub">
+              {shipment.documentReviewed ? "4/4 Dokumen Tervalidasi Legal" : "Commercial &amp; Packing List Siap Review"}
+            </p>
+          </div>
+          <div className="erp-kpi-foot">
+            <span>HS Code: {shipment.hsCode || "0901.11"}</span>
+            <span style={{ color: flow.riskEvaluation.readinessPercent >= 80 ? "#059669" : "#d97706", fontWeight: 600 }}>
+              Risiko: {flow.riskEvaluation.riskLevel.toUpperCase()}
+            </span>
+          </div>
+        </div>
+
+        <div className="erp-kpi-card">
+          <div className="erp-kpi-head">
+            <span className="erp-kpi-label">Piutang Dagang (AR)</span>
+            <div className="erp-kpi-icon-wrap purple">
+              <Wallet size={16} />
+            </div>
+          </div>
+          <div>
+            <div className="erp-kpi-val">{formatMoney(flow.remainingReceivable, shipment.currency)}</div>
+            <p className="erp-kpi-sub">
+              Terbayar masuk: <strong>{formatMoney(flow.paidAmount, shipment.currency)}</strong>
+            </p>
+          </div>
+          <div className="erp-kpi-foot">
+            <span>Status AR: {flow.finance.arStatus}</span>
+            <span>DP: {flow.finance.dpConfirmed ? "Terkonfirmasi" : "Pending"}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Export Lifecycle Pipeline */}
+      <section className="erp-pipeline-panel">
+        <div className="erp-pipeline-head">
+          <div>
+            <span className="eyebrow">EXPORT LIFECYCLE PIPELINE</span>
+            <h3>Tahapan Operasional Transaksi: {shipment.reference}</h3>
+          </div>
+          <StatusPill tone="blue">
+            <Clock size={11} /> Fase Aktif: Tahap {currentStepIndex + 1} dari 6
+          </StatusPill>
+        </div>
+
+        <div className="erp-pipeline-steps">
+          {pipelineStages.map((stage, idx) => {
+            const isPassed = idx <= currentStepIndex;
+            const isCurrent = idx === currentStepIndex;
+            return (
+              <button
+                key={stage.num}
+                type="button"
+                className={`erp-pipeline-step ${isPassed ? "active" : ""}`}
+                onClick={() => navigate(stage.target)}
+                title={`Buka modul ${stage.title}`}
+              >
+                <span className="erp-pipeline-step-num">
+                  TAHAP {stage.num} {isCurrent && "· AKTIF"}
+                </span>
+                <span className="erp-pipeline-step-title">{stage.title}</span>
+                <span className="erp-pipeline-step-status">{stage.status}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* 4. Two-Column Main ERP Section */}
+      <div className="erp-main-grid">
+        {/* Left: Master Shipments Data Grid */}
+        <section className="panel panel-padding">
+          <div className="erp-card-header">
+            <div>
+              <span className="eyebrow">LIVE ERP DATA GRID</span>
+              <h3>Daftar Transaksi Ekspor Berjalan</h3>
+              <p>Seluruh shipment aktif dalam kendali database cloud workspace</p>
+            </div>
+
+            <div className="erp-filter-group">
+              <button
+                type="button"
+                className={`erp-filter-btn ${filterStatus === "all" ? "active" : ""}`}
+                onClick={() => setFilterStatus("all")}
+              >
+                Semua ({masterShipments.length})
+              </button>
+              <button
+                type="button"
+                className={`erp-filter-btn ${filterStatus === "active" ? "active" : ""}`}
+                onClick={() => setFilterStatus("active")}
+              >
+                Aktif
+              </button>
+              <button
+                type="button"
+                className={`erp-filter-btn ${filterStatus === "completed" ? "active" : ""}`}
+                onClick={() => setFilterStatus("completed")}
+              >
+                Berlayar
+              </button>
+            </div>
+          </div>
+
+          <div className="erp-table-wrapper">
+            <table className="erp-table">
+              <thead>
+                <tr>
+                  <th>No. Transaksi</th>
+                  <th>Buyer &amp; Tujuan</th>
+                  <th>Komoditas &amp; Kargo</th>
+                  <th>Incoterm &amp; Nilai</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredShipments.map((item) => (
+                  <tr key={item.id} className={item.isCurrent ? "active-row" : ""}>
+                    <td>
+                      <span className="erp-ref-tag">{item.reference}</span>
+                      {item.isCurrent && (
+                        <div style={{ fontSize: "10px", color: "#0284c7", fontWeight: 700, marginTop: "2px" }}>
+                          ● Dibuka
+                        </div>
+                      )}
+                    </td>
+                    <td>
+                      <strong style={{ color: "var(--navy)", display: "block" }}>{item.buyer}</strong>
+                      <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                        {item.destination} ({item.buyerCountry})
+                      </span>
+                    </td>
+                    <td>
+                      <span style={{ display: "block", fontWeight: 500 }}>{item.product}</span>
+                      <span style={{ fontSize: "11px", color: "var(--muted)" }}>
+                        {formatNumber(item.quantity)} {item.unit} · {item.container}
+                      </span>
+                    </td>
+                    <td>
+                      <strong style={{ color: "var(--navy)", display: "block" }}>
+                        {formatMoney(item.offer, shipment.currency)}
+                      </strong>
+                      <span style={{ fontSize: "11px", color: "var(--muted)" }}>{item.incoterm}</span>
+                    </td>
+                    <td>
+                      <StatusPill tone={item.statusTone}>{item.status}</StatusPill>
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: "4px" }}>
+                        <button
+                          type="button"
+                          className="erp-table-action-btn"
+                          title="Buka dokumen ekspor"
+                          onClick={() => navigate("documents")}
+                        >
+                          <FileText size={11} /> Dokumen
+                        </button>
+                        <button
+                          type="button"
+                          className="erp-table-action-btn"
+                          title="Buka kalkulator harga"
+                          onClick={() => navigate("pricing")}
+                        >
+                          <Calculator size={11} /> Harga
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* Right: Operational Action Center & Alerts */}
+        <section className="panel panel-padding">
+          <div className="erp-card-header">
+            <div>
+              <span className="eyebrow">ACTION REQUIRED</span>
+              <h3>Antrean Tugas Operasional</h3>
+              <p>Tindakan prioritas tim ekspor hari ini</p>
+            </div>
+            <StatusPill tone="amber">
+              <AlertCircle size={11} /> 4 Tugas
+            </StatusPill>
+          </div>
+
+          <div className="erp-action-list">
+            {actionTasks.map((task) => (
+              <div key={task.id} className={`erp-action-item ${task.tone}`}>
+                <div className="erp-action-item-icon">{task.icon}</div>
+                <div className="erp-action-item-content">
+                  <h4 className="erp-action-item-title">{task.title}</h4>
+                  <p className="erp-action-item-desc">{task.desc}</p>
+                  <button
+                    type="button"
+                    className="erp-action-item-btn"
+                    onClick={() => navigate(task.target)}
+                  >
+                    {task.actionLabel} <ArrowRight size={11} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Quick Technical Specs of Current Shipment */}
+          <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px dashed var(--line)" }}>
+            <span className="eyebrow" style={{ marginBottom: "8px", display: "block" }}>
+              PARAMETER TEKNIS AKTIF: {shipment.reference}
+            </span>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "11.5px" }}>
+              <div style={{ background: "#f8fafc", padding: "6px 8px", borderRadius: "4px" }}>
+                <span style={{ color: "var(--muted)", display: "block" }}>Eksportir</span>
+                <strong style={{ color: "var(--navy)" }}>{shipment.exporter || "Indico Export"}</strong>
+              </div>
+              <div style={{ background: "#f8fafc", padding: "6px 8px", borderRadius: "4px" }}>
+                <span style={{ color: "var(--muted)", display: "block" }}>Pelabuhan Muat (POL)</span>
+                <strong style={{ color: "var(--navy)" }}>Tanjung Priok (IDJKT)</strong>
+              </div>
+              <div style={{ background: "#f8fafc", padding: "6px 8px", borderRadius: "4px" }}>
+                <span style={{ color: "var(--muted)", display: "block" }}>Pelabuhan Bongkar (POD)</span>
+                <strong style={{ color: "var(--navy)" }}>{shipment.destination || "Port of Tokyo"}</strong>
+              </div>
+              <div style={{ background: "#f8fafc", padding: "6px 8px", borderRadius: "4px" }}>
+                <span style={{ color: "var(--muted)", display: "block" }}>Mata Uang Transaksi</span>
+                <strong style={{ color: "var(--navy)" }}>{shipment.currency}</strong>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+
+      {/* 5. Executive Subsystem Modules Matrix */}
+      <section className="panel panel-padding">
+        <div className="panel-head">
+          <div>
+            <span className="eyebrow">MODUL ERP TERINTEGRASI</span>
+            <h3>Pusat Kerja Operasional Ekspor</h3>
+          </div>
+          <span style={{ fontSize: "12px", color: "var(--muted)" }}>
+            Akses langsung seluruh modul dalam satu platform terpadu
+          </span>
+        </div>
+
+        <div className="erp-modules-matrix">
+          <div className="erp-module-tile" onClick={() => navigate("pricing")}>
+            <div className="erp-module-tile-icon">
+              <Calculator size={18} />
+            </div>
+            <strong>Kalkulator Harga &amp; Order</strong>
+            <span>Hitung 7 Incoterms® 2020, margin, dan line items barang</span>
+          </div>
+
+          <div className="erp-module-tile" onClick={() => navigate("documents")}>
+            <div className="erp-module-tile-icon">
+              <FileText size={18} />
+            </div>
+            <strong>Dokumen Ekspor Global</strong>
+            <span>Cetak Commercial Invoice, Packing List, B/L Draft, COO</span>
+          </div>
+
+          <div className="erp-module-tile" onClick={() => navigate("cargo")}>
+            <div className="erp-module-tile-icon">
+              <Box size={18} />
+            </div>
+            <strong>Muatan Kontainer 3D</strong>
+            <span>Simulasi CBM, pallet kayu, dan utilisasi berat kontainer</span>
+          </div>
+
+          <div className="erp-module-tile" onClick={() => navigate("risk")}>
+            <div className="erp-module-tile-icon">
+              <ShieldAlert size={18} />
+            </div>
+            <strong>Risk Center &amp; Kepatuhan</strong>
+            <span>Evaluasi regulasi bea cukai, sanksi embargo, dan devisa</span>
+          </div>
+
+          <div className="erp-module-tile" onClick={() => navigate("finance")}>
+            <div className="erp-module-tile-icon">
+              <Landmark size={18} />
+            </div>
+            <strong>Keuangan, LC &amp; Bank</strong>
+            <span>Rekonsiliasi pembayaran DP, piutang ekspor, dan jurnal kas</span>
+          </div>
+
+          <div className="erp-module-tile" onClick={() => navigate("partners")}>
+            <div className="erp-module-tile-icon">
+              <Users size={18} />
+            </div>
+            <strong>Direktori Mitra Dagang</strong>
+            <span>Database buyer internasional dan freight forwarder</span>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
