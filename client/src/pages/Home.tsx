@@ -148,6 +148,10 @@ export default function Home() {
       statusNote={statusNote}
       version={version}
       activeShipmentId={activeShipmentId}
+      shipment={shipment}
+      pricing={pricing}
+      container={container}
+      flow={flow}
       onSave={saveShipment}
       onReloadLatest={reloadLatest}
       onReset={resetTransaction}

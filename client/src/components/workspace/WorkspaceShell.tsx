@@ -35,7 +35,11 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
+import type { Pricing } from "@shared/pricing";
+import type { ContainerCalc, Shipment } from "@shared/shipment";
+import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { IconButton, StatusPill } from "./Primitives";
+import { ScreenAIAdvisorBanner, ScreenAIAdvisorDrawer } from "./ScreenAIAdvisor";
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -309,6 +313,10 @@ export function WorkspaceShell({
   statusNote,
   version,
   activeShipmentId,
+  shipment,
+  pricing,
+  container,
+  flow,
   onSave,
   onReloadLatest,
   onReset,
@@ -325,6 +333,10 @@ export function WorkspaceShell({
   statusNote: string | null;
   version: number;
   activeShipmentId: string | null;
+  shipment?: Shipment;
+  pricing?: Pricing;
+  container?: ContainerCalc;
+  flow?: WorkspaceFlow;
   onSave: () => Promise<void>;
   onReloadLatest: () => Promise<void>;
   onReset: () => void;
@@ -340,6 +352,8 @@ export function WorkspaceShell({
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isConsultationOpen, setIsConsultationOpen] = useState(false);
+  const [consultationPrompt, setConsultationPrompt] = useState("");
 
   useEffect(() => {
     document.documentElement.removeAttribute("data-text-scale");
@@ -651,9 +665,40 @@ export function WorkspaceShell({
             </div>
           </section>
 
+          {shipment && pricing && container && flow && (
+            <ScreenAIAdvisorBanner
+              screen={screen}
+              shipment={shipment}
+              pricing={pricing}
+              container={container}
+              flow={flow}
+              onOpenConsultation={(prompt) => {
+                setConsultationPrompt(prompt);
+                setIsConsultationOpen(true);
+              }}
+            />
+          )}
+
           {children}
         </div>
       </main>
+
+      {shipment && pricing && container && flow && (
+        <ScreenAIAdvisorDrawer
+          isOpen={isConsultationOpen}
+          onClose={() => setIsConsultationOpen(false)}
+          initialPrompt={consultationPrompt}
+          screen={screen}
+          screenTitle={activeMeta.title}
+          shipment={shipment}
+          pricing={pricing}
+          container={container}
+          flow={flow}
+          isAuthenticated={Boolean(user)}
+          onLogin={() => void onLogin()}
+          onNavigateFullAdvisor={() => navigate("advisor")}
+        />
+      )}
 
       {!isCompactViewport && !sidebarOpen && (
         <button
