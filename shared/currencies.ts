@@ -97,7 +97,7 @@ export function convertCurrencyValue(
   const to = (toCurrency || "IDR").toUpperCase();
   if (from === to) return amount;
 
-  const validRate = usdToIdrRate > 0 ? usdToIdrRate : 16250;
+  const validRate = usdToIdrRate > 0 ? usdToIdrRate : 18274;
   const fxRates: Record<string, number> = {
     USD: 1,
     IDR: validRate,

@@ -37,15 +37,15 @@ describe("shared/currencies", () => {
   });
 
   it("converts values between currencies accurately", () => {
-    // 1 USD = 16,250 IDR
-    const idrVal = convertCurrencyValue(10, "USD", "IDR", 16250);
-    expect(idrVal).toBe(162500);
+    // 1 USD = 18,274 IDR (Kurs Bank Indonesia)
+    const idrVal = convertCurrencyValue(10, "USD", "IDR", 18274);
+    expect(idrVal).toBe(182740);
 
-    // 162,500 IDR = 10 USD
-    const usdVal = convertCurrencyValue(162500, "IDR", "USD", 16250);
+    // 182,740 IDR = 10 USD
+    const usdVal = convertCurrencyValue(182740, "IDR", "USD", 18274);
     expect(usdVal).toBe(10);
 
     // Same currency identity
-    expect(convertCurrencyValue(50, "USD", "USD", 16250)).toBe(50);
+    expect(convertCurrencyValue(50, "USD", "USD", 18274)).toBe(50);
   });
 });

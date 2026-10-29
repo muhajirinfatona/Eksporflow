@@ -6816,6 +6816,122 @@ textarea:focus-visible {
   gap: 3px;
 }
 
+/* Bank Indonesia 3-Pillar Cards (Jual, Tengah, Beli) */
+.fx-bi-rates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .fx-bi-rates-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fx-bi-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.fx-bi-card.sell-card {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.12);
+}
+
+.fx-bi-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.fx-bi-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.fx-bi-badge.sell {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.fx-bi-badge.middle {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.fx-bi-badge.buy {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.fx-bi-sub {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.fx-bi-val {
+  font-size: 21px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.fx-bi-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  padding: 7px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.fx-bi-apply-btn.primary {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.fx-bi-apply-btn.primary:hover {
+  background: #0369a1;
+}
+
+.fx-bi-apply-btn.secondary {
+  background: #ffffff;
+  border-color: #cbd5e1;
+  color: #334155;
+}
+
+.fx-bi-apply-btn.secondary:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.fx-bi-status-row {
+  font-size: 12.5px;
+  padding: 4px 0;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 8px;
+}
+
 .fx-label {
   font-size: 12px;
   color: var(--muted);
