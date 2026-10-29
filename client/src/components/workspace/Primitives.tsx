@@ -12,6 +12,7 @@ import {
   FileText,
   MessageCircle,
   Package,
+  Plus,
   ShieldAlert,
   Truck,
   Users,
@@ -451,20 +452,20 @@ export function LineItemsEditor({
   return (
     <div className="line-items-editor">
       <div className="line-items-head">
-        <div>
+        <div className="line-items-info">
           <b>Line items transaksi</b>
           <small>
             {items.length} produk · otomatis masuk ke invoice, Packing List, dan simulasi muatan
           </small>
         </div>
-        <div className="row-actions">
+        <div className="line-items-actions">
           {onOpenCatalog && (
-            <button type="button" className="ghost-button" onClick={onOpenCatalog}>
+            <button type="button" className="catalog-pick-btn" onClick={onOpenCatalog}>
               <Package size={13} /> Pilih dari Katalog
             </button>
           )}
           <button type="button" className="add-line-item" onClick={addItem}>
-            <Copy size={13} /> Tambah item
+            <Plus size={13} /> Tambah item
           </button>
         </div>
       </div>
