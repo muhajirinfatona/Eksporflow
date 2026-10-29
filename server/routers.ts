@@ -2,6 +2,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
+import { parsePoTextAndScreen } from "@shared/poScreening";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -224,6 +225,17 @@ export const appRouter = router({
           console.error("assistant.ask failed", error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Asisten AI sedang tidak tersedia. Coba lagi sebentar." });
         }
+      }),
+
+    screenPo: publicProcedure
+      .input(
+        z.object({
+          poText: z.string().trim().min(5).max(12000),
+          fileName: z.string().optional(),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        return parsePoTextAndScreen(input.poText, input.fileName);
       }),
   }),
 

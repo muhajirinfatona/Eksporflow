@@ -1,13 +1,16 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { formatMoney } from "@shared/format";
+import type { PoScreeningResult } from "@shared/poScreening";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
 import type { ContainerCalc, Shipment } from "@shared/shipment";
 import {
   Calculator,
+  CheckCircle2,
   ChevronRight,
   Cloud,
+  FileSpreadsheet,
   FileText,
   FolderOpen,
   Package,
@@ -15,10 +18,14 @@ import {
   Save,
   Search,
   ShieldAlert,
+  ShieldCheck,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { PoIngestionModal } from "./PoIngestionModal";
 import { ChecklistItem, Field, StatusPill } from "./Primitives";
+import { toast } from "sonner";
 
 export type ShipmentListItem = {
   id: string;
@@ -54,14 +61,14 @@ export function TransactionsModule({
   update,
   activeShipmentId,
   version: _version,
-  saveState: _saveState,
+  saveState,
   shipmentsList,
   isLoadingList,
   pricing,
   container,
   flow,
   loadShipment,
-  saveShipment: _saveShipment,
+  saveShipment,
   createNewDraft: _createNewDraft,
   login,
   navigate,
@@ -85,6 +92,34 @@ export function TransactionsModule({
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [poModalOpen, setPoModalOpen] = useState(false);
+  const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(null);
+
+  const handleSaveDraft = () => {
+    try {
+      localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
+      toast.success("Draft Transaksi Disimpan", {
+        description: "Data tersimpan di penyimpanan draft perangkat Anda (belum dicatat ke Cloud).",
+      });
+    } catch {
+      toast.info("Draft transaksi tersimpan secara lokal");
+    }
+  };
+
+  const handleApplyPo = (data: PoScreeningResult) => {
+    update("reference", data.reference);
+    update("buyer", data.buyer);
+    update("buyerCountry", data.buyerCountry);
+    update("destination", data.destination);
+    update("product", data.product);
+    update("hsCode", data.hsCode);
+    update("quantity", data.quantity);
+    update("unit", data.unit);
+    update("unitPrice", data.unitPrice);
+    update("incoterm", data.incoterm);
+    update("paymentTerms", data.paymentTerms);
+    setLastScreening(data);
+  };
 
   // Filter out any default dummy auto-seeded transactions (e.g. EXP-2026-001)
   const genuineShipments = useMemo(() => {
@@ -151,17 +186,63 @@ export function TransactionsModule({
           <div className="active-order-header-actions">
             <button
               type="button"
+              className="create-po-btn"
+              onClick={() => setPoModalOpen(true)}
+              title="Buat transaksi otomatis dari dokumen Purchase Order (PO) buyer"
+            >
+              <FileSpreadsheet size={14} /> + Tambah Transaksi dari PO
+            </button>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={handleSaveDraft}
+              title="Simpan sebagai draft jika belum ingin dicatat resmi ke cloud"
+            >
+              <FileText size={14} /> Draft
+            </button>
+            <button
+              type="button"
+              className="save-button"
+              onClick={() => void saveShipment()}
+              disabled={saveState === "saving"}
+              title="Simpan transaksi ke database cloud workspace"
+            >
+              <Save size={14} /> {saveState === "saving" ? "Menyimpan..." : "Simpan"}
+            </button>
+            <button
+              type="button"
               className="ghost-button select-partner-btn"
               onClick={() => navigate("partners")}
               title="Pilih dari direktori mitra buyer dan consignee tersimpan"
             >
-              <Users size={14} /> Pilih Mitra Tersimpan
+              <Users size={14} /> Mitra
             </button>
             <span className="connection-pill-sync">
               <span className="sync-dot">•</span> ✓ Semua modul sinkron
             </span>
           </div>
         </div>
+
+        {/* Banner Hasil Screening AI Advisor Buyer Jika Ada */}
+        {lastScreening && (
+          <div className="po-screening-banner">
+            <div className="po-screening-banner-left">
+              <span className="po-screening-badge">
+                <CheckCircle2 size={15} /> AI Advisor: Buyer {lastScreening.buyer} Terverifikasi ({lastScreening.validation.score}%)
+              </span>
+              <p>
+                {lastScreening.validation.legalEntityStatus} · {lastScreening.validation.sanctionCheck} · {lastScreening.validation.paymentTermRisk}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="compact-btn"
+              onClick={() => setPoModalOpen(true)}
+            >
+              Lihat Analisis Lengkap PO
+            </button>
+          </div>
+        )}
 
         {/* Form Input Symmetrical 3 Columns: Bebas Kode AI Dummy */}
         <div className="profile-grid">
@@ -419,6 +500,13 @@ export function TransactionsModule({
           </div>
         </>
       )}
+
+      {/* Modal Ekstraksi PO Buyer & Screening AI Advisor */}
+      <PoIngestionModal
+        isOpen={poModalOpen}
+        onClose={() => setPoModalOpen(false)}
+        onApply={handleApplyPo}
+      />
     </div>
   );
 }
