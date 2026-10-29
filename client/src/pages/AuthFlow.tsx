@@ -104,386 +104,345 @@ const SLIDE_VARIANTS = {
  * Latar belakang animasi bertema ekspor maritim & jaringan perdagangan global
  * yang mengelilingi kartu login tanpa mengganggu keterbacaan form.
  */
-const VERTEX_SHADER_SRC = `
-attribute vec2 aPos;
-varying vec2 vScreenUv;
-void main() {
-  vScreenUv = vec2(aPos.x * 0.5 + 0.5, 0.5 - aPos.y * 0.5);
-  gl_Position = vec4(aPos, 0.0, 1.0);
-}
-`;
-
-const FRAGMENT_SHADER_SRC = `
-precision highp float;
-varying vec2 vScreenUv;
-uniform sampler2D uTex;
-uniform vec2 uResolution;
-uniform vec2 uImageSize;
-uniform float uTime;
-
-float distToSegment(vec2 p, vec2 a, vec2 b) {
-  vec2 pa = p - a;
-  vec2 ba = b - a;
-  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-  return length(pa - ba * h);
-}
-
-void main() {
-  float screenAspect = uResolution.x / max(uResolution.y, 1.0);
-  float imageAspect = uImageSize.x / max(uImageSize.y, 1.0);
-
-  vec2 focal = screenAspect < 1.0 ? vec2(0.36, 0.58) : vec2(0.35, 0.52);
-  vec2 scale = screenAspect > imageAspect
-    ? vec2(1.0, imageAspect / screenAspect)
-    : vec2(screenAspect / imageAspect, 1.0);
-
-  // Gerakan kamera udara sangat halus di atas laut
-  vec2 camDrift = vec2(sin(uTime * 0.22) * 0.012, cos(uTime * 0.18) * 0.008);
-  vec2 imgUv = (vScreenUv - focal) * (scale * 0.94) + focal + camDrift;
-
-  // Mask area air laut (langit, dermaga crane kiri atas, dan badan kapal tetap tajam)
-  float horizonMask = smoothstep(0.14, 0.24, imgUv.y);
-  float pierZone = (1.0 - smoothstep(0.45, 0.53, imgUv.x)) * (1.0 - smoothstep(0.21, 0.27, imgUv.y));
-  float shipDist = distToSegment(imgUv, vec2(0.235, 0.535), vec2(0.525, 0.805));
-  float shipMask = smoothstep(0.058, 0.105, shipDist);
-  float waterMask = horizonMask * (1.0 - pierZone) * shipMask;
-
-  // Perspektif kedalaman laut: riak lebih rapat di cakrawala, lebih lebar di dekat kamera
-  float persp = mix(0.42, 1.32, clamp((imgUv.y - 0.14) / 0.86, 0.0, 1.0));
-
-  // Riak-riak gelombang air laut berlapis yang mengalir realistis
-  float w1 = sin((imgUv.x * 70.0 / persp + imgUv.y * 150.0 / persp) - uTime * 2.4);
-  float w2 = sin((imgUv.x * -52.0 / persp + imgUv.y * 120.0 / persp) - uTime * 1.9 + 1.9);
-  float w3 = sin((imgUv.x * 30.0 + imgUv.y * 210.0 / persp) + uTime * 1.6);
-  float w4 = sin((imgUv.x * 140.0 / persp + imgUv.y * 260.0 / persp) - uTime * 3.1);
-
-  float wave = w1 * 0.36 + w2 * 0.3 + w3 * 0.2 + w4 * 0.14;
-
-  vec2 rippleOffset = vec2(wave * 0.009, (w1 - w2) * 0.006) * persp * waterMask;
-  vec2 sampleUv = clamp(imgUv + rippleOffset, vec2(0.002), vec2(0.998));
-
-  vec3 color = texture2D(uTex, sampleUv).rgb;
-
-  // Eksposur lebih cerah & segar untuk nuansa laut siang hari
-  color = pow(color, vec3(0.86)) * 1.14;
-
-  // Riak terlihat lewat bayangan lembah ombak saja (tanpa kilau putih di air)
-  color *= 1.0 - max(0.0, -wave) * 0.07 * waterMask;
-
-  gl_FragColor = vec4(clamp(color, 0.0, 1.0), 1.0);
-}
-`;
-
-function OceanRippleCanvas() {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [ready, setReady] = useState(false);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-
-    const gl = canvas.getContext("webgl", {
-      alpha: false,
-      antialias: false,
-      depth: false,
-      stencil: false,
-      powerPreference: "low-power",
-    });
-    if (!gl) {
-      console.warn("[EksporFlow] WebGL tidak tersedia, riak air memakai lapisan SVG.");
-      return undefined;
-    }
-
-    const compileShader = (type: number, source: string) => {
-      const shader = gl.createShader(type);
-      if (!shader) return null;
-      gl.shaderSource(shader, source);
-      gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.warn("[EksporFlow] Shader riak air gagal:", gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-      }
-      return shader;
-    };
-
-    const vs = compileShader(gl.VERTEX_SHADER, VERTEX_SHADER_SRC);
-    const fs = compileShader(gl.FRAGMENT_SHADER, FRAGMENT_SHADER_SRC);
-    if (!vs || !fs) return undefined;
-
-    const program = gl.createProgram();
-    if (!program) return undefined;
-    gl.attachShader(program, vs);
-    gl.attachShader(program, fs);
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      gl.deleteProgram(program);
-      return undefined;
-    }
-
-    gl.useProgram(program);
-
-    const buffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-      gl.STATIC_DRAW
-    );
-
-    const aPos = gl.getAttribLocation(program, "aPos");
-    gl.enableVertexAttribArray(aPos);
-    gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
-
-    const uResolution = gl.getUniformLocation(program, "uResolution");
-    const uImageSize = gl.getUniformLocation(program, "uImageSize");
-    const uTime = gl.getUniformLocation(program, "uTime");
-
-    const texture = gl.createTexture();
-    let rafId = 0;
-    let disposed = false;
-    let imgWidth = 1600;
-    let imgHeight = 900;
-
-    const syncSize = () => {
-      if (!canvas || disposed) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
-      const w = Math.max(1, Math.floor(window.innerWidth * dpr));
-      const h = Math.max(1, Math.floor(window.innerHeight * dpr));
-      if (canvas.width !== w || canvas.height !== h) {
-        canvas.width = w;
-        canvas.height = h;
-      }
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-
-    syncSize();
-    window.addEventListener("resize", syncSize, { passive: true });
-
-    const img = new Image();
-    img.decoding = "async";
-    img.src = "/images/export-backdrop.jpg";
-
-    img.onload = () => {
-      if (disposed) return;
-      imgWidth = img.naturalWidth || 1600;
-      imgHeight = img.naturalHeight || 900;
-
-      gl.bindTexture(gl.TEXTURE_2D, texture);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-      gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-      gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-
-      setReady(true);
-      const start = performance.now();
-
-      const render = (now: number) => {
-        if (disposed) return;
-        if (!document.hidden) {
-          syncSize();
-          gl.uniform2f(uResolution, canvas.width, canvas.height);
-          gl.uniform2f(uImageSize, imgWidth, imgHeight);
-          gl.uniform1f(uTime, (now - start) * 0.001);
-          gl.drawArrays(gl.TRIANGLES, 0, 6);
-        }
-        rafId = window.requestAnimationFrame(render);
-      };
-
-      rafId = window.requestAnimationFrame(render);
-    };
-
-    return () => {
-      disposed = true;
-      window.cancelAnimationFrame(rafId);
-      window.removeEventListener("resize", syncSize);
-      if (texture) gl.deleteTexture(texture);
-      if (buffer) gl.deleteBuffer(buffer);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
-      gl.deleteProgram(program);
-    };
-  }, []);
-
-  return (
-    <canvas
-      ref={canvasRef}
-      className={`auth-ocean-canvas ${ready ? "ready" : ""}`}
-    />
-  );
-}
-
+/**
+ * Latar belakang Flat Design Kartun: Pelabuhan Kontainer Internasional,
+ * Aktifitas Muat Barang Dermaga (STS Crane & Truk), dan Riak Air Ombak Mengalir.
+ */
 function ExportWorldBackdrop() {
   return (
     <div className="auth-export-scene" aria-hidden="true">
-      {/* Gambar dasar instan + Kanvas WebGL Riak Air Laut Real-Time 60fps */}
-      <div className="auth-export-photo-wrap">
-        <img
-          src="/images/export-backdrop.jpg"
-          alt=""
-          className="auth-export-photo"
-          decoding="async"
-        />
-        <OceanRippleCanvas />
-      </div>
-
-      {/* Gradasi Sangat Ringan agar Laut Tetap Cerah & Segar */}
-      <div className="auth-scene-veil" />
-
-      {/* Riak-Riak Air & Ombak Kecil yang Mengalir Halus */}
       <svg
-        className="auth-sea-life-svg"
-        viewBox="0 0 1600 960"
+        className="auth-flat-seaport-svg"
+        viewBox="0 0 1920 1080"
         preserveAspectRatio="xMidYMid slice"
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >
         <defs>
-          {/* Pola ombak kecil yang terus mengalir */}
-          <pattern id="eksporRippleA" width="120" height="56" patternUnits="userSpaceOnUse">
-            <path d="M8 22 q 10 -7 20 0" stroke="#0e3a5a" strokeOpacity="0.38" strokeWidth="1.6" strokeLinecap="round" />
-            <path d="M66 46 q 12 -8 24 0" stroke="#0e3a5a" strokeOpacity="0.32" strokeWidth="1.5" strokeLinecap="round" />
-            <path d="M92 12 q 7 -5 14 0" stroke="#164e6e" strokeOpacity="0.34" strokeWidth="1.3" strokeLinecap="round" />
-            <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="120 28" dur="9s" repeatCount="indefinite" />
-          </pattern>
-          <pattern id="eksporRippleB" width="90" height="44" patternUnits="userSpaceOnUse">
-            <path d="M14 30 q 8 -6 16 0" stroke="#0e3a5a" strokeOpacity="0.3" strokeWidth="1.3" strokeLinecap="round" />
-            <path d="M56 12 q 9 -6 18 0" stroke="#164e6e" strokeOpacity="0.28" strokeWidth="1.2" strokeLinecap="round" />
-            <animateTransform attributeName="patternTransform" type="translate" from="0 0" to="-90 22" dur="7s" repeatCount="indefinite" />
-          </pattern>
-          <linearGradient id="eksporSeaFade" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#ffffff" stopOpacity="0" />
-            <stop offset="22%" stopColor="#ffffff" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#ffffff" stopOpacity="1" />
+          {/* Langit Pesisir Segar */}
+          <linearGradient id="flatSkyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#bae6fd" />
+            <stop offset="55%" stopColor="#e0f2fe" />
+            <stop offset="100%" stopColor="#f0f9ff" />
           </linearGradient>
-          <mask id="eksporSeaMask">
-            <rect x="0" y="150" width="1600" height="810" fill="url(#eksporSeaFade)" />
-          </mask>
+
+          {/* Air Laut Bersih Bergradasi Flat */}
+          <linearGradient id="flatOceanGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1e588a" />
+            <stop offset="30%" stopColor="#154773" />
+            <stop offset="70%" stopColor="#0f3659" />
+            <stop offset="100%" stopColor="#0a2640" />
+          </linearGradient>
+
+          {/* Dermaga Beton Pelabuhan */}
+          <linearGradient id="flatQuaySurface" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#1e293b" />
+            <stop offset="85%" stopColor="#334155" />
+            <stop offset="100%" stopColor="#0f172a" />
+          </linearGradient>
+
+          {/* Sorot Lampu Mercusuar Emas */}
+          <linearGradient id="flatBeaconBeam" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#fde047" stopOpacity="0.85" />
+            <stop offset="60%" stopColor="#fef08a" stopOpacity="0.25" />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity="0" />
+          </linearGradient>
+
+          {/* Corak Garis Pengaman Bahaya Kuning-Hitam di Pinggir Dermaga */}
+          <pattern id="quayHazardStripe" width="24" height="24" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="12" height="24" fill="#f59e0b" />
+            <rect x="12" width="12" height="24" fill="#0f172a" />
+          </pattern>
         </defs>
 
-        {/* Lapisan riak air & ombak kecil yang mengalir */}
-        <g mask="url(#eksporSeaMask)">
-          <rect className="auth-ripple-layer" x="0" y="0" width="1600" height="960" fill="url(#eksporRippleA)" />
-          <rect className="auth-ripple-layer auth-ripple-layer-b" x="0" y="0" width="1600" height="960" fill="url(#eksporRippleB)" />
+        {/* 1. Langit & Matahari Pagi Pesisir */}
+        <rect x="0" y="0" width="1920" height="460" fill="url(#flatSkyGrad)" />
+
+        {/* Matahari Hangat */}
+        <circle cx="1520" cy="150" r="50" fill="#fde68a" fillOpacity="0.8" />
+        <circle cx="1520" cy="150" r="68" fill="#fef08a" fillOpacity="0.25" />
+
+        {/* Awan-Awan Datar yang Melayang Tenang */}
+        <g className="auth-flat-cloud-a">
+          <g transform="translate(180 80)" fill="#ffffff" fillOpacity="0.82">
+            <rect x="0" y="20" width="140" height="34" rx="17" />
+            <circle cx="45" cy="20" r="28" />
+            <circle cx="85" cy="14" r="32" />
+          </g>
+          <g transform="translate(1120 60)" fill="#ffffff" fillOpacity="0.75">
+            <rect x="0" y="16" width="160" height="30" rx="15" />
+            <circle cx="50" cy="16" r="24" />
+            <circle cx="95" cy="10" r="28" />
+          </g>
         </g>
-      </svg>
 
-      {/* Koridor Jalur Ekspor Hidup: Pesawat Kargo, Sinyal Rute & Radar Pelabuhan */}
-      <svg
-        className="auth-export-routes-svg"
-        viewBox="0 0 1600 960"
-        preserveAspectRatio="xMidYMid slice"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <defs>
-          <linearGradient id="eksporArcGold" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.1" />
-            <stop offset="50%" stopColor="#fbbf24" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#34d399" stopOpacity="0.2" />
-          </linearGradient>
-          <linearGradient id="eksporArcMint" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#34d399" stopOpacity="0.15" />
-            <stop offset="50%" stopColor="#ffffff" stopOpacity="0.85" />
-            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.2" />
-          </linearGradient>
+        <g className="auth-flat-cloud-b">
+          <g transform="translate(680 110)" fill="#ffffff" fillOpacity="0.65">
+            <rect x="0" y="14" width="120" height="26" rx="13" />
+            <circle cx="40" cy="14" r="20" />
+            <circle cx="75" cy="8" r="24" />
+          </g>
+          <g transform="translate(1620 95)" fill="#ffffff" fillOpacity="0.78">
+            <rect x="0" y="18" width="150" height="32" rx="16" />
+            <circle cx="48" cy="18" r="26" />
+            <circle cx="92" cy="12" r="30" />
+          </g>
+        </g>
 
+        {/* Jalur Udara & Pesawat Kargo Ekspor di Langit Atas */}
+        <path d="M120 180 C 600 40, 1300 40, 1820 170" stroke="#ffffff" strokeOpacity="0.4" strokeWidth="2" strokeDasharray="8 8" />
+        <g className="auth-cargo-plane-flight">
+          <g transform="translate(80 120)">
+            <line x1="-54" y1="0" x2="-10" y2="0" stroke="#ffffff" strokeWidth="2.5" strokeOpacity="0.6" strokeLinecap="round" />
+            <path d="M-10 0 L14 0 L20 -3 L24 0 L20 3 L14 2 L-2 12 L-7 12 L-2 2 L-12 2 L-16 7 L-19 7 L-16 0 L-19 -7 L-16 -7 L-12 -2 L-2 -2 L-7 -12 L-2 -12 L14 -2 Z" fill="#ffffff" />
+            <circle cx="10" cy="0" r="2" fill="#f59e0b" />
+          </g>
+        </g>
+
+        {/* Garis Bukit/Pantai di Kejauhan Horizon */}
+        <path d="M0 455 Q 320 415, 640 445 T 1280 440 T 1920 445 L 1920 460 L 0 460 Z" fill="#7fa6c8" fillOpacity="0.65" />
+        {/* Kincir Angin Pesisir Ramah Lingkungan */}
+        <g transform="translate(760 415)" stroke="#64748b" strokeWidth="1.5">
+          <line x1="0" y1="0" x2="0" y2="35" />
+          <line x1="0" y1="0" x2="9" y2="-12" />
+          <line x1="0" y1="0" x2="-14" y2="-4" />
+          <line x1="0" y1="0" x2="5" y2="14" />
+        </g>
+        <g transform="translate(880 412)" stroke="#64748b" strokeWidth="1.5">
+          <line x1="0" y1="0" x2="0" y2="38" />
+          <line x1="0" y1="0" x2="10" y2="-13" />
+          <line x1="0" y1="0" x2="-15" y2="-4" />
+          <line x1="0" y1="0" x2="5" y2="15" />
+        </g>
+
+        {/* 2. Air Laut Kartun / Flat Design (Lapisan Bergerak) */}
+        <rect x="0" y="450" width="1920" height="630" fill="url(#flatOceanGrad)" />
+
+        {/* Lapisan Ombak Horizon #1 */}
+        <g className="auth-wave-roll-a">
           <path
-            id="eksporPathSky"
-            d="M80 285 C 430 48, 1080 42, 1520 245"
+            d="M-240 480 Q -180 472, -120 480 T 0 480 T 120 480 T 240 480 T 360 480 T 480 480 T 600 480 T 720 480 T 840 480 T 960 480 T 1080 480 T 1200 480 T 1320 480 T 1440 480 T 1560 480 T 1680 480 T 1800 480 T 1920 480 T 2040 480 T 2160 480 L 2160 1080 L -240 1080 Z"
+            fill="#1c4f7c"
+            fillOpacity="0.55"
+          />
+        </g>
+
+        {/* Lapisan Ombak Tengah #2 */}
+        <g className="auth-wave-roll-b">
+          <path
+            d="M-200 620 Q -130 605, -60 620 T 80 620 T 220 620 T 360 620 T 500 620 T 640 620 T 780 620 T 920 620 T 1060 620 T 1200 620 T 1340 620 T 1480 620 T 1620 620 T 1760 620 T 1900 620 T 2040 620 T 2180 620 L 2180 1080 L -200 1080 Z"
+            fill="#16436a"
+            fillOpacity="0.6"
+          />
+        </g>
+
+        {/* Lapisan Ombak Depan #3 (Lekukan Ombak Ikonik Kartun dengan Buih Cyan/Mint) */}
+        <g className="auth-wave-roll-c">
+          <path
+            d="M-240 820 C -180 805, -140 835, -80 820 C -20 805, 20 835, 80 820 C 140 805, 180 835, 240 820 C 300 805, 340 835, 400 820 C 460 805, 500 835, 560 820 C 620 805, 660 835, 720 820 C 780 805, 820 835, 880 820 C 940 805, 980 835, 1040 820 C 1100 805, 1140 835, 1200 820 C 1260 805, 1300 835, 1360 820 C 1420 805, 1460 835, 1520 820 C 1580 805, 1620 835, 1680 820 C 1740 805, 1780 835, 1840 820 C 1900 805, 1940 835, 2000 820 C 2060 805, 2100 835, 2160 820 L 2160 1080 L -240 1080 Z"
+            fill="#103657"
+            fillOpacity="0.72"
           />
           <path
-            id="eksporPathSeaLower"
-            d="M120 760 C 540 905, 1070 895, 1510 700"
+            d="M-240 820 C -180 805, -140 835, -80 820 C -20 805, 20 835, 80 820 C 140 805, 180 835, 240 820 C 300 805, 340 835, 400 820 C 460 805, 500 835, 560 820 C 620 805, 660 835, 720 820 C 780 805, 820 835, 880 820 C 940 805, 980 835, 1040 820 C 1100 805, 1140 835, 1200 820 C 1260 805, 1300 835, 1360 820 C 1420 805, 1460 835, 1520 820 C 1580 805, 1620 835, 1680 820 C 1740 805, 1780 835, 1840 820 C 1900 805, 1940 835, 2000 820"
+            stroke="#67e8f9"
+            strokeWidth="3.5"
+            strokeOpacity="0.75"
+            strokeLinecap="round"
           />
-          <path
-            id="eksporPathEast"
-            d="M1180 910 C 1275 650, 1385 430, 1515 190"
-          />
-        </defs>
-
-        {/* Jalur Udara Atas + Aliran Garis */}
-        <use href="#eksporPathSky" stroke="#ffffff" strokeOpacity="0.24" strokeWidth="1.4" />
-        <use
-          href="#eksporPathSky"
-          className="auth-route-flow-gold"
-          stroke="url(#eksporArcGold)"
-          strokeWidth="2.4"
-          strokeDasharray="10 12"
-          strokeLinecap="round"
-        />
-
-        {/* Jalur Laut Bawah + Aliran Garis */}
-        <use href="#eksporPathSeaLower" stroke="#ffffff" strokeOpacity="0.2" strokeWidth="1.2" />
-        <use
-          href="#eksporPathSeaLower"
-          className="auth-route-flow-mint"
-          stroke="url(#eksporArcMint)"
-          strokeWidth="2.2"
-          strokeDasharray="8 12"
-          strokeLinecap="round"
-        />
-
-        {/* Jalur Laut Sisi Kanan */}
-        <use
-          href="#eksporPathEast"
-          className="auth-route-flow-gold"
-          stroke="url(#eksporArcGold)"
-          strokeWidth="2"
-          strokeDasharray="7 12"
-          strokeLinecap="round"
-        />
-
-        {/* Pesawat Kargo Ekspor Melintas Aktif Mengikuti Lengkungan Jalur Atas */}
-        <g>
-          <animateMotion dur="10s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporPathSky" />
-          </animateMotion>
-          <line x1="-38" y1="0" x2="-8" y2="0" stroke="#fbbf24" strokeWidth="2.4" strokeOpacity="0.8" strokeLinecap="round" />
-          <path
-            d="M-11 0 L6 0 L12 -2.2 L15 0 L12 2.2 L6 1.5 L-1 9 L-5 9 L-1 1.5 L-9 1.5 L-12 5 L-14.5 5 L-12 0 L-14.5 -5 L-12 -5 L-9 -1.5 L-1 -1.5 L-5 -9 L-1 -9 L6 -1.5 Z"
-            fill="#ffffff"
-          />
-          <circle cx="8" cy="0" r="1.8" fill="#f59e0b" />
         </g>
 
-        {/* Sinyal Kargo Maritim #1 Meluncur di Jalur Laut Bawah */}
-        <g>
-          <animateMotion dur="8s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporPathSeaLower" />
-          </animateMotion>
-          <line x1="-32" y1="0" x2="0" y2="0" stroke="#34d399" strokeWidth="3" strokeOpacity="0.75" strokeLinecap="round" />
-          <circle cx="0" cy="0" r="7" fill="#34d399" fillOpacity="0.38" />
-          <circle cx="0" cy="0" r="3.5" fill="#ffffff" />
+        {/* Aksen Riak-Riak Air Flat Berdenyut */}
+        <g className="auth-flat-ripple" stroke="#38bdf8" strokeWidth="2.5" strokeLinecap="round" fill="none">
+          <path d="M620 720 Q 640 714, 660 720 T 700 720" />
+          <path d="M880 860 Q 900 854, 920 860 T 960 860" />
+          <path d="M1120 760 Q 1140 754, 1160 760 T 1200 760" />
+          <path d="M1480 890 Q 1500 884, 1520 890 T 1560 890" />
+          <path d="M480 940 Q 500 934, 520 940 T 560 940" />
         </g>
 
-        {/* Sinyal Kargo Maritim #2 Meluncur di Jalur Timur */}
-        <g>
-          <animateMotion dur="7s" begin="-3s" repeatCount="indefinite" rotate="auto">
-            <mpath href="#eksporPathEast" />
-          </animateMotion>
-          <line x1="-26" y1="0" x2="0" y2="0" stroke="#fbbf24" strokeWidth="2.8" strokeOpacity="0.8" strokeLinecap="round" />
-          <circle cx="0" cy="0" r="6.5" fill="#fbbf24" fillOpacity="0.38" />
-          <circle cx="0" cy="0" r="3.2" fill="#ffffff" />
+        {/* 3. Sisi Kanan: Dermaga Pemecah Gelombang, Mercusuar & Kapal Channel */}
+        <polygon points="1620,530 1920,490 1920,620 1600,650" fill="#334155" />
+        <polygon points="1620,530 1920,490 1920,510 1610,545" fill="#475569" />
+
+        {/* Mercusuar Pesisir Klasik Bergaris Merah-Putih */}
+        <g transform="translate(1690 350)">
+          <rect x="-14" y="140" width="48" height="18" rx="3" fill="#1e293b" />
+          <polygon points="0,30 20,30 28,140 -8,140" fill="#f8fafc" />
+          <polygon points="2,60 18,60 21,88 -1,88" fill="#ef4444" />
+          <polygon points="-4,114 24,114 27,136 -7,136" fill="#ef4444" />
+          <rect x="-6" y="24" width="32" height="6" rx="2" fill="#0f172a" />
+          <rect x="-2" y="8" width="24" height="16" rx="2" fill="#fef08a" stroke="#0f172a" strokeWidth="2" />
+          <path d="M-4 8 Q 10 -4, 24 8 Z" fill="#ef4444" />
+          <circle cx="10" cy="16" r="4" fill="#ffffff" />
+          <polygon className="auth-lighthouse-beam" points="10,16 520,-90 620,180" fill="url(#flatBeaconBeam)" />
         </g>
 
-        {/* Titik Radar Pelabuhan Berdenyut Aktif */}
-        <g transform="translate(226 202)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.8" fill="#fbbf24" fillOpacity="0.24" />
-          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#fbbf24" strokeWidth="1.4" fill="none" />
-          <circle cx="0" cy="0" r="4.5" fill="#fbbf24" stroke="#ffffff" strokeWidth="1.6" />
+        {/* Kapal Kargo Sekunder di Jalur Laut Kanan */}
+        <g className="auth-flat-ship-bob" transform="translate(1420 520)">
+          <path d="M0 48 L220 48 L195 85 L25 85 Z" fill="#0f2942" stroke="#1e4976" strokeWidth="2" />
+          <path d="M12 72 L205 72" stroke="#f59e0b" strokeWidth="4" strokeLinecap="round" />
+          <rect x="30" y="28" width="34" height="20" rx="2" fill="#f59e0b" stroke="#0b192c" strokeWidth="1.5" />
+          <rect x="68" y="28" width="34" height="20" rx="2" fill="#10b981" stroke="#0b192c" strokeWidth="1.5" />
+          <rect x="106" y="28" width="34" height="20" rx="2" fill="#1e4976" stroke="#0b192c" strokeWidth="1.5" />
+          <rect x="50" y="8" width="34" height="20" rx="2" fill="#3b82f6" stroke="#0b192c" strokeWidth="1.5" />
+          <rect x="88" y="8" width="34" height="20" rx="2" fill="#f59e0b" stroke="#0b192c" strokeWidth="1.5" />
+          <rect x="148" y="10" width="32" height="38" rx="3" fill="#ffffff" stroke="#0f172a" strokeWidth="2" />
+          <rect x="154" y="18" width="20" height="7" rx="1.5" fill="#0284c7" />
+          <rect x="156" y="2" width="10" height="8" rx="1" fill="#f59e0b" />
+          <path d="M190 85 Q 230 82, 245 92" stroke="#38bdf8" strokeWidth="3" strokeLinecap="round" fill="none" />
         </g>
 
-        <g transform="translate(1412 192)">
-          <circle className="auth-port-ping auth-port-ping-delay" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.8" fill="#34d399" fillOpacity="0.24" />
-          <circle className="auth-port-ping" cx="0" cy="0" r="16" stroke="#34d399" strokeWidth="1.4" fill="none" />
-          <circle cx="0" cy="0" r="4.5" fill="#34d399" stroke="#ffffff" strokeWidth="1.6" />
+        {/* Kapal Tunda Pelabuhan (Tugboat) Beroperasi Aktif */}
+        <g className="auth-flat-tug-bob" transform="translate(1320 730)">
+          <path d="M-30 48 Q 40 40, 140 48" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.8" />
+          <path d="M10 24 L100 24 Q 125 32, 118 46 L20 46 Q 5 44, 10 24 Z" fill="#1e3a5f" stroke="#0b192c" strokeWidth="2" />
+          <path d="M12 36 L112 36" stroke="#f59e0b" strokeWidth="3" strokeLinecap="round" />
+          <rect x="104" y="26" width="16" height="14" rx="4" fill="#0f172a" />
+          <rect x="36" y="6" width="46" height="18" rx="3" fill="#ffffff" stroke="#0b192c" strokeWidth="2" />
+          <rect x="32" y="2" width="54" height="5" rx="2" fill="#f97316" />
+          <rect x="44" y="10" width="14" height="6" rx="1.5" fill="#38bdf8" />
+          <rect x="62" y="10" width="14" height="6" rx="1.5" fill="#38bdf8" />
+          <rect x="48" y="-7" width="8" height="10" rx="1" fill="#0f172a" />
+          <line x1="74" y1="2" x2="74" y2="-12" stroke="#64748b" strokeWidth="2" />
+          <circle cx="74" cy="-12" r="2" fill="#ef4444" />
         </g>
 
-        <g transform="translate(215 802)">
-          <circle className="auth-port-ping" cx="0" cy="0" r="14" stroke="#34d399" strokeWidth="1.6" fill="#34d399" fillOpacity="0.22" />
-          <circle cx="0" cy="0" r="4" fill="#34d399" stroke="#ffffff" strokeWidth="1.5" />
+        {/* Pelampung Navigasi Saluran Laut (Buoy) dengan Lampu Hijau Berkedip */}
+        <g transform="translate(1220 870)">
+          <ellipse cx="0" cy="18" rx="22" ry="7" fill="#082f49" opacity="0.5" />
+          <path d="M-14 16 L14 16 L10 2 Q 0 -12, -10 2 Z" fill="#10b981" stroke="#047857" strokeWidth="2" />
+          <rect x="-4" y="-18" width="8" height="12" fill="#0f172a" />
+          <circle className="auth-beacon-pulse" cx="0" cy="-22" r="6" fill="#34d399" />
+          <circle cx="0" cy="-22" r="3" fill="#ffffff" />
+        </g>
+
+        {/* 4. Sisi Kiri: Dermaga Terminal Kontainer Ekspor & Kapal Bersandar */}
+        {/* Badan Kapal Kontainer Utama yang Bersandar di Dermaga */}
+        <g className="auth-flat-ship-bob" transform="translate(340 485)">
+          <path d="M0 48 L380 48 L340 105 L0 105 Z" fill="#0b192c" stroke="#163a5c" strokeWidth="2" />
+          <path d="M0 72 L362 72" stroke="#f59e0b" strokeWidth="4.5" />
+          <path d="M0 96 L348 96" stroke="#991b1b" strokeWidth="7" />
+          <line x1="335" y1="76" x2="335" y2="92" stroke="#ffffff" strokeWidth="2" opacity="0.6" strokeDasharray="2 3" />
+
+          {/* Muatan Kontainer di Atas Kapal */}
+          <rect x="30" y="24" width="48" height="24" rx="2" fill="#1e4976" stroke="#071321" strokeWidth="1.8" />
+          <rect x="82" y="24" width="48" height="24" rx="2" fill="#f59e0b" stroke="#071321" strokeWidth="1.8" />
+          <rect x="134" y="24" width="48" height="24" rx="2" fill="#10b981" stroke="#071321" strokeWidth="1.8" />
+          <rect x="186" y="24" width="48" height="24" rx="2" fill="#3b82f6" stroke="#071321" strokeWidth="1.8" />
+          <rect x="238" y="24" width="48" height="24" rx="2" fill="#f8fafc" stroke="#071321" strokeWidth="1.8" />
+
+          <rect x="30" y="0" width="48" height="24" rx="2" fill="#10b981" stroke="#071321" strokeWidth="1.8" />
+          <rect x="82" y="0" width="48" height="24" rx="2" fill="#3b82f6" stroke="#071321" strokeWidth="1.8" />
+          <rect x="134" y="0" width="48" height="24" rx="2" fill="#f59e0b" stroke="#071321" strokeWidth="1.8" />
+          <rect x="186" y="0" width="48" height="24" rx="2" fill="#1e4976" stroke="#071321" strokeWidth="1.8" />
+
+          <rect x="82" y="-24" width="48" height="24" rx="2" fill="#10b981" stroke="#071321" strokeWidth="1.8" />
+          <rect x="134" y="-24" width="48" height="24" rx="2" fill="#f8fafc" stroke="#071321" strokeWidth="1.8" />
+
+          {/* Anjungan & Radar Kapal Utama */}
+          <rect x="296" y="-12" width="42" height="60" rx="4" fill="#ffffff" stroke="#071321" strokeWidth="2" />
+          <rect x="304" y="-2" width="26" height="9" rx="2" fill="#0f2942" />
+          <rect x="308" y="-22" width="14" height="12" rx="2" fill="#f59e0b" stroke="#071321" strokeWidth="1.8" />
+          <line x1="315" y1="-22" x2="315" y2="-34" stroke="#475569" strokeWidth="2" />
+          <ellipse cx="315" cy="-34" rx="7" ry="2.5" fill="#38bdf8" />
+
+          {/* Buih & Percikan Air Lambung */}
+          <path d="M0 105 Q 180 98, 345 105" stroke="#38bdf8" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.85" />
+          <path d="M12 112 Q 170 106, 320 112" stroke="#67e8f9" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.6" />
+        </g>
+
+        {/* Konstruksi Dermaga Pelabuhan (Quay / Wharf) */}
+        <polygon points="0,480 370,520 320,1080 0,1080" fill="url(#flatQuaySurface)" />
+        <polygon points="356,518 370,520 320,1080 306,1078" fill="url(#quayHazardStripe)" stroke="#0f172a" strokeWidth="1" />
+        <line x1="160" y1="498" x2="110" y2="1080" stroke="#64748b" strokeWidth="3" strokeDasharray="16 10" />
+        <line x1="340" y1="516" x2="290" y2="1080" stroke="#64748b" strokeWidth="3" strokeDasharray="16 10" />
+
+        {/* Bollard Dermaga (Pancang Tali Kapal) */}
+        <g fill="#0f172a" stroke="#475569" strokeWidth="1.5">
+          <ellipse cx="350" cy="560" rx="7" ry="4" />
+          <ellipse cx="334" cy="700" rx="8" ry="4.5" />
+          <ellipse cx="316" cy="850" rx="9" ry="5" />
+          <ellipse cx="298" cy="990" rx="10" ry="5.5" />
+        </g>
+        <line x1="350" y1="560" x2="420" y2="535" stroke="#f8fafc" strokeWidth="2" strokeDasharray="6 3" />
+        <line x1="334" y1="700" x2="480" y2="585" stroke="#f8fafc" strokeWidth="2" strokeDasharray="6 3" />
+
+        {/* Tumpukan Kontainer Ekspor di Dermaga */}
+        <g transform="translate(40 560)">
+          <rect x="0" y="44" width="76" height="30" rx="3" fill="#1e4976" stroke="#0f172a" strokeWidth="2" />
+          <rect x="84" y="44" width="76" height="30" rx="3" fill="#f59e0b" stroke="#0f172a" strokeWidth="2" />
+          <rect x="12" y="14" width="76" height="30" rx="3" fill="#10b981" stroke="#0f172a" strokeWidth="2" />
+          <rect x="96" y="14" width="76" height="30" rx="3" fill="#3b82f6" stroke="#0f172a" strokeWidth="2" />
+          <rect x="44" y="-16" width="76" height="30" rx="3" fill="#f59e0b" stroke="#0f172a" strokeWidth="2" />
+          <line x1="28" y1="-10" x2="28" y2="8" stroke="#0f172a" strokeWidth="1.5" opacity="0.3" />
+          <line x1="60" y1="-10" x2="60" y2="8" stroke="#0f172a" strokeWidth="1.5" opacity="0.3" />
+          <line x1="92" y1="-10" x2="92" y2="8" stroke="#0f172a" strokeWidth="1.5" opacity="0.3" />
+        </g>
+
+        {/* Truk Pengangkut Kontainer (Terminal Truck) Melintas Aktif di Dermaga */}
+        <g className="auth-quay-truck" transform="translate(60 880)">
+          <circle cx="20" cy="38" r="9" fill="#0f172a" stroke="#475569" strokeWidth="2" />
+          <circle cx="38" cy="38" r="9" fill="#0f172a" stroke="#475569" strokeWidth="2" />
+          <circle cx="110" cy="38" r="9" fill="#0f172a" stroke="#475569" strokeWidth="2" />
+          <circle cx="128" cy="38" r="9" fill="#0f172a" stroke="#475569" strokeWidth="2" />
+          <rect x="10" y="24" width="130" height="8" rx="2" fill="#334155" />
+          <path d="M116 28 L148 28 L148 10 L136 0 L116 0 Z" fill="#f59e0b" stroke="#0f172a" strokeWidth="2" />
+          <polygon points="122,4 134,4 144,12 122,12" fill="#38bdf8" />
+          <circle cx="146" cy="18" r="3" fill="#ffffff" />
+          <rect x="14" y="-4" width="96" height="28" rx="3" fill="#10b981" stroke="#0f172a" strokeWidth="2" />
+          <line x1="42" y1="-1" x2="42" y2="21" stroke="#065f46" strokeWidth="2" />
+          <line x1="70" y1="-1" x2="70" y2="21" stroke="#065f46" strokeWidth="2" />
+          <rect x="22" y="2" width="14" height="6" rx="1.5" fill="#f8fafc" opacity="0.75" />
+        </g>
+
+        {/* DEREK RAKSASA PELABUHAN (STS Quay Gantry Crane) DENGAN ANIMASI AKTIF MUAT BARANG */}
+        <g stroke="#f59e0b" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" fill="none">
+          <line x1="170" y1="210" x2="135" y2="520" />
+          <line x1="210" y1="210" x2="175" y2="520" />
+          <line x1="290" y1="210" x2="330" y2="535" />
+          <line x1="330" y1="210" x2="370" y2="535" />
+          <line x1="150" y1="360" x2="195" y2="360" stroke="#0f172a" strokeWidth="3" />
+          <line x1="310" y1="370" x2="350" y2="370" stroke="#0f172a" strokeWidth="3" />
+          <line x1="165" y1="260" x2="140" y2="440" stroke="#0f172a" strokeWidth="2.5" />
+          <line x1="300" y1="260" x2="360" y2="450" stroke="#0f172a" strokeWidth="2.5" />
+        </g>
+
+        {/* Menara Puncak Derek & Kabel Penyangga */}
+        <polygon points="210,210 250,90 290,210" fill="#0f172a" stroke="#f59e0b" strokeWidth="3" />
+        <circle cx="250" cy="90" r="5" fill="#f59e0b" />
+        <line x1="250" y1="90" x2="110" y2="210" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="6 4" />
+        <line x1="250" y1="90" x2="560" y2="210" stroke="#94a3b8" strokeWidth="2.5" strokeDasharray="6 4" />
+        <circle className="auth-beacon-pulse" cx="250" cy="82" r="5" fill="#ef4444" />
+
+        {/* Lengan Derek Horizontal (Cantilever Boom) Melintang ke Atas Kapal */}
+        <rect x="90" y="206" width="490" height="14" rx="2" fill="#0f172a" stroke="#f59e0b" strokeWidth="2" />
+        <path d="M100 206 L140 186 L180 206 L220 186 L260 206 L300 186 L340 206 L380 186 L420 206 L460 186 L500 206 L540 186 L570 206" stroke="#f59e0b" strokeWidth="2" fill="none" />
+        <line x1="140" y1="186" x2="540" y2="186" stroke="#f59e0b" strokeWidth="2" />
+
+        {/* Rumah Mesin Derek & Kabin Operator */}
+        <rect x="180" y="220" width="44" height="26" rx="3" fill="#ffffff" stroke="#0f172a" strokeWidth="2" />
+        <rect x="186" y="226" width="16" height="10" rx="2" fill="#38bdf8" />
+        <rect x="180" y="246" width="18" height="6" fill="#f59e0b" />
+
+        {/* TROLLEY PEMUAT BARANG AKTIF BERGERAK (Cargo Loading Trolley) */}
+        <g className="auth-crane-trolley-active" transform="translate(230 216)">
+          <rect x="-14" y="0" width="28" height="10" rx="2" fill="#f59e0b" stroke="#0f172a" strokeWidth="2" />
+          <circle cx="0" cy="-4" r="3" fill="#ef4444" className="auth-beacon-pulse" />
+
+          {/* KABEL KATROL & KOTAK KONTAINER YANG DITURUNKAN KE KAPAL */}
+          <g className="auth-crane-hoist-box">
+            <line x1="-8" y1="10" x2="-8" y2="70" stroke="#0f172a" strokeWidth="1.8" />
+            <line x1="8" y1="10" x2="8" y2="70" stroke="#0f172a" strokeWidth="1.8" />
+            <rect x="-24" y="68" width="48" height="6" rx="1.5" fill="#0f172a" stroke="#f59e0b" strokeWidth="1.5" />
+            <g transform="translate(-24 74)">
+              <rect x="0" y="0" width="48" height="24" rx="2" fill="#f59e0b" stroke="#0f172a" strokeWidth="2" />
+              <line x1="12" y1="2" x2="12" y2="22" stroke="#d97706" strokeWidth="1.6" />
+              <line x1="24" y1="2" x2="24" y2="22" stroke="#d97706" strokeWidth="1.6" />
+              <line x1="36" y1="2" x2="36" y2="22" stroke="#d97706" strokeWidth="1.6" />
+              <rect x="4" y="3" width="8" height="5" rx="1" fill="#ffffff" opacity="0.8" />
+            </g>
+          </g>
         </g>
       </svg>
     </div>
