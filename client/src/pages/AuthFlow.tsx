@@ -158,9 +158,32 @@ function ExportWorldBackdrop() {
         {/* 1. Langit & Matahari Pagi Pesisir Cerah */}
         <rect x="0" y="0" width="1920" height="460" fill="url(#flatSkyGrad)" />
 
-        {/* Matahari Hangat */}
-        <circle cx="1520" cy="150" r="50" fill="#fde68a" fillOpacity="0.85" />
-        <circle cx="1520" cy="150" r="70" fill="#fef08a" fillOpacity="0.3" />
+        {/* Matahari Hangat Berdenyut Lembut */}
+        <g className="auth-sun-pulse">
+          <circle cx="1520" cy="150" r="50" fill="#fde68a" fillOpacity="0.88" />
+          <circle cx="1520" cy="150" r="74" fill="#fef08a" fillOpacity="0.32" />
+        </g>
+
+        {/* Burung Camar Pesisir yang Terbang Mengepakkan Sayap */}
+        <g className="auth-seagull-flight-a">
+          <g className="auth-seagull-flap" transform="translate(0 0)">
+            <path d="M-12 -2 Q -6 -9, 0 0 Q 6 -9, 12 -2" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+          </g>
+          <g className="auth-seagull-flap-delay" transform="translate(28 14) scale(0.8)">
+            <path d="M-12 -2 Q -6 -9, 0 0 Q 6 -9, 12 -2" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+          </g>
+          <g className="auth-seagull-flap" transform="translate(-22 18) scale(0.7)">
+            <path d="M-12 -2 Q -6 -9, 0 0 Q 6 -9, 12 -2" stroke="#ffffff" strokeWidth="2.2" fill="none" strokeLinecap="round" />
+          </g>
+        </g>
+        <g className="auth-seagull-flight-b">
+          <g className="auth-seagull-flap" transform="translate(0 0)">
+            <path d="M-10 -2 Q -5 -8, 0 0 Q 5 -8, 10 -2" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round" />
+          </g>
+          <g className="auth-seagull-flap-delay" transform="translate(24 10) scale(0.75)">
+            <path d="M-10 -2 Q -5 -8, 0 0 Q 5 -8, 10 -2" stroke="#ffffff" strokeWidth="2" fill="none" strokeLinecap="round" />
+          </g>
+        </g>
 
         {/* Awan-Awan Datar yang Melayang Tenang */}
         <g className="auth-flat-cloud-a">
@@ -201,18 +224,25 @@ function ExportWorldBackdrop() {
 
         {/* Garis Bukit/Pantai di Kejauhan Horizon (Warna Soft Pastel) */}
         <path d="M0 455 Q 320 415, 640 445 T 1280 440 T 1920 445 L 1920 460 L 0 460 Z" fill="#93c5fd" fillOpacity="0.45" />
-        {/* Kincir Angin Pesisir Ramah Lingkungan */}
-        <g transform="translate(760 415)" stroke="#60a5fa" strokeWidth="1.5">
-          <line x1="0" y1="0" x2="0" y2="35" />
-          <line x1="0" y1="0" x2="9" y2="-12" />
-          <line x1="0" y1="0" x2="-14" y2="-4" />
-          <line x1="0" y1="0" x2="5" y2="14" />
+
+        {/* Kincir Angin Pesisir Berputar Aktif */}
+        <g transform="translate(760 415)">
+          <line x1="0" y1="0" x2="0" y2="35" stroke="#60a5fa" strokeWidth="2" />
+          <circle cx="0" cy="0" r="2.5" fill="#3b82f6" />
+          <g className="auth-windmill-blade">
+            <line x1="0" y1="0" x2="0" y2="-18" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+            <line x1="0" y1="0" x2="15.5" y2="9" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+            <line x1="0" y1="0" x2="-15.5" y2="9" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+          </g>
         </g>
-        <g transform="translate(880 412)" stroke="#60a5fa" strokeWidth="1.5">
-          <line x1="0" y1="0" x2="0" y2="38" />
-          <line x1="0" y1="0" x2="10" y2="-13" />
-          <line x1="0" y1="0" x2="-15" y2="-4" />
-          <line x1="0" y1="0" x2="5" y2="15" />
+        <g transform="translate(880 412)">
+          <line x1="0" y1="0" x2="0" y2="38" stroke="#60a5fa" strokeWidth="2" />
+          <circle cx="0" cy="0" r="2.5" fill="#3b82f6" />
+          <g className="auth-windmill-blade-fast">
+            <line x1="0" y1="0" x2="0" y2="-20" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+            <line x1="0" y1="0" x2="17.3" y2="10" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+            <line x1="0" y1="0" x2="-17.3" y2="10" stroke="#60a5fa" strokeWidth="1.8" strokeLinecap="round" />
+          </g>
         </g>
 
         {/* 2. Air Laut Cerah Segar (Lapisan Bergerak Bebas Warna Gelap) */}
@@ -227,6 +257,17 @@ function ExportWorldBackdrop() {
           />
         </g>
 
+        {/* Speedboat / Perahu Pandu Melaju di Horizon */}
+        <g className="auth-cruising-patrol-boat">
+          <path d="M-28 12 L24 12 L16 24 L-20 24 Z" fill="#ef4444" stroke="#ffffff" strokeWidth="1.5" />
+          <rect x="-12" y="2" width="20" height="10" rx="2" fill="#ffffff" stroke="#cbd5e1" strokeWidth="1" />
+          <rect x="-6" y="4" width="7" height="4" rx="1" fill="#38bdf8" />
+          <line x1="2" y1="2" x2="2" y2="-6" stroke="#94a3b8" strokeWidth="1.5" />
+          <circle cx="2" cy="-6" r="2" fill="#f59e0b" className="auth-beacon-pulse" />
+          <path d="M-28 22 Q -45 20, -60 25" stroke="#ffffff" strokeWidth="2.5" strokeLinecap="round" fill="none" opacity="0.9" />
+          <path d="M-20 24 Q -38 23, -48 27" stroke="#bae6fd" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.8" />
+        </g>
+
         {/* Lapisan Ombak Tengah #2 (Cerulean Terang) */}
         <g className="auth-wave-roll-b">
           <path
@@ -234,6 +275,25 @@ function ExportWorldBackdrop() {
             fill="#38bdf8"
             fillOpacity="0.45"
           />
+        </g>
+
+        {/* Kilauan Cahaya Diamond Sparkles di Permukaan Air Laut */}
+        <g className="auth-water-glints" fill="#ffffff">
+          <g transform="translate(680 540)" className="auth-sparkle-1">
+            <path d="M0 -5 L1 -1 L5 0 L1 1 L0 5 L-1 1 L-5 0 L-1 -1 Z" />
+          </g>
+          <g transform="translate(1040 660)" className="auth-sparkle-2">
+            <path d="M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z" />
+          </g>
+          <g transform="translate(1480 610)" className="auth-sparkle-3">
+            <path d="M0 -5 L1 -1 L5 0 L1 1 L0 5 L-1 1 L-5 0 L-1 -1 Z" />
+          </g>
+          <g transform="translate(850 780)" className="auth-sparkle-1">
+            <path d="M0 -6 L1.5 -1.5 L6 0 L1.5 1.5 L0 6 L-1.5 1.5 L-6 0 L-1.5 -1.5 Z" />
+          </g>
+          <g transform="translate(560 920)" className="auth-sparkle-2">
+            <path d="M0 -5 L1 -1 L5 0 L1 1 L0 5 L-1 1 L-5 0 L-1 -1 Z" />
+          </g>
         </g>
 
         {/* Lapisan Ombak Depan #3 (Lekukan Ombak Ikonik Kartun dengan Buih Putih Bersih) */}
@@ -293,7 +353,7 @@ function ExportWorldBackdrop() {
           <path d="M190 85 Q 230 82, 245 92" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" fill="none" />
         </g>
 
-        {/* Kapal Tunda Pelabuhan (Tugboat) Berwarna Cerah Segar */}
+        {/* Kapal Tunda Pelabuhan (Tugboat) Berwarna Cerah Segar dengan Kepulan Asap */}
         <g className="auth-flat-tug-bob" transform="translate(1320 730)">
           <path d="M-30 48 Q 40 40, 140 48" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.9" />
           <path d="M10 24 L100 24 Q 125 32, 118 46 L20 46 Q 5 44, 10 24 Z" fill="#0284c7" stroke="#38bdf8" strokeWidth="2" />
@@ -304,12 +364,16 @@ function ExportWorldBackdrop() {
           <rect x="44" y="10" width="14" height="6" rx="1.5" fill="#38bdf8" />
           <rect x="62" y="10" width="14" height="6" rx="1.5" fill="#38bdf8" />
           <rect x="48" y="-7" width="8" height="10" rx="1" fill="#f59e0b" />
+          <g transform="translate(52 -9)">
+            <circle className="auth-smoke-puff auth-smoke-2" cx="0" cy="0" r="3" fill="#ffffff" />
+            <circle className="auth-smoke-puff auth-smoke-3" cx="0" cy="0" r="4.5" fill="#ffffff" />
+          </g>
           <line x1="74" y1="2" x2="74" y2="-12" stroke="#94a3b8" strokeWidth="2" />
           <circle cx="74" cy="-12" r="2" fill="#ef4444" />
         </g>
 
-        {/* Pelampung Navigasi Saluran Laut (Buoy) dengan Lampu Hijau Berkedip */}
-        <g transform="translate(1220 870)">
+        {/* Pelampung Navigasi Saluran Laut (Buoy) Bergoyang Lembut dengan Lampu Hijau Berkedip */}
+        <g className="auth-flat-buoy-bob" transform="translate(1220 870)">
           <ellipse cx="0" cy="18" rx="22" ry="7" fill="#bae6fd" opacity="0.6" />
           <path d="M-14 16 L14 16 L10 2 Q 0 -12, -10 2 Z" fill="#10b981" stroke="#059669" strokeWidth="2" />
           <rect x="-4" y="-18" width="8" height="12" fill="#64748b" />
@@ -341,11 +405,20 @@ function ExportWorldBackdrop() {
           <rect x="134" y="-24" width="48" height="24" rx="2" fill="#f8fafc" stroke="#38bdf8" strokeWidth="1.8" />
 
           {/* Anjungan & Radar Kapal Utama */}
-          <rect x="296" y="-12" width="42" height="60" rx="4" fill="#ffffff" stroke="#93c5fd" strokeWidth="2" />
+          <rect x="296" y="-12" width="42" height="60" rx="4" fill="#ffffff" stroke="#93c5fa" strokeWidth="2" />
           <rect x="304" y="-2" width="26" height="9" rx="2" fill="#38bdf8" />
           <rect x="308" y="-22" width="14" height="12" rx="2" fill="#f59e0b" stroke="#ffffff" strokeWidth="1.8" />
+          {/* Asap Cerobong Halus Berulang */}
+          <g transform="translate(315 -25)">
+            <circle className="auth-smoke-puff auth-smoke-1" cx="0" cy="0" r="4.5" fill="#ffffff" />
+            <circle className="auth-smoke-puff auth-smoke-2" cx="0" cy="0" r="5.5" fill="#ffffff" />
+            <circle className="auth-smoke-puff auth-smoke-3" cx="0" cy="0" r="6.5" fill="#ffffff" />
+          </g>
           <line x1="315" y1="-22" x2="315" y2="-34" stroke="#94a3b8" strokeWidth="2" />
-          <ellipse cx="315" cy="-34" rx="7" ry="2.5" fill="#38bdf8" />
+          <g className="auth-ship-radar" transform="translate(315 -34)">
+            <line x1="-8" y1="0" x2="8" y2="0" stroke="#0284c7" strokeWidth="2.5" strokeLinecap="round" />
+            <circle cx="0" cy="0" r="2" fill="#ffffff" />
+          </g>
 
           {/* Buih Percikan Air Lambung Putih Bersih */}
           <path d="M0 105 Q 180 98, 345 105" stroke="#ffffff" strokeWidth="4" strokeLinecap="round" fill="none" opacity="0.95" />
@@ -380,12 +453,37 @@ function ExportWorldBackdrop() {
           <line x1="92" y1="-10" x2="92" y2="8" stroke="#ffffff" strokeWidth="1.5" opacity="0.6" />
         </g>
 
-        {/* Truk Pengangkut Kontainer (Terminal Truck) Melintas Aktif di Dermaga */}
+        {/* Truk Pengangkut Kontainer (Terminal Truck) Melintas Aktif dengan Roda Berputar */}
         <g className="auth-quay-truck" transform="translate(60 880)">
-          <circle cx="20" cy="38" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
-          <circle cx="38" cy="38" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
-          <circle cx="110" cy="38" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
-          <circle cx="128" cy="38" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
+          {/* Roda dengan Rim yang Berputar */}
+          <g transform="translate(20 38)">
+            <circle cx="0" cy="0" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
+            <g className="auth-truck-wheel">
+              <line x1="-5" y1="0" x2="5" y2="0" stroke="#ffffff" strokeWidth="1.8" />
+              <line x1="0" y1="-5" x2="0" y2="5" stroke="#ffffff" strokeWidth="1.8" />
+            </g>
+          </g>
+          <g transform="translate(38 38)">
+            <circle cx="0" cy="0" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
+            <g className="auth-truck-wheel">
+              <line x1="-5" y1="0" x2="5" y2="0" stroke="#ffffff" strokeWidth="1.8" />
+              <line x1="0" y1="-5" x2="0" y2="5" stroke="#ffffff" strokeWidth="1.8" />
+            </g>
+          </g>
+          <g transform="translate(110 38)">
+            <circle cx="0" cy="0" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
+            <g className="auth-truck-wheel">
+              <line x1="-5" y1="0" x2="5" y2="0" stroke="#ffffff" strokeWidth="1.8" />
+              <line x1="0" y1="-5" x2="0" y2="5" stroke="#ffffff" strokeWidth="1.8" />
+            </g>
+          </g>
+          <g transform="translate(128 38)">
+            <circle cx="0" cy="0" r="9" fill="#64748b" stroke="#cbd5e1" strokeWidth="2" />
+            <g className="auth-truck-wheel">
+              <line x1="-5" y1="0" x2="5" y2="0" stroke="#ffffff" strokeWidth="1.8" />
+              <line x1="0" y1="-5" x2="0" y2="5" stroke="#ffffff" strokeWidth="1.8" />
+            </g>
+          </g>
           <rect x="10" y="24" width="130" height="8" rx="2" fill="#cbd5e1" />
           <path d="M116 28 L148 28 L148 10 L136 0 L116 0 Z" fill="#f59e0b" stroke="#d97706" strokeWidth="2" />
           <polygon points="122,4 134,4 144,12 122,12" fill="#38bdf8" />
