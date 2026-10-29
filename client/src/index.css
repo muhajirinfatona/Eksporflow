@@ -7465,6 +7465,12 @@ textarea:focus-visible {
   gap: 16px;
 }
 
+.fx-modal-target-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
 .fx-modal-summary {
   background: #f8fafc;
   border: 1px solid #e2e8f0;

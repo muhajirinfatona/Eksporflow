@@ -491,7 +491,7 @@ export function PricingModule({
                 ))}
               </SelectField>
 
-              {/* CURRENCY SELECTOR BERSIH DENGAN TOMBOL KONVERSI CEPAT & REKOMENDASI */}
+              {/* CURRENCY SELECTOR BERSIH DENGAN TOMBOL KONVERSI LENGKAP & REKOMENDASI */}
               <div className="field">
                 <div className="field-label-row">
                   <span>Mata uang transaksi</span>
@@ -499,13 +499,13 @@ export function PricingModule({
                     type="button"
                     className="inline-convert-btn"
                     onClick={() => {
-                      const target = shipment.currency === "IDR" ? "USD" : "IDR";
-                      setTargetConvertCurrency(target);
+                      const fallbackTarget = shipment.currency === "IDR" ? "USD" : "IDR";
+                      setTargetConvertCurrency(fallbackTarget);
                       setShowConvertModal(true);
                     }}
-                    title="Konversi seluruh nominal angka penawaran dan biaya"
+                    title="Buka alat konversi ke mata uang valas dunia lainnya"
                   >
-                    <ArrowRightLeft size={11} /> Konversi ke {shipment.currency === "IDR" ? "USD" : "IDR"}
+                    <ArrowRightLeft size={11} /> Konversi ke Valas Lain...
                   </button>
                 </div>
                 <div className="input-shell select-shell">
@@ -540,7 +540,7 @@ export function PricingModule({
                         setShowConvertModal(true);
                       }}
                     >
-                      {recommendedCurrency.flag} {recommendedCurrency.code}
+                      {recommendedCurrency.flag} {recommendedCurrency.code} ({recommendedCurrency.name})
                     </button>
                   </small>
                 )}
@@ -607,36 +607,30 @@ export function PricingModule({
             <span className="quote-label">TOTAL PENAWARAN UTAMA</span>
             <strong>{formatCurrencyAmount(pricing.active.offer, shipment.currency)}</strong>
 
-            {/* DUAL CURRENCY CONVERSION DISPLAY */}
+            {/* DUAL CURRENCY CONVERSION DISPLAY - MENDUKUNG SELURUH MATA UANG DUNIA */}
             <div className="quote-dual-box">
               <div className="quote-dual-header">
                 <span className="quote-dual-title">
-                  {shipment.currency === "IDR"
-                    ? `Konversi Valas Buyer (${activeDualCurrency}):`
-                    : "Ekuivalen Rupiah (IDR):"}
+                  Konversi ({activeDualCurrency}):
                 </span>
-                {shipment.currency === "IDR" && (
-                  <select
-                    className="quote-dual-select"
-                    value={buyerDualCurrency}
-                    onChange={(e) => setBuyerDualCurrency(e.target.value)}
-                    title="Pilih mata uang buyer untuk konversi"
-                  >
-                    <option value="USD">🇺🇸 USD ($)</option>
-                    <option value="EUR">🇪🇺 EUR (€)</option>
-                    <option value="JPY">🇯🇵 JPY (¥)</option>
-                    <option value="SGD">🇸🇬 SGD (S$)</option>
-                    <option value="CNY">🇨🇳 CNY (¥)</option>
-                    <option value="GBP">🇬🇧 GBP (£)</option>
-                    <option value="AUD">🇦🇺 AUD (A$)</option>
-                  </select>
-                )}
+                <select
+                  className="quote-dual-select"
+                  value={activeDualCurrency}
+                  onChange={(e) => setBuyerDualCurrency(e.target.value)}
+                  title="Pilih mata uang buyer untuk melihat konversi harga"
+                >
+                  {SUPPORTED_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.flag} {c.code} ({c.name})
+                    </option>
+                  ))}
+                </select>
               </div>
               <div className="quote-dual-amount">
                 ≈ {formatCurrencyAmount(convertedOffer, activeDualCurrency)}
               </div>
               <div className="quote-dual-rate-info">
-                <span>Basis: 1 USD = Rp {formatNumber(currentFxRate)}</span>
+                <span>Acuan: {activeBiRate.currency} = Rp {formatNumber(activeBiRate.sellRate, 2)}</span>
                 {rateDiff !== 0 && (
                   <span className="quote-dual-tag">
                     {rateDiff > 0 ? `+Rp ${formatNumber(rateDiff)}` : `-Rp ${formatNumber(Math.abs(rateDiff))}`} buffer
@@ -733,18 +727,38 @@ export function PricingModule({
                 <ArrowRightLeft size={20} />
               </div>
               <div>
-                <h4>Konfirmasi Konversi Mata Uang</h4>
+                <h4>Konfirmasi Konversi Nilai Transaksi</h4>
                 <p>
-                  Ubah transaksi dari <b>{shipment.currency}</b> ke <b>{targetConvertCurrency}</b>
+                  Ubah transaksi dari <b>{shipment.currency}</b> ke mata uang valas pilihan Anda
                 </p>
               </div>
             </div>
 
             <div className="fx-modal-body">
+              <div className="fx-modal-target-picker">
+                <label className="fx-picker-label">Pilih Mata Uang Valas Tujuan:</label>
+                <div className="input-shell select-shell">
+                  <select
+                    value={targetConvertCurrency}
+                    onChange={(e) => setTargetConvertCurrency(e.target.value)}
+                  >
+                    {SUPPORTED_CURRENCIES.filter((c) => c.code !== shipment.currency).map((cur) => (
+                      <option key={cur.code} value={cur.code}>
+                        {cur.flag} {cur.code} · {cur.name} ({cur.country})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
               <div className="fx-modal-summary">
                 <div className="fx-modal-row">
-                  <span>Kurs Acuan:</span>
-                  <b>1 USD = Rp {formatNumber(currentFxRate)}</b>
+                  <span>Kurs Acuan BI:</span>
+                  <b>
+                    {targetConvertCurrency === "IDR"
+                      ? `1 USD = Rp ${formatNumber(currentFxRate, 2)}`
+                      : `1 ${targetConvertCurrency} = Rp ${formatNumber(getBiRateForCurrency(targetConvertCurrency).sellRate, 2)}`}
+                  </b>
                 </div>
                 <div className="fx-modal-row">
                   <span>Total Penawaran Saat Ini ({shipment.currency}):</span>
