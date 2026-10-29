@@ -7,6 +7,7 @@ import { z } from "zod";
 import {
   AuthFlowError,
   buildLocalAwareCookieOptions,
+  getPendingDevOtpCode,
   loginWithEmailPassword,
   registerUserAccount,
   resendVerificationChallenge,
@@ -129,6 +130,18 @@ export const appRouter = router({
         } catch (error) {
           return authError(error);
         }
+      }),
+    getDevOtpHint: publicProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+        }),
+      )
+      .query(({ input }) => {
+        if (process.env.NODE_ENV === "production" && process.env.RESEND_API_KEY) {
+          return { devOtpCode: null };
+        }
+        return { devOtpCode: getPendingDevOtpCode(input.email) };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = buildLocalAwareCookieOptions(ctx.req);

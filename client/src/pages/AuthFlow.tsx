@@ -5,6 +5,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Copy,
   Eye,
   EyeOff,
   KeyRound,
@@ -649,6 +650,13 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
   // OTP state
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
+  const [devOtpHint, setDevOtpHint] = useState<string | null>(() => {
+    try {
+      return window.sessionStorage.getItem("eksporflow:auth_dev_otp");
+    } catch {
+      return null;
+    }
+  });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -656,6 +664,25 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
   const loginMutation = trpc.auth.login.useMutation();
   const verifyMutation = trpc.auth.verifyEmail.useMutation();
   const resendMutation = trpc.auth.resendVerification.useMutation();
+
+  const devOtpQuery = trpc.auth.getDevOtpHint.useQuery(
+    { email: email.trim() },
+    {
+      enabled: step === "verify" && Boolean(email.trim()),
+      refetchInterval: devOtpHint ? false : 2000,
+    }
+  );
+
+  useEffect(() => {
+    if (devOtpQuery.data?.devOtpCode) {
+      setDevOtpHint(devOtpQuery.data.devOtpCode);
+      try {
+        window.sessionStorage.setItem("eksporflow:auth_dev_otp", devOtpQuery.data.devOtpCode);
+      } catch {
+        // Abaikan
+      }
+    }
+  }, [devOtpQuery.data?.devOtpCode]);
 
   const goToSlide = useCallback((targetIndex: number) => {
     setSlideTuple(([prev]) => {
@@ -781,6 +808,14 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       });
       setEmail(result.email);
       setOtpDigits(["", "", "", "", "", ""]);
+      if (result.devOtpCode) {
+        setDevOtpHint(result.devOtpCode);
+        try {
+          window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
+        } catch {
+          // Abaikan
+        }
+      }
       switchStep("verify", { email: result.email, origin: "register" });
       toast.success("Akun berhasil dibuat!", {
         description: `Masukkan 6 digit kode verifikasi untuk mengaktifkan workspace ${companyName.trim()}.`,
@@ -809,6 +844,14 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
       setEmail(result.email);
       setOtpDigits(["", "", "", "", "", ""]);
+      if (result.devOtpCode) {
+        setDevOtpHint(result.devOtpCode);
+        try {
+          window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
+        } catch {
+          // Abaikan
+        }
+      }
       switchStep("verify", { email: result.email, origin: "login" });
       toast.info("Verifikasi akun", {
         description: "Masukkan 6 digit kode verifikasi untuk melanjutkan ke workspace.",
@@ -838,6 +881,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         window.sessionStorage.removeItem(VERIFY_EMAIL_KEY);
         window.sessionStorage.removeItem(VERIFY_ORIGIN_KEY);
         window.sessionStorage.removeItem(REG_DRAFT_KEY);
+        window.sessionStorage.removeItem("eksporflow:auth_dev_otp");
         const url = new URL(window.location.href);
         url.searchParams.delete("auth");
         url.searchParams.delete("email");
@@ -846,6 +890,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       } catch {
         // Abaikan
       }
+      setDevOtpHint(null);
       const wasReturning = hasLoggedInBefore;
       markHasLoggedInBefore();
       setHasLoggedInBefore(true);
@@ -871,14 +916,29 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       return;
     }
     try {
-      await resendMutation.mutateAsync({ email: email.trim() });
+      const result = await resendMutation.mutateAsync({ email: email.trim() });
       setOtpDigits(["", "", "", "", "", ""]);
+      if (result.devOtpCode) {
+        setDevOtpHint(result.devOtpCode);
+        try {
+          window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
+        } catch {
+          // Abaikan
+        }
+      }
       otpRefs.current[0]?.focus();
       toast.success("Kode verifikasi 6 digit baru telah dikirim.");
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Gagal mengirim ulang kode.";
       setErrorMessage(msg);
     }
+  };
+
+  const fillDevOtp = () => {
+    if (!devOtpHint || devOtpHint.length !== 6) return;
+    setOtpDigits(devOtpHint.split(""));
+    setErrorMessage(null);
+    otpRefs.current[5]?.focus();
   };
 
   const handleOtpChange = (index: number, raw: string) => {
@@ -1254,6 +1314,17 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                     </button>
                   </p>
                 </div>
+
+                {devOtpHint && (
+                  <div className="auth-sim-pill" role="status" aria-live="polite">
+                    <span>
+                      Mode Testing: Kode verifikasi Anda adalah <b className="mono-code">{devOtpHint}</b>
+                    </span>
+                    <button type="button" onClick={fillDevOtp} title="Isi 6 digit kode otomatis">
+                      <Copy size={12} /> Isi otomatis
+                    </button>
+                  </div>
+                )}
 
                 <div className="auth-otp-clean-row" role="group" aria-label="6 digit kode verifikasi">
                   {otpDigits.map((digit, index) => (
