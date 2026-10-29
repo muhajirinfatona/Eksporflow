@@ -434,56 +434,65 @@ export function PricingModule({
                 </div>
               </div>
 
-              {/* 3 CELL KURS BERSIH DAN PROPORSIONAL */}
+              {/* 3 CELL KURS BERSIH, SIMETRIS & TIDAK OVERFLOW */}
               <div className="fx-clean-rates-grid">
                 <div
                   className={`fx-rate-cell ${Math.abs(shipment.exchangeRate - biSellRate) < 1 ? "active" : ""}`}
                 >
-                  <div className="cell-info">
+                  <div className="cell-top-row">
                     <span className="cell-label">Kurs Jual ({activeBiRate.currency})</span>
-                    <strong className="cell-value">Rp {formatNumber(biSellRate, 2)}</strong>
+                    {Math.abs(shipment.exchangeRate - biSellRate) < 1 && (
+                      <span className="cell-active-tag">Digunakan</span>
+                    )}
                   </div>
+                  <strong className="cell-value">Rp {formatNumber(biSellRate, 2)}</strong>
                   <button
                     type="button"
                     className="cell-apply-btn"
                     onClick={() => handleApplyBiRate("sell")}
                     title="Terapkan Kurs Jual BI ke transaksi"
                   >
-                    <Zap size={11} /> Terapkan Jual
+                    <Zap size={11} /> Terapkan Kurs Jual
                   </button>
                 </div>
 
                 <div
                   className={`fx-rate-cell ${Math.abs(shipment.exchangeRate - biMiddleRate) < 1 ? "active" : ""}`}
                 >
-                  <div className="cell-info">
+                  <div className="cell-top-row">
                     <span className="cell-label">Kurs Tengah ({activeBiRate.currency})</span>
-                    <strong className="cell-value">Rp {formatNumber(biMiddleRate, 2)}</strong>
+                    {Math.abs(shipment.exchangeRate - biMiddleRate) < 1 && (
+                      <span className="cell-active-tag">Digunakan</span>
+                    )}
                   </div>
+                  <strong className="cell-value">Rp {formatNumber(biMiddleRate, 2)}</strong>
                   <button
                     type="button"
                     className="cell-apply-btn"
                     onClick={() => handleApplyBiRate("middle")}
                     title="Terapkan Kurs Tengah BI ke transaksi"
                   >
-                    Terapkan Tengah
+                    Terapkan Kurs Tengah
                   </button>
                 </div>
 
                 <div
                   className={`fx-rate-cell ${Math.abs(shipment.exchangeRate - biBuyRate) < 1 ? "active" : ""}`}
                 >
-                  <div className="cell-info">
+                  <div className="cell-top-row">
                     <span className="cell-label">Kurs Beli ({activeBiRate.currency})</span>
-                    <strong className="cell-value">Rp {formatNumber(biBuyRate, 2)}</strong>
+                    {Math.abs(shipment.exchangeRate - biBuyRate) < 1 && (
+                      <span className="cell-active-tag">Digunakan</span>
+                    )}
                   </div>
+                  <strong className="cell-value">Rp {formatNumber(biBuyRate, 2)}</strong>
                   <button
                     type="button"
                     className="cell-apply-btn"
                     onClick={() => handleApplyBiRate("buy")}
                     title="Terapkan Kurs Beli BI ke transaksi"
                   >
-                    Terapkan Beli
+                    Terapkan Kurs Beli
                   </button>
                 </div>
               </div>
