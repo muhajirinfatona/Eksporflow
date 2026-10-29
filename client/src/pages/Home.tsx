@@ -171,6 +171,7 @@ export default function Home() {
         <TransactionsModule
           user={user}
           shipment={shipment}
+          update={update}
           activeShipmentId={activeShipmentId}
           version={version}
           saveState={saveState}

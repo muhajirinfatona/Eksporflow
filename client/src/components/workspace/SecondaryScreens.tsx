@@ -38,7 +38,6 @@ import {
   RecommendationsPanel,
   SelectField,
   StatusPill,
-  TransactionProfile,
 } from "./Primitives";
 
 function FinanceSubNav({
@@ -90,7 +89,30 @@ export function DashboardView({
 }) {
   return (
     <div className="module-stack">
-      <TransactionProfile shipment={shipment} update={update} navigate={navigate} />
+      {/* Ringkasan Operasional Transaksi Aktif */}
+      <section className="panel panel-padding">
+        <div className="panel-head" style={{ marginBottom: 0 }}>
+          <div>
+            <span className="eyebrow">RINGKASAN OPERASIONAL TRANSAKSI AKTIF</span>
+            <h3>
+              {shipment.reference} · {shipment.buyer || "Mitra Buyer Internasional"}
+            </h3>
+            <p className="profile-description">
+              Tujuan: <strong>{shipment.destination || "Pelabuhan Tujuan"}</strong> ({shipment.buyerCountry || "Internasional"}) · Komoditas: <strong>{formatNumber(shipment.quantity)} {shipment.unit} {shipment.product}</strong> · Eksportir: <strong>{shipment.exporter || "Eksportir Terdaftar"}</strong>
+            </p>
+          </div>
+          <div className="row-actions">
+            <StatusPill tone="blue">{shipment.shipmentStatus}</StatusPill>
+            <button
+              type="button"
+              className="ghost-button"
+              onClick={() => navigate("transactions")}
+            >
+              Kelola di Transaksi Ekspor →
+            </button>
+          </div>
+        </div>
+      </section>
 
       <div className="overview-grid">
         <section className="hero-card">

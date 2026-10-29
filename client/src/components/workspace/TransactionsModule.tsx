@@ -5,7 +5,7 @@ import type { ScreenId } from "@shared/risk";
 import type { Shipment } from "@shared/shipment";
 import { Cloud, FolderOpen, Plus, Save, Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { StatusPill } from "./Primitives";
+import { StatusPill, TransactionProfile } from "./Primitives";
 
 export type ShipmentListItem = {
   id: string;
@@ -37,6 +37,7 @@ function statusTone(status: string): "green" | "amber" | "blue" | "gray" {
 export function TransactionsModule({
   user,
   shipment,
+  update,
   activeShipmentId,
   version,
   saveState,
@@ -51,6 +52,7 @@ export function TransactionsModule({
 }: {
   user: { name?: string | null; email?: string | null } | null;
   shipment: Shipment;
+  update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   activeShipmentId: string | null;
   version: number;
   saveState: PersistenceSaveState;
@@ -136,6 +138,8 @@ export function TransactionsModule({
           </div>
         </div>
       </div>
+
+      <TransactionProfile shipment={shipment} update={update} navigate={navigate} />
 
       <section className="panel panel-padding">
         <div className="panel-head">
