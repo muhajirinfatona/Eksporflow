@@ -5,7 +5,7 @@ import type { ScreenId } from "@shared/risk";
 import type { Incoterm, LineItem, Shipment } from "@shared/shipment";
 import { ArrowUpRight, Check, ClipboardCheck, ShieldAlert, Sparkles } from "lucide-react";
 import { toast } from "sonner";
-import { Field, LineItemsEditor, SectionTitle, SelectField, StatusPill, TransactionProfile } from "./Primitives";
+import { Field, LineItemsEditor, SectionTitle, SelectField, StatusPill } from "./Primitives";
 
 export function PricingModule({
   shipment,
@@ -35,7 +35,6 @@ export function PricingModule({
 
   return (
     <div className="module-stack">
-      <TransactionProfile shipment={shipment} update={update} navigate={navigate} />
       <div className="module-layout">
         <section className="panel panel-padding input-panel">
           <SectionTitle
