@@ -445,6 +445,8 @@ function ExportWorldBackdrop() {
           </g>
         </g>
       </svg>
+      {/* Lapisan Lembut Pemisah Latar Belakang dan Kartu Login */}
+      <div className="auth-export-veil" />
     </div>
   );
 }
