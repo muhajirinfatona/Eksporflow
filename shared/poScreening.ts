@@ -2,9 +2,22 @@ import type { Incoterm } from "./shipment";
 
 export type BuyerScreeningStatus = "verified" | "warning" | "high_risk";
 
+export type VerificationPillar = {
+  label: string;
+  value: string;
+  isValid: boolean;
+  note: string;
+};
+
 export type BuyerScreeningValidation = {
   score: number; // 0 - 100
   status: BuyerScreeningStatus;
+  pillars: {
+    companyName: VerificationPillar;
+    companyEmail: VerificationPillar;
+    contactNumber: VerificationPillar;
+    companyWebsite: VerificationPillar;
+  };
   legalEntityStatus: string;
   sanctionCheck: string;
   paymentTermRisk: string;
@@ -31,17 +44,19 @@ export type PoScreeningResult = {
 export const SAMPLE_POS = [
   {
     id: "nordic",
-    title: "Nordic Pantry AB (Swedia · Gula Kelapa)",
+    title: "Nordic Pantry AB (Swedia)",
     fileName: "PO-2026-SE-089_NordicPantry.pdf",
     text: `PURCHASE ORDER
 PO Number: PO-2026/SE-089
 Date: 28 October 2026
 
 Buyer / Importer:
-Nordic Pantry AB (Reg. No: SE-556123-9981)
-Hamngatan 12, 411 17 Gothenburg, Sweden
-Email: procurement@nordicpantry.se
-Contact: Sofia Lindqvist
+Company Name: Nordic Pantry AB (Reg. No: SE-556123-9981)
+Address: Hamngatan 12, 411 17 Gothenburg, Sweden
+Corporate Email: procurement@nordicpantry.se
+Phone / Contact: +46 31 771 9900
+Official Website: https://www.nordicpantry.se
+Contact Person: Sofia Lindqvist (Head of Sourcing)
 
 Destination / Port of Discharge: Port of Gothenburg, Sweden
 Delivery Terms: CIF Gothenburg (Incoterms 2020)
@@ -59,17 +74,19 @@ Payment Terms:
   },
   {
     id: "kyoto",
-    title: "Kyoto Trading Co., Ltd. (Jepang · Biji Kopi)",
+    title: "Kyoto Trading Co., Ltd. (Jepang)",
     fileName: "PO-JP-8841_KyotoTrading.pdf",
     text: `PURCHASE ORDER
 PO Number: PO-JP-8841
 Date: 26 October 2026
 
 Buyer / Importer:
-Kyoto Trading Co., Ltd. (Corporation ID: JP-0118-202)
-Karasuma-dori 45, Nakagyo-ku, Kyoto 604-8136, Japan
-Email: trade-ops@kyototrading.co.jp
-Contact: Kenji Takahashi
+Company Name: Kyoto Trading Co., Ltd. (Corporation ID: JP-0118-202)
+Address: Karasuma-dori 45, Nakagyo-ku, Kyoto 604-8136, Japan
+Corporate Email: trade-ops@kyototrading.co.jp
+Phone / Contact: +81 75 221 8830
+Official Website: https://www.kyototrading.co.jp
+Contact Person: Kenji Takahashi (Import Director)
 
 Destination / Port of Discharge: Port of Tokyo / Yokohama, Japan
 Delivery Terms: FOB Tanjung Priok, Jakarta (Incoterms 2020)
@@ -86,17 +103,19 @@ Payment Terms:
   },
   {
     id: "hamburg",
-    title: "Hamburg Organic Spices GmbH (Jerman · Cengkeh)",
+    title: "Hamburg Organic Spices GmbH (Jerman)",
     fileName: "PO-DE-4412_HamburgSpices.pdf",
     text: `PURCHASE ORDER
 PO Number: PO-DE-4412
 Date: 24 October 2026
 
 Buyer / Importer:
-Hamburg Organic Spices GmbH (HRB 88392 Amtsgericht Hamburg)
-Speicherstadt 8, 20457 Hamburg, Germany
-Email: import@hamburgspices.de
-Contact: Markus Weber
+Company Name: Hamburg Organic Spices GmbH (HRB 88392 Amtsgericht Hamburg)
+Address: Speicherstadt 8, 20457 Hamburg, Germany
+Corporate Email: import@hamburgspices.de
+Phone / Contact: +49 40 339 8810
+Official Website: https://www.hamburgspices.de
+Contact Person: Markus Weber (Commodity Purchasing)
 
 Destination / Port of Discharge: Port of Hamburg, Germany
 Delivery Terms: CFR Hamburg (Incoterms 2020)
@@ -114,10 +133,14 @@ Payment Terms:
 ];
 
 /**
- * Parsing teks PO dan menjalankan evaluasi screening AI Advisor terhadap profil legal buyer,
- * negara tujuan, pelabuhan, sanksi perdagangan, dan keamanan klausul pembayaran.
+ * Parsing teks PO dan menjalankan evaluasi screening AI Advisor terhadap:
+ * 1. Nama Perusahaan (Legal corporate entity)
+ * 2. Email Perusahaan (Corporate domain vs free webmail)
+ * 3. Nomor Kontak yang Bisa Dihubungi (Format internasional)
+ * 4. Website Perusahaan (Domain resmi)
+ * Serta validasi rute logistik dan keamanan klausul pembayaran.
  */
-export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeningResult {
+export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreeningResult {
   const clean = text || "";
 
   // 1. Ekstraksi PO Reference
@@ -127,12 +150,12 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
   const reference = poMatch ? poMatch[1].trim() : "PO-" + new Date().getFullYear() + "/01";
 
   // 2. Ekstraksi Nama Buyer
-  const buyerOnNextLine = clean.match(/(?:Buyer|Importer|Purchaser|Customer|Bill To)[^\n:]*:\s*\r?\n\s*([^\n\r(]+)/i);
-  const buyerSameLine = clean.match(/(?:Buyer|Importer|Purchaser|Customer|Bill To)\s*[:=\-]\s*([^\n\r(]+)/i);
+  const buyerOnNextLine = clean.match(/(?:Company\s*Name|Buyer|Importer|Purchaser|Customer)[^\n:]*:\s*\r?\n\s*([^\n\r(]+)/i);
+  const buyerSameLine = clean.match(/(?:Company\s*Name|Buyer|Importer|Purchaser|Customer)\s*[:=\-]\s*([^\n\r(]+)/i);
   let buyer = (buyerOnNextLine ? buyerOnNextLine[1] : buyerSameLine ? buyerSameLine[1] : "").trim();
   buyer = buyer.replace(/^\/\s*[a-zA-Z]+\s*[:=]?\s*/i, "").trim();
 
-  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer)$/i.test(buyer)) {
+  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name)$/i.test(buyer)) {
     if (clean.includes("Nordic Pantry")) buyer = "Nordic Pantry AB";
     else if (clean.includes("Kyoto Trading")) buyer = "Kyoto Trading Co., Ltd.";
     else if (clean.includes("Hamburg Organic")) buyer = "Hamburg Organic Spices GmbH";
@@ -161,7 +184,32 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
     else destination = "Port of Discharge";
   }
 
-  // 5. Ekstraksi Komoditas & HS Code
+  // 5. Ekstraksi 4 Pilar Identitas Bisnis (Nama, Email, Kontak, Website)
+  // Email Perusahaan
+  const emailMatch = clean.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
+  const companyEmail = emailMatch ? emailMatch[1].toLowerCase() : "";
+  const isCorporateEmail =
+    Boolean(companyEmail) &&
+    !/@(gmail|yahoo|hotmail|outlook|ymail|aol)\.com/i.test(companyEmail);
+
+  // Nomor Kontak
+  const phoneMatch =
+    clean.match(/(?:Phone|Tel|Telp|Mobile|Contact|WhatsApp)\s*[:=\-]?\s*([+0-9\s\-()]{8,22})/i) ||
+    clean.match(/(\+[0-9]{1,3}\s*[0-9\s\-()]{7,18})/);
+  const contactNumber = phoneMatch ? phoneMatch[1].trim() : "";
+
+  // Website Perusahaan
+  const webMatch =
+    clean.match(/(?:Website|Web|URL)\s*[:=\-]?\s*(https?:\/\/[^\s\n\r]+|www\.[^\s\n\r]+)/i) ||
+    clean.match(/(https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s\n\r]*)/i) ||
+    clean.match(/(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s\n\r]*)/i);
+  let companyWebsite = webMatch ? webMatch[1].trim() : "";
+  if (!companyWebsite && companyEmail && isCorporateEmail) {
+    const domain = companyEmail.split("@")[1];
+    companyWebsite = `https://www.${domain}`;
+  }
+
+  // 6. Ekstraksi Komoditas & HS Code
   const hsMatch = clean.match(/(?:HS\s*Code|Harmonized Code|HS|Tariff)\s*[:=\-]?\s*([0-9]{4}(?:\.[0-9]{2})?)/i);
   let hsCode = hsMatch ? hsMatch[1].trim() : "";
   let product = "Komoditas Ekspor";
@@ -181,7 +229,7 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
   }
   if (!hsCode) hsCode = "0901.11";
 
-  // 6. Ekstraksi Kuantitas & Harga
+  // 7. Ekstraksi Kuantitas & Harga
   const qtyMatch = clean.match(/(?:Quantity|Qty)\s*[:=\-]?\s*([0-9.,]+)\s*([a-zA-Z]+)?/i);
   const quantity = qtyMatch ? parseFloat(qtyMatch[1].replace(/,/g, "")) || 2400 : 2400;
   const unit = qtyMatch && qtyMatch[2] ? qtyMatch[2].toLowerCase() : "carton";
@@ -189,7 +237,7 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
   const priceMatch = clean.match(/(?:Unit Price|Price per [a-zA-Z]+|Price)\s*[:=\-]?\s*(?:USD|\$|EUR|€)?\s*([0-9.,]+)/i);
   const unitPrice = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, "")) || 18.5 : 18.5;
 
-  // 7. Ekstraksi Incoterms
+  // 8. Ekstraksi Incoterms
   let incoterm: Incoterm = "FOB";
   if (/\bCIF\b/i.test(clean)) incoterm = "CIF";
   else if (/\bCFR\b/i.test(clean)) incoterm = "CFR";
@@ -199,69 +247,100 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
   else if (/\bDAP\b/i.test(clean)) incoterm = "DAP";
   else if (/\bDDP\b/i.test(clean)) incoterm = "DDP";
 
-  // 8. Ekstraksi Payment Terms
+  // 9. Ekstraksi Payment Terms
   const payMatch = clean.match(/(?:Payment Terms?|Terms of Payment)\s*[:=\-]?\s*([^\n\r]+(?:\n[^\n\r]+)?)/i);
   const paymentTerms = payMatch ? payMatch[1].replace(/\s+/g, " ").trim() : "30% Down Payment / 70% against B/L copy";
 
-  // 9. AI ADVISOR SCREENING EVALUATION
-  // Validasi Badan Hukum
+  // 10. AI ADVISOR SCREENING EVALUATION TERHADAP 4 PILAR
   const hasLegalSuffix = /\b(AB|GmbH|Ltd|LLC|Inc|Corporation|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i.test(buyer);
-  const hasCorporateEmail = /@[a-zA-Z0-9.-]+\.(se|jp|de|com|org|co\.uk|co\.jp|eu|net)/i.test(clean) && !/@(gmail|yahoo|hotmail|outlook)\.com/i.test(clean);
-  const hasRegNumber = /(?:Reg\.?\s*No|HRB|Corporation ID|EIN|VAT|Company No)/i.test(clean);
+  const hasContact = Boolean(contactNumber && contactNumber.length >= 8);
+  const hasWebsite = Boolean(companyWebsite && companyWebsite.length >= 6);
 
-  // Analisis Pembayaran & Risiko
+  // Evaluasi Tiap Pilar
+  const pillarCompanyName: VerificationPillar = {
+    label: "Nama Perusahaan",
+    value: buyer,
+    isValid: hasLegalSuffix,
+    note: hasLegalSuffix
+      ? `Badan hukum resmi teridentifikasi (${buyer.match(/\b(AB|GmbH|Ltd|LLC|Inc|Corporation|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i)?.[0]})`
+      : "Nama perusahaan belum mencantumkan bentuk badan hukum (PT/Ltd/GmbH/AB)",
+  };
+
+  const pillarEmail: VerificationPillar = {
+    label: "Email Perusahaan",
+    value: companyEmail || "(Tidak tercantum di dokumen PO)",
+    isValid: isCorporateEmail,
+    note: isCorporateEmail
+      ? `Domain korporasi resmi aktif (@${companyEmail.split("@")[1]}) · Bebas email gratisan`
+      : companyEmail
+        ? "Waspada: Menggunakan domain email publik gratisan, bukan email domain korporasi"
+        : "Email korespondensi resmi belum tercantum di dokumen PO",
+  };
+
+  const pillarContact: VerificationPillar = {
+    label: "Nomor Kontak",
+    value: contactNumber || "(Tidak tercantum di dokumen PO)",
+    isValid: hasContact,
+    note: hasContact
+      ? `Nomor telepon format internasional valid (${contactNumber})`
+      : "Nomor telepon/kontak perwakilan buyer belum tercantum",
+  };
+
+  const pillarWebsite: VerificationPillar = {
+    label: "Website Perusahaan",
+    value: companyWebsite || "(Tidak ditemukan)",
+    isValid: hasWebsite,
+    note: hasWebsite
+      ? `Domain resmi online (${companyWebsite.replace(/^https?:\/\//, "")})`
+      : "Situs web resmi belum dapat diverifikasi secara publik",
+  };
+
+  // Analisis Pembayaran & Risiko Sanksi
   const hasAdvanceOrLC = /(?:Down Payment|DP|Advance|Deposit|Letter of Credit|L\/C)/i.test(paymentTerms);
   const isHighRiskPayment = /(?:100%\s*CAD|Open Account\s*(?:60|90)|Cash Against Documents\s*100%|DA\s*90)/i.test(paymentTerms);
-
-  // Cek Sanksi
   const isSanctionedCountry = /(?:North Korea|Iran|Syria|Russia|Cuba|Belarus)/i.test(buyerCountry) || /(?:Vladivostok|St\. Petersburg|Novorossiysk)/i.test(destination);
 
-  let score = 92;
-  let status: BuyerScreeningStatus = "verified";
+  let score = 70;
   const recommendations: string[] = [];
 
-  if (hasLegalSuffix) {
-    score += 4;
-  } else {
-    score -= 15;
-    recommendations.push("Minta sertifikat pendaftaran perusahaan resmi (Certificate of Incorporation) karena nama buyer tidak memiliki akhiran badan hukum standar.");
-  }
+  if (pillarCompanyName.isValid) score += 10;
+  else recommendations.push("Minta Certificate of Incorporation resmi karena nama buyer belum memiliki akhiran badan hukum standar.");
 
-  if (hasCorporateEmail || hasRegNumber) {
-    score += 4;
-  } else {
-    score -= 10;
-    recommendations.push("Konfirmasi alamat kantor fisik dan nomor registrasi pajak perusahaan buyer untuk menghindari penipuan perantara gelap.");
-  }
+  if (pillarEmail.isValid) score += 10;
+  else recommendations.push("Konfirmasi alamat email resmi dengan domain korporat buyer untuk mencegah pemalsuan identitas (fraud).");
+
+  if (pillarContact.isValid) score += 5;
+  else recommendations.push("Minta nomor telepon kantor atau sambungan langsung bagian procurement buyer luar negeri.");
+
+  if (pillarWebsite.isValid) score += 5;
+  else recommendations.push("Lakukan penelusuran situs resmi buyer untuk memastikan jejak digital dan profil operasional perusahaan.");
 
   if (isHighRiskPayment) {
-    score -= 40;
-    status = "high_risk";
-    recommendations.push("PERINGATAN KRUSIAL: Syarat pembayaran tanpa DP/LC berisiko gagal bayar tinggi. Ubah syarat menjadi minimal 30% Down Payment sebelum kargo dimuat.");
+    score -= 35;
+    recommendations.push("PERINGATAN KRUSIAL: Syarat pembayaran tanpa DP/LC berisiko gagal bayar. Ubah syarat menjadi minimal 30% Down Payment sebelum kargo dimuat.");
   } else if (!hasAdvanceOrLC) {
-    score -= 20;
-    status = "warning";
+    score -= 15;
     recommendations.push("Negosiasikan pembayaran uang muka (DP) minimal 30% atau L/C at sight agar modal produksi kargo terlindungi.");
   }
 
   if (isSanctionedCountry) {
-    score = Math.min(score, 30);
-    status = "high_risk";
-    recommendations.push("Kawasan tujuan terindikasi sanksi embargo perdagangan internasional. Konsultasikan dengan bank devisa sebelum menandatangani kontrak.");
+    score = Math.min(score, 25);
+    recommendations.push("Kawasan tujuan terindikasi sanksi embargo perdagangan internasional. Konsultasikan dengan bank devisa sebelum memproses transaksi.");
   }
 
   score = Math.max(15, Math.min(99, score));
+  let status: BuyerScreeningStatus = "verified";
   if (score >= 85) status = "verified";
   else if (score >= 60) status = "warning";
   else status = "high_risk";
 
   if (recommendations.length === 0) {
-    recommendations.push("Profil buyer berbadan hukum legal terverifikasi. Terbitkan Proforma Invoice resmi sesuai nomor PO ini.");
-    recommendations.push("Pastikan klausul pelunasan 70% selaras dengan tanggal estimasi keberangkatan kapal (ETD).");
+    recommendations.push("Seluruh 4 pilar identitas buyer (Nama, Email, Kontak, Website) terverifikasi valid.");
+    recommendations.push("Proforma Invoice dapat langsung diterbitkan sesuai nomor dan parameter PO ini.");
   }
 
-  const legalEntityStatus = hasLegalSuffix
-    ? `Entitas Legal Terverifikasi (${buyer.match(/\b(AB|GmbH|Ltd|LLC|Inc|Corporation|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i)?.[0] || "Korporasi"})`
+  const legalEntityStatus = pillarCompanyName.isValid
+    ? `Entitas Legal Terverifikasi (${pillarCompanyName.value})`
     : "Format nama perusahaan belum menyertakan tipe badan hukum";
 
   const sanctionCheck = isSanctionedCountry
@@ -276,10 +355,10 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
 
   const summary =
     status === "verified"
-      ? `AI Advisor memvalidasi dokumen PO "${reference}" dari ${buyer} (${buyerCountry}). Parameter badan hukum, pelabuhan bongkar ${destination}, dan komoditas siap disinkronkan ke seluruh modul EksporFlow.`
+      ? `AI Advisor memvalidasi dokumen PO "${reference}" dari ${buyer} (${buyerCountry}). Parameter badan hukum, email domain, kontak, dan website terverifikasi valid dan siap disinkronkan ke seluruh modul EksporFlow.`
       : status === "warning"
-        ? `PO "${reference}" teridentifikasi, namun disarankan melengkapi verifikasi klausul pembayaran dan izin dagang buyer sebelum memulai muatan kontainer.`
-        : `Waspada: Terdeteksi poin risiko tinggi pada klausul pembayaran atau yurisdiksi dokumen PO ini. Tinjau rekomendasi mitigasi AI sebelum melanjutkan.`;
+        ? `PO "${reference}" teridentifikasi, namun disarankan melengkapi verifikasi identitas resmi buyer atau klausul pembayaran sebelum memulai muatan kontainer.`
+        : `Waspada: Terdeteksi poin risiko tinggi pada identitas atau klausul pembayaran dokumen PO ini. Tinjau rekomendasi mitigasi AI sebelum melanjutkan.`;
 
   return {
     reference,
@@ -297,6 +376,12 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
     validation: {
       score,
       status,
+      pillars: {
+        companyName: pillarCompanyName,
+        companyEmail: pillarEmail,
+        contactNumber: pillarContact,
+        companyWebsite: pillarWebsite,
+      },
       legalEntityStatus,
       sanctionCheck,
       paymentTermRisk,

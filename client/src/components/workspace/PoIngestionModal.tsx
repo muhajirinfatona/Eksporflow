@@ -4,13 +4,15 @@ import {
   type PoScreeningResult,
 } from "@shared/poScreening";
 import {
-  AlertTriangle,
+  AlertCircle,
+  Building2,
   CheckCircle2,
-  ChevronRight,
-  FileSpreadsheet,
   FileText,
+  Globe,
   Loader2,
-  ShieldAlert,
+  Mail,
+  Phone,
+  RefreshCw,
   ShieldCheck,
   Sparkles,
   UploadCloud,
@@ -28,300 +30,299 @@ export function PoIngestionModal({
   onClose: () => void;
   onApply: (data: PoScreeningResult) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"samples" | "custom">("samples");
-  const [selectedSampleId, setSelectedSampleId] = useState<string>("nordic");
-  const [customPoText, setCustomPoText] = useState("");
+  const [poText, setPoText] = useState("");
+  const [fileName, setFileName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [screeningResult, setScreeningResult] = useState<PoScreeningResult | null>(() =>
-    parsePoTextAndScreen(SAMPLE_POS[0].text, SAMPLE_POS[0].fileName)
-  );
+  const [screeningResult, setScreeningResult] = useState<PoScreeningResult | null>(null);
 
   if (!isOpen) return null;
 
-  const handleSelectSample = (id: string) => {
-    setSelectedSampleId(id);
-    const sample = SAMPLE_POS.find((s) => s.id === id);
-    if (!sample) return;
-    setIsAnalyzing(true);
-    setTimeout(() => {
-      const parsed = parsePoTextAndScreen(sample.text, sample.fileName);
-      setScreeningResult(parsed);
-      setIsAnalyzing(false);
-    }, 450);
-  };
-
-  const handleProcessCustom = () => {
-    if (!customPoText.trim() || customPoText.trim().length < 10) {
-      toast.error("Teks PO Terlalu Pendek", {
-        description: "Silakan salin isi dokumen Purchase Order buyer minimal 10 karakter.",
-      });
-      return;
-    }
-    setIsAnalyzing(true);
-    setTimeout(() => {
-      const parsed = parsePoTextAndScreen(customPoText, "Custom-PO.txt");
-      setScreeningResult(parsed);
-      setIsAnalyzing(false);
-      toast.success("Dokumen PO Berhasil Dianalisis", {
-        description: `Buyer ${parsed.buyer} berhasil divalidasi oleh AI Advisor.`,
-      });
-    }, 500);
+  const handleClose = () => {
+    setPoText("");
+    setFileName("");
+    setScreeningResult(null);
+    setIsAnalyzing(false);
+    onClose();
   };
 
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    setFileName(file.name);
     const reader = new FileReader();
     reader.onload = (e) => {
       const text = String(e.target?.result || "");
-      setCustomPoText(text);
-      setActiveTab("custom");
-      setIsAnalyzing(true);
-      setTimeout(() => {
-        const parsed = parsePoTextAndScreen(text, file.name);
-        setScreeningResult(parsed);
-        setIsAnalyzing(false);
-        toast.success(`File ${file.name} Dimuat`, {
-          description: "Data diekstrak dan profil buyer telah divalidasi.",
-        });
-      }, 500);
+      setPoText(text);
+      runValidation(text, file.name);
     };
     reader.readAsText(file);
+  };
+
+  const runValidation = (textToValidate: string, docName?: string) => {
+    if (!textToValidate.trim() || textToValidate.trim().length < 15) {
+      toast.error("Dokumen PO Kosong", {
+        description: "Silakan unggah dokumen atau tempel teks PO yang valid terlebih dahulu.",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setTimeout(() => {
+      const parsed = parsePoTextAndScreen(textToValidate, docName || fileName || "Dokumen-PO.txt");
+      setScreeningResult(parsed);
+      setIsAnalyzing(false);
+      toast.success("Dokumen PO Berhasil Divalidasi", {
+        description: `Profil buyer ${parsed.buyer} berhasil diskrining oleh AI Advisor.`,
+      });
+    }, 600);
+  };
+
+  const handleLoadSample = (sampleId: string) => {
+    const sample = SAMPLE_POS.find((s) => s.id === sampleId);
+    if (!sample) return;
+    setFileName(sample.fileName);
+    setPoText(sample.text);
+    runValidation(sample.text, sample.fileName);
   };
 
   const handleConfirmApply = () => {
     if (!screeningResult) return;
     onApply(screeningResult);
     toast.success("Transaksi Dibuat dari Dokumen PO", {
-      description: `Nomor PO ${screeningResult.reference} (${screeningResult.buyer}) telah disinkronkan ke seluruh modul.`,
+      description: `Data PO ${screeningResult.reference} (${screeningResult.buyer}) telah diterapkan ke form.`,
     });
-    onClose();
+    handleClose();
   };
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
-      <div className="modal-content po-modal-card">
+      <div className="clean-po-modal">
         {/* Header Modal */}
-        <div className="po-modal-header">
-          <div className="po-modal-header-title">
-            <span className="po-sparkle-badge">
-              <Sparkles size={14} /> AI Smart Ingestion
-            </span>
-            <h2>Tambah Transaksi dari Purchase Order (PO) Buyer</h2>
+        <div className="clean-po-header">
+          <div>
+            <div className="clean-po-badge">
+              <Sparkles size={13} />
+              <span>AI VALIDASI &amp; EKSTRAKSI PO</span>
+            </div>
+            <h2>Impor Dokumen Purchase Order (PO) Buyer</h2>
             <p>
-              Ekstraksi parameter transaksi otomatis bebas salah ketik dan validasi kredibilitas badan hukum buyer secara instan oleh AI Advisor.
+              Impor dokumen PO buyer untuk verifikasi identitas resmi (nama, email, kontak, website) dan mengisi form secara otomatis.
             </p>
           </div>
           <button
             type="button"
-            className="po-modal-close-btn"
-            onClick={onClose}
+            className="clean-po-close"
+            onClick={handleClose}
             aria-label="Tutup dialog"
           >
             <X size={18} />
           </button>
         </div>
 
-        {/* Tab Pemilihan Sumber PO */}
-        <div className="po-modal-tabs">
-          <button
-            type="button"
-            className={`po-tab-btn ${activeTab === "samples" ? "active" : ""}`}
-            onClick={() => setActiveTab("samples")}
-          >
-            <FileSpreadsheet size={15} /> Contoh Dokumen PO Riil
-          </button>
-          <button
-            type="button"
-            className={`po-tab-btn ${activeTab === "custom" ? "active" : ""}`}
-            onClick={() => setActiveTab("custom")}
-          >
-            <UploadCloud size={15} /> Unggah File / Salin Teks PO Anda
-          </button>
-        </div>
+        {/* Konten Modal */}
+        <div className="clean-po-body">
+          {/* LANGKAH 1: Jika belum ada dokumen yang divalidasi */}
+          {!screeningResult && !isAnalyzing && (
+            <div className="po-import-step">
+              <label className="po-dropzone">
+                <UploadCloud size={36} className="dropzone-icon" />
+                <span className="dropzone-title">
+                  {fileName ? `Dokumen terpilih: ${fileName}` : "Unggah Dokumen PO (PDF / TXT / DOCX)"}
+                </span>
+                <span className="dropzone-sub">
+                  Klik untuk memilih file dari komputer Anda atau seret file ke sini
+                </span>
+                <span className="dropzone-btn">Pilih Dokumen PO</span>
+                <input
+                  type="file"
+                  accept=".txt,.pdf,.doc,.docx"
+                  onChange={handleFileUpload}
+                  style={{ display: "none" }}
+                />
+              </label>
 
-        <div className="po-modal-body">
-          {activeTab === "samples" ? (
-            <div className="po-samples-grid">
-              {SAMPLE_POS.map((sample) => (
-                <button
-                  type="button"
-                  key={sample.id}
-                  className={`po-sample-card ${selectedSampleId === sample.id ? "selected" : ""}`}
-                  onClick={() => handleSelectSample(sample.id)}
-                >
-                  <div className="po-sample-icon">
-                    <FileText size={18} />
-                  </div>
-                  <div className="po-sample-info">
-                    <b>{sample.title}</b>
-                    <small>{sample.fileName}</small>
-                  </div>
-                  <ChevronRight size={16} className="sample-arrow" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="po-custom-input-wrap">
-              <div className="po-file-dropzone">
-                <UploadCloud size={28} />
-                <div>
-                  <b>Unggah Dokumen PO Buyer (PDF / TXT / DOCX)</b>
-                  <p>Atau tempel teks Purchase Order langsung pada kolom di bawah</p>
-                </div>
-                <label className="po-upload-btn">
-                  Pilih Berkas
-                  <input
-                    type="file"
-                    accept=".txt,.pdf,.doc,.docx"
-                    onChange={handleFileUpload}
-                    style={{ display: "none" }}
-                  />
-                </label>
+              <div className="po-paste-divider">
+                <span>Atau tempel isi teks Purchase Order di bawah ini</span>
               </div>
 
               <textarea
-                className="clean-textarea po-textarea"
-                rows={5}
-                value={customPoText}
-                onChange={(e) => setCustomPoText(e.target.value)}
-                placeholder="Salin teks Purchase Order dari buyer luar negeri di sini (nomor PO, nama buyer, pelabuhan, komoditas, harga, dsb)..."
+                className="po-clean-textarea"
+                rows={4}
+                value={poText}
+                onChange={(e) => setPoText(e.target.value)}
+                placeholder="Contoh isi PO: Nomor PO, nama perusahaan buyer, alamat email perusahaan, nomor kontak telepon, pelabuhan tujuan, dsb..."
               />
 
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+              <div className="po-step-footer">
+                <div className="po-demo-links">
+                  <span>Uji coba sampel:</span>
+                  <button
+                    type="button"
+                    className="po-demo-link"
+                    onClick={() => handleLoadSample("nordic")}
+                  >
+                    Nordic Pantry AB (Swedia)
+                  </button>
+                  <button
+                    type="button"
+                    className="po-demo-link"
+                    onClick={() => handleLoadSample("kyoto")}
+                  >
+                    Kyoto Trading (Jepang)
+                  </button>
+                </div>
+
                 <button
                   type="button"
                   className="save-button"
-                  onClick={handleProcessCustom}
-                  disabled={isAnalyzing || !customPoText.trim()}
+                  onClick={() => runValidation(poText)}
+                  disabled={!poText.trim()}
                 >
-                  {isAnalyzing ? (
-                    <>
-                      <Loader2 size={14} className="spin-icon" /> Memproses Dokumen...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={14} /> Ekstrak &amp; Screening Buyer AI
-                    </>
-                  )}
+                  <Sparkles size={14} /> Validasi Dokumen PO
                 </button>
               </div>
             </div>
           )}
 
-          {/* Bagian Hasil Evaluasi AI Advisor */}
-          {isAnalyzing ? (
-            <div className="po-loading-box">
-              <Loader2 size={24} className="spin-icon" />
-              <b>AI Advisor sedang menganalisis dokumen PO...</b>
-              <small>Memvalidasi legalitas badan hukum, rute pelabuhan, dan keamanan klausul pembayaran</small>
+          {/* Loading Animation */}
+          {isAnalyzing && (
+            <div className="po-analyzing-state">
+              <Loader2 size={32} className="spin-icon" />
+              <h3>AI Advisor sedang menganalisis dokumen PO...</h3>
+              <p>Memvalidasi nama perusahaan, domain email, nomor kontak, website, dan klausul pembayaran.</p>
             </div>
-          ) : screeningResult ? (
-            <div className="po-results-container">
-              {/* Kartu Status Validasi Buyer AI */}
-              <div
-                className={`po-ai-screening-card tone-${screeningResult.validation.status}`}
-              >
-                <div className="screening-card-header">
-                  <div className="screening-status-pill">
-                    {screeningResult.validation.status === "verified" ? (
-                      <>
-                        <ShieldCheck size={16} /> Buyer Terverifikasi Valid ({screeningResult.validation.score}%)
-                      </>
-                    ) : screeningResult.validation.status === "warning" ? (
-                      <>
-                        <AlertTriangle size={16} /> Perlu Verifikasi Tambahan ({screeningResult.validation.score}%)
-                      </>
-                    ) : (
-                      <>
-                        <ShieldAlert size={16} /> Risiko Tinggi Terdeteksi ({screeningResult.validation.score}%)
-                      </>
-                    )}
-                  </div>
-                  <span className="screening-label">
-                    HASIL SCREENING AI ADVISOR
-                  </span>
-                </div>
+          )}
 
-                <p className="screening-summary">
-                  {screeningResult.validation.summary}
-                </p>
-
-                <div className="screening-metrics-grid">
-                  <div className="screening-metric">
-                    <span className="metric-label">Legalitas Badan Hukum</span>
-                    <strong>{screeningResult.validation.legalEntityStatus}</strong>
-                  </div>
-                  <div className="screening-metric">
-                    <span className="metric-label">Rute &amp; Kepatuhan Sanksi</span>
-                    <strong>{screeningResult.validation.sanctionCheck}</strong>
-                  </div>
-                  <div className="screening-metric">
-                    <span className="metric-label">Keamanan Pembayaran</span>
-                    <strong>{screeningResult.validation.paymentTermRisk}</strong>
+          {/* LANGKAH 2: Hasil Validasi 4 Pilar Identitas & Parameter Transaksi */}
+          {screeningResult && !isAnalyzing && (
+            <div className="po-validated-view">
+              {/* Status Validasi Buyer */}
+              <div className={`po-validation-header tone-${screeningResult.validation.status}`}>
+                <div className="validation-header-left">
+                  <ShieldCheck size={20} />
+                  <div>
+                    <b>
+                      {screeningResult.validation.status === "verified"
+                        ? `Buyer Terverifikasi Valid (${screeningResult.validation.score}%)`
+                        : `Peringatan Kredibilitas Buyer (${screeningResult.validation.score}%)`}
+                    </b>
+                    <small>{screeningResult.validation.summary}</small>
                   </div>
                 </div>
-
-                {screeningResult.validation.recommendations.length > 0 && (
-                  <div className="screening-recs">
-                    <b>Langkah Mitigasi Risiko AI Advisor:</b>
-                    <ul>
-                      {screeningResult.validation.recommendations.map((rec, i) => (
-                        <li key={i}>{rec}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                <button
+                  type="button"
+                  className="re-upload-btn"
+                  onClick={() => setScreeningResult(null)}
+                  title="Ganti atau impor dokumen PO lain"
+                >
+                  <RefreshCw size={12} /> Ganti Dokumen
+                </button>
               </div>
 
-              {/* Grid Pratinjau Data Parameter yang Berhasil Diekstrak */}
-              <div className="po-extracted-preview">
-                <span className="eyebrow">PARAMETER TRANSAKSI YANG DIEKSTRAK (ANTI-TYPO)</span>
-                <div className="extracted-fields-grid">
-                  <div className="extracted-field">
-                    <small>Nomor Transaksi (PO)</small>
-                    <b>{screeningResult.reference}</b>
+              {/* 4 PILAR VALIDASI IDENTITAS RESMI BUYER (Requested by User) */}
+              <div className="four-pillars-card">
+                <span className="eyebrow">VERIFIKASI 4 PILAR IDENTITAS BUYER OLEH AI</span>
+                <div className="pillars-grid">
+                  {/* Pilar 1: Nama Perusahaan */}
+                  <div className={`pillar-box ${screeningResult.validation.pillars.companyName.isValid ? "valid" : "warning"}`}>
+                    <div className="pillar-header">
+                      <Building2 size={14} />
+                      <span>Nama Perusahaan</span>
+                      {screeningResult.validation.pillars.companyName.isValid ? (
+                        <CheckCircle2 size={14} className="pillar-check" />
+                      ) : (
+                        <AlertCircle size={14} className="pillar-warn" />
+                      )}
+                    </div>
+                    <b>{screeningResult.validation.pillars.companyName.value}</b>
+                    <small>{screeningResult.validation.pillars.companyName.note}</small>
                   </div>
-                  <div className="extracted-field">
-                    <small>Nama Buyer</small>
-                    <b>{screeningResult.buyer}</b>
+
+                  {/* Pilar 2: Email Perusahaan */}
+                  <div className={`pillar-box ${screeningResult.validation.pillars.companyEmail.isValid ? "valid" : "warning"}`}>
+                    <div className="pillar-header">
+                      <Mail size={14} />
+                      <span>Email Perusahaan</span>
+                      {screeningResult.validation.pillars.companyEmail.isValid ? (
+                        <CheckCircle2 size={14} className="pillar-check" />
+                      ) : (
+                        <AlertCircle size={14} className="pillar-warn" />
+                      )}
+                    </div>
+                    <b>{screeningResult.validation.pillars.companyEmail.value}</b>
+                    <small>{screeningResult.validation.pillars.companyEmail.note}</small>
                   </div>
-                  <div className="extracted-field">
-                    <small>Negara Buyer</small>
-                    <b>{screeningResult.buyerCountry}</b>
+
+                  {/* Pilar 3: Nomor Kontak */}
+                  <div className={`pillar-box ${screeningResult.validation.pillars.contactNumber.isValid ? "valid" : "warning"}`}>
+                    <div className="pillar-header">
+                      <Phone size={14} />
+                      <span>Nomor Kontak</span>
+                      {screeningResult.validation.pillars.contactNumber.isValid ? (
+                        <CheckCircle2 size={14} className="pillar-check" />
+                      ) : (
+                        <AlertCircle size={14} className="pillar-warn" />
+                      )}
+                    </div>
+                    <b>{screeningResult.validation.pillars.contactNumber.value}</b>
+                    <small>{screeningResult.validation.pillars.contactNumber.note}</small>
                   </div>
-                  <div className="extracted-field">
-                    <small>Tujuan Pengiriman (POD)</small>
-                    <b>{screeningResult.destination}</b>
-                  </div>
-                  <div className="extracted-field">
-                    <small>Komoditas &amp; HS Code</small>
-                    <b>{screeningResult.product} · {screeningResult.hsCode}</b>
-                  </div>
-                  <div className="extracted-field">
-                    <small>Kuantitas &amp; Incoterms</small>
-                    <b>{screeningResult.quantity.toLocaleString()} {screeningResult.unit} · {screeningResult.incoterm} (${screeningResult.unitPrice})</b>
+
+                  {/* Pilar 4: Website Perusahaan */}
+                  <div className={`pillar-box ${screeningResult.validation.pillars.companyWebsite.isValid ? "valid" : "warning"}`}>
+                    <div className="pillar-header">
+                      <Globe size={14} />
+                      <span>Website Perusahaan</span>
+                      {screeningResult.validation.pillars.companyWebsite.isValid ? (
+                        <CheckCircle2 size={14} className="pillar-check" />
+                      ) : (
+                        <AlertCircle size={14} className="pillar-warn" />
+                      )}
+                    </div>
+                    <b>{screeningResult.validation.pillars.companyWebsite.value}</b>
+                    <small>{screeningResult.validation.pillars.companyWebsite.note}</small>
                   </div>
                 </div>
               </div>
+
+              {/* Data Parameter Ekspor yang Diekstrak Anti-Typo */}
+              <div className="po-summary-strip">
+                <div className="summary-field">
+                  <small>Nomor Transaksi (PO)</small>
+                  <b>{screeningResult.reference}</b>
+                </div>
+                <div className="summary-field">
+                  <small>Tujuan (POD)</small>
+                  <b>{screeningResult.destination} ({screeningResult.buyerCountry})</b>
+                </div>
+                <div className="summary-field">
+                  <small>Komoditas &amp; HS Code</small>
+                  <b>{screeningResult.product} · {screeningResult.hsCode}</b>
+                </div>
+                <div className="summary-field">
+                  <small>Kuantitas &amp; Harga</small>
+                  <b>{screeningResult.quantity.toLocaleString()} {screeningResult.unit} · {screeningResult.incoterm} (${screeningResult.unitPrice})</b>
+                </div>
+              </div>
             </div>
-          ) : null}
+          )}
         </div>
 
         {/* Footer Actions */}
-        <div className="po-modal-footer">
-          <button type="button" className="ghost-button" onClick={onClose}>
+        <div className="clean-po-footer">
+          <button type="button" className="ghost-button" onClick={handleClose}>
             Batal
           </button>
-          <button
-            type="button"
-            className="save-button po-apply-btn"
-            onClick={handleConfirmApply}
-            disabled={!screeningResult || isAnalyzing}
-          >
-            <CheckCircle2 size={16} /> Terapkan ke Form Transaksi
-          </button>
+          {screeningResult && (
+            <button
+              type="button"
+              className="save-button apply-btn"
+              onClick={handleConfirmApply}
+            >
+              <CheckCircle2 size={15} /> Terapkan ke Form Transaksi
+            </button>
+          )}
         </div>
       </div>
     </div>
