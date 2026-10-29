@@ -321,9 +321,9 @@ export function TransactionProfile({
       </div>
       <div className="profile-grid">
         <Field
-          label="Nomor transaksi"
+          label="Nomor / Referensi Internal Perusahaan"
           value={shipment.reference}
-          placeholder="EXP-2026-001"
+          placeholder="Contoh: PO-001, INV-2026/01, atau kode internal Anda"
           onChange={(value) => update("reference", value)}
         />
         <Field

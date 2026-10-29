@@ -2123,6 +2123,79 @@ textarea:focus-visible {
   }
 }
 
+/* ==========================================================================
+   Clean Active Order & Saved Transactions UI Enhancements
+   ========================================================================== */
+.active-order-header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.active-order-pills {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.field-with-action {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-sub-link {
+  align-self: flex-end;
+  background: transparent;
+  border: 0;
+  color: #2563eb;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  padding: 0;
+  margin-top: -2px;
+}
+
+.field-sub-link:hover {
+  text-decoration: underline;
+}
+
+.current-tx-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #0284c7;
+  background: #e0f2fe;
+  border: 1px solid #bae6fd;
+  border-radius: 999px;
+  padding: 1px 7px;
+  line-height: 1.2;
+}
+
+.clean-table-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.clean-search-box.compact input {
+  height: 32px;
+  font-size: 12px;
+}
+
+.clean-select.compact {
+  height: 32px;
+  font-size: 12px;
+  padding: 4px 10px;
+}
+
 .scenario-header {
   color: var(--muted);
   font-size: 11px;

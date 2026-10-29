@@ -219,8 +219,7 @@ export function useActiveShipment() {
 
   const createNewDraft = useCallback(
     (customRef?: string) => {
-      const nextIndex = String((shipmentsQuery.data?.length ?? 0) + 1).padStart(3, "0");
-      const nextRef = customRef?.trim() || `EXP-${new Date().getFullYear()}-${nextIndex}`;
+      const nextRef = customRef?.trim() || "";
       const empty = createEmptyShipment({
         exporter: user?.companyName || shipment.exporter || "",
         reference: nextRef,
@@ -230,11 +229,14 @@ export function useActiveShipment() {
       setVersion(1);
       setSaveState("unsaved");
       setStatusNote(null);
-      toast.success(`Transaksi baru ${nextRef} siap diisi`, {
-        description: "Seluruh kolom dikosongkan. Isi data baru lalu klik Simpan ke Cloud.",
-      });
+      toast.success(
+        nextRef ? `Transaksi baru ${nextRef} siap diisi` : "Formulir transaksi baru siap diisi",
+        {
+          description: "Silakan masukkan nomor referensi internal dan data buyer Anda.",
+        },
+      );
     },
-    [shipmentsQuery.data?.length, shipment.exporter, user?.companyName],
+    [shipment.exporter, user?.companyName],
   );
 
   const resetTransaction = useCallback(() => {

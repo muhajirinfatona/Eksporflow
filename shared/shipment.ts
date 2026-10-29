@@ -168,9 +168,8 @@ export const emptyLineItem: LineItem = {
 
 export function createEmptyShipment(options?: { exporter?: string; reference?: string }): Shipment {
   const company = options?.exporter?.trim() ?? "";
-  const year = new Date().getFullYear();
   return {
-    reference: options?.reference?.trim() || `EXP-${year}-001`,
+    reference: options?.reference?.trim() || "",
     exporter: company,
     buyer: "",
     buyerCountry: "",
