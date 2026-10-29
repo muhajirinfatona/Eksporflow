@@ -3,6 +3,7 @@ import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { invokeLLM } from "./_core/llm";
 import { parsePoTextAndScreen } from "@shared/poScreening";
+import { getLiveExchangeRates } from "./ratesService";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -236,6 +237,14 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         return parsePoTextAndScreen(input.poText, input.fileName);
+      }),
+  }),
+
+  rates: router({
+    getLatest: publicProcedure
+      .input(z.object({ forceRefresh: z.boolean().optional() }).optional())
+      .query(async ({ input }) => {
+        return getLiveExchangeRates(Boolean(input?.forceRefresh));
       }),
   }),
 

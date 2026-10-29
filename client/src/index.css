@@ -6702,3 +6702,520 @@ textarea:focus-visible {
     break-inside: avoid;
   }
 }
+
+/* ==========================================================================
+   13. Realtime Market Exchange Rates & Dual Currency Controls (PricingModule)
+   ========================================================================== */
+
+.fx-market-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.fx-market-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.fx-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.fx-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+  animation: pulse-fx 2s infinite;
+}
+
+@keyframes pulse-fx {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.fx-update-time {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.fx-refresh-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fx-refresh-btn:hover:not(:disabled) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.fx-refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.fx-market-content {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+@media (max-width: 640px) {
+  .fx-market-content {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+.fx-main-rate-col {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fx-label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+
+.fx-rate-display strong {
+  font-size: 22px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.02em;
+}
+
+.fx-subtext {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.fx-apply-col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-end;
+}
+
+@media (max-width: 640px) {
+  .fx-apply-col {
+    align-items: flex-start;
+  }
+}
+
+.fx-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.25);
+  transition: all 0.15s ease;
+}
+
+.fx-apply-btn:hover {
+  background: #0369a1;
+}
+
+.fx-rate-comparison {
+  font-size: 12px;
+}
+
+.fx-pill-matched {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #059669;
+  font-weight: 500;
+}
+
+.fx-pill-custom {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #b45309;
+}
+
+.fx-cross-rates {
+  border-top: 1px dashed #e2e8f0;
+  padding-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-cross-title {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.fx-cross-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fx-chip {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #334155;
+}
+
+/* Rekomendasi mata uang buyer banner */
+.fx-buyer-currency-banner {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: #1e40af;
+}
+
+.fx-buyer-currency-info {
+  flex: 1;
+}
+
+.fx-buyer-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fx-buyer-apply-btn:hover {
+  background: #1d4ed8;
+}
+
+/* Quick Conversion Bar */
+.fx-conversion-helper-bar {
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .fx-conversion-helper-bar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.fx-conv-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #166534;
+}
+
+.fx-quick-convert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #16a34a;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.fx-quick-convert-btn:hover {
+  background: #15803d;
+}
+
+/* Dual Currency Box in Offer Preview Aside */
+.quote-dual-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quote-dual-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.quote-dual-title {
+  font-size: 11px;
+  font-weight: 600;
+  color: #93c5fd;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.quote-dual-select {
+  background: rgba(15, 23, 42, 0.6);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 4px;
+  font-size: 11px;
+  padding: 2px 6px;
+  cursor: pointer;
+}
+
+.quote-dual-amount {
+  font-size: 20px;
+  font-weight: 700;
+  color: #6ee7b7;
+  letter-spacing: -0.02em;
+}
+
+.quote-dual-rate-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  color: #cbd5e1;
+}
+
+.quote-dual-tag {
+  background: rgba(255, 255, 255, 0.12);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 10px;
+}
+
+.quote-unit-val {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.quote-unit-dual {
+  font-size: 11.5px;
+  color: #93c5fd;
+}
+
+.breakdown-dual-sub {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: normal;
+}
+
+/* Modal Konversi Mata Uang */
+.fx-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.fx-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 520px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.fx-modal-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fx-modal-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: grid;
+  place-items: center;
+}
+
+.fx-modal-header h4 {
+  margin: 0;
+  font-size: 16px;
+  color: #0f172a;
+}
+
+.fx-modal-header p {
+  margin: 2px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+.fx-modal-body {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fx-modal-summary {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-modal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  color: #475569;
+}
+
+.fx-modal-row.highlight {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 8px;
+  font-size: 14px;
+}
+
+.text-emerald {
+  color: #059669 !important;
+}
+
+.fx-modal-lead {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  margin: 0 0 8px;
+}
+
+.fx-modal-choice-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fx-choice-card {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  transition: all 0.15s ease;
+}
+
+.fx-choice-card:hover {
+  border-color: #0284c7;
+  background: #f0f9ff;
+}
+
+.fx-choice-card.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+}
+
+.fx-choice-card b {
+  font-size: 13px;
+  color: #0f172a;
+}
+
+.fx-choice-card small {
+  font-size: 11.5px;
+  color: #64748b;
+}
+
+.fx-modal-footer {
+  padding: 14px 22px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
