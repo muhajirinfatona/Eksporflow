@@ -767,6 +767,7 @@ function ActiveSlideIllustration({ index }: { index: number }) {
 
 export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<void> }) {
   const [step, setStep] = useState<AuthStep>(readInitialAuthStep);
+  const [originStep, setOriginStep] = useState<"login" | "register">("login");
   const [hasLoggedInBefore, setHasLoggedInBefore] = useState<boolean>(readHasLoggedInBefore);
   const [[slideIndex, slideDirection], setSlideTuple] = useState<[number, number]>([0, 1]);
   const [isSlidePaused, setIsSlidePaused] = useState(false);
@@ -868,6 +869,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       return;
     }
 
+    setOriginStep("register");
     try {
       const result = await registerMutation.mutateAsync({
         name: name.trim(),
@@ -897,35 +899,20 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       return;
     }
 
+    setOriginStep("login");
     try {
       const result = await loginMutation.mutateAsync({
         email: email.trim(),
         password,
       });
 
-      if (result.status === "verification_required") {
-        setEmail(result.email);
-        setOtpDigits(["", "", "", "", "", ""]);
-        setDevOtpHint(result.devOtpCode ?? null);
-        switchStep("verify");
-        toast("Verifikasi email diperlukan", {
-          description: "Kami telah menerbitkan kode verifikasi 6 digit baru untuk akun Anda.",
-        });
-        return;
-      }
-
-      try {
-        const url = new URL(window.location.href);
-        url.searchParams.delete("auth");
-        window.history.replaceState({}, "", url.toString());
-      } catch {
-        // Abaikan
-      }
-
-      markHasLoggedInBefore();
-      setHasLoggedInBefore(true);
-      toast.success(`Selamat datang kembali, ${result.user?.name || "Pengguna"}!`);
-      await onAuthenticated();
+      setEmail(result.email);
+      setOtpDigits(["", "", "", "", "", ""]);
+      setDevOtpHint(result.devOtpCode ?? null);
+      switchStep("verify");
+      toast.info("Verifikasi akun", {
+        description: "Masukkan 6 digit kode verifikasi untuk melanjutkan ke workspace.",
+      });
     } catch (error) {
       const msg = error instanceof Error ? error.message : "Gagal masuk ke akun.";
       setErrorMessage(msg);
@@ -1248,12 +1235,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                     Ingat sesi saya
                   </label>
                 </div>
-
-                <div className="auth-bottom-link">
-                  <button type="button" onClick={() => switchStep("verify")}>
-                    Punya kode verifikasi OTP? Verifikasi akun
-                  </button>
-                </div>
               </form>
             )}
 
@@ -1361,7 +1342,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                   <h2>Verifikasi</h2>
                   <p>
                     Bukan email Anda?{" "}
-                    <button type="button" onClick={() => switchStep("register")}>
+                    <button type="button" onClick={() => switchStep(originStep)}>
                       Ubah alamat email
                     </button>
                     <br />
@@ -1433,8 +1414,10 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                 </div>
 
                 <div className="auth-bottom-link">
-                  <button type="button" onClick={() => switchStep("login")}>
-                    Kembali ke halaman Log In
+                  <button type="button" onClick={() => switchStep(originStep)}>
+                    {originStep === "register"
+                      ? "Kembali ke halaman Registrasi"
+                      : "Kembali ke halaman Log In"}
                   </button>
                 </div>
               </form>

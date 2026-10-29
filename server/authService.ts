@@ -270,31 +270,14 @@ export async function loginWithEmailPassword(
     throw new AuthFlowError("UNAUTHORIZED", "Email atau kata sandi yang Anda masukkan tidak sesuai.");
   }
 
-  if (!user.emailVerifiedAt) {
-    const challenge = await createVerificationChallenge(user.id, email);
-    return {
-      status: "verification_required" as const,
-      email,
-      expiresInMinutes: challenge.expiresInMinutes,
-      devOtpCode: challenge.devOtpCode,
-      user: null,
-    };
-  }
-
-  const now = new Date();
-  await db
-    .update(users)
-    .set({ lastSignedIn: now, updatedAt: now })
-    .where(eq(users.id, user.id));
-
-  await issueSessionCookie(req, res, user);
-
+  // Selalu terbitkan tantangan OTP 6 digit sehingga layar verifikasi muncul otomatis saat login
+  const challenge = await createVerificationChallenge(user.id, email);
   return {
-    status: "authenticated" as const,
+    status: "verification_required" as const,
     email,
-    expiresInMinutes: null,
-    devOtpCode: null,
-    user: sanitizeUser({ ...user, lastSignedIn: now }),
+    expiresInMinutes: challenge.expiresInMinutes,
+    devOtpCode: challenge.devOtpCode,
+    user: null,
   };
 }
 
@@ -401,9 +384,6 @@ export async function resendVerificationChallenge(input: { email: string }) {
   const user = rows[0];
   if (!user) {
     throw new AuthFlowError("BAD_REQUEST", "Email belum terdaftar. Silakan buat akun di halaman Registrasi.");
-  }
-  if (user.emailVerifiedAt) {
-    throw new AuthFlowError("CONFLICT", "Akun ini sudah terverifikasi. Silakan masuk di halaman Login.");
   }
 
   const challenge = await createVerificationChallenge(user.id, email);
