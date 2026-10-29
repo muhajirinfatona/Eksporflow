@@ -989,6 +989,22 @@ textarea:focus-visible {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.form-grid.four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .form-grid.four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .form-grid.four {
+    grid-template-columns: 1fr;
+  }
+}
+
 .form-grid.two {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -6706,6 +6722,167 @@ textarea:focus-visible {
 /* ==========================================================================
    13. Realtime Market Exchange Rates & Dual Currency Controls (PricingModule)
    ========================================================================== */
+
+/* Sleek Single-Row BI Rate Bar */
+.fx-sleek-bar {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+@media (max-width: 900px) {
+  .fx-sleek-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+}
+
+.fx-sleek-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 0 0 auto;
+}
+
+.fx-sleek-title b {
+  font-size: 12.5px;
+  color: #0f172a;
+  white-space: nowrap;
+}
+
+.fx-sleek-select {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.fx-sleek-rates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fx-sleek-rate-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 3px 6px 3px 8px;
+  font-size: 12px;
+  color: #334155;
+  transition: all 0.15s ease;
+}
+
+.fx-sleek-rate-pill.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.15);
+}
+
+.fx-sleek-rate-pill .pill-tag {
+  color: #64748b;
+  font-size: 11px;
+}
+
+.fx-sleek-rate-pill b {
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.pill-apply-btn {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 4px;
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: all 0.1s ease;
+}
+
+.pill-apply-btn:hover {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.fx-sleek-rate-pill.active .pill-apply-btn {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.fx-sleek-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.fx-refresh-icon-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.fx-refresh-icon-btn:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.field-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.inline-convert-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: #0284c7;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.inline-convert-btn:hover {
+  color: #0369a1;
+}
+
+.field-hint-text {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+}
 
 .fx-market-box {
   background: #f8fafc;

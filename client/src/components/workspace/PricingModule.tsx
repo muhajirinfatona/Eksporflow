@@ -256,7 +256,7 @@ export function PricingModule({
                 <small>Basis perhitungan dari seluruh line item ({shipment.currency})</small>
               </div>
             </div>
-            <div className="form-grid three">
+            <div className="form-grid four">
               <Field
                 label="Produk utama"
                 value={shipment.product}
@@ -266,11 +266,36 @@ export function PricingModule({
                 label="Quantity total"
                 value={shipment.quantity}
                 type="number"
-                suffix={shipment.unit}
                 onChange={(value) => updateNumber("quantity", value)}
               />
+              <SelectField
+                label="Satuan komoditas"
+                value={shipment.unit}
+                onChange={(val) => {
+                  update("unit", val);
+                  if (shipment.lineItems.length > 0) {
+                    const updated = shipment.lineItems.map((item, idx) =>
+                      idx === 0 ? { ...item, unit: val } : item,
+                    );
+                    updateLineItems(updated);
+                  }
+                }}
+              >
+                <option value="kg">kg · Kilogram</option>
+                <option value="ton">ton · Ton (Metric Ton)</option>
+                <option value="pcs">pcs · Pieces / Biji</option>
+                <option value="carton">carton · Karton / Box</option>
+                <option value="bag">bag · Karung / Kantong</option>
+                <option value="drum">drum · Drum / Barel</option>
+                <option value="liter">liter · Liter</option>
+                <option value="pack">pack · Kemasan Pack</option>
+                <option value="roll">roll · Roll / Gulungan</option>
+                {!["kg", "ton", "pcs", "carton", "bag", "drum", "liter", "pack", "roll"].includes(
+                  shipment.unit,
+                ) && <option value={shipment.unit}>{shipment.unit} (Kustom)</option>}
+              </SelectField>
               <Field
-                label="Harga unit utama"
+                label={`Harga per ${shipment.unit || "unit"}`}
                 value={shipment.unitPrice}
                 type="number"
                 prefix={shipment.currency}
@@ -371,161 +396,86 @@ export function PricingModule({
               </div>
             </div>
 
-            {/* WIDGET KURS TRANSAKSI BANK INDONESIA (BI RESMI) */}
-            <div className="fx-market-box">
-              <div className="fx-market-top">
-                <div className="fx-status-badge">
-                  <span className="fx-pulse-dot" />
-                  <b>Bank Indonesia · Kurs Transaksi BI</b>
-                  <span className="fx-update-time">
-                    {liveRates?.lastUpdated ? `· Update ${liveRates.lastUpdated}` : "· Terhubung"}
-                  </span>
+            {/* SLEEK UNIFIED BANK INDONESIA RATE BAR (COMPACT, TIDAK NUMPUK) */}
+            <div className="fx-sleek-bar">
+              <div className="fx-sleek-left">
+                <span className="fx-pulse-dot" />
+                <div className="fx-sleek-title">
+                  <b>Kurs Bank Indonesia (BI)</b>
                 </div>
-
-                <div className="fx-top-actions">
-                  <div className="fx-currency-picker-wrap">
-                    <span className="fx-picker-label">Pilih Valas BI:</span>
-                    <select
-                      className="fx-currency-picker-select"
-                      value={selectedBiCurrency}
-                      onChange={(e) => setSelectedBiCurrency(e.target.value)}
-                      title="Pilih valuta asing untuk melihat kurs Bank Indonesia"
-                    >
-                      {OFFICIAL_BI_RATES.map((r) => (
-                        <option key={r.currency} value={r.currency}>
-                          {r.flag} {r.currency} · {r.currencyName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="fx-refresh-btn"
-                    onClick={() => {
-                      refetchRates();
-                      toast.info("Menyinkronkan data Kurs Transaksi Bank Indonesia...");
-                    }}
-                    disabled={isFetchingRates}
-                    title="Segarkan data kurs resmi Bank Indonesia"
-                  >
-                    <RefreshCw size={13} className={isFetchingRates ? "spin" : ""} />
-                    {isFetchingRates ? "..." : "Perbarui"}
-                  </button>
-                </div>
+                <select
+                  className="fx-sleek-select"
+                  value={selectedBiCurrency}
+                  onChange={(e) => setSelectedBiCurrency(e.target.value)}
+                  title="Pilih valuta asing untuk melihat kurs Bank Indonesia"
+                >
+                  {OFFICIAL_BI_RATES.map((r) => (
+                    <option key={r.currency} value={r.currency}>
+                      {r.flag} {r.currency} ({r.currencyName})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              {/* 3 PILAR KURS BANK INDONESIA UNTUK VALAS TERPILIH */}
-              <div className="fx-bi-rates-grid">
-                <div className="fx-bi-card sell-card">
-                  <div className="fx-bi-card-head">
-                    <span className="fx-bi-badge sell">KURS JUAL {activeBiRate.currency}</span>
-                    <small className="fx-bi-sub">Proteksi harga penawaran buyer</small>
-                  </div>
-                  <strong className="fx-bi-val">Rp {formatNumber(biSellRate, 2)}</strong>
+              <div className="fx-sleek-rates">
+                <div
+                  className={`fx-sleek-rate-pill ${Math.abs(shipment.exchangeRate - biSellRate) < 1 ? "active" : ""}`}
+                >
+                  <span className="pill-tag">Jual {activeBiRate.currency}:</span>
+                  <b>Rp {formatNumber(biSellRate, 2)}</b>
                   <button
                     type="button"
-                    className="fx-bi-apply-btn primary"
+                    className="pill-apply-btn"
                     onClick={() => handleApplyBiRate("sell")}
+                    title="Terapkan Kurs Jual BI ke transaksi"
                   >
-                    <Zap size={13} /> Terapkan Kurs Jual
+                    Terapkan
                   </button>
                 </div>
 
-                <div className="fx-bi-card middle-card">
-                  <div className="fx-bi-card-head">
-                    <span className="fx-bi-badge middle">KURS TENGAH {activeBiRate.currency}</span>
-                    <small className="fx-bi-sub">Rata-rata jual & beli</small>
-                  </div>
-                  <strong className="fx-bi-val">Rp {formatNumber(biMiddleRate, 2)}</strong>
+                <div
+                  className={`fx-sleek-rate-pill ${Math.abs(shipment.exchangeRate - biMiddleRate) < 1 ? "active" : ""}`}
+                >
+                  <span className="pill-tag">Tengah:</span>
+                  <b>Rp {formatNumber(biMiddleRate, 2)}</b>
                   <button
                     type="button"
-                    className="fx-bi-apply-btn secondary"
+                    className="pill-apply-btn"
                     onClick={() => handleApplyBiRate("middle")}
+                    title="Terapkan Kurs Tengah BI ke transaksi"
                   >
-                    Terapkan Kurs Tengah
+                    Terapkan
                   </button>
                 </div>
 
-                <div className="fx-bi-card buy-card">
-                  <div className="fx-bi-card-head">
-                    <span className="fx-bi-badge buy">KURS BELI {activeBiRate.currency}</span>
-                    <small className="fx-bi-sub">Pencairan devisa bank</small>
-                  </div>
-                  <strong className="fx-bi-val">Rp {formatNumber(biBuyRate, 2)}</strong>
+                <div
+                  className={`fx-sleek-rate-pill ${Math.abs(shipment.exchangeRate - biBuyRate) < 1 ? "active" : ""}`}
+                >
+                  <span className="pill-tag">Beli:</span>
+                  <b>Rp {formatNumber(biBuyRate, 2)}</b>
                   <button
                     type="button"
-                    className="fx-bi-apply-btn secondary"
+                    className="pill-apply-btn"
                     onClick={() => handleApplyBiRate("buy")}
+                    title="Terapkan Kurs Beli BI ke transaksi"
                   >
-                    Terapkan Kurs Beli
+                    Terapkan
                   </button>
                 </div>
               </div>
 
-              {/* STATUS PERBANDINGAN KURS TRANSAKSI SAAT INI */}
-              <div className="fx-bi-status-row">
-                {Math.abs(shipment.exchangeRate - biSellRate) < 1 ? (
-                  <span className="fx-pill-matched">
-                    <Check size={14} /> Transaksi memakai <b>Kurs Jual BI {activeBiRate.currency} (Rp {formatNumber(shipment.exchangeRate, 2)})</b>. Aman dari risiko margin devisa murah/rugi kurs.
-                  </span>
-                ) : (
-                  <span className="fx-pill-custom">
-                    <Info size={14} /> Kurs aktif transaksi: <b>Rp {formatNumber(shipment.exchangeRate, 2)}</b> (selisih {rateDiff > 0 ? "+" : ""}{formatNumber(rateDiff)} IDR dari Kurs Jual BI {activeBiRate.currency}).
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* REKOMENDASI MATA UANG SESUAI NEGARA BUYER */}
-            {recommendedCurrency && recommendedCurrency.code !== shipment.currency && (
-              <div className="fx-buyer-currency-banner">
-                <Globe size={16} />
-                <div className="fx-buyer-currency-info">
-                  <span>
-                    Buyer berasal dari <b>{shipment.buyerCountry}</b>. Rekomendasi mata uang kontrak:{" "}
-                    <b>{recommendedCurrency.flag} {recommendedCurrency.name} ({recommendedCurrency.code})</b>.
-                  </span>
-                </div>
+              <div className="fx-sleek-right">
                 <button
                   type="button"
-                  className="fx-buyer-apply-btn"
+                  className="fx-refresh-icon-btn"
                   onClick={() => {
-                    setTargetConvertCurrency(recommendedCurrency.code);
-                    setShowConvertModal(true);
+                    refetchRates();
+                    toast.info("Menyinkronkan data Kurs Bank Indonesia...");
                   }}
+                  disabled={isFetchingRates}
+                  title="Segarkan data kurs Bank Indonesia"
                 >
-                  <ArrowRightLeft size={13} /> Konversi ke {recommendedCurrency.code}
-                </button>
-              </div>
-            )}
-
-            {/* QUICK DUAL CURRENCY CONVERTER BAR */}
-            <div className="fx-conversion-helper-bar">
-              <div className="fx-conv-text">
-                <ArrowRightLeft size={15} />
-                {shipment.currency === "IDR" ? (
-                  <span>
-                    Transaksi Anda saat ini dalam <b>Rupiah (IDR)</b>. Ingin mengonversi seluruh penawaran dan rincian biaya ke <b>USD</b> atau valas buyer?
-                  </span>
-                ) : (
-                  <span>
-                    Transaksi Anda saat ini dalam <b>{shipment.currency}</b>. Ingin mengonversi seluruh rincian nominal ke <b>Rupiah (IDR)</b> untuk evaluasi biaya lokal?
-                  </span>
-                )}
-              </div>
-              <div className="fx-conv-actions">
-                <button
-                  type="button"
-                  className="fx-quick-convert-btn"
-                  onClick={() => {
-                    const target = shipment.currency === "IDR" ? "USD" : "IDR";
-                    setTargetConvertCurrency(target);
-                    setShowConvertModal(true);
-                  }}
-                >
-                  <TrendingUp size={13} />
-                  {shipment.currency === "IDR" ? "Konversi Seluruh Nilai ke USD" : "Konversi Seluruh Nilai ke IDR"}
+                  <RefreshCw size={13} className={isFetchingRates ? "spin" : ""} />
                 </button>
               </div>
             </div>
@@ -541,26 +491,60 @@ export function PricingModule({
                 ))}
               </SelectField>
 
-              {/* CURRENCY SELECTOR BERDASARKAN NEGARA */}
-              <SelectField
-                label="Mata uang transaksi"
-                value={shipment.currency}
-                onChange={(value) => {
-                  if (value !== shipment.currency) {
-                    setTargetConvertCurrency(value);
-                    setShowConvertModal(true);
-                  }
-                }}
-              >
-                {SUPPORTED_CURRENCIES.map((cur) => (
-                  <option key={cur.code} value={cur.code}>
-                    {cur.flag} {cur.code} · {cur.name} ({cur.country})
-                  </option>
-                ))}
-                {!SUPPORTED_CURRENCIES.some((c) => c.code === shipment.currency) && (
-                  <option value={shipment.currency}>{shipment.currency} (Custom)</option>
+              {/* CURRENCY SELECTOR BERSIH DENGAN TOMBOL KONVERSI CEPAT & REKOMENDASI */}
+              <div className="field">
+                <div className="field-label-row">
+                  <span>Mata uang transaksi</span>
+                  <button
+                    type="button"
+                    className="inline-convert-btn"
+                    onClick={() => {
+                      const target = shipment.currency === "IDR" ? "USD" : "IDR";
+                      setTargetConvertCurrency(target);
+                      setShowConvertModal(true);
+                    }}
+                    title="Konversi seluruh nominal angka penawaran dan biaya"
+                  >
+                    <ArrowRightLeft size={11} /> Konversi ke {shipment.currency === "IDR" ? "USD" : "IDR"}
+                  </button>
+                </div>
+                <div className="input-shell select-shell">
+                  <select
+                    value={shipment.currency}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value !== shipment.currency) {
+                        setTargetConvertCurrency(value);
+                        setShowConvertModal(true);
+                      }
+                    }}
+                  >
+                    {SUPPORTED_CURRENCIES.map((cur) => (
+                      <option key={cur.code} value={cur.code}>
+                        {cur.flag} {cur.code} · {cur.name} ({cur.country})
+                      </option>
+                    ))}
+                    {!SUPPORTED_CURRENCIES.some((c) => c.code === shipment.currency) && (
+                      <option value={shipment.currency}>{shipment.currency} (Custom)</option>
+                    )}
+                  </select>
+                </div>
+                {recommendedCurrency && recommendedCurrency.code !== shipment.currency && (
+                  <small className="field-hint-text">
+                    💡 Rekomendasi buyer ({shipment.buyerCountry}):{" "}
+                    <button
+                      type="button"
+                      className="inline-convert-btn"
+                      onClick={() => {
+                        setTargetConvertCurrency(recommendedCurrency.code);
+                        setShowConvertModal(true);
+                      }}
+                    >
+                      {recommendedCurrency.flag} {recommendedCurrency.code}
+                    </button>
+                  </small>
                 )}
-              </SelectField>
+              </div>
 
               <Field
                 label="Target margin"
