@@ -6723,116 +6723,172 @@ textarea:focus-visible {
    13. Realtime Market Exchange Rates & Dual Currency Controls (PricingModule)
    ========================================================================== */
 
-/* Sleek Single-Row BI Rate Bar */
-.fx-sleek-bar {
+/* Clean Enterprise Bank Indonesia Rate Panel */
+.fx-clean-bar {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: var(--radius);
-  padding: 8px 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.fx-clean-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
 }
 
-@media (max-width: 900px) {
-  .fx-sleek-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-}
-
-.fx-sleek-left {
+.fx-clean-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 0 0 auto;
-}
-
-.fx-sleek-title b {
-  font-size: 12.5px;
+  font-size: 13px;
   color: #0f172a;
-  white-space: nowrap;
 }
 
-.fx-sleek-select {
+.fx-clean-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.fx-select-sm {
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #1e293b;
-  cursor: pointer;
+  color: #0f172a;
 }
 
-.fx-sleek-rates {
+.fx-clean-rates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .fx-clean-rates-grid {
+    grid-template-columns: 1fr;
+  }
+  .fx-clean-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+.fx-rate-cell {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: all 0.15s ease;
+}
+
+.fx-rate-cell.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.1);
+}
+
+.cell-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cell-label {
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.cell-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.cell-apply-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #cbd5e1;
+  background: #f1f5f9;
+  color: #334155;
+  transition: all 0.1s ease;
+  white-space: nowrap;
+}
+
+.cell-apply-btn:hover {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.fx-rate-cell.active .cell-apply-btn {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+.fx-convert-action-strip {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.fx-convert-left {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: #475569;
 }
 
-.fx-sleek-rate-pill {
+.ghost-button-sm {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 6px;
-  padding: 3px 6px 3px 8px;
-  font-size: 12px;
-  color: #334155;
-  transition: all 0.15s ease;
-}
-
-.fx-sleek-rate-pill.active {
-  border-color: #0284c7;
-  background: #f0f9ff;
-  box-shadow: 0 1px 2px rgba(2, 132, 199, 0.15);
-}
-
-.fx-sleek-rate-pill .pill-tag {
-  color: #64748b;
-  font-size: 11px;
-}
-
-.fx-sleek-rate-pill b {
-  color: #0f172a;
-  font-variant-numeric: tabular-nums;
-}
-
-.pill-apply-btn {
-  background: #f1f5f9;
   border: 1px solid #cbd5e1;
-  color: #0f172a;
-  font-size: 11px;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
   font-weight: 600;
-  border-radius: 4px;
-  padding: 2px 7px;
+  color: #0284c7;
   cursor: pointer;
-  transition: all 0.1s ease;
+  transition: all 0.15s ease;
+  white-space: nowrap;
 }
 
-.pill-apply-btn:hover {
-  background: #0284c7;
+.ghost-button-sm:hover {
+  background: #f0f9ff;
   border-color: #0284c7;
-  color: #ffffff;
-}
-
-.fx-sleek-rate-pill.active .pill-apply-btn {
-  background: #0284c7;
-  border-color: #0284c7;
-  color: #ffffff;
-}
-
-.fx-sleek-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
 }
 
 .fx-refresh-icon-btn {
