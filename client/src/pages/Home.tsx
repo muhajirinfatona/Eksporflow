@@ -156,12 +156,7 @@ export default function Home() {
     >
       {screen === "dashboard" && (
         <DashboardView
-          user={user}
           shipment={shipment}
-          shipmentsList={shipmentsList}
-          isLoadingList={isLoadingList}
-          loadShipment={loadShipment}
-          createNewDraft={createNewDraft}
           update={update}
           pricing={pricing}
           container={container}
