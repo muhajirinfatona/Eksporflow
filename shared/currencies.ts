@@ -7,6 +7,35 @@ export type SupportedCurrency = {
   decimals: number;
 };
 
+export type BankIndonesiaRate = {
+  currency: string;
+  currencyName: string;
+  flag: string;
+  unit: number;
+  sellRate: number;   // Kurs Jual BI
+  buyRate: number;    // Kurs Beli BI
+  middleRate: number; // Kurs Tengah BI
+};
+
+export const OFFICIAL_BI_RATES: BankIndonesiaRate[] = [
+  { currency: "USD", currencyName: "Dolar AS", flag: "🇺🇸", unit: 1, sellRate: 18273.92, buyRate: 18092.08, middleRate: 18183.0 },
+  { currency: "SGD", currencyName: "Dolar Singapura", flag: "🇸🇬", unit: 1, sellRate: 14257.56, buyRate: 14107.99, middleRate: 14182.78 },
+  { currency: "EUR", currencyName: "Euro Uni Eropa", flag: "🇪🇺", unit: 1, sellRate: 19854.2, buyRate: 19652.1, middleRate: 19753.15 },
+  { currency: "SEK", currencyName: "Krona Swedia", flag: "🇸🇪", unit: 1, sellRate: 1836.93, buyRate: 1817.19, middleRate: 1827.06 },
+  { currency: "JPY", currencyName: "Yen Jepang (100)", flag: "🇯🇵", unit: 100, sellRate: 11845.0, buyRate: 11720.0, middleRate: 11782.5 },
+  { currency: "CNY", currencyName: "Yuan Tiongkok", flag: "🇨🇳", unit: 1, sellRate: 2528.4, buyRate: 2502.8, middleRate: 2515.6 },
+  { currency: "GBP", currencyName: "Poundsterling Inggris", flag: "🇬🇧", unit: 1, sellRate: 23485.6, buyRate: 23245.1, middleRate: 23365.35 },
+  { currency: "AUD", currencyName: "Dolar Australia", flag: "🇦🇺", unit: 1, sellRate: 11960.25, buyRate: 11838.5, middleRate: 11899.38 },
+  { currency: "SAR", currencyName: "Riyal Arab Saudi", flag: "🇸🇦", unit: 1, sellRate: 4869.8, buyRate: 4821.08, middleRate: 4845.44 },
+  { currency: "THB", currencyName: "Baht Thailand", flag: "🇹🇭", unit: 1, sellRate: 541.13, buyRate: 535.27, middleRate: 538.2 },
+];
+
+export function getBiRateForCurrency(code: string): BankIndonesiaRate {
+  const normalized = (code || "USD").toUpperCase().trim();
+  const found = OFFICIAL_BI_RATES.find((r) => r.currency === normalized);
+  return found || OFFICIAL_BI_RATES[0]; // fallback ke USD
+}
+
 export const SUPPORTED_CURRENCIES: SupportedCurrency[] = [
   { code: "IDR", name: "Rupiah Indonesia", symbol: "Rp", country: "Indonesia", flag: "🇮🇩", decimals: 0 },
   { code: "USD", name: "Dolar AS (Devisa Global)", symbol: "$", country: "Amerika Serikat / Global", flag: "🇺🇸", decimals: 2 },

@@ -3,7 +3,9 @@ import { trpc } from "@/lib/trpc";
 import {
   convertCurrencyValue,
   formatCurrencyAmount,
+  getBiRateForCurrency,
   getRecommendedCurrencyForCountry,
+  OFFICIAL_BI_RATES,
   SUPPORTED_CURRENCIES,
   type SupportedCurrency,
 } from "@shared/currencies";
@@ -24,7 +26,7 @@ import {
   TrendingUp,
   Zap,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Field, LineItemsEditor, SectionTitle, SelectField, StatusPill } from "./Primitives";
 
@@ -52,6 +54,23 @@ export function PricingModule({
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [targetConvertCurrency, setTargetConvertCurrency] = useState<string>("USD");
 
+  // Rekomendasi negara buyer
+  const recommendedCurrency = getRecommendedCurrencyForCountry(shipment.buyerCountry);
+
+  // Valas Bank Indonesia yang dipilih untuk ditampilkan (default ke valas transaksi, atau valas buyer, atau USD)
+  const initialBiCur =
+    shipment.currency !== "IDR"
+      ? shipment.currency
+      : (recommendedCurrency?.code && recommendedCurrency.code !== "IDR" ? recommendedCurrency.code : "USD");
+  const [selectedBiCurrency, setSelectedBiCurrency] = useState<string>(initialBiCur);
+
+  // Jika mata uang transaksi berganti ke valas, sinkronkan tampilan valas BI
+  useEffect(() => {
+    if (shipment.currency !== "IDR") {
+      setSelectedBiCurrency(shipment.currency);
+    }
+  }, [shipment.currency]);
+
   // Query live market exchange rates via tRPC
   const {
     data: liveRates,
@@ -62,16 +81,23 @@ export function PricingModule({
     staleTime: 5 * 60 * 1000,
   });
 
-  const biSellRate = liveRates?.biSellRate ?? 18273.92;
-  const biBuyRate = liveRates?.biBuyRate ?? 18092.08;
-  const biMiddleRate = liveRates?.biMiddleRate ?? 18183.0;
+  // Ambil data kurs Bank Indonesia spesifik untuk valas yang dipilih
+  const activeBiRate = getBiRateForCurrency(selectedBiCurrency);
+  const biSellRate = activeBiRate.sellRate;
+  const biBuyRate = activeBiRate.buyRate;
+  const biMiddleRate = activeBiRate.middleRate;
+
+  // Auto-init kurs referensi jika masih 0 / belum terisi
+  useEffect(() => {
+    if (!shipment.exchangeRate || shipment.exchangeRate <= 0) {
+      update("exchangeRate", biSellRate);
+      update("exchangeRateSource", `Bank Indonesia (Kurs Jual ${activeBiRate.currency})`);
+      update("exchangeRateDate", new Date().toISOString().slice(0, 10));
+    }
+  }, [shipment.exchangeRate, biSellRate, activeBiRate.currency, update]);
 
   const currentFxRate = shipment.exchangeRate > 0 ? shipment.exchangeRate : biSellRate;
-
   const rateDiff = shipment.exchangeRate > 0 ? Math.round(shipment.exchangeRate - biSellRate) : 0;
-
-  // Buyer country recommendation
-  const recommendedCurrency = getRecommendedCurrencyForCountry(shipment.buyerCountry);
 
   // Buyer target currency for dual currency conversion preview
   const defaultDualTarget =
@@ -110,12 +136,17 @@ export function PricingModule({
   // Apply Bank Indonesia rate to transaction
   const handleApplyBiRate = (type: "sell" | "middle" | "buy") => {
     const rateVal = type === "sell" ? biSellRate : type === "middle" ? biMiddleRate : biBuyRate;
-    const label = type === "sell" ? "Kurs Jual BI" : type === "middle" ? "Kurs Tengah BI" : "Kurs Beli BI";
+    const label =
+      type === "sell"
+        ? `Kurs Jual BI ${activeBiRate.currency}`
+        : type === "middle"
+          ? `Kurs Tengah BI ${activeBiRate.currency}`
+          : `Kurs Beli BI ${activeBiRate.currency}`;
     update("exchangeRate", Number(rateVal.toFixed(2)));
     const today = new Date().toISOString().slice(0, 10);
     update("exchangeRateDate", today);
     update("exchangeRateSource", `Bank Indonesia (${label})`);
-    toast.success(`${label} diterapkan: 1 USD = Rp ${formatNumber(rateVal, 2)}`, {
+    toast.success(`${label} diterapkan: 1 ${activeBiRate.currency} = Rp ${formatNumber(rateVal, 2)}`, {
       description: "Kurs transaksi, tanggal, dan sumber resmi Bank Indonesia berhasil disinkronkan.",
     });
   };
@@ -345,12 +376,29 @@ export function PricingModule({
               <div className="fx-market-top">
                 <div className="fx-status-badge">
                   <span className="fx-pulse-dot" />
-                  <b>Bank Indonesia · Kurs Transaksi BI Resmi</b>
+                  <b>Bank Indonesia · Kurs Transaksi BI</b>
                   <span className="fx-update-time">
                     {liveRates?.lastUpdated ? `· Update ${liveRates.lastUpdated}` : "· Terhubung"}
                   </span>
                 </div>
+
                 <div className="fx-top-actions">
+                  <div className="fx-currency-picker-wrap">
+                    <span className="fx-picker-label">Pilih Valas BI:</span>
+                    <select
+                      className="fx-currency-picker-select"
+                      value={selectedBiCurrency}
+                      onChange={(e) => setSelectedBiCurrency(e.target.value)}
+                      title="Pilih valuta asing untuk melihat kurs Bank Indonesia"
+                    >
+                      {OFFICIAL_BI_RATES.map((r) => (
+                        <option key={r.currency} value={r.currency}>
+                          {r.flag} {r.currency} · {r.currencyName}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
                   <button
                     type="button"
                     className="fx-refresh-btn"
@@ -362,16 +410,16 @@ export function PricingModule({
                     title="Segarkan data kurs resmi Bank Indonesia"
                   >
                     <RefreshCw size={13} className={isFetchingRates ? "spin" : ""} />
-                    {isFetchingRates ? "Menyinkronkan..." : "Perbarui Kurs BI"}
+                    {isFetchingRates ? "..." : "Perbarui"}
                   </button>
                 </div>
               </div>
 
-              {/* 3 PILAR KURS BANK INDONESIA: JUAL, TENGAH, BELI */}
+              {/* 3 PILAR KURS BANK INDONESIA UNTUK VALAS TERPILIH */}
               <div className="fx-bi-rates-grid">
                 <div className="fx-bi-card sell-card">
                   <div className="fx-bi-card-head">
-                    <span className="fx-bi-badge sell">KURS JUAL BI</span>
+                    <span className="fx-bi-badge sell">KURS JUAL {activeBiRate.currency}</span>
                     <small className="fx-bi-sub">Proteksi harga penawaran buyer</small>
                   </div>
                   <strong className="fx-bi-val">Rp {formatNumber(biSellRate, 2)}</strong>
@@ -380,13 +428,13 @@ export function PricingModule({
                     className="fx-bi-apply-btn primary"
                     onClick={() => handleApplyBiRate("sell")}
                   >
-                    <Zap size={13} /> Terapkan Kurs Jual BI
+                    <Zap size={13} /> Terapkan Kurs Jual
                   </button>
                 </div>
 
                 <div className="fx-bi-card middle-card">
                   <div className="fx-bi-card-head">
-                    <span className="fx-bi-badge middle">KURS TENGAH BI</span>
+                    <span className="fx-bi-badge middle">KURS TENGAH {activeBiRate.currency}</span>
                     <small className="fx-bi-sub">Rata-rata jual & beli</small>
                   </div>
                   <strong className="fx-bi-val">Rp {formatNumber(biMiddleRate, 2)}</strong>
@@ -401,7 +449,7 @@ export function PricingModule({
 
                 <div className="fx-bi-card buy-card">
                   <div className="fx-bi-card-head">
-                    <span className="fx-bi-badge buy">KURS BELI BI</span>
+                    <span className="fx-bi-badge buy">KURS BELI {activeBiRate.currency}</span>
                     <small className="fx-bi-sub">Pencairan devisa bank</small>
                   </div>
                   <strong className="fx-bi-val">Rp {formatNumber(biBuyRate, 2)}</strong>
@@ -419,29 +467,13 @@ export function PricingModule({
               <div className="fx-bi-status-row">
                 {Math.abs(shipment.exchangeRate - biSellRate) < 1 ? (
                   <span className="fx-pill-matched">
-                    <Check size={14} /> Transaksi memakai <b>Kurs Jual BI (Rp {formatNumber(shipment.exchangeRate, 2)})</b>. Aman dari risiko margin devisa murah/rugi kurs.
+                    <Check size={14} /> Transaksi memakai <b>Kurs Jual BI {activeBiRate.currency} (Rp {formatNumber(shipment.exchangeRate, 2)})</b>. Aman dari risiko margin devisa murah/rugi kurs.
                   </span>
                 ) : (
                   <span className="fx-pill-custom">
-                    <Info size={14} /> Kurs aktif: <b>Rp {formatNumber(shipment.exchangeRate)}</b> (selisih {rateDiff > 0 ? "+" : ""}{formatNumber(rateDiff)} IDR dari Kurs Jual BI Rp {formatNumber(biSellRate, 2)}).
+                    <Info size={14} /> Kurs aktif transaksi: <b>Rp {formatNumber(shipment.exchangeRate, 2)}</b> (selisih {rateDiff > 0 ? "+" : ""}{formatNumber(rateDiff)} IDR dari Kurs Jual BI {activeBiRate.currency}).
                   </span>
                 )}
-              </div>
-
-              {/* DAFTAR KURS VALUTA ASING BANK INDONESIA (SESUAI TABEL RESMI BI) */}
-              <div className="fx-cross-rates">
-                <span className="fx-cross-title">Kurs Valas BI Lainnya (Jual / Beli):</span>
-                <div className="fx-cross-chips">
-                  <span className="fx-chip">🇸🇬 SGD: Jual <b>Rp 14.257,56</b> · Beli Rp 14.107,99</span>
-                  <span className="fx-chip">🇸🇪 SEK: Jual <b>Rp 1.836,93</b> · Beli Rp 1.817,19</span>
-                  <span className="fx-chip">🇸🇦 SAR: Jual <b>Rp 4.869,80</b> · Beli Rp 4.821,08</span>
-                  <span className="fx-chip">🇹🇭 THB: Jual <b>Rp 541,13</b> · Beli Rp 535,27</span>
-                  <span className="fx-chip">🇪🇺 EUR: Jual <b>Rp 19.854,20</b> · Beli Rp 19.652,10</span>
-                  <span className="fx-chip">🇯🇵 JPY (100): Jual <b>Rp 11.845,00</b> · Beli Rp 11.720,00</span>
-                  <span className="fx-chip">🇨🇳 CNY: Jual <b>Rp 2.528,40</b> · Beli Rp 2.502,80</span>
-                  <span className="fx-chip">🇬🇧 GBP: Jual <b>Rp 23.485,60</b> · Beli Rp 23.245,10</span>
-                  <span className="fx-chip">🇦🇺 AUD: Jual <b>Rp 11.960,25</b> · Beli Rp 11.838,50</span>
-                </div>
               </div>
             </div>
 
