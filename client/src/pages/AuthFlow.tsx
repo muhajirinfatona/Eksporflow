@@ -105,17 +105,190 @@ const SLIDE_VARIANTS = {
  * yang mengelilingi kartu login tanpa mengganggu keterbacaan form.
  */
 /**
- * Latar belakang Minimalist Clean Teal Curve Flow (Deep Teal & Seafoam Green)
- * Sesuai gambar referensi yang dipilih pengguna
+ * Latar belakang Maritime Digital Aurora & Global Export Trade Mesh
+ * Desain eksklusif EksporFlow: Menggabungkan atmosfer laut cerah berkelas,
+ * peta rute pelayaran maritim global (Tanjung Priok - Singapore - Rotterdam),
+ * garis kontur arus samudera (bathymetric curves), serta pendar cahaya aura dinamis.
  */
 function ExportWorldBackdrop() {
   return (
     <div className="auth-export-scene" aria-hidden="true">
-      <img
-        src="/images/auth-teal-flow.jpg"
-        alt="EksporFlow Minimalist Abstract Teal Background"
-        className="auth-image-backdrop"
-      />
+      {/* 1. Luminous Ambient Gradient Orbs (Oceanic Azure, Saffron Dawn, Seafoam Mint) */}
+      <div className="auth-aurora-glow auth-aurora-1" />
+      <div className="auth-aurora-glow auth-aurora-2" />
+      <div className="auth-aurora-glow auth-aurora-3" />
+
+      {/* 2. SVG Global Maritime Trade Routes & Bathymetric Ocean Contours */}
+      <svg
+        className="auth-maritime-mesh-svg"
+        viewBox="0 0 1920 1080"
+        preserveAspectRatio="xMidYMid slice"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <linearGradient id="routeGlowBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#38bdf8" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#0284c7" stopOpacity="0.4" />
+          </linearGradient>
+          <linearGradient id="routeGlowGold" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.85" />
+            <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.25" />
+          </linearGradient>
+          <linearGradient id="contourGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="#0284c7" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="#0ea5e9" stopOpacity="0.04" />
+          </linearGradient>
+          <pattern id="nauticalGridPattern" width="80" height="80" patternUnits="userSpaceOnUse">
+            <path d="M 80 0 L 0 0 0 80" fill="none" stroke="#0284c7" strokeWidth="0.75" strokeOpacity="0.07" strokeDasharray="3 3" />
+            <circle cx="80" cy="80" r="1.5" fill="#0284c7" fillOpacity="0.14" />
+          </pattern>
+        </defs>
+
+        {/* Pola Kisi Navigasi Bahari Digital */}
+        <rect width="1920" height="1080" fill="url(#nauticalGridPattern)" />
+
+        {/* Garis-Garis Arus Kontur Kedalaman Samudera (Bathymetric Ocean Currents) */}
+        <g className="auth-contour-group">
+          <path
+            className="auth-wave-contour-a"
+            d="M-100 240 C 320 160, 680 340, 1140 220 C 1520 120, 1780 260, 2040 180"
+            stroke="#38bdf8"
+            strokeWidth="1.8"
+            strokeOpacity="0.32"
+          />
+          <path
+            className="auth-wave-contour-b"
+            d="M-100 380 C 420 280, 840 460, 1280 360 C 1640 280, 1860 410, 2040 340"
+            stroke="#0ea5e9"
+            strokeWidth="2.2"
+            strokeOpacity="0.25"
+          />
+          <path
+            className="auth-wave-contour-c"
+            d="M-100 860 C 380 740, 780 920, 1260 820 C 1600 750, 1820 890, 2040 820"
+            stroke="#38bdf8"
+            strokeWidth="2"
+            strokeOpacity="0.28"
+          />
+          <path
+            className="auth-wave-contour-a"
+            d="M-100 940 C 460 840, 920 1010, 1420 900 C 1720 840, 1880 960, 2040 910"
+            stroke="#0284c7"
+            strokeWidth="1.6"
+            strokeOpacity="0.22"
+          />
+        </g>
+
+        {/* Jalur Pelayaran Ekspor Global Utama (Shipping Corridors) dengan Aliran Berpendar */}
+        {/* Koridor 1: Tanjung Priok -> Selat Malaka -> Singapore -> Rotterdam */}
+        <g className="auth-corridor-lane">
+          <path
+            className="auth-trade-corridor-gold"
+            d="M 160 880 C 420 720, 680 480, 960 410 C 1240 340, 1580 240, 1820 140"
+            stroke="url(#routeGlowGold)"
+            strokeWidth="2.8"
+            strokeLinecap="round"
+            strokeDasharray="10 14"
+          />
+          <path
+            d="M 160 880 C 420 720, 680 480, 960 410 C 1240 340, 1580 240, 1820 140"
+            stroke="#f59e0b"
+            strokeWidth="1"
+            strokeOpacity="0.2"
+          />
+        </g>
+
+        {/* Koridor 2: Jalur Samudera Pasifik (Jakarta -> Shanghai -> Tokyo -> Los Angeles) */}
+        <g className="auth-corridor-lane">
+          <path
+            className="auth-trade-corridor-blue"
+            d="M 120 760 C 520 660, 820 780, 1180 620 C 1480 480, 1680 320, 1880 360"
+            stroke="url(#routeGlowBlue)"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeDasharray="8 12"
+          />
+        </g>
+
+        {/* Koridor 3: Jalur Feeder Ekspor Intra-Asia & Timur Tengah */}
+        <g className="auth-corridor-lane">
+          <path
+            className="auth-trade-corridor-mint"
+            d="M 240 920 C 580 860, 940 760, 1380 720 C 1660 690, 1840 580, 2000 520"
+            stroke="#10b981"
+            strokeWidth="2"
+            strokeOpacity="0.45"
+            strokeLinecap="round"
+            strokeDasharray="6 10"
+          />
+        </g>
+
+        {/* Node Pelabuhan Utama Hub Ekspor Dunia dengan Gelombang Denyut (Pulse Rings) */}
+        {/* Node A: Tanjung Priok (Jakarta) - Hub Ekspor Utama */}
+        <g transform="translate(240 860)">
+          <circle cx="0" cy="0" r="18" fill="#f59e0b" fillOpacity="0.15" className="auth-node-ripple" />
+          <circle cx="0" cy="0" r="9" fill="#f59e0b" fillOpacity="0.35" />
+          <circle cx="0" cy="0" r="4.5" fill="#f59e0b" />
+          <circle cx="0" cy="0" r="2" fill="#ffffff" />
+          <text x="14" y="4" fill="#0369a1" fontSize="11" fontWeight="700" letterSpacing="1.2">PORT OF JAKARTA (ID)</text>
+          <text x="14" y="16" fill="#64748b" fontSize="9.5" fontFamily="monospace">06°06'S • 106°53'E</text>
+        </g>
+
+        {/* Node B: Port of Singapore - Global Transshipment Hub */}
+        <g transform="translate(680 580)">
+          <circle cx="0" cy="0" r="14" fill="#38bdf8" fillOpacity="0.15" className="auth-node-ripple" />
+          <circle cx="0" cy="0" r="7" fill="#38bdf8" fillOpacity="0.35" />
+          <circle cx="0" cy="0" r="3.5" fill="#0284c7" />
+          <circle cx="0" cy="0" r="1.5" fill="#ffffff" />
+          <text x="12" y="4" fill="#0369a1" fontSize="10.5" fontWeight="600" letterSpacing="1">SINGAPORE HUB (SG)</text>
+        </g>
+
+        {/* Node C: Port of Rotterdam - Gerbang Ekspor Eropa */}
+        <g transform="translate(1620 220)">
+          <circle cx="0" cy="0" r="16" fill="#10b981" fillOpacity="0.15" className="auth-node-ripple" />
+          <circle cx="0" cy="0" r="8" fill="#10b981" fillOpacity="0.35" />
+          <circle cx="0" cy="0" r="4" fill="#059669" />
+          <circle cx="0" cy="0" r="2" fill="#ffffff" />
+          <text x="-155" y="4" fill="#0369a1" fontSize="10.5" fontWeight="600" letterSpacing="1">PORT OF ROTTERDAM (NL)</text>
+          <text x="-155" y="16" fill="#64748b" fontSize="9.5" fontFamily="monospace">51°55'N • 04°24'E</text>
+        </g>
+
+        {/* Aksen Kompas Bahari Maritim (Nautical Compass Rose) di Sudut Kanan Atas */}
+        <g transform="translate(1780 120)" stroke="#0284c7" strokeOpacity="0.22" fill="none">
+          <circle cx="0" cy="0" r="42" strokeWidth="1" strokeDasharray="3 3" />
+          <circle cx="0" cy="0" r="32" strokeWidth="1" />
+          <line x1="0" y1="-48" x2="0" y2="48" strokeWidth="1.2" />
+          <line x1="-48" y1="0" x2="48" y2="0" strokeWidth="1.2" />
+          <polygon points="0,-42 4,-12 0,0 -4,-12" fill="#0284c7" fillOpacity="0.35" stroke="none" />
+          <polygon points="0,42 4,12 0,0 -4,12" fill="#64748b" fillOpacity="0.2" stroke="none" />
+          <polygon points="42,0 12,4 0,0 12,-4" fill="#64748b" fillOpacity="0.2" stroke="none" />
+          <polygon points="-42,0 -12,4 0,0 -12,-4" fill="#64748b" fillOpacity="0.2" stroke="none" />
+          <text x="-4" y="-52" fill="#0369a1" fontSize="10" fontWeight="700">N</text>
+        </g>
+
+        {/* Siluet Kapal Kontainer Modern Berlayar Anggun di Cakrawala Kiri Bawah */}
+        <g transform="translate(120 960)" opacity="0.45">
+          <path d="M0 16 L140 16 L124 34 L12 34 Z" fill="#0284c7" />
+          <rect x="20" y="4" width="22" height="12" rx="1.5" fill="#f59e0b" />
+          <rect x="46" y="4" width="22" height="12" rx="1.5" fill="#10b981" />
+          <rect x="72" y="4" width="22" height="12" rx="1.5" fill="#38bdf8" />
+          <rect x="33" y="-8" width="22" height="12" rx="1.5" fill="#f59e0b" />
+          <rect x="59" y="-8" width="22" height="12" rx="1.5" fill="#0284c7" />
+          <rect x="100" y="-4" width="16" height="20" rx="2" fill="#ffffff" stroke="#93c5fd" strokeWidth="1" />
+          <line x1="-30" y1="34" x2="160" y2="34" stroke="#ffffff" strokeWidth="2" strokeOpacity="0.7" strokeLinecap="round" />
+        </g>
+
+        {/* Geometris Floating Container Micro-Badge di Latar Belakang */}
+        <g transform="translate(1540 680)" opacity="0.55" className="auth-floating-badge">
+          <rect x="0" y="0" width="148" height="42" rx="8" fill="#ffffff" fillOpacity="0.8" stroke="#bae6fd" strokeWidth="1" />
+          <circle cx="18" cy="21" r="5" fill="#10b981" />
+          <text x="32" y="18" fill="#0f172a" fontSize="10.5" fontWeight="600">Ocean Freight Verified</text>
+          <text x="32" y="32" fill="#0284c7" fontSize="9" fontWeight="500">2,480 TEU • Bill of Lading</text>
+        </g>
+      </svg>
+
+      {/* 3. Soft Atmospheric Glass Vignette (Clean Center for Card) */}
       <div className="auth-export-veil" />
     </div>
   );
