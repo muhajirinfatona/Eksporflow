@@ -50,14 +50,73 @@ function markHasLoggedInBefore(): void {
   }
 }
 
-function readInitialAuthStep(): AuthStep {
+const VERIFY_EMAIL_KEY = "eksporflow:auth_verify_email";
+const VERIFY_ORIGIN_KEY = "eksporflow:auth_verify_origin";
+const REG_DRAFT_KEY = "eksporflow:auth_reg_draft";
+
+interface InitialAuthData {
+  step: AuthStep;
+  email: string;
+  origin: "login" | "register";
+  name: string;
+  companyName: string;
+}
+
+function readInitialAuthData(): InitialAuthData {
   try {
-    const raw = new URLSearchParams(window.location.search).get("auth");
-    if (raw === "register" || raw === "verify" || raw === "login") return raw;
+    const url = new URL(window.location.href);
+    const rawStep = url.searchParams.get("auth");
+    const paramEmail = url.searchParams.get("email")?.trim() || "";
+    const paramFrom = url.searchParams.get("from");
+    const sessionEmail = window.sessionStorage.getItem(VERIFY_EMAIL_KEY)?.trim() || "";
+    const sessionOrigin = window.sessionStorage.getItem(VERIFY_ORIGIN_KEY);
+
+    let draftName = "";
+    let draftCompany = "";
+    const rawDraft = window.sessionStorage.getItem(REG_DRAFT_KEY);
+    if (rawDraft) {
+      try {
+        const parsed = JSON.parse(rawDraft);
+        if (typeof parsed.name === "string") draftName = parsed.name;
+        if (typeof parsed.companyName === "string") draftCompany = parsed.companyName;
+      } catch {
+        // Abaikan
+      }
+    }
+
+    const finalEmail = paramEmail || sessionEmail || "";
+    const finalOrigin: "login" | "register" =
+      paramFrom === "register" || sessionOrigin === "register"
+        ? "register"
+        : "login";
+
+    let finalStep: AuthStep = "login";
+    if (rawStep === "register" || rawStep === "verify" || rawStep === "login") {
+      finalStep = rawStep;
+    }
+
+    // Jika pengguna membuka halaman verifikasi tanpa email tersimpan,
+    // kembalikan ke step asal (login/register) agar tidak tampil form kosong
+    if (finalStep === "verify" && !finalEmail) {
+      finalStep = finalOrigin;
+    }
+
+    return {
+      step: finalStep,
+      email: finalEmail,
+      origin: finalOrigin,
+      name: draftName,
+      companyName: draftCompany,
+    };
   } catch {
-    // Abaikan
+    return {
+      step: "login",
+      email: "",
+      origin: "login",
+      name: "",
+      companyName: "",
+    };
   }
-  return "login";
 }
 
 const SLIDE_INTERVAL_MS = 5200;
@@ -569,16 +628,20 @@ function ActiveSlideIllustration({ index }: { index: number }) {
 }
 
 export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<void> }) {
-  const [step, setStep] = useState<AuthStep>(readInitialAuthStep);
-  const [originStep, setOriginStep] = useState<"login" | "register">("login");
+  const [initialData] = useState<InitialAuthData>(readInitialAuthData);
+  const [step, setStep] = useState<AuthStep>(initialData.step);
+  const [originStep, setOriginStep] = useState<"login" | "register">(initialData.origin);
   const [hasLoggedInBefore, setHasLoggedInBefore] = useState<boolean>(readHasLoggedInBefore);
-  const [[slideIndex, slideDirection], setSlideTuple] = useState<[number, number]>([0, 1]);
+  const [[slideIndex, slideDirection], setSlideTuple] = useState<[number, number]>([
+    initialData.step === "login" ? 0 : initialData.step === "register" ? 1 : 2,
+    1,
+  ]);
   const [isSlidePaused, setIsSlidePaused] = useState(false);
 
   // Form states
-  const [name, setName] = useState("");
-  const [companyName, setCompanyName] = useState("");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState(initialData.name);
+  const [companyName, setCompanyName] = useState(initialData.companyName);
+  const [email, setEmail] = useState(initialData.email);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(true);
@@ -618,17 +681,45 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     return () => window.clearInterval(timer);
   }, [isSlidePaused, slideIndex, stepSlide]);
 
-  const switchStep = (next: AuthStep) => {
+  const switchStep = (
+    next: AuthStep,
+    meta?: { email?: string; origin?: "login" | "register" }
+  ) => {
     setErrorMessage(null);
     setStep(next);
+    if (meta?.origin) {
+      setOriginStep(meta.origin);
+    }
     goToSlide(next === "login" ? 0 : next === "register" ? 1 : 2);
     try {
       const url = new URL(window.location.href);
       url.searchParams.set("auth", next);
+
+      if (next === "verify") {
+        const activeEmail = meta?.email ?? email;
+        const activeOrigin = meta?.origin ?? originStep;
+        if (activeEmail) {
+          url.searchParams.set("email", activeEmail);
+          window.sessionStorage.setItem(VERIFY_EMAIL_KEY, activeEmail);
+        }
+        if (activeOrigin) {
+          url.searchParams.set("from", activeOrigin);
+          window.sessionStorage.setItem(VERIFY_ORIGIN_KEY, activeOrigin);
+        }
+      } else {
+        url.searchParams.delete("email");
+        url.searchParams.delete("from");
+      }
+
       window.history.replaceState({}, "", url.toString());
     } catch {
       // Abaikan
     }
+  };
+
+  const handleChangeEmail = () => {
+    setErrorMessage(null);
+    switchStep(originStep);
   };
 
   useEffect(() => {
@@ -673,6 +764,15 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
     setOriginStep("register");
     try {
+      window.sessionStorage.setItem(
+        REG_DRAFT_KEY,
+        JSON.stringify({ name: name.trim(), companyName: companyName.trim() })
+      );
+    } catch {
+      // Abaikan
+    }
+
+    try {
       const result = await registerMutation.mutateAsync({
         name: name.trim(),
         companyName: companyName.trim(),
@@ -681,7 +781,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       });
       setEmail(result.email);
       setOtpDigits(["", "", "", "", "", ""]);
-      switchStep("verify");
+      switchStep("verify", { email: result.email, origin: "register" });
       toast.success("Akun berhasil dibuat!", {
         description: `Masukkan 6 digit kode verifikasi untuk mengaktifkan workspace ${companyName.trim()}.`,
       });
@@ -709,7 +809,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
       setEmail(result.email);
       setOtpDigits(["", "", "", "", "", ""]);
-      switchStep("verify");
+      switchStep("verify", { email: result.email, origin: "login" });
       toast.info("Verifikasi akun", {
         description: "Masukkan 6 digit kode verifikasi untuk melanjutkan ke workspace.",
       });
@@ -735,8 +835,13 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         code,
       });
       try {
+        window.sessionStorage.removeItem(VERIFY_EMAIL_KEY);
+        window.sessionStorage.removeItem(VERIFY_ORIGIN_KEY);
+        window.sessionStorage.removeItem(REG_DRAFT_KEY);
         const url = new URL(window.location.href);
         url.searchParams.delete("auth");
+        url.searchParams.delete("email");
+        url.searchParams.delete("from");
         window.history.replaceState({}, "", url.toString());
       } catch {
         // Abaikan
@@ -1144,27 +1249,11 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                   </p>
                   <p style={{ marginTop: "2px" }}>
                     Bukan email Anda?{" "}
-                    <button type="button" onClick={() => switchStep(originStep)}>
+                    <button type="button" onClick={handleChangeEmail}>
                       Ubah alamat email
                     </button>
                   </p>
                 </div>
-
-                {!email.trim() && (
-                  <div className="auth-line-fields compact">
-                    <label className="auth-line-input">
-                      <input
-                        type="email"
-                        required
-                        placeholder="Email yang didaftarkan"
-                        aria-label="Email yang didaftarkan"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                      />
-                      <Mail size={16} />
-                    </label>
-                  </div>
-                )}
 
                 <div className="auth-otp-clean-row" role="group" aria-label="6 digit kode verifikasi">
                   {otpDigits.map((digit, index) => (
@@ -1202,7 +1291,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                 </div>
 
                 <div className="auth-bottom-link">
-                  <button type="button" onClick={() => switchStep(originStep)}>
+                  <button type="button" onClick={handleChangeEmail}>
                     {originStep === "register"
                       ? "Kembali ke halaman Registrasi"
                       : "Kembali ke halaman Log In"}
