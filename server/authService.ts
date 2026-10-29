@@ -5,6 +5,7 @@ import type { CookieOptions, Request, Response } from "express";
 import { emailVerificationCodes, users, workspaceMembers, workspaces, type User } from "../drizzle/schema";
 import { getDb } from "./db";
 import { isDuplicateEntryError } from "./dbErrors";
+import { sendVerificationOtpEmail } from "./emailService";
 import { sdk } from "./_core/sdk";
 
 const OTP_EXPIRY_MINUTES = 15;
@@ -107,10 +108,6 @@ export async function issueSessionCookie(req: Request, res: Response, user: Pick
   });
 }
 
-function shouldReturnDevOtp(): boolean {
-  return process.env.NODE_ENV !== "production";
-}
-
 function sanitizeUser(user: User) {
   return {
     id: user.id,
@@ -137,11 +134,18 @@ async function createVerificationChallenge(userId: number, email: string) {
     attempts: 0,
     expiresAt,
   });
-  console.info(`[EksporFlow Auth] Kode verifikasi 6 digit untuk ${email}: ${code} (berlaku ${OTP_EXPIRY_MINUTES} menit)`);
-  return {
+
+  // Kirimkan email verifikasi resmi ke alamat email penerima
+  await sendVerificationOtpEmail({
+    email,
     code,
     expiresInMinutes: OTP_EXPIRY_MINUTES,
-    devOtpCode: shouldReturnDevOtp() ? code : null,
+  });
+
+  return {
+    expiresInMinutes: OTP_EXPIRY_MINUTES,
+    // Kode verifikasi krusial dan dirahasiakan: jangan dibocorkan ke browser client
+    devOtpCode: null,
   };
 }
 

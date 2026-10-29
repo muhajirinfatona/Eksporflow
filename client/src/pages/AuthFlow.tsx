@@ -5,7 +5,6 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
-  Copy,
   Eye,
   EyeOff,
   KeyRound,
@@ -587,7 +586,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
   // OTP state
   const [otpDigits, setOtpDigits] = useState<string[]>(["", "", "", "", "", ""]);
-  const [devOtpHint, setDevOtpHint] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -683,7 +681,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       });
       setEmail(result.email);
       setOtpDigits(["", "", "", "", "", ""]);
-      setDevOtpHint(result.devOtpCode ?? null);
       switchStep("verify");
       toast.success("Akun berhasil dibuat!", {
         description: `Masukkan 6 digit kode verifikasi untuk mengaktifkan workspace ${companyName.trim()}.`,
@@ -712,7 +709,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
       setEmail(result.email);
       setOtpDigits(["", "", "", "", "", ""]);
-      setDevOtpHint(result.devOtpCode ?? null);
       switchStep("verify");
       toast.info("Verifikasi akun", {
         description: "Masukkan 6 digit kode verifikasi untuk melanjutkan ke workspace.",
@@ -770,9 +766,8 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
       return;
     }
     try {
-      const result = await resendMutation.mutateAsync({ email: email.trim() });
+      await resendMutation.mutateAsync({ email: email.trim() });
       setOtpDigits(["", "", "", "", "", ""]);
-      setDevOtpHint(result.devOtpCode ?? null);
       otpRefs.current[0]?.focus();
       toast.success("Kode verifikasi 6 digit baru telah dikirim.");
     } catch (error) {
@@ -825,12 +820,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     }
     setOtpDigits(next);
     otpRefs.current[Math.min(5, Math.max(0, pasted.length - 1))]?.focus();
-  };
-
-  const fillDevOtp = () => {
-    if (!devOtpHint || devOtpHint.length !== 6) return;
-    setOtpDigits(devOtpHint.split(""));
-    setErrorMessage(null);
   };
 
   const isBusy =
@@ -1143,15 +1132,21 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
             {step === "verify" && (
               <form className="auth-minimal-form" onSubmit={(e) => void handleVerifySubmit(e)}>
                 <div className="auth-minimal-head">
-                  <h2>Verifikasi</h2>
+                  <h2>Verifikasi Akun</h2>
                   <p>
+                    Kode verifikasi 6 digit telah dikirimkan ke alamat email:
+                    <br />
+                    <strong style={{ color: "var(--ink)", fontSize: "14px" }}>{email || "akun Anda"}</strong>
+                    <br />
+                    <span style={{ fontSize: "12px", color: "var(--muted)", display: "inline-block", marginTop: "4px" }}>
+                      Silakan periksa kotak masuk (Inbox) atau folder Spam email Anda.
+                    </span>
+                  </p>
+                  <p style={{ marginTop: "2px" }}>
                     Bukan email Anda?{" "}
                     <button type="button" onClick={() => switchStep(originStep)}>
                       Ubah alamat email
                     </button>
-                    <br />
-                    Masukkan 6 digit kode OTP untuk{" "}
-                    <strong>{email || "akun Anda"}</strong>.
                   </p>
                 </div>
 
@@ -1168,17 +1163,6 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                       />
                       <Mail size={16} />
                     </label>
-                  </div>
-                )}
-
-                {devOtpHint && (
-                  <div className="auth-sim-pill">
-                    <span>
-                      Kode verifikasi Anda: <b className="mono-code">{devOtpHint}</b>
-                    </span>
-                    <button type="button" onClick={fillDevOtp}>
-                      <Copy size={12} /> Isi otomatis
-                    </button>
                   </div>
                 )}
 
