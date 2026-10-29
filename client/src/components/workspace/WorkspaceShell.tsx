@@ -652,15 +652,20 @@ export function WorkspaceShell({
           <section className="page-heading">
             <div>
               <span className="eyebrow">
-                {activeMeta.phase} ·{" "}
-                <button
-                  type="button"
-                  className="eyebrow-ref-link mono-code"
-                  title="Kelola atau ganti transaksi aktif"
-                  onClick={() => navigate("transactions")}
-                >
-                  {reference}
-                </button>
+                {activeMeta.phase}
+                {reference && !reference.startsWith("EXP-") ? (
+                  <>
+                    {" · "}
+                    <button
+                      type="button"
+                      className="eyebrow-ref-link mono-code"
+                      title="Kelola atau ganti transaksi aktif"
+                      onClick={() => navigate("transactions")}
+                    >
+                      {reference}
+                    </button>
+                  </>
+                ) : null}
               </span>
               <h1>{activeMeta.title}</h1>
               <p>{activeMeta.description}</p>
