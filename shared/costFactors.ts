@@ -297,11 +297,7 @@ export function convertTemplateCost(amountIdr: number, targetCurrency: string, e
  */
 export function getAiRecommendedRegulations(countryName?: string, product?: string): CountryRegulationPreset[] {
   if (!countryName || !countryName.trim()) {
-    return [
-      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-phyto")!,
-      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
-      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
-    ].filter(Boolean);
+    return [];
   }
 
   const c = countryName.toLowerCase().trim();

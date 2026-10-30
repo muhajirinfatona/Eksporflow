@@ -8001,6 +8001,131 @@ textarea:focus-visible {
   color: #0369a1;
 }
 
+/* Pending / Empty state: belum ada PO / LOI yang discan */
+.trans-compliance-pending {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.trans-compliance-pending-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1 1 320px;
+}
+
+.trans-compliance-pending-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.trans-compliance-pending-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.trans-compliance-pending-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f2942;
+}
+
+.trans-compliance-pending-text p {
+  margin: 0;
+  font-size: 11.5px;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.trans-compliance-pending-text strong {
+  color: #334155;
+}
+
+.trans-compliance-pending-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: #0284c7;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.trans-compliance-pending-btn:hover {
+  background: #0369a1;
+}
+
+.compliance-tag-scanned {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-left: 6px;
+}
+
+.trans-compliance-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trans-compliance-relink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #0284c7;
+  background: none;
+  border: 1px solid #bae6fd;
+  border-radius: 4px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.trans-compliance-relink:hover {
+  background: #e0f2fe;
+}
+
+.compliance-empty-reg-note {
+  font-size: 11.5px;
+  color: #64748b;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
 /* Inline Dynamic Custom Form Fields (Sama persis dengan bentuk isian standar di grid) */
 .custom-cost-field {
   display: flex;

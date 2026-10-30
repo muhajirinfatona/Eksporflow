@@ -17,6 +17,7 @@ import {
   MessageSquare,
   Package,
   Plus,
+  RefreshCw,
   Save,
   Search,
   ShieldAlert,
@@ -310,7 +311,14 @@ export function TransactionsModule({
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
-  const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(null);
+  const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(() => {
+    try {
+      const saved = localStorage.getItem("eksporflow_last_po_screening");
+      return saved ? (JSON.parse(saved) as PoScreeningResult) : null;
+    } catch {
+      return null;
+    }
+  });
 
   // Alur Ekspor Fleksibel Khusus Kewajiban Eksportir Berdasarkan Incoterm yang Disepakati
   const workflow = useMemo(() => {
@@ -339,6 +347,7 @@ export function TransactionsModule({
 
   const handleApplyPo = (data: PoScreeningResult) => {
     update("reference", data.reference);
+    update("poNumber", data.reference);
     update("buyer", data.buyer);
     update("buyerCountry", data.buyerCountry);
     update("destination", data.destination);
@@ -350,6 +359,21 @@ export function TransactionsModule({
     update("incoterm", data.incoterm);
     update("paymentTerms", data.paymentTerms);
     setLastScreening(data);
+    try {
+      localStorage.setItem("eksporflow_last_po_screening", JSON.stringify(data));
+    } catch {
+      // ignore
+    }
+  };
+
+  const handleResetPo = () => {
+    setLastScreening(null);
+    try {
+      localStorage.removeItem("eksporflow_last_po_screening");
+    } catch {
+      // ignore
+    }
+    toast.info("Dokumen PO/LOI direset. Silakan scan dokumen baru.");
   };
 
   // Filter out any default dummy auto-seeded transactions (e.g. EXP-2026-001)
@@ -389,6 +413,12 @@ export function TransactionsModule({
       ? ""
       : shipment.reference;
 
+  // Apakah dokumen PO atau LOI sudah discan atau sudah ada dokumen resmi buyer
+  const hasScannedPo = Boolean(
+    lastScreening ||
+    (displayReference && shipment.buyer && shipment.buyerCountry)
+  );
+
   return (
     <div className="module-stack">
       {/* 1. Notifikasi Mode Draft Lokal (Jika belum masuk akun) */}
@@ -416,9 +446,9 @@ export function TransactionsModule({
               type="button"
               className="create-po-btn"
               onClick={() => setPoModalOpen(true)}
-              title="Ekstrak data otomatis dari dokumen PO buyer"
+              title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
             >
-              <FileSpreadsheet size={14} /> + Scan Dokumen PO
+              <FileSpreadsheet size={14} /> + Scan Dokumen PO / LOI
             </button>
             <button
               type="button"
@@ -517,48 +547,93 @@ export function TransactionsModule({
           />
         </div>
 
-        {/* Dokumen & Sertifikat Kepatuhan Ekspor */}
-        <div className="trans-compliance-box">
-          <div className="trans-compliance-head">
-            <div className="trans-compliance-title">
-              <Sparkles size={14} />
-              <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
+        {/* Rekomendasi Dokumen: Hanya Ditampilkan Setelah Ada PO/LOI dari Buyer */}
+        {!hasScannedPo ? (
+          <div className="trans-compliance-pending">
+            <div className="trans-compliance-pending-left">
+              <div className="trans-compliance-pending-icon">
+                <Sparkles size={18} />
+              </div>
+              <div className="trans-compliance-pending-text">
+                <span className="trans-compliance-pending-title">
+                  Rekomendasi Regulasi &amp; Sertifikat Ekspor (AI Advisor)
+                </span>
+                <p>
+                  Saran dokumen kepatuhan belum ditampilkan karena belum ada PO/LOI dari buyer. Unggah atau scan dokumen <strong>PO (Purchase Order)</strong> atau <strong>LOI (Letter of Intent)</strong> agar AI Advisor dapat memindai negara tujuan dan memunculkan dokumen yang wajib Anda siapkan.
+                </p>
+              </div>
             </div>
-            <span className="trans-compliance-note">
-              Konfirmasi tarif pengurusan resmi ke freight forwarder Anda
-            </span>
+            <button
+              type="button"
+              className="trans-compliance-pending-btn"
+              onClick={() => setPoModalOpen(true)}
+            >
+              <FileSpreadsheet size={14} /> + Scan Dokumen PO / LOI
+            </button>
           </div>
+        ) : (
+          /* Dokumen & Sertifikat Kepatuhan Ekspor Hasil Scan AI */
+          <div className="trans-compliance-box">
+            <div className="trans-compliance-head">
+              <div className="trans-compliance-title">
+                <Sparkles size={14} />
+                <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
+                <span className="compliance-tag-scanned">
+                  <CheckCircle2 size={11} /> AI Rekomendasi Aktif dari PO / LOI
+                </span>
+              </div>
+              <div className="trans-compliance-actions">
+                <span className="trans-compliance-note">
+                  Konfirmasi tarif resmi ke freight forwarder Anda
+                </span>
+                <button
+                  type="button"
+                  className="trans-compliance-relink"
+                  onClick={() => setPoModalOpen(true)}
+                  title="Scan atau ganti dokumen PO/LOI lain"
+                >
+                  <RefreshCw size={11} /> Ganti Dokumen
+                </button>
+              </div>
+            </div>
 
-          <div className="trans-compliance-table-wrap">
-            <table className="trans-compliance-table">
-              <thead>
-                <tr>
-                  <th style={{ width: "26%" }}>Dokumen</th>
-                  <th style={{ width: "20%" }}>Instansi Penerbit</th>
-                  <th style={{ width: "54%" }}>Keterangan &amp; Persiapan</th>
-                </tr>
-              </thead>
-              <tbody>
-                {aiRegulations.map((reg) => (
-                  <tr key={reg.id}>
-                    <td className="compliance-td-doc">
-                      <span className="compliance-doc-name">{reg.name}</span>
-                    </td>
-                    <td className="compliance-td-auth">
-                      <span className="compliance-auth-badge">{reg.issuingAuthority}</span>
-                    </td>
-                    <td className="compliance-td-desc">
-                      <p className="compliance-desc-text">{reg.description}</p>
-                      <p className="compliance-prep-text">
-                        <strong>Persiapan:</strong> {reg.preparationTip}
-                      </p>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {aiRegulations.length > 0 ? (
+              <div className="trans-compliance-table-wrap">
+                <table className="trans-compliance-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "26%" }}>Dokumen</th>
+                      <th style={{ width: "20%" }}>Instansi Penerbit</th>
+                      <th style={{ width: "54%" }}>Keterangan &amp; Persiapan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {aiRegulations.map((reg) => (
+                      <tr key={reg.id}>
+                        <td className="compliance-td-doc">
+                          <span className="compliance-doc-name">{reg.name}</span>
+                        </td>
+                        <td className="compliance-td-auth">
+                          <span className="compliance-auth-badge">{reg.issuingAuthority}</span>
+                        </td>
+                        <td className="compliance-td-desc">
+                          <p className="compliance-desc-text">{reg.description}</p>
+                          <p className="compliance-prep-text">
+                            <strong>Persiapan:</strong> {reg.preparationTip}
+                          </p>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="compliance-empty-reg-note">
+                Tidak ada dokumen kepatuhan khusus yang diwajibkan untuk negara ini. Siapkan dokumen standar ekspor (PEB, Invoice, Packing List).
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
         {/* Rel Navigasi Antar Modul Terintegrasi */}
         <div className="connection-rail">

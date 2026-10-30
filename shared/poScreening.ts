@@ -130,6 +130,35 @@ Order Items:
 Payment Terms:
 40% T/T Advance Deposit, 60% balance payable within 5 days after Bill of Lading issuance and vessel sailing notification.`,
   },
+  {
+    id: "loi-dubai",
+    title: "Gulf Gourmet LLC (LOI Dubai)",
+    fileName: "LOI-DXB-2026-004_GulfGourmet.pdf",
+    text: `LETTER OF INTENT (LOI)
+LOI Number: LOI-DXB-2026/004
+Date: 29 October 2026
+
+Buyer / Importer:
+Company Name: Gulf Gourmet General Trading LLC (License No: 671829)
+Address: Al Quoz Industrial Area 3, Dubai, United Arab Emirates
+Corporate Email: sourcing@gulfgourmet.ae
+Phone / Contact: +971 4 338 9912
+Official Website: https://www.gulfgourmet.ae
+Contact Person: Tariq Al-Mansoori (Procurement Director)
+
+Destination / Port of Discharge: Jebel Ali Port, Dubai, UAE
+Delivery Terms: CIF Jebel Ali (Incoterms 2020)
+
+Order Items:
+1. Item Description: Organic Coconut Sugar & Spices Grade A
+   HS Code: 1702.90
+   Quantity: 20 Metric Ton (20,000 kg)
+   Unit Price: USD 1.85 per kg
+   Total Amount: USD 37,000.00
+
+Payment Terms:
+30% Advance Deposit by T/T upon Proforma Invoice, 70% against B/L copy, Halal Certificate, and COO.`,
+  },
 ];
 
 /**
@@ -145,7 +174,8 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
 
   // 1. Ekstraksi PO Reference
   const poMatch =
-    clean.match(/(?:PO\s*(?:Number|No\.?|#)?\s*[:=\-]?\s*)([A-Z0-9\/\-_]+)/i) ||
+    clean.match(/(?:(?:PO|LOI|Contract)\s*(?:Number|No\.?|#)?\s*[:=\-]?\s*)([A-Z0-9\/\-_]+)/i) ||
+    clean.match(/((?:PO|LOI)-[0-9]{4}[A-Z0-9\/\-_]*)/i) ||
     clean.match(/([A-Z]{2,4}-[0-9]{4}[A-Z0-9\/\-_]*)/i);
   const reference = poMatch ? poMatch[1].trim() : "PO-" + new Date().getFullYear() + "/01";
 
@@ -159,6 +189,7 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
     if (clean.includes("Nordic Pantry")) buyer = "Nordic Pantry AB";
     else if (clean.includes("Kyoto Trading")) buyer = "Kyoto Trading Co., Ltd.";
     else if (clean.includes("Hamburg Organic")) buyer = "Hamburg Organic Spices GmbH";
+    else if (clean.includes("Gulf Gourmet")) buyer = "Gulf Gourmet General Trading LLC";
     else buyer = "International Trade Buyer";
   }
 
@@ -168,6 +199,7 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
   else if (/Japan|Jepang|Tokyo|Yokohama|Kyoto|Osaka/i.test(clean)) buyerCountry = "Jepang";
   else if (/Germany|Jerman|Hamburg|Bremen|Berlin/i.test(clean)) buyerCountry = "Jerman";
   else if (/USA|United States|America|Amerika|Long Beach|Los Angeles|New York/i.test(clean)) buyerCountry = "Amerika Serikat";
+  else if (/UAE|Dubai|Jebel Ali|Emirat|Saudi|Arab/i.test(clean)) buyerCountry = "Uni Emirat Arab";
   else if (/Netherlands|Belanda|Rotterdam|Amsterdam/i.test(clean)) buyerCountry = "Belanda";
   else if (/Singapore|Singapura/i.test(clean)) buyerCountry = "Singapura";
   else if (/Malaysia|Kuala Lumpur|Port Klang/i.test(clean)) buyerCountry = "Malaysia";
@@ -181,6 +213,7 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
     else if (buyerCountry === "Jepang") destination = "Port of Tokyo";
     else if (buyerCountry === "Jerman") destination = "Port of Hamburg";
     else if (buyerCountry === "Amerika Serikat") destination = "Port of Long Beach";
+    else if (buyerCountry === "Uni Emirat Arab") destination = "Jebel Ali Port, Dubai";
     else destination = "Port of Discharge";
   }
 

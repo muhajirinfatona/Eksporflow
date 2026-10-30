@@ -105,11 +105,11 @@ export function PoIngestionModal({
           <div>
             <div className="clean-po-badge">
               <Sparkles size={13} />
-              <span>AI VALIDASI &amp; EKSTRAKSI PO</span>
+              <span>AI SCAN &amp; EKSTRAKSI PO / LOI</span>
             </div>
-            <h2>Impor Dokumen Purchase Order (PO) Buyer</h2>
+            <h2>Impor Dokumen PO atau LOI Buyer</h2>
             <p>
-              AI Advisor melakukan penapisan (*screening*) data legal buyer dan memberikan rekomendasi risiko. Keputusan penerimaan pesanan sepenuhnya merupakan wewenang Anda.
+              AI Advisor memindai identitas buyer, mengekstrak spesifikasi pesanan, dan otomatis menganalisis regulasi ekspor negara tujuan.
             </p>
           </div>
           <button
@@ -130,12 +130,12 @@ export function PoIngestionModal({
               <label className="po-dropzone">
                 <UploadCloud size={36} className="dropzone-icon" />
                 <span className="dropzone-title">
-                  {fileName ? `Dokumen terpilih: ${fileName}` : "Unggah Dokumen PO (PDF / TXT / DOCX)"}
+                  {fileName ? `Dokumen terpilih: ${fileName}` : "Unggah Dokumen PO atau LOI (PDF / TXT / DOCX)"}
                 </span>
                 <span className="dropzone-sub">
                   Klik untuk memilih file dari komputer Anda atau seret file ke sini
                 </span>
-                <span className="dropzone-btn">Pilih Dokumen PO</span>
+                <span className="dropzone-btn">Pilih Dokumen PO / LOI</span>
                 <input
                   type="file"
                   accept=".txt,.pdf,.doc,.docx"
@@ -145,7 +145,7 @@ export function PoIngestionModal({
               </label>
 
               <div className="po-paste-divider">
-                <span>Atau tempel isi teks Purchase Order di bawah ini</span>
+                <span>Atau tempel isi teks PO (Purchase Order) atau LOI (Letter of Intent) di bawah</span>
               </div>
 
               <textarea
@@ -153,7 +153,7 @@ export function PoIngestionModal({
                 rows={4}
                 value={poText}
                 onChange={(e) => setPoText(e.target.value)}
-                placeholder="Contoh isi PO: Nomor PO, nama perusahaan buyer, alamat email perusahaan, nomor kontak telepon, pelabuhan tujuan, dsb..."
+                placeholder="Contoh isi: Nomor PO/LOI, nama buyer, email resmi, kontak telepon, pelabuhan tujuan, Incoterms, komoditas..."
               />
 
               <div className="po-step-footer">
@@ -164,7 +164,7 @@ export function PoIngestionModal({
                     className="po-demo-link"
                     onClick={() => handleLoadSample("nordic")}
                   >
-                    Nordic Pantry AB (Swedia)
+                    Nordic Pantry (Swedia)
                   </button>
                   <button
                     type="button"
@@ -172,6 +172,13 @@ export function PoIngestionModal({
                     onClick={() => handleLoadSample("kyoto")}
                   >
                     Kyoto Trading (Jepang)
+                  </button>
+                  <button
+                    type="button"
+                    className="po-demo-link"
+                    onClick={() => handleLoadSample("loi-dubai")}
+                  >
+                    Gulf Gourmet (LOI Dubai)
                   </button>
                 </div>
               </div>
