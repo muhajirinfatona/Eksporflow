@@ -56,28 +56,28 @@ export function ContainerModule({
               <option value="40HC">40&apos; High Cube</option>
             </SelectField>
             <Field
-              label="Panjang fallback"
+              label="Panjang karton"
               value={shipment.cartonLength}
               type="number"
               suffix="cm"
               onChange={(value) => updateNumber("cartonLength", value)}
             />
             <Field
-              label="Lebar fallback"
+              label="Lebar karton"
               value={shipment.cartonWidth}
               type="number"
               suffix="cm"
               onChange={(value) => updateNumber("cartonWidth", value)}
             />
             <Field
-              label="Tinggi fallback"
+              label="Tinggi karton"
               value={shipment.cartonHeight}
               type="number"
               suffix="cm"
               onChange={(value) => updateNumber("cartonHeight", value)}
             />
             <Field
-              label="Berat fallback"
+              label="Berat per karton"
               value={shipment.cartonWeight}
               type="number"
               suffix="kg"
@@ -85,7 +85,7 @@ export function ContainerModule({
               onChange={(value) => updateNumber("cartonWeight", value)}
             />
             <Field
-              label="Jumlah fallback"
+              label="Jumlah karton"
               value={shipment.cartonQty}
               type="number"
               suffix="ctns"

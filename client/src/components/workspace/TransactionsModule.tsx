@@ -253,42 +253,42 @@ export function TransactionsModule({
         {/* Form Input Symmetrical 3 Columns: Bebas Kode AI Dummy */}
         <div className="profile-grid">
           <Field
-            label="Nomor transaksi"
+            label="Nomor transaksi / PO"
             value={displayReference}
-            placeholder="Contoh: PO-001, INV-2026/01 (Bebas)"
+            placeholder="Contoh: PO-001, INV-2026/01"
             onChange={(value) => update("reference", value)}
           />
 
           <Field
-            label="Nama buyer"
+            label="Nama pembeli (Buyer)"
             value={shipment.buyer}
-            placeholder="Masukkan nama perusahaan buyer"
+            placeholder="Nama perusahaan pembeli luar negeri"
             onChange={(value) => update("buyer", value)}
           />
 
           <Field
-            label="Negara buyer"
+            label="Negara tujuan pembeli"
             value={shipment.buyerCountry}
-            placeholder="Contoh: Jepang"
+            placeholder="Contoh: Jepang, Jerman, AS"
             onChange={(value) => update("buyerCountry", value)}
           />
 
           <Field
-            label="Tujuan pengiriman"
+            label="Pelabuhan / Kota tujuan"
             value={shipment.destination}
             placeholder="Contoh: Port of Tokyo"
             onChange={(value) => update("destination", value)}
           />
 
           <Field
-            label="Eksportir"
+            label="Nama perusahaan Anda (Eksportir)"
             value={shipment.exporter}
-            placeholder="Indico Export Indonesia"
+            placeholder="Nama perusahaan eksportir Anda"
             onChange={(value) => update("exporter", value)}
           />
 
           <Field
-            label="HS code referensi"
+            label="Kode komoditas (HS Code)"
             value={shipment.hsCode}
             placeholder="Contoh: 0901.11"
             onChange={(value) => update("hsCode", value)}
@@ -301,14 +301,14 @@ export function TransactionsModule({
             <div className="trans-reg-title-wrap">
               <h4 className="trans-reg-title">
                 <Sparkles size={16} color="#0284c7" />
-                AI Advisor · Dokumen & Regulasi Kepatuhan Ekspor ({shipment.buyerCountry || "Internasional"})
+                Daftar Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})
               </h4>
               <p className="trans-reg-meta">
-                Menganalisis negara buyer <b>{shipment.buyerCountry || "Tujuan Ekspor"}</b> {shipment.product ? <>untuk produk <b>{shipment.product}</b></> : null}. Berikut rekomendasi dokumen, sertifikasi mutu, dan perizinan yang wajib disiapkan:
+                Dokumen dan sertifikasi resmi yang umum dipersyaratkan negara pembeli <b>{shipment.buyerCountry || "Tujuan Ekspor"}</b>:
               </p>
             </div>
             <span className="trans-reg-forwarder-note">
-              ℹ️ Tanpa perkiraan harga · Tarif pengurusan dapat langsung Anda tanyakan ke freight forwarder
+              ℹ️ Tarif pengurusan dokumen silakan dikonfirmasi ke freight forwarder Anda
             </span>
           </div>
 

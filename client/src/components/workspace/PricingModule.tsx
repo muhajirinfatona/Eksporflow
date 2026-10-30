@@ -73,17 +73,17 @@ export function PricingModule({
     isKg ? (shipment.quantity || 1) / 1000 : (shipment.quantity || 1)
   );
 
-  // Target markup eksportir (%)
+  // Target persentase keuntungan eksportir (%)
   const markupPercent = shipment.margin > 0 ? shipment.margin : 15;
 
-  // Penawaran buyer per MT untuk evaluasi profitabilitas
+  // Tawaran harga dari pembeli per MT untuk cek untung/rugi
   const [buyerOfferPerMt, setBuyerOfferPerMt] = useState<number>(
     shipment.unitPrice
       ? (isKg ? shipment.unitPrice * 1000 : shipment.unitPrice)
       : 1850
   );
 
-  // State Bagian A: HPP Produk Siap Ekspor
+  // State Bagian A: Biaya Modal Produk (HPP)
   const [hppState, setHppState] = useState<HppComponentInput>(() => {
     const isIdr = shipment.currency === "IDR";
     if (isIdr) {
@@ -104,27 +104,27 @@ export function PricingModule({
     return { ...defaultHppInput };
   });
 
-  // Komponen HPP tambahan
+  // Komponen biaya modal tambahan
   const [customHppItems, setCustomHppItems] = useState<
     Array<{ id: string; name: string; costPerMt: number }>
   >([]);
 
-  // State Bagian B: Biaya Tambahan Incoterms
+  // State Bagian B: Biaya Pengiriman & Dokumen
   const [additionalCosts, setAdditionalCosts] = useState<AdditionalCostItem[]>(() => {
     const isIdr = shipment.currency === "IDR";
     if (isIdr) {
       return [
         {
           id: "fca-trucking",
-          name: "Truk ke pelabuhan muat (Inland POL)",
+          name: "Truk dari gudang ke pelabuhan muat (Inland POL)",
           perMt: 350000,
           fixedOrder: 2500000,
           stage: "FCA",
-          description: "Truk angkut ke depo pelabuhan muat.",
+          description: "Truk angkut ke pelabuhan muat asal.",
         },
         {
           id: "fca-customs",
-          name: "Customs clearance ekspor (PEB & PPJK)",
+          name: "Izin ekspor Bea Cukai (PEB)",
           perMt: 0,
           fixedOrder: 1750000,
           stage: "FCA",
@@ -132,7 +132,7 @@ export function PricingModule({
         },
         {
           id: "fca-docs",
-          name: "Dokumen ekspor (COO, Karantina, Fumigasi)",
+          name: "Sertifikat ekspor (Karantina, SKA/COO, Fumigasi)",
           perMt: 0,
           fixedOrder: 2200000,
           stage: "FCA",
@@ -140,50 +140,50 @@ export function PricingModule({
         },
         {
           id: "fob-terminal",
-          name: "Terminal Handling Charge POL (THC Origin)",
+          name: "Biaya bongkar muat pelabuhan asal (THC POL)",
           perMt: 120000,
           fixedOrder: 2500000,
           stage: "FOB",
-          description: "Handling pelabuhan muat asal.",
+          description: "Biaya pelabuhan muat asal.",
         },
         {
           id: "cfr-freight",
-          name: "Ocean freight kapal kontainer",
+          name: "Ongkos kapal kontainer internasional (Ocean Freight)",
           perMt: 1250000,
           fixedOrder: 7500000,
           stage: "CFR",
-          description: "Uang tambang kapal kontainer internasional.",
+          description: "Uang tambang kapal kontainer ke pelabuhan tujuan.",
         },
         {
           id: "cif-insurance",
-          name: "Asuransi pengangkutan laut (Marine Cargo)",
+          name: "Asuransi pengiriman laut (Marine Cargo)",
           perMt: 150000,
           fixedOrder: 1200000,
           stage: "CIF",
-          description: "Premi proteksi risiko pengangkutan laut.",
+          description: "Premi proteksi risiko di laut.",
         },
         {
           id: "dap-lastmile",
-          name: "Delivery inland ke gudang buyer (Last-mile)",
+          name: "Truk antar ke gudang pembeli (Last-Mile)",
           perMt: 350000,
           fixedOrder: 3500000,
           stage: "DAP",
-          description: "Pengantaran pelabuhan bongkar ke pembeli.",
+          description: "Pengantaran pelabuhan tujuan ke alamat pembeli.",
         },
         {
           id: "ddp-duty",
-          name: "Bea masuk & pajak impor negara tujuan",
+          name: "Pajak & bea masuk negara tujuan (khusus DDP)",
           perMt: 650000,
           fixedOrder: 0,
           stage: "DDP",
-          description: "Pajak & bea masuk (khusus DDP).",
+          description: "Pajak impor negara pembeli (khusus DDP).",
         },
       ];
     }
     return defaultAdditionalCosts.map((item) => ({ ...item }));
   });
 
-  // Perhitungan Rantai Harga & Profitabilitas Ekspor
+  // Perhitungan Rantai Harga & Keuntungan Ekspor
   const exportCalcResult: ExportCalculatorResult = useMemo(() => {
     const customHppTotalPerMt = customHppItems.reduce(
       (sum, item) => sum + (Number(item.costPerMt) || 0),
@@ -218,7 +218,7 @@ export function PricingModule({
     return exportCalcResult.chain.find((r) => r.term === term) || exportCalcResult.chain[0];
   }, [exportCalcResult.chain, shipment.incoterm]);
 
-  // Sinkronisasi otomatis nilai unitPrice ke data shipment
+  // Sinkronisasi otomatis nilai unitPrice ke data transaksi
   useEffect(() => {
     if (!activeChainRow) return;
     const unitPriceConverted = isKg
@@ -236,7 +236,7 @@ export function PricingModule({
     }
   }, [activeChainRow, isKg, shipment.unitPrice, update, updateLineItems, shipment.lineItems]);
 
-  // Kurs Bank Indonesia & Konversi Mata Uang
+  // Kurs Bank Indonesia & Konversi Valas
   const recommendedCurrency = getRecommendedCurrencyForCountry(shipment.buyerCountry);
   const initialBiCur =
     shipment.currency !== "IDR"
@@ -261,7 +261,7 @@ export function PricingModule({
   const biMiddleRate = activeBiRate.middleRate;
   const currentFxRate = shipment.exchangeRate > 0 ? shipment.exchangeRate : biSellRate;
 
-  // Konversi Mata Uang Sekunder
+  // Konversi Mata Uang Acuan
   const defaultDualTarget =
     shipment.currency === "IDR"
       ? recommendedCurrency?.code && recommendedCurrency.code !== "IDR"
@@ -286,7 +286,7 @@ export function PricingModule({
   const handleAddCustomHpp = () => {
     const newItem = {
       id: "hpp-" + Date.now(),
-      name: "Biaya Produksi Tambahan",
+      name: "Biaya Modal Tambahan",
       costPerMt: 0,
     };
     setCustomHppItems((prev) => [...prev, newItem]);
@@ -295,11 +295,11 @@ export function PricingModule({
   const handleAddAdditionalCost = () => {
     const newItem: AdditionalCostItem = {
       id: "cost-" + Date.now(),
-      name: "Biaya Tambahan Baru",
+      name: "Biaya Pengiriman Baru",
       perMt: 0,
       fixedOrder: 0,
       stage: shipment.incoterm === "EXW" ? "FCA" : (shipment.incoterm as any),
-      description: "Biaya penyerahan ekspor",
+      description: "Biaya penyerahan pengiriman",
     };
     setAdditionalCosts((prev) => [...prev, newItem]);
   };
@@ -368,15 +368,15 @@ export function PricingModule({
         <section className="pricing-main">
           <SectionTitle
             eyebrow="PENETAPAN HARGA EKSPOR"
-            title="Kalkulator Harga Ekspor & Incoterms® 2020"
-            description="Hitung HPP produk, tentukan margin keuntungan (EXW), dan akumulasi biaya logistik hingga Incoterm tujuan."
+            title="Kalkulator Harga Ekspor &amp; Incoterms"
+            description="Hitung modal produk (HPP), tentukan keuntungan, dan hitung biaya kirim sampai ke negara pembeli."
             action={
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 <button
                   type="button"
                   className="section-factor-btn"
                   onClick={handleLoadSampleData}
-                  title="Terapkan contoh data angka acuan"
+                  title="Terapkan contoh angka acuan"
                 >
                   <RotateCcw size={13} /> Muat Contoh Simulasi
                 </button>
@@ -390,11 +390,11 @@ export function PricingModule({
                       const found = partners.find((p) => p.id === event.target.value);
                       if (found) {
                         applyPartner(found);
-                        toast.success(`Buyer ${found.name} diterapkan`);
+                        toast.success(`Pembeli ${found.name} diterapkan`);
                       }
                     }}
                   >
-                    <option value="">Pilih buyer dari direktori...</option>
+                    <option value="">Pilih pembeli dari direktori...</option>
                     {partners.map((p) => (
                       <option key={p.id} value={p.id}>
                         {p.name} ({p.country})
@@ -406,24 +406,24 @@ export function PricingModule({
             }
           />
 
-          {/* PARAMETER ORDER */}
+          {/* PARAMETER PESANAN */}
           <div className="form-section">
             <div className="form-section-title">
               <span className="section-number">00</span>
               <div>
-                <b>Parameter Order &amp; Penawaran</b>
+                <b>Parameter Pesanan &amp; Penawaran</b>
               </div>
             </div>
 
             <div className="form-grid four">
               <Field
-                label="Produk ekspor"
+                label="Nama produk"
                 value={shipment.product}
                 onChange={(value) => update("product", value)}
               />
 
               <Field
-                label="Kuantitas order"
+                label="Jumlah pesanan"
                 value={shipment.quantity}
                 type="number"
                 onChange={(value) => updateNumber("quantity", value)}
@@ -449,7 +449,7 @@ export function PricingModule({
               </SelectField>
 
               <SelectField
-                label="Incoterm diminta buyer"
+                label="Syarat penyerahan (Incoterm)"
                 value={shipment.incoterm}
                 onChange={(value) => update("incoterm", value as Incoterm)}
               >
@@ -463,7 +463,7 @@ export function PricingModule({
               </SelectField>
 
               <Field
-                label="Tempat / Pelabuhan Tujuan"
+                label="Pelabuhan / Kota Tujuan"
                 value={shipment.namedPlace}
                 placeholder="Contoh: Port of Destination"
                 onChange={(value) => update("namedPlace", value)}
@@ -492,7 +492,7 @@ export function PricingModule({
               </div>
 
               <Field
-                label="Target Markup (%)"
+                label="Target Keuntungan / Markup (%)"
                 value={shipment.margin}
                 type="number"
                 suffix="%"
@@ -501,7 +501,7 @@ export function PricingModule({
               />
 
               <Field
-                label={`Harga Buyer / MT (${shipment.currency})`}
+                label={`Tawaran Harga Pembeli / MT (${shipment.currency})`}
                 value={buyerOfferPerMt}
                 type="number"
                 prefix={shipment.currency}
@@ -514,11 +514,11 @@ export function PricingModule({
               <div className="fx-clean-head">
                 <div className="fx-clean-title">
                   <span className="fx-pulse-dot" />
-                  <b>Kurs Acuan Resmi Bank Indonesia (BI)</b>
+                  <b>Kurs Acuan Bank Indonesia (BI)</b>
                 </div>
 
                 <div className="fx-clean-picker">
-                  <span className="fx-picker-label">Valas Acuan:</span>
+                  <span className="fx-picker-label">Mata Uang:</span>
                   <select
                     className="fx-select-sm"
                     value={selectedBiCurrency}
@@ -613,14 +613,14 @@ export function PricingModule({
             </div>
           </div>
 
-          {/* BAGIAN A: HPP PRODUK SIAP EKSPOR */}
+          {/* BAGIAN A: BIAYA MODAL PRODUK (HPP) */}
           <div className="calc-sheet-card">
             <div className="calc-sheet-header">
               <div className="calc-sheet-title-group">
                 <span className="calc-sheet-badge">BAGIAN A</span>
                 <div className="calc-sheet-titles">
-                  <h3>HPP Produk Siap Ekspor</h3>
-                  <p>Biaya bahan baku (termasuk susut/yield), pengolahan, upah, kemasan primer &amp; mutu.</p>
+                  <h3>Biaya Modal Produk Siap Ekspor (HPP)</h3>
+                  <p>Modal beli bahan baku dari pemasok, penyusutan olah (yield), upah pekerja, kemasan, dan uji mutu.</p>
                 </div>
               </div>
 
@@ -629,7 +629,7 @@ export function PricingModule({
                 className="section-factor-btn"
                 onClick={handleAddCustomHpp}
               >
-                <Plus size={13} /> Tambah Komponen
+                <Plus size={13} /> Tambah Biaya Modal
               </button>
             </div>
 
@@ -638,11 +638,11 @@ export function PricingModule({
                 <thead>
                   <tr>
                     <th style={{ width: 40 }}>No</th>
-                    <th>Komponen HPP</th>
-                    <th style={{ width: 170 }}>Input Satuan Asal</th>
-                    <th style={{ width: 150, textAlign: "right" }}>Biaya / MT Jadi</th>
-                    <th style={{ width: 80, textAlign: "right" }}>% HPP</th>
-                    <th style={{ width: 230 }}>Catatan &amp; Yield</th>
+                    <th>Komponen Modal (HPP)</th>
+                    <th style={{ width: 170 }}>Biaya Satuan Awal</th>
+                    <th style={{ width: 150, textAlign: "right" }}>Modal per MT Jadi</th>
+                    <th style={{ width: 80, textAlign: "right" }}>Porsi Modal</th>
+                    <th style={{ width: 220 }}>Hasil Jadi (Yield)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -650,7 +650,7 @@ export function PricingModule({
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>1</td>
                     <td>
-                      <strong>Bahan baku mentah (Sourcing / Supplier)</strong>
+                      <strong>Bahan baku mentah (dari pemasok / petani)</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -673,18 +673,18 @@ export function PricingModule({
                     </td>
                     <td>
                       <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 11.5 }}>Yield:</span>
+                        <span style={{ fontSize: 11.5 }}>Hasil Jadi:</span>
                         <input
                           type="number"
                           className="calc-input-compact"
-                          style={{ width: 60 }}
+                          style={{ width: 55 }}
                           value={hppState.yieldPercent}
                           onChange={(e) =>
                             updateHppField("yieldPercent", parseFloat(e.target.value) || 0)
                           }
                         />
                         <span style={{ fontSize: 11.5, color: "#475569" }}>
-                          % → <b>{exportCalcResult.rawMaterialPerMtOutput.toFixed(2)}x</b> bahan
+                          % → butuh <b>{exportCalcResult.rawMaterialPerMtOutput.toFixed(2)}x</b> bahan
                         </span>
                       </div>
                     </td>
@@ -694,7 +694,7 @@ export function PricingModule({
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>2</td>
                     <td>
-                      <strong>Angkut lokal bahan ke gudang olah</strong>
+                      <strong>Ongkos angkut bahan ke gudang olah</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -718,14 +718,14 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.sourcingFreight.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Disesuaikan faktor yield ({hppState.yieldPercent}%)</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Disesuaikan faktor susut ({hppState.yieldPercent}%)</td>
                   </tr>
 
-                  {/* Row 3: Biaya Pengolahan & Sortir */}
+                  {/* Row 3: Biaya Olah & Sortir */}
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>3</td>
                     <td>
-                      <strong>Pengolahan, sortir &amp; standarisasi mutu</strong>
+                      <strong>Biaya olah, sortir &amp; perapian mutu</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -746,14 +746,14 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.processing.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Penyesuaian spesifikasi ekspor</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Standarisasi spesifikasi pembeli</td>
                   </tr>
 
-                  {/* Row 4: Upah Tenaga Kerja */}
+                  {/* Row 4: Upah Pekerja */}
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>4</td>
                     <td>
-                      <strong>Upah tenaga kerja langsung &amp; packing</strong>
+                      <strong>Upah pekerja olah &amp; packing</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -774,14 +774,14 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.labor.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Tenaga olah dan kemas</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Tenaga kerja langsung</td>
                   </tr>
 
                   {/* Row 5: Overhead Gudang */}
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>5</td>
                     <td>
-                      <strong>Overhead operasional, utilitas &amp; gudang</strong>
+                      <strong>Sewa gudang, listrik &amp; operasional</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -802,14 +802,14 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.overhead.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Staffing, sewa dan utilitas</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Biaya operasional tempat olah</td>
                   </tr>
 
                   {/* Row 6: Kemasan Ekspor */}
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>6</td>
                     <td>
-                      <strong>Kemasan ekspor (Inner &amp; Outer)</strong>
+                      <strong>Kemasan ekspor (karung/karton food-grade)</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -830,7 +830,7 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.packaging.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Karung/karton food-grade ekspor</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Kemasan pelindung barang</td>
                   </tr>
 
                   {/* Row 7: Label & Barcode */}
@@ -858,14 +858,14 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.label.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Label bahasa negara buyer</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Label bahasa negara pembeli</td>
                   </tr>
 
-                  {/* Row 8: Uji Lab & Mutu */}
+                  {/* Row 8: Uji Lab Mutu */}
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>8</td>
                     <td>
-                      <strong>QC, uji laboratorium &amp; sertifikasi mutu</strong>
+                      <strong>Uji laboratorium &amp; sertifikat mutu (COA)</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -886,14 +886,14 @@ export function PricingModule({
                     <td style={{ textAlign: "right", color: "#64748b" }}>
                       {exportCalcResult.hppBreakdownPercentages.qcLab.toFixed(1)}%
                     </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Pengujian analisa laboratorium (COA)</td>
+                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Uji mutu independen resmi</td>
                   </tr>
 
-                  {/* Row 9: Biaya Tetap Persiapan Order */}
+                  {/* Row 9: Biaya Persiapan Order */}
                   <tr>
                     <td style={{ textAlign: "center", fontWeight: 700 }}>9</td>
                     <td>
-                      <strong>Biaya persiapan order (Fixed per order)</strong>
+                      <strong>Biaya persiapan pesanan (tetap per pesanan)</strong>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -977,17 +977,17 @@ export function PricingModule({
                     </tr>
                   ))}
 
-                  {/* Total HPP */}
+                  {/* Total Modal HPP */}
                   <tr className="calc-row-total">
                     <td colSpan={3} style={{ textAlign: "right", paddingRight: 16 }}>
-                      TOTAL HPP PRODUK SIAP EKSPOR ({formatNumber(quantityInMt)} MT):
+                      TOTAL BIAYA MODAL PRODUK (HPP):
                     </td>
                     <td style={{ textAlign: "right", fontSize: 14 }}>
                       {formatCurrencyAmount(exportCalcResult.totalHppPerMt, shipment.currency)} / MT
                     </td>
                     <td style={{ textAlign: "right" }}>100.0%</td>
                     <td>
-                      Total Order: <b>{formatCurrencyAmount(exportCalcResult.totalHppOrder, shipment.currency)}</b>
+                      Total Pesanan: <b>{formatCurrencyAmount(exportCalcResult.totalHppOrder, shipment.currency)}</b>
                     </td>
                   </tr>
                 </tbody>
@@ -995,14 +995,14 @@ export function PricingModule({
             </div>
           </div>
 
-          {/* BAGIAN B: BIAYA TAMBAHAN PER INCOTERM */}
+          {/* BAGIAN B: BIAYA PENGIRIMAN & DOKUMEN */}
           <div className="calc-sheet-card">
             <div className="calc-sheet-header">
               <div className="calc-sheet-title-group">
                 <span className="calc-sheet-badge accent">BAGIAN B</span>
                 <div className="calc-sheet-titles">
-                  <h3>Biaya Logistik &amp; Kepabeanan per Incoterm</h3>
-                  <p>Biaya di luar HPP: transportasi pelabuhan, dokumen PEB, THC, ocean freight, dan asuransi.</p>
+                  <h3>Biaya Pengiriman &amp; Dokumen Ekspor</h3>
+                  <p>Biaya di luar modal produk: truk pelabuhan, izin Bea Cukai, sewa kapal, dan asuransi laut.</p>
                 </div>
               </div>
 
@@ -1011,7 +1011,7 @@ export function PricingModule({
                 className="section-factor-btn"
                 onClick={handleAddAdditionalCost}
               >
-                <Plus size={13} /> Tambah Biaya Logistik
+                <Plus size={13} /> Tambah Biaya Pengiriman
               </button>
             </div>
 
@@ -1020,11 +1020,11 @@ export function PricingModule({
                 <thead>
                   <tr>
                     <th style={{ width: 40 }}>No</th>
-                    <th>Komponen Biaya Logistik</th>
-                    <th style={{ width: 140 }}>Biaya / MT (Variabel)</th>
-                    <th style={{ width: 150 }}>Biaya Tetap / Order</th>
-                    <th style={{ width: 160, textAlign: "right" }}>Biaya Efektif / MT</th>
-                    <th style={{ width: 100 }}>Tahap</th>
+                    <th>Jenis Biaya Pengiriman</th>
+                    <th style={{ width: 140 }}>Biaya per MT</th>
+                    <th style={{ width: 150 }}>Biaya Tetap per Pesanan</th>
+                    <th style={{ width: 160, textAlign: "right" }}>Biaya Riil per MT</th>
+                    <th style={{ width: 100 }}>Tahap Serah</th>
                     <th style={{ width: 50, textAlign: "center" }}>Aksi</th>
                   </tr>
                 </thead>
@@ -1124,7 +1124,7 @@ export function PricingModule({
             </div>
           </div>
 
-          {/* BAGIAN C: RANTAI HARGA & INDIKATOR PROFITABILITAS */}
+          {/* BAGIAN C: DAFTAR HARGA INCOTERMS & SIMULASI KEUNTUNGAN */}
           <div className="calc-sheet-card">
             <div className="calc-sheet-header">
               <div className="calc-sheet-title-group">
@@ -1132,15 +1132,15 @@ export function PricingModule({
                   BAGIAN C
                 </span>
                 <div className="calc-sheet-titles">
-                  <h3>Rantai Harga &amp; Indikator Profitabilitas</h3>
+                  <h3>Daftar Harga Incoterms &amp; Simulasi Keuntungan</h3>
                   <p>
-                    Perbandingan harga impas, harga target (+markup {markupPercent}%), dan status terhadap penawaran buyer ({formatCurrencyAmount(buyerOfferPerMt, shipment.currency)}/MT).
+                    Perbandingan harga modal impas, rekomendasi harga jual target, dan perkiraan keuntungan bersih.
                   </p>
                 </div>
               </div>
 
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                <span style={{ fontSize: 12, color: "#64748b" }}>Incoterm Aktif:</span>
+                <span style={{ fontSize: 12, color: "#64748b" }}>Pilihan Aktif:</span>
                 <StatusPill tone="amber">{shipment.incoterm || "CIF"}</StatusPill>
               </div>
             </div>
@@ -1149,16 +1149,16 @@ export function PricingModule({
               <table className="calc-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 70 }}>Term</th>
-                    <th style={{ width: 100 }}>Kelompok</th>
-                    <th style={{ textAlign: "right" }}>Biaya Tambahan / MT</th>
-                    <th style={{ textAlign: "right" }}>Harga Impas / MT</th>
-                    <th style={{ textAlign: "right" }}>Harga Target / MT (+{markupPercent}%)</th>
-                    <th style={{ textAlign: "right" }}>Total Order</th>
-                    <th style={{ textAlign: "right" }}>Laba Bersih / MT</th>
-                    <th style={{ textAlign: "center", width: 100 }}>Status Impas</th>
-                    <th style={{ textAlign: "center", width: 120 }}>Status Target</th>
-                    <th style={{ textAlign: "center", width: 90 }}>Aksi</th>
+                    <th style={{ width: 70 }}>Syarat Serah</th>
+                    <th style={{ width: 100 }}>Lokasi Serah</th>
+                    <th style={{ textAlign: "right" }}>Biaya Kirim / MT</th>
+                    <th style={{ textAlign: "right" }}>Harga Modal Impas / MT</th>
+                    <th style={{ textAlign: "right" }}>Harga Jual Target / MT</th>
+                    <th style={{ textAlign: "right" }}>Total Nilai Pesanan</th>
+                    <th style={{ textAlign: "right" }}>Keuntungan Bersih / MT</th>
+                    <th style={{ textAlign: "center", width: 105 }}>Hasil Penawaran</th>
+                    <th style={{ textAlign: "center", width: 125 }}>Kesesuaian Target</th>
+                    <th style={{ textAlign: "center", width: 85 }}>Pilih</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1172,7 +1172,7 @@ export function PricingModule({
                             <strong style={{ fontSize: 13, color: isActive ? "#0284c7" : "#0f172a" }}>
                               {row.term}
                             </strong>
-                            {isActive && <span className="cell-active-tag">Aktif</span>}
+                            {isActive && <span className="cell-active-tag">Dipilih</span>}
                           </div>
                         </td>
                         <td style={{ fontSize: 11.5, color: "#64748b" }}>{row.group}</td>
@@ -1221,7 +1221,7 @@ export function PricingModule({
                                 fontWeight: 700,
                               }}
                             >
-                              <Check size={13} /> Terpilih
+                              <Check size={13} /> Aktif
                             </span>
                           ) : (
                             <button
@@ -1230,7 +1230,7 @@ export function PricingModule({
                               style={{ padding: "3px 8px", fontSize: 11 }}
                               onClick={() => {
                                 update("incoterm", row.term as Incoterm);
-                                toast.success(`Incoterm diubah ke ${row.term}`);
+                                toast.success(`Syarat penyerahan diubah ke ${row.term}`);
                               }}
                             >
                               Pilih
@@ -1259,7 +1259,7 @@ export function PricingModule({
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <BookOpen size={15} color="#0284c7" />
                 <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>
-                  Panduan Rumus Kalkulasi &amp; Alur Incoterms
+                  Panduan Singkat Alur Harga Ekspor
                 </span>
               </div>
               <button type="button" className="ghost-button" style={{ padding: "2px 8px", fontSize: 11 }}>
@@ -1270,24 +1270,24 @@ export function PricingModule({
             {showGuide && (
               <div className="calc-guide-grid">
                 <div style={{ background: "#ffffff", padding: 10, borderRadius: 6, border: "1px solid #e2e8f0" }}>
-                  <b style={{ color: "#0284c7", fontSize: 12 }}>Alur Perhitungan:</b>
+                  <b style={{ color: "#0284c7", fontSize: 12 }}>Alur Penentuan Harga:</b>
                   <p style={{ fontSize: 11.5, color: "#475569", margin: "4px 0 0" }}>
-                    • <b>HPP</b>: Bahan mentah + Susut/Yield + Olah + Upah + Overhead + Kemasan + Uji Mutu.<br />
-                    • <b>EXW</b>: Total HPP + Target Markup Keuntungan (Harga Gudang).<br />
-                    • <b>FOB</b>: EXW + Truk ke POL + Origin THC + Customs PEB.<br />
-                    • <b>CFR</b>: FOB + Ocean Freight Kapal Kontainer ke Pelabuhan Tujuan.<br />
-                    • <b>CIF</b>: CFR + Asuransi Marine Cargo.<br />
-                    • <b>DAP/DDP</b>: CIF + THC Pelabuhan Bongkar + Truk ke Alamat Buyer (+ Pajak impor DDP).
+                    • <b>HPP</b>: Modal beli bahan mentah + susut olah + upah + kemasan + uji mutu.<br />
+                    • <b>EXW</b>: Modal HPP + Target Keuntungan (Harga ambil di gudang Anda).<br />
+                    • <b>FOB</b>: EXW + Truk ke pelabuhan + Izin Bea Cukai (Barang naik ke atas kapal).<br />
+                    • <b>CFR</b>: FOB + Ongkos kapal laut ke pelabuhan negara pembeli.<br />
+                    • <b>CIF</b>: CFR + Asuransi perlindungan barang di laut.<br />
+                    • <b>DAP/DDP</b>: Diantar sampai ke pintu gudang pembeli.
                   </p>
                 </div>
 
                 <div style={{ background: "#ffffff", padding: 10, borderRadius: 6, border: "1px solid #e2e8f0" }}>
-                  <b style={{ color: "#059669", fontSize: 12 }}>Yield &amp; Titik Impas:</b>
+                  <b style={{ color: "#059669", fontSize: 12 }}>Hasil Jadi &amp; Modal Impas:</b>
                   <p style={{ fontSize: 11.5, color: "#475569", margin: "4px 0 0" }}>
-                    • <b>Yield {hppState.yieldPercent}%</b>: 1 MT produk jadi membutuhkan{" "}
-                    <b>{exportCalcResult.rawMaterialPerMtOutput.toFixed(2)} MT</b> bahan mentah supplier.<br />
-                    • <b>Harga Target</b> = Harga Impas × (1 + Markup {markupPercent}%).<br />
-                    • <b>Indikator</b>: Menilai langsung apakah penawaran buyer berada di atas titik impas dan mencapai target laba.
+                    • <b>Hasil Jadi (Yield {hppState.yieldPercent}%)</b>: 1 MT produk siap kirim butuh{" "}
+                    <b>{exportCalcResult.rawMaterialPerMtOutput.toFixed(2)} MT</b> bahan mentah awal.<br />
+                    • <b>Harga Modal Impas</b>: Titik impas di mana modal dan seluruh biaya kirim tertutupi.<br />
+                    • <b>Harga Target</b>: Harga impas ditambah target keuntungan {markupPercent}%.
                   </p>
                 </div>
               </div>
@@ -1299,17 +1299,17 @@ export function PricingModule({
         <aside className="pricing-aside">
           <div className="quote-card">
             <div className="quote-top">
-              <span className="eyebrow light">OFFER PREVIEW</span>
+              <span className="eyebrow light">RINGKASAN PENAWARAN</span>
               <StatusPill tone="amber">{shipment.incoterm || "CIF"}</StatusPill>
             </div>
 
-            <span className="quote-label">TOTAL PENAWARAN ({shipment.incoterm})</span>
+            <span className="quote-label">TOTAL HARGA PENAWARAN ({shipment.incoterm})</span>
             <strong>{formatCurrencyAmount(activeChainRow.totalTargetOrder, shipment.currency)}</strong>
 
             {/* DUAL CURRENCY CONVERSION */}
             <div className="quote-dual-box">
               <div className="quote-dual-header">
-                <span className="quote-dual-title">Konversi Valas Acuan:</span>
+                <span className="quote-dual-title">Konversi Mata Uang:</span>
                 <select
                   className="quote-dual-select"
                   value={activeDualCurrency}
@@ -1337,18 +1337,18 @@ export function PricingModule({
             <div className="quote-factor-summary-box">
               <div className="quote-factor-header">
                 <span className="quote-factor-title">
-                  <Layers size={13} /> Rincian Nilai Penawaran ({shipment.incoterm})
+                  <Layers size={13} /> Rincian Biaya Penawaran ({shipment.incoterm})
                 </span>
               </div>
 
               <div className="quote-factor-breakdown">
                 <div className="factor-row">
-                  <span>1. HPP Produk Siap Ekspor:</span>
+                  <span>1. Total Modal Produk (HPP):</span>
                   <b>{formatCurrencyAmount(exportCalcResult.totalHppOrder, shipment.currency)}</b>
                 </div>
 
                 <div className="factor-row">
-                  <span>2. Target Laba (+{markupPercent}%):</span>
+                  <span>2. Keuntungan Bersih Target:</span>
                   <b className="mint-text">
                     +{formatCurrencyAmount(activeChainRow.totalTargetProfitOrder, shipment.currency)}
                   </b>
@@ -1356,7 +1356,7 @@ export function PricingModule({
 
                 {activeChainRow.cumulativeCostPerMt > 0 && (
                   <div className="factor-row">
-                    <span>3. Logistik &amp; Dokumen {shipment.incoterm}:</span>
+                    <span>3. Biaya Kirim &amp; Dokumen:</span>
                     <b>
                       +{formatCurrencyAmount(
                         activeChainRow.cumulativeCostPerMt * quantityInMt,
@@ -1373,7 +1373,7 @@ export function PricingModule({
               </div>
 
               <div className="quote-unit-footer">
-                <span>Ekuivalen per {shipment.unit || "ton"}:</span>
+                <span>Harga per {shipment.unit || "ton"}:</span>
                 <b>
                   {formatCurrencyAmount(
                     isKg ? activeChainRow.targetPricePerMt / 1000 : activeChainRow.targetPricePerMt,
@@ -1407,7 +1407,7 @@ export function PricingModule({
           </div>
 
           <div className="quote-metadata">
-            <span>Formula: ICC Incoterms® 2020</span>
+            <span>Standar: Incoterms® 2020</span>
             <span>
               Kurs: {shipment.exchangeRateSource || "Bank Indonesia"} · {shipment.exchangeRateDate || "Realtime"}
             </span>
@@ -1416,11 +1416,11 @@ export function PricingModule({
           <div className="tip-card">
             <Sparkles size={17} />
             <div>
-              <b>Kompensasi Valas &amp; Risiko</b>
+              <b>Tips untuk Eksportir Pemula</b>
               <p>
                 {shipment.currency === "IDR"
-                  ? "Transaksi dihitung dalam Rupiah. Buyer luar negeri biasanya menerima penawaran dalam USD atau EUR dengan acuan kurs jual Bank Indonesia."
-                  : `Transaksi disajikan dalam ${shipment.currency}. Ekuivalen Rupiah dihitung dengan kurs acuan Rp ${formatNumber(currentFxRate)}.`}
+                  ? "Transaksi dihitung dalam Rupiah. Pembeli luar negeri umumnya meminta penawaran resmi dalam mata uang valas (seperti USD atau EUR)."
+                  : `Transaksi dihitung dalam ${shipment.currency}. Ekuivalen Rupiah dihitung dengan kurs acuan resmi Bank Indonesia Rp ${formatNumber(currentFxRate)}.`}
               </p>
             </div>
           </div>
@@ -1436,9 +1436,9 @@ export function PricingModule({
                 <ArrowRightLeft size={20} />
               </div>
               <div>
-                <h4>Konfirmasi Konversi Mata Uang Transaksi</h4>
+                <h4>Konfirmasi Konversi Mata Uang</h4>
                 <p>
-                  Ubah transaksi dari <b>{shipment.currency}</b> ke <b>{targetConvertCurrency}</b>
+                  Ubah mata uang transaksi dari <b>{shipment.currency}</b> ke <b>{targetConvertCurrency}</b>
                 </p>
               </div>
             </div>
