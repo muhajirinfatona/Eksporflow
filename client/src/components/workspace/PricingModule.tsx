@@ -39,6 +39,7 @@ import {
   Sparkles,
   Trash2,
   TrendingUp,
+  X,
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -230,29 +231,23 @@ export function PricingModule({
   // AI Advisor secara otomatis menganalisis negara buyer & komoditas
   const aiRegulations = getAiRecommendedRegulations(shipment.buyerCountry, shipment.product);
 
-  // Fungsi tambah form isian kustom (tanpa pop up)
+  // Fungsi tambah form isian kustom (langsung di grid seperti isian standar)
   const handleAddFactorField = (
     section: "goods" | "logistics" | "strategy",
     defaultName?: string,
     defaultAmount?: number,
   ) => {
-    const defaultLabel =
-      defaultName ||
-      (section === "goods"
-        ? "Biaya Tambahan Barang / Uji Lab"
-        : section === "logistics"
-          ? "Biaya Logistik Tambahan / Sertifikasi"
-          : "Biaya Tambahan Strategis");
+    const factorName = defaultName ?? "";
     const newFactor: AdditionalCostFactor = {
       id: "factor-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
-      name: defaultLabel,
+      name: factorName,
       amount: defaultAmount || 0,
       section,
     };
     const current = shipment.additionalCostFactors || [];
     update("additionalCostFactors", [...current, newFactor]);
-    toast.success(`Form isian "${defaultLabel}" ditambahkan`, {
-      description: `Kolom baru kini aktif di Bagian ${section === "goods" ? "01 Nilai Barang" : section === "logistics" ? "02 Logistik" : "03 Strategi"}.`,
+    toast.success(factorName ? `Form isian "${factorName}" ditambahkan` : "Form isian biaya baru ditambahkan ke grid", {
+      description: `Kolom isian baru kini siap diketik nama biaya dan nominalnya di Bagian ${section === "goods" ? "01 Nilai Barang" : section === "logistics" ? "02 Logistik" : "03 Strategi"}.`,
     });
   };
 
@@ -637,49 +632,43 @@ export function PricingModule({
                 prefix={shipment.currency}
                 onChange={(value) => updateNumber("unitPrice", value)}
               />
-            </div>
 
-            {/* FORM ISIAN TAMBAHAN NILAI BARANG */}
-            {(shipment.additionalCostFactors || []).filter((f) => f.section === "goods").length > 0 && (
-              <div className="custom-factors-group">
-                <div className="custom-factors-head">
-                  <span className="custom-factors-title">
-                    <SlidersHorizontal size={13} /> Form Isian Tambahan: Nilai Barang & Sertifikasi
-                  </span>
-                  <small style={{ color: "#64748b", fontSize: 11 }}>
-                    Otomatis dihitung ke subtotal nilai barang
-                  </small>
-                </div>
-                {(shipment.additionalCostFactors || [])
-                  .filter((f) => f.section === "goods")
-                  .map((factor) => (
-                    <div className="custom-factor-row" key={factor.id}>
+              {/* FORM ISIAN TAMBAHAN NILAI BARANG LANGSUNG DI GRID */}
+              {(shipment.additionalCostFactors || [])
+                .filter((f) => f.section === "goods")
+                .map((factor) => (
+                  <div className="field custom-cost-field" key={factor.id}>
+                    <div className="custom-cost-label-row">
                       <input
                         type="text"
+                        className="custom-cost-label-input"
                         value={factor.name}
-                        placeholder="Nama faktor barang / uji lab..."
+                        placeholder="Ketik nama biaya..."
                         onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        aria-label="Nama faktor barang"
-                      />
-                      <Field
-                        label=""
-                        value={factor.amount}
-                        type="number"
-                        prefix={shipment.currency}
-                        onChange={(val) => handleUpdateFactorField(factor.id, "amount", parseFloat(val) || 0)}
+                        title="Klik untuk ketik nama biaya barang / sertifikasi"
+                        autoFocus={!factor.name}
                       />
                       <button
                         type="button"
-                        className="factor-delete-btn"
+                        className="custom-cost-delete-btn"
                         onClick={() => handleDeleteFactorField(factor.id)}
-                        title="Hapus form isian ini"
+                        title="Hapus isian ini"
                       >
-                        <Trash2 size={14} />
+                        <X size={13} />
                       </button>
                     </div>
-                  ))}
-              </div>
-            )}
+                    <div className={`input-shell ${shipment.currency ? "has-prefix" : ""}`}>
+                      {shipment.currency && <b>{shipment.currency}</b>}
+                      <input
+                        type="number"
+                        value={factor.amount || ""}
+                        placeholder="0"
+                        onChange={(e) => handleUpdateFactorField(factor.id, "amount", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
 
             <LineItemsEditor
               items={shipment.lineItems}
@@ -838,49 +827,43 @@ export function PricingModule({
                 prefix={shipment.currency}
                 onChange={(value) => updateNumber("lastMile", value)}
               />
-            </div>
 
-            {/* FORM ISIAN TAMBAHAN BIAYA LOGISTIK */}
-            {(shipment.additionalCostFactors || []).filter((f) => f.section === "logistics").length > 0 && (
-              <div className="custom-factors-group">
-                <div className="custom-factors-head">
-                  <span className="custom-factors-title">
-                    <SlidersHorizontal size={13} /> Form Isian Tambahan: Biaya Logistik & Regulasi
-                  </span>
-                  <small style={{ color: "#64748b", fontSize: 11 }}>
-                    Otomatis dihitung ke subtotal logistik
-                  </small>
-                </div>
-                {(shipment.additionalCostFactors || [])
-                  .filter((f) => f.section === "logistics")
-                  .map((factor) => (
-                    <div className="custom-factor-row" key={factor.id}>
+              {/* ISIAN TAMBAHAN BIAYA LOGISTIK TAMPIL SEPERTI FIELD BIASA DI GRID */}
+              {(shipment.additionalCostFactors || [])
+                .filter((f) => f.section === "logistics")
+                .map((factor) => (
+                  <div className="field custom-cost-field" key={factor.id}>
+                    <div className="custom-cost-label-row">
                       <input
                         type="text"
+                        className="custom-cost-label-input"
                         value={factor.name}
-                        placeholder="Nama faktor logistik / regulasi..."
+                        placeholder="Ketik nama biaya..."
                         onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        aria-label="Nama faktor logistik"
-                      />
-                      <Field
-                        label=""
-                        value={factor.amount}
-                        type="number"
-                        prefix={shipment.currency}
-                        onChange={(val) => handleUpdateFactorField(factor.id, "amount", parseFloat(val) || 0)}
+                        title="Klik untuk ketik nama biaya logistik"
+                        autoFocus={!factor.name}
                       />
                       <button
                         type="button"
-                        className="factor-delete-btn"
+                        className="custom-cost-delete-btn"
                         onClick={() => handleDeleteFactorField(factor.id)}
                         title="Hapus form isian ini"
                       >
-                        <Trash2 size={14} />
+                        <X size={13} />
                       </button>
                     </div>
-                  ))}
-              </div>
-            )}
+                    <div className={`input-shell ${shipment.currency ? "has-prefix" : ""}`}>
+                      {shipment.currency && <b>{shipment.currency}</b>}
+                      <input
+                        type="number"
+                        value={factor.amount || ""}
+                        placeholder="0"
+                        onChange={(e) => handleUpdateFactorField(factor.id, "amount", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
           </div>
 
           {/* BAGIAN 03: STRATEGI PENAWARAN & KURS PASAR */}
@@ -1103,49 +1086,43 @@ export function PricingModule({
                 value={shipment.namedPlace}
                 onChange={(value) => update("namedPlace", value)}
               />
-            </div>
 
-            {/* FORM ISIAN TAMBAHAN STRATEGI */}
-            {(shipment.additionalCostFactors || []).filter((f) => f.section === "strategy").length > 0 && (
-              <div className="custom-factors-group">
-                <div className="custom-factors-head">
-                  <span className="custom-factors-title">
-                    <SlidersHorizontal size={13} /> Form Isian Tambahan: Biaya Strategis & Cadangan
-                  </span>
-                  <small style={{ color: "#64748b", fontSize: 11 }}>
-                    Otomatis dihitung ke biaya langsung transaksi
-                  </small>
-                </div>
-                {(shipment.additionalCostFactors || [])
-                  .filter((f) => f.section === "strategy")
-                  .map((factor) => (
-                    <div className="custom-factor-row" key={factor.id}>
+              {/* ISIAN TAMBAHAN BIAYA STRATEGIS TAMPIL SEPERTI FIELD BIASA DI GRID */}
+              {(shipment.additionalCostFactors || [])
+                .filter((f) => f.section === "strategy")
+                .map((factor) => (
+                  <div className="field custom-cost-field" key={factor.id}>
+                    <div className="custom-cost-label-row">
                       <input
                         type="text"
+                        className="custom-cost-label-input"
                         value={factor.name}
-                        placeholder="Nama faktor strategis..."
+                        placeholder="Ketik nama biaya..."
                         onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        aria-label="Nama faktor strategis"
-                      />
-                      <Field
-                        label=""
-                        value={factor.amount}
-                        type="number"
-                        prefix={shipment.currency}
-                        onChange={(val) => handleUpdateFactorField(factor.id, "amount", parseFloat(val) || 0)}
+                        title="Klik untuk ketik nama biaya strategis"
+                        autoFocus={!factor.name}
                       />
                       <button
                         type="button"
-                        className="factor-delete-btn"
+                        className="custom-cost-delete-btn"
                         onClick={() => handleDeleteFactorField(factor.id)}
                         title="Hapus form isian ini"
                       >
-                        <Trash2 size={14} />
+                        <X size={13} />
                       </button>
                     </div>
-                  ))}
-              </div>
-            )}
+                    <div className={`input-shell ${shipment.currency ? "has-prefix" : ""}`}>
+                      {shipment.currency && <b>{shipment.currency}</b>}
+                      <input
+                        type="number"
+                        value={factor.amount || ""}
+                        placeholder="0"
+                        onChange={(e) => handleUpdateFactorField(factor.id, "amount", parseFloat(e.target.value) || 0)}
+                      />
+                    </div>
+                  </div>
+                ))}
+            </div>
 
             {/* STRIP KONVERSI VALAS TERSTRUKTUR & RAPI */}
             <div className="fx-convert-action-strip">
