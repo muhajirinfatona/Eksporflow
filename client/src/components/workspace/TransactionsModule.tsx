@@ -403,15 +403,12 @@ export function TransactionsModule({
         </div>
       )}
 
-      {/* 2. SINGLE SOURCE OF TRUTH: Data Transaksi Terhubung (Clean 3-Column Grid) */}
+      {/* 2. INFORMASI UTAMA: Data Transaksi (Clean, Minimalist & Symmetrical) */}
       <section className="panel panel-padding active-order-card">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">SINGLE SOURCE OF TRUTH</span>
-            <h3>Data transaksi terhubung</h3>
-            <p className="profile-description">
-              Perubahan di sini otomatis dipakai oleh kalkulator harga, invoice, Packing List, B/L draft, dan rencana muatan.
-            </p>
+            <span className="eyebrow">INFORMASI UTAMA</span>
+            <h3>Data Transaksi</h3>
           </div>
 
           <div className="active-order-header-actions">
@@ -419,15 +416,15 @@ export function TransactionsModule({
               type="button"
               className="create-po-btn"
               onClick={() => setPoModalOpen(true)}
-              title="Buat transaksi otomatis dari dokumen Purchase Order (PO) buyer"
+              title="Ekstrak data otomatis dari dokumen PO buyer"
             >
-              <FileSpreadsheet size={14} /> + Tambah Transaksi dari PO
+              <FileSpreadsheet size={14} /> + Scan Dokumen PO
             </button>
             <button
               type="button"
               className="ghost-button"
               onClick={handleSaveDraft}
-              title="Simpan sebagai draft jika belum ingin dicatat resmi ke cloud"
+              title="Simpan sebagai draft lokal"
             >
               <FileText size={14} /> Draft
             </button>
@@ -436,7 +433,7 @@ export function TransactionsModule({
               className="save-button"
               onClick={() => void saveShipment()}
               disabled={saveState === "saving"}
-              title="Simpan transaksi ke database cloud workspace"
+              title="Simpan transaksi ke database cloud"
             >
               <Save size={14} /> {saveState === "saving" ? "Menyimpan..." : "Simpan"}
             </button>
@@ -444,12 +441,12 @@ export function TransactionsModule({
               type="button"
               className="ghost-button select-partner-btn"
               onClick={() => navigate("partners")}
-              title="Pilih dari direktori mitra buyer dan consignee tersimpan"
+              title="Pilih dari daftar mitra buyer tersimpan"
             >
               <Users size={14} /> Mitra
             </button>
             <span className="connection-pill-sync">
-              <span className="sync-dot">•</span> ✓ Semua modul sinkron
+              <span className="sync-dot">•</span> Sinkron
             </span>
           </div>
         </div>
@@ -475,83 +472,74 @@ export function TransactionsModule({
           </div>
         )}
 
-        {/* Form Input Symmetrical 3 Columns: Bebas Kode AI Dummy */}
+        {/* Form Input Rapi & Bersih */}
         <div className="profile-grid">
           <Field
-            label="Nomor transaksi / PO"
+            label="Nomor PO / Transaksi"
             value={displayReference}
             placeholder="Contoh: PO-001, INV-2026/01"
             onChange={(value) => update("reference", value)}
           />
 
           <Field
-            label="Nama pembeli (Buyer)"
+            label="Nama Buyer (Pembeli)"
             value={shipment.buyer}
             placeholder="Nama perusahaan pembeli luar negeri"
             onChange={(value) => update("buyer", value)}
           />
 
           <Field
-            label="Negara tujuan pembeli"
+            label="Negara Tujuan"
             value={shipment.buyerCountry}
             placeholder="Contoh: Jepang, Jerman, AS"
             onChange={(value) => update("buyerCountry", value)}
           />
 
           <Field
-            label="Pelabuhan / Kota tujuan"
+            label="Pelabuhan Tujuan"
             value={shipment.destination}
             placeholder="Contoh: Port of Tokyo"
             onChange={(value) => update("destination", value)}
           />
 
           <Field
-            label="Nama perusahaan Anda (Eksportir)"
+            label="Nama Eksportir"
             value={shipment.exporter}
-            placeholder="Nama perusahaan eksportir Anda"
+            placeholder="Nama perusahaan Anda"
             onChange={(value) => update("exporter", value)}
           />
 
           <Field
-            label="Kode komoditas (HS Code)"
+            label="HS Code"
             value={shipment.hsCode}
             placeholder="Contoh: 0901.11"
             onChange={(value) => update("hsCode", value)}
           />
         </div>
 
-        {/* AI Advisor Rekomendasi Regulasi & Dokumen Ekspor (Khusus Kepatuhan Eksportir Tanpa Perkiraan Harga) */}
-        <div className="trans-regulation-card">
-          <div className="trans-reg-header-top">
-            <div className="trans-reg-title-wrap">
-              <h4 className="trans-reg-title">
-                <Sparkles size={16} color="#0284c7" />
-                Daftar Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})
-              </h4>
-              <p className="trans-reg-meta">
-                Dokumen dan sertifikasi resmi yang umum dipersyaratkan negara pembeli <b>{shipment.buyerCountry || "Tujuan Ekspor"}</b>:
-              </p>
+        {/* Dokumen & Sertifikat Kepatuhan Ekspor Ringkas */}
+        <div className="trans-compliance-box">
+          <div className="trans-compliance-head">
+            <div className="trans-compliance-title">
+              <Sparkles size={14} />
+              <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
             </div>
-            <span className="trans-reg-forwarder-note">
-              ℹ️ Tarif pengurusan dokumen silakan dikonfirmasi ke freight forwarder Anda
+            <span className="trans-compliance-note">
+              Konfirmasi tarif pengurusan resmi ke freight forwarder Anda
             </span>
           </div>
 
-          <div className="trans-reg-grid">
+          <div className="trans-compliance-grid">
             {aiRegulations.map((reg) => (
-              <div className="trans-reg-item" key={reg.id}>
-                <div className="trans-reg-item-top">
-                  <div className="trans-reg-item-title">{reg.name}</div>
-                  <span className="trans-reg-auth-badge">{reg.issuingAuthority}</span>
+              <div className="trans-compliance-item" key={reg.id}>
+                <div className="trans-compliance-item-top">
+                  <span className="trans-compliance-name">{reg.name}</span>
+                  <span className="trans-compliance-badge">{reg.issuingAuthority}</span>
                 </div>
-                <div className="trans-reg-scope">
-                  <span>Lingkup: {reg.targetCountry}</span>
-                </div>
-                <p className="trans-reg-desc">{reg.description}</p>
-                <div className="trans-reg-tip-box">
-                  <strong>Yang Perlu Disiapkan Eksportir:</strong>
-                  {reg.preparationTip}
-                </div>
+                <p className="trans-compliance-desc">{reg.description}</p>
+                <span className="trans-compliance-tip">
+                  <b>Persiapan:</b> {reg.preparationTip}
+                </span>
               </div>
             ))}
           </div>

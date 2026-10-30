@@ -1631,15 +1631,15 @@ textarea:focus-visible {
 .screen-ai-banner {
   background: #ffffff;
   border: 1px solid var(--line);
-  border-left: 4px solid #3b82f6;
+  border-left: 3px solid #3b82f6;
   border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-  padding: 13px 18px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  padding: 8px 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 16px;
+  gap: 14px;
+  margin-bottom: 12px;
   transition: all 0.2s ease;
 }
 
@@ -1671,14 +1671,14 @@ textarea:focus-visible {
 .screen-ai-banner-eyebrow {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
+  gap: 6px;
+  margin-bottom: 2px;
   flex-wrap: wrap;
 }
 
 .screen-ai-spark-icon {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   border-radius: 4px;
   display: inline-grid;
   place-items: center;
@@ -1702,8 +1702,8 @@ textarea:focus-visible {
 }
 
 .screen-ai-banner-eyebrow .eyebrow-text {
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
+  font-size: 10px;
+  letter-spacing: 0.05em;
   font-weight: 700;
   color: var(--muted);
   text-transform: uppercase;
@@ -1713,9 +1713,9 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11px;
+  font-size: 10.5px;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 1px 6px;
   border-radius: 999px;
   line-height: 1.2;
 }
@@ -1745,18 +1745,18 @@ textarea:focus-visible {
 }
 
 .screen-ai-banner-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   color: var(--navy);
-  margin: 0 0 3px;
-  line-height: 1.3;
+  margin: 0 0 2px;
+  line-height: 1.25;
 }
 
 .screen-ai-banner-desc {
-  font-size: 12.5px;
+  font-size: 11.5px;
   color: #475569;
   margin: 0;
-  line-height: 1.45;
+  line-height: 1.35;
 }
 
 .screen-ai-banner-right {
@@ -1770,11 +1770,11 @@ textarea:focus-visible {
   background: var(--navy);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 7px;
-  padding: 7px 13px;
-  font-size: 12px;
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-size: 11.5px;
   font-weight: 600;
-  box-shadow: 0 2px 6px rgba(15, 41, 66, 0.12);
+  box-shadow: 0 1px 4px rgba(15, 41, 66, 0.1);
   transition: all 0.18s ease;
   white-space: nowrap;
 }
@@ -7867,148 +7867,105 @@ textarea:focus-visible {
    14. Inline Custom Cost Factors & AI Advisor Regulations (No Popup)
    ========================================================================== */
 
-/* AI Advisor Regulation Checklist in Transaksi Ekspor (Kepatuhan Dokumen Tanpa Harga) */
-.trans-regulation-card {
-  border-left: 4px solid #0284c7;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #0284c7;
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  margin-top: 18px;
-}
-
-.trans-reg-header-top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.trans-reg-title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.trans-reg-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  color: #0f2942;
-  margin: 0;
-}
-
-.trans-reg-meta {
-  font-size: 12.5px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.45;
-}
-
-.trans-reg-forwarder-note {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #0369a1;
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
-  border-radius: 6px;
-  padding: 5px 10px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.trans-reg-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 14px;
-  margin-top: 16px;
-}
-
-.trans-reg-item {
+/* Clean, Compact Compliance Documents Summary in Transactions */
+.trans-compliance-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 12px 14px;
+  margin-top: 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  transition: all 0.15s ease;
-  position: relative;
 }
 
-.trans-reg-item:hover {
-  border-color: #38bdf8;
-  background: #ffffff;
-  box-shadow: 0 3px 10px rgba(2, 132, 199, 0.06);
-}
-
-.trans-reg-item-top {
+.trans-compliance-head {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.trans-compliance-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #0f2942;
+}
+
+.trans-compliance-title svg {
+  color: #0284c7;
+}
+
+.trans-compliance-note {
+  font-size: 11px;
+  color: #64748b;
+}
+
+.trans-compliance-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 10px;
 }
 
-.trans-reg-item-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0f2942;
-  line-height: 1.35;
+.trans-compliance-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: border-color 0.15s ease;
 }
 
-.trans-reg-auth-badge {
-  font-size: 10.5px;
+.trans-compliance-item:hover {
+  border-color: #cbd5e1;
+}
+
+.trans-compliance-item-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.trans-compliance-name {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f2942;
+}
+
+.trans-compliance-badge {
+  font-size: 10px;
   font-weight: 600;
-  padding: 2px 7px;
+  padding: 1.5px 6px;
   border-radius: 4px;
   background: #f0fdf4;
   color: #166534;
   border: 1px solid #bbf7d0;
   white-space: nowrap;
-  flex-shrink: 0;
 }
 
-.trans-reg-scope {
-  font-size: 11px;
-  font-weight: 600;
-  color: #0284c7;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.trans-reg-desc {
-  font-size: 12px;
-  color: #334155;
-  line-height: 1.45;
+.trans-compliance-desc {
+  font-size: 11.5px;
+  color: #475569;
+  line-height: 1.4;
   margin: 0;
 }
 
-.trans-reg-tip-box {
-  background: #ffffff;
-  border-left: 3px solid #38bdf8;
-  border: 1px solid #e2e8f0;
-  border-left: 3px solid #0284c7;
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 11.5px;
-  color: #1e293b;
-  line-height: 1.45;
+.trans-compliance-tip {
+  font-size: 11px;
+  color: #0284c7;
+  line-height: 1.35;
+  margin-top: 2px;
 }
 
-.trans-reg-tip-box strong {
-  display: block;
-  font-size: 10.5px;
+.trans-compliance-tip b {
   color: #0369a1;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-  margin-bottom: 2px;
 }
 
 /* Inline Dynamic Custom Form Fields (Sama persis dengan bentuk isian standar di grid) */

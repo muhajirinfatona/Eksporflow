@@ -290,15 +290,14 @@ export function getScreenAdvisorInsight(
       return {
         screenId: screen,
         riskLevel: "info",
-        badgeText: "Integritas Master Data",
-        title: "Basis Data Master Transaksi Ekspor",
-        mitigationText: `Akurasi nama badan hukum buyer, pelabuhan bongkar (POD), dan HS code pada kartu master ini krusial karena otomatis menjadi rujukan kalkulasi harga, packing list, dan draft dokumen legal.`,
+        badgeText: "Sinkron Otomatis",
+        title: "Data Transaksi Terhubung",
+        mitigationText: "Data buyer, tujuan, dan HS Code otomatis tersinkron ke kalkulator harga, rencana muatan, dan dokumen legal.",
         suggestedQuestions: [
-          "Mengapa nama entitas buyer di master transaksi harus sama persis dengan izin usaha di negaranya?",
-          "Bagaimana jika pelabuhan bongkar (POD) berbeda dengan alamat kantor buyer?",
-          "Apa dampak perubahan nomor referensi transaksi terhadap dokumen yang sudah dicetak?",
+          "Bagaimana cara memverifikasi legalitas buyer baru?",
+          "Apa dampak perubahan HS Code terhadap dokumen ekspor?",
         ],
-        initialPrompt: `Jelaskan pentingnya akurasi master data transaksi ekspor dalam mencegah sengketa kepabeanan dan perbankan.`,
+        initialPrompt: "Bantu tinjau data transaksi ekspor ini agar sesuai dengan regulasi negara tujuan.",
       };
 
     case "approvals":
