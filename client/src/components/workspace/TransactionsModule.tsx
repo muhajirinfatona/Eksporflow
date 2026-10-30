@@ -517,7 +517,7 @@ export function TransactionsModule({
           />
         </div>
 
-        {/* Dokumen & Sertifikat Kepatuhan Ekspor Ringkas */}
+        {/* Dokumen & Sertifikat Kepatuhan Ekspor */}
         <div className="trans-compliance-box">
           <div className="trans-compliance-head">
             <div className="trans-compliance-title">
@@ -529,19 +529,34 @@ export function TransactionsModule({
             </span>
           </div>
 
-          <div className="trans-compliance-grid">
-            {aiRegulations.map((reg) => (
-              <div className="trans-compliance-item" key={reg.id}>
-                <div className="trans-compliance-item-top">
-                  <span className="trans-compliance-name">{reg.name}</span>
-                  <span className="trans-compliance-badge">{reg.issuingAuthority}</span>
-                </div>
-                <p className="trans-compliance-desc">{reg.description}</p>
-                <span className="trans-compliance-tip">
-                  <b>Persiapan:</b> {reg.preparationTip}
-                </span>
-              </div>
-            ))}
+          <div className="trans-compliance-table-wrap">
+            <table className="trans-compliance-table">
+              <thead>
+                <tr>
+                  <th style={{ width: "26%" }}>Dokumen</th>
+                  <th style={{ width: "20%" }}>Instansi Penerbit</th>
+                  <th style={{ width: "54%" }}>Keterangan &amp; Persiapan</th>
+                </tr>
+              </thead>
+              <tbody>
+                {aiRegulations.map((reg) => (
+                  <tr key={reg.id}>
+                    <td className="compliance-td-doc">
+                      <span className="compliance-doc-name">{reg.name}</span>
+                    </td>
+                    <td className="compliance-td-auth">
+                      <span className="compliance-auth-badge">{reg.issuingAuthority}</span>
+                    </td>
+                    <td className="compliance-td-desc">
+                      <p className="compliance-desc-text">{reg.description}</p>
+                      <p className="compliance-prep-text">
+                        <strong>Persiapan:</strong> {reg.preparationTip}
+                      </p>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
 
