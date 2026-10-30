@@ -29,6 +29,7 @@ import {
   ClipboardCheck,
   Info,
   Layers,
+  Package,
   Plus,
   RefreshCw,
   ShieldAlert,
@@ -36,12 +37,13 @@ import {
   Sparkles,
   Trash2,
   TrendingUp,
+  Truck,
   X,
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Field, LineItemsEditor, SectionTitle, SelectField, StatusPill } from "./Primitives";
+import { Field, SectionTitle, SelectField, StatusPill } from "./Primitives";
 
 export function PricingModule({
   shipment,
@@ -259,30 +261,6 @@ export function PricingModule({
     update("additionalCostFactors", updated);
   };
 
-  // Auto-apply faktor Incoterm secara langsung (tanpa popup)
-  const handleApplyIncotermTemplate = (term: Incoterm) => {
-    const template = INCOTERM_TEMPLATES[term];
-    if (!template) return;
-    const costs = template.defaultCostsIdr;
-    update("packaging", convertTemplateCost(costs.packaging, shipment.currency, currentFxRate));
-    update("inlandTransport", convertTemplateCost(costs.inlandTransport, shipment.currency, currentFxRate));
-    update("originHandling", convertTemplateCost(costs.originHandling, shipment.currency, currentFxRate));
-    update("customs", convertTemplateCost(costs.customs, shipment.currency, currentFxRate));
-    update("freight", convertTemplateCost(costs.freight, shipment.currency, currentFxRate));
-    update("insurance", convertTemplateCost(costs.insurance, shipment.currency, currentFxRate));
-    update("destinationHandling", convertTemplateCost(costs.destinationHandling, shipment.currency, currentFxRate));
-    update("importDuty", convertTemplateCost(costs.importDuty, shipment.currency, currentFxRate));
-    update("lastMile", convertTemplateCost(costs.lastMile, shipment.currency, currentFxRate));
-
-    if (shipment.contingency <= 0) {
-      update("contingency", template.recommendedContingency);
-    }
-
-    toast.success(`Estimasi biaya standar ${term} (${template.name}) berhasil diterapkan`, {
-      description: `Seluruh pos logistik dan tanggung jawab penjual telah disinkronkan (${shipment.currency}).`,
-    });
-  };
-
   // Apply Bank Indonesia rate to transaction
   const handleApplyBiRate = (type: "sell" | "middle" | "buy") => {
     const rateVal = type === "sell" ? biSellRate : type === "middle" ? biMiddleRate : biBuyRate;
@@ -400,13 +378,13 @@ export function PricingModule({
             }
           />
 
-          {/* BAGIAN 01: NILAI BARANG */}
+          {/* BAGIAN 01: HARGA GUDANG, HPP & NILAI BARANG (EXW) */}
           <div className="form-section">
             <div className="form-section-title">
               <span className="section-number">01</span>
               <div>
-                <b>Nilai barang & komoditas</b>
-                <small>Basis perhitungan dari seluruh line item ({shipment.currency})</small>
+                <b>Harga Gudang, HPP &amp; Nilai Barang (EXW)</b>
+                <small>Basis penyerahan di gudang/pabrik penjual ({shipment.currency})</small>
               </div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <button
@@ -415,7 +393,7 @@ export function PricingModule({
                   onClick={() => setShowHppCalculator((prev) => !prev)}
                   title="Buka kalkulator HPP untuk menghitung harga pokok trader atau produsen"
                 >
-                  <Calculator size={12} /> {showHppCalculator ? "Tutup Kalkulator HPP" : "Kalkulator HPP (Trader / Produsen)"}
+                  <Calculator size={12} /> {showHppCalculator ? "Tutup Kalkulator HPP" : "🧮 Kalkulator HPP (Trader / Produsen)"}
                 </button>
                 <button
                   type="button"
@@ -614,11 +592,18 @@ export function PricingModule({
                 ) && <option value={shipment.unit}>{shipment.unit} (Kustom)</option>}
               </SelectField>
               <Field
-                label={`Harga per ${shipment.unit || "unit"}`}
+                label={`Harga per ${shipment.unit || "unit"} (HPP / Beli / Pabrik)`}
                 value={shipment.unitPrice}
                 type="number"
                 prefix={shipment.currency}
                 onChange={(value) => updateNumber("unitPrice", value)}
+              />
+              <Field
+                label="Kemasan & packaging ekspor"
+                value={shipment.packaging}
+                type="number"
+                prefix={shipment.currency}
+                onChange={(value) => updateNumber("packaging", value)}
               />
 
               {/* FORM ISIAN TAMBAHAN NILAI BARANG LANGSUNG DI GRID */}
@@ -678,21 +663,34 @@ export function PricingModule({
                 ))}
             </div>
 
-            <LineItemsEditor
-              items={shipment.lineItems}
-              updateItems={updateLineItems}
-              currency={shipment.currency}
-              onOpenCatalog={() => navigate("products")}
-            />
+            {/* RINGKASAN HARGA GUDANG / HPP KOMODITAS (EXW) */}
+            <div className="exw-summary-strip">
+              <div className="exw-summary-left">
+                <span className="exw-summary-label">
+                  <Package size={14} /> Total Harga Gudang / Nilai Barang (EXW):
+                </span>
+                <strong className="exw-summary-value">
+                  {formatCurrencyAmount(goodsSubtotal, shipment.currency)}
+                </strong>
+                <span className="exw-summary-unit">
+                  (≈ {formatCurrencyAmount(shipment.quantity > 0 ? goodsSubtotal / shipment.quantity : 0, shipment.currency)} / {shipment.unit || "unit"})
+                </span>
+              </div>
+              <div className="exw-summary-breakdown">
+                Bahan/Produk: {formatCurrencyAmount(shipment.quantity * shipment.unitPrice, shipment.currency)}
+                {shipment.packaging > 0 && <> + Packaging: {formatCurrencyAmount(shipment.packaging, shipment.currency)}</>}
+                {additionalGoods > 0 && <> + Biaya Kustom: {formatCurrencyAmount(additionalGoods, shipment.currency)}</>}
+              </div>
+            </div>
           </div>
 
-          {/* BAGIAN 02: BIAYA LOGISTIK & KEPABEANAN */}
+          {/* BAGIAN 02: BIAYA LOGISTIK, KEPABEANAN & PENGAPALAN */}
           <div className="form-section">
             <div className="form-section-title">
               <span className="section-number">02</span>
               <div>
-                <b>Biaya logistik & kepabeanan</b>
-                <small>Aktif otomatis sesuai cakupan Incoterm ({shipment.currency})</small>
+                <b>Biaya logistik, kepabeanan &amp; pengapalan</b>
+                <small>Komponen aktif sesuai cakupan Incoterm disepakati: {shipment.incoterm} ({shipment.currency})</small>
               </div>
               <button
                 type="button"
@@ -704,145 +702,193 @@ export function PricingModule({
               </button>
             </div>
 
-            {/* HELPER BAR OTOMATIS SESUAI INCOTERM */}
-            <div className="incoterm-inline-helper">
-              <div className="incoterm-helper-text">
-                <Zap size={14} />
-                <span>
-                  Incoterm aktif: <b>{shipment.incoterm}</b> ({INCOTERM_TEMPLATES[shipment.incoterm]?.name || "Incoterms® 2020"})
+            {/* PANDUAN CAKUPAN INCOTERM (TANPA AUTO-FILL) */}
+            <div className="incoterm-coverage-banner">
+              <div className="incoterm-coverage-icon">
+                <Truck size={16} />
+              </div>
+              <div className="incoterm-coverage-content">
+                <div className="incoterm-coverage-title">
+                  Incoterm Disepakati: <b>{shipment.incoterm}</b> — {INCOTERM_TEMPLATES[shipment.incoterm]?.name || "Incoterms® 2020"}
+                </div>
+                <p className="incoterm-coverage-desc">
+                  {shipment.incoterm === "EXW" && (
+                    <>Eksportir hanya menanggung <b>Harga Gudang (EXW)</b> di Bagian 01. Seluruh biaya pengangkutan, customs, dan pengapalan ditanggung oleh buyer.</>
+                  )}
+                  {(shipment.incoterm === "FCA" || shipment.incoterm === "FOB") && (
+                    <>Eksportir menanggung <b>Harga Gudang + Pengantaran ke Pelabuhan Asal &amp; Customs PEB (FOB)</b>. Ocean freight internasional &amp; asuransi ditanggung buyer.</>
+                  )}
+                  {(shipment.incoterm === "CFR" || shipment.incoterm === "CIF") && (
+                    <>Eksportir menanggung <b>FOB + Ocean Freight {shipment.incoterm === "CIF" ? "+ Asuransi Laut (CIF)" : ""}</b> sampai pelabuhan tujuan buyer (POD).</>
+                  )}
+                  {(shipment.incoterm === "DAP" || shipment.incoterm === "DDP") && (
+                    <>Eksportir menanggung <b>sampai alamat gudang buyer (DAP)</b> {shipment.incoterm === "DDP" ? "+ Bea Masuk & Pajak Impor (DDP)" : ""}.</>
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* TAHAP 1: PENGANTARAN KE PELABUHAN ASAL / POL (FOB / FCA) */}
+            <div className="incoterm-stage-block">
+              <div className="incoterm-stage-header">
+                <span className="incoterm-stage-tag">FOB / FCA</span>
+                <span className="incoterm-stage-title">Pengantaran ke Pelabuhan Muat Asal (POL) &amp; Kepabeanan Ekspor</span>
+                <span className="incoterm-stage-scope">
+                  {["FOB", "FCA", "CFR", "CIF", "DAP", "DDP"].includes(shipment.incoterm) ? "✓ Ditanggung Penjual" : "× Ditanggung Buyer (EXW)"}
                 </span>
               </div>
-              <button
-                type="button"
-                className="incoterm-helper-btn"
-                onClick={() => handleApplyIncotermTemplate(shipment.incoterm)}
-                title={`Isi otomatis estimasi biaya standar untuk Incoterm ${shipment.incoterm}`}
-              >
-                <Zap size={12} /> Auto-Fill Estimasi Biaya {shipment.incoterm}
-              </button>
+              <div className="form-grid three">
+                <Field
+                  label="Inland transport (Trucking ke pelabuhan)"
+                  value={shipment.inlandTransport}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("inlandTransport", value)}
+                />
+                <Field
+                  label="Origin handling (THC POL pelabuhan muat)"
+                  value={shipment.originHandling}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("originHandling", value)}
+                />
+                <Field
+                  label="Customs clearance (PEB ekspor)"
+                  value={shipment.customs}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("customs", value)}
+                />
+              </div>
             </div>
 
-            <div className="form-grid three">
-              <Field
-                label="Packaging"
-                value={shipment.packaging}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("packaging", value)}
-              />
-              <Field
-                label="Inland transport"
-                value={shipment.inlandTransport}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("inlandTransport", value)}
-              />
-              <Field
-                label="Origin handling"
-                value={shipment.originHandling}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("originHandling", value)}
-              />
-              <Field
-                label="Customs clearance"
-                value={shipment.customs}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("customs", value)}
-              />
-              <Field
-                label="Ocean freight"
-                value={shipment.freight}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("freight", value)}
-              />
-              <Field
-                label="Insurance"
-                value={shipment.insurance}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("insurance", value)}
-              />
-              <Field
-                label="Destination handling"
-                value={shipment.destinationHandling}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("destinationHandling", value)}
-              />
-              <Field
-                label="Import duty"
-                value={shipment.importDuty}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("importDuty", value)}
-              />
-              <Field
-                label="Last mile delivery"
-                value={shipment.lastMile}
-                type="number"
-                prefix={shipment.currency}
-                onChange={(value) => updateNumber("lastMile", value)}
-              />
-
-              {/* ISIAN TAMBAHAN BIAYA LOGISTIK TAMPIL SEPERTI FIELD BIASA DI GRID */}
-              {(shipment.additionalCostFactors || [])
-                .filter((f) => f.section === "logistics")
-                .map((factor) => (
-                  <div className="field custom-cost-field" key={factor.id}>
-                    <div className="custom-cost-label-row">
-                      <input
-                        type="text"
-                        className="custom-cost-label-input"
-                        value={factor.name}
-                        placeholder="Ketik nama biaya..."
-                        onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            e.currentTarget.blur();
-                            toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
-                          }
-                        }}
-                        title="Ketik nama biaya, lalu tekan Enter atau klik centang untuk konfirmasi"
-                        autoFocus={!factor.name}
-                      />
-                      <button
-                        type="button"
-                        className="custom-cost-confirm-btn"
-                        onClick={(e) => {
-                          const input = e.currentTarget.parentElement?.querySelector("input");
-                          input?.blur();
-                          toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
-                        }}
-                        title="Simpan / konfirmasi nama biaya ini"
-                        aria-label="Simpan nama biaya"
-                      >
-                        <Check size={13} />
-                      </button>
-                      <button
-                        type="button"
-                        className="custom-cost-delete-btn"
-                        onClick={() => handleDeleteFactorField(factor.id)}
-                        title="Hapus form isian ini"
-                        aria-label="Hapus isian"
-                      >
-                        <X size={13} />
-                      </button>
-                    </div>
-                    <div className={`input-shell ${shipment.currency ? "has-prefix" : ""}`}>
-                      {shipment.currency && <b>{shipment.currency}</b>}
-                      <input
-                        type="number"
-                        value={factor.amount || ""}
-                        placeholder="0"
-                        onChange={(e) => handleUpdateFactorField(factor.id, "amount", parseFloat(e.target.value) || 0)}
-                      />
-                    </div>
-                  </div>
-                ))}
+            {/* TAHAP 2: PENGAPALAN INTERNASIONAL (CFR / CIF) */}
+            <div className="incoterm-stage-block">
+              <div className="incoterm-stage-header">
+                <span className="incoterm-stage-tag">CFR / CIF</span>
+                <span className="incoterm-stage-title">Pengapalan Internasional &amp; Asuransi Pengangkutan Laut</span>
+                <span className="incoterm-stage-scope">
+                  {["CFR", "CIF", "DAP", "DDP"].includes(shipment.incoterm) ? "✓ Ditanggung Penjual" : "× Ditanggung Buyer (FOB/EXW)"}
+                </span>
+              </div>
+              <div className="form-grid two">
+                <Field
+                  label="Ocean freight (Pengapalan internasional)"
+                  value={shipment.freight}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("freight", value)}
+                />
+                <Field
+                  label="Insurance (Asuransi pengangkutan laut)"
+                  value={shipment.insurance}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("insurance", value)}
+                />
+              </div>
             </div>
+
+            {/* TAHAP 3: PELABUHAN & TUJUAN NEGARA BUYER (DAP / DDP) */}
+            <div className="incoterm-stage-block">
+              <div className="incoterm-stage-header">
+                <span className="incoterm-stage-tag">DAP / DDP</span>
+                <span className="incoterm-stage-title">Bongkar Pelabuhan Tujuan, Last Mile &amp; Bea Masuk Impor</span>
+                <span className="incoterm-stage-scope">
+                  {["DAP", "DDP"].includes(shipment.incoterm) ? "✓ Ditanggung Penjual" : "× Ditanggung Buyer (CIF/FOB/EXW)"}
+                </span>
+              </div>
+              <div className="form-grid three">
+                <Field
+                  label="Destination handling (THC POD)"
+                  value={shipment.destinationHandling}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("destinationHandling", value)}
+                />
+                <Field
+                  label="Last mile delivery (Ke gudang buyer)"
+                  value={shipment.lastMile}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("lastMile", value)}
+                />
+                <Field
+                  label="Import duty (Bea masuk impor - khusus DDP)"
+                  value={shipment.importDuty}
+                  type="number"
+                  prefix={shipment.currency}
+                  onChange={(value) => updateNumber("importDuty", value)}
+                />
+              </div>
+            </div>
+
+            {/* FORM ISIAN TAMBAHAN BIAYA LOGISTIK */}
+            {(shipment.additionalCostFactors || [])
+              .filter((f) => f.section === "logistics").length > 0 && (
+              <div className="incoterm-stage-block">
+                <div className="incoterm-stage-header">
+                  <span className="incoterm-stage-tag custom">Kustom</span>
+                  <span className="incoterm-stage-title">Biaya Logistik &amp; Sertifikasi Tambahan</span>
+                </div>
+                <div className="form-grid three">
+                  {(shipment.additionalCostFactors || [])
+                    .filter((f) => f.section === "logistics")
+                    .map((factor) => (
+                      <div className="field custom-cost-field" key={factor.id}>
+                        <div className="custom-cost-label-row">
+                          <input
+                            type="text"
+                            className="custom-cost-label-input"
+                            value={factor.name}
+                            placeholder="Ketik nama biaya..."
+                            onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter") {
+                                e.currentTarget.blur();
+                                toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                              }
+                            }}
+                            title="Ketik nama biaya, lalu tekan Enter atau klik centang untuk konfirmasi"
+                            autoFocus={!factor.name}
+                          />
+                          <button
+                            type="button"
+                            className="custom-cost-confirm-btn"
+                            onClick={(e) => {
+                              const input = e.currentTarget.parentElement?.querySelector("input");
+                              input?.blur();
+                              toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                            }}
+                            title="Simpan / konfirmasi nama biaya ini"
+                            aria-label="Simpan nama biaya"
+                          >
+                            <Check size={13} />
+                          </button>
+                          <button
+                            type="button"
+                            className="custom-cost-delete-btn"
+                            onClick={() => handleDeleteFactorField(factor.id)}
+                            title="Hapus form isian ini"
+                            aria-label="Hapus isian"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                        <div className={`input-shell ${shipment.currency ? "has-prefix" : ""}`}>
+                          {shipment.currency && <b>{shipment.currency}</b>}
+                          <input
+                            type="number"
+                            value={factor.amount || ""}
+                            placeholder="0"
+                            onChange={(e) => handleUpdateFactorField(factor.id, "amount", parseFloat(e.target.value) || 0)}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* BAGIAN 03: STRATEGI PENAWARAN & KURS PASAR */}
