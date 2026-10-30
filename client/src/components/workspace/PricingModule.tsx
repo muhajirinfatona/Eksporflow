@@ -69,20 +69,41 @@ export function PricingModule({
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [targetConvertCurrency, setTargetConvertCurrency] = useState<string>("USD");
 
-  // State Kalkulator HPP (Trader & Produsen)
-  const [showHppCalculator, setShowHppCalculator] = useState(false);
-  const [hppMode, setHppMode] = useState<"trader" | "manufacturer">("trader");
-  const [traderBuyPrice, setTraderBuyPrice] = useState<number>(shipment.unitPrice || 0);
-  const [traderShrinkage, setTraderShrinkage] = useState<number>(5);
-  const [traderSourcingFreight, setTraderSourcingFreight] = useState<number>(0);
-  const [traderSortingLabor, setTraderSortingLabor] = useState<number>(0);
-  const [traderInnerPackaging, setTraderInnerPackaging] = useState<number>(0);
-  const [traderMargin, setTraderMargin] = useState<number>(0);
+  // State Pembedahan Indikator HPP (Trader Sourcing & Produsen Pabrik)
+  const [hppMode, setHppMode] = useState<"trader" | "manufacturer">(
+    shipment.hppMode === "manufacturer" ? "manufacturer" : "trader"
+  );
+  const [traderBuyPrice, setTraderBuyPrice] = useState<number>(
+    shipment.traderBuyPrice ?? (shipment.unitPrice || 0)
+  );
+  const [traderShrinkage, setTraderShrinkage] = useState<number>(
+    shipment.traderShrinkage ?? 5
+  );
+  const [traderSourcingFreight, setTraderSourcingFreight] = useState<number>(
+    shipment.traderSourcingFreight ?? 0
+  );
+  const [traderSortingLabor, setTraderSortingLabor] = useState<number>(
+    shipment.traderSortingLabor ?? 0
+  );
+  const [traderInnerPackaging, setTraderInnerPackaging] = useState<number>(
+    shipment.traderInnerPackaging ?? 0
+  );
+  const [traderMargin, setTraderMargin] = useState<number>(
+    shipment.traderMargin ?? 0
+  );
 
-  const [mfgRawMaterial, setMfgRawMaterial] = useState<number>(shipment.unitPrice || 0);
-  const [mfgAuxiliary, setMfgAuxiliary] = useState<number>(0);
-  const [mfgDirectLabor, setMfgDirectLabor] = useState<number>(0);
-  const [mfgOverhead, setMfgOverhead] = useState<number>(0);
+  const [mfgRawMaterial, setMfgRawMaterial] = useState<number>(
+    shipment.mfgRawMaterial ?? (shipment.unitPrice || 0)
+  );
+  const [mfgAuxiliary, setMfgAuxiliary] = useState<number>(
+    shipment.mfgAuxiliary ?? 0
+  );
+  const [mfgDirectLabor, setMfgDirectLabor] = useState<number>(
+    shipment.mfgDirectLabor ?? 0
+  );
+  const [mfgOverhead, setMfgOverhead] = useState<number>(
+    shipment.mfgOverhead ?? 0
+  );
 
   // Sinkronisasi awal harga beli dari unitPrice transaksi jika traderBuyPrice masih 0
   useEffect(() => {
@@ -112,21 +133,47 @@ export function PricingModule({
 
   const activeHppResult = hppMode === "trader" ? traderHppResult : mfgHppResult;
 
-  const handleApplyHppToUnitPrice = () => {
-    const val = activeHppResult.totalHppPerUnit;
-    update("unitPrice", val);
+  // Sinkronisasi HPP per unit ke harga satuan transaksi ekspor
+  const handleApplyHppToUnitPrice = (val?: number) => {
+    const finalVal = typeof val === "number" ? val : activeHppResult.totalHppPerUnit;
+    update("unitPrice", finalVal);
     if (shipment.lineItems && shipment.lineItems.length > 0) {
       const updated = shipment.lineItems.map((item, idx) =>
-        idx === 0 ? { ...item, unitPrice: val } : item
+        idx === 0 ? { ...item, unitPrice: finalVal } : item
       );
       updateLineItems(updated);
     }
     toast.success(
-      `HPP ${hppMode === "trader" ? "Trader" : "Produsen"} diterapkan: ${formatCurrencyAmount(val, shipment.currency)} per ${shipment.unit || "unit"}`,
+      `HPP ${hppMode === "trader" ? "Trader" : "Produsen"} diterapkan: ${formatCurrencyAmount(finalVal, shipment.currency)} per ${shipment.unit || "unit"}`,
       {
-        description: "Harga pokok komoditas telah diperbarui dan langsung disinkronkan ke seluruh kalkulasi penawaran.",
+        description: "Nilai unit transaksi diperbarui dan langsung disinkronkan ke seluruh tangga perhitungan harga ekspor.",
       }
     );
+  };
+
+  // Helper simpan indikator HPP ke shipment agar tersimpan persisten
+  const handleUpdateTraderHpp = (
+    field: "traderBuyPrice" | "traderShrinkage" | "traderSourcingFreight" | "traderSortingLabor" | "traderInnerPackaging" | "traderMargin",
+    val: number,
+  ) => {
+    if (field === "traderBuyPrice") setTraderBuyPrice(val);
+    else if (field === "traderShrinkage") setTraderShrinkage(val);
+    else if (field === "traderSourcingFreight") setTraderSourcingFreight(val);
+    else if (field === "traderSortingLabor") setTraderSortingLabor(val);
+    else if (field === "traderInnerPackaging") setTraderInnerPackaging(val);
+    else if (field === "traderMargin") setTraderMargin(val);
+    update(field, val);
+  };
+
+  const handleUpdateMfgHpp = (
+    field: "mfgRawMaterial" | "mfgAuxiliary" | "mfgDirectLabor" | "mfgOverhead",
+    val: number,
+  ) => {
+    if (field === "mfgRawMaterial") setMfgRawMaterial(val);
+    else if (field === "mfgAuxiliary") setMfgAuxiliary(val);
+    else if (field === "mfgDirectLabor") setMfgDirectLabor(val);
+    else if (field === "mfgOverhead") setMfgOverhead(val);
+    update(field, val);
   };
 
   // Rekomendasi negara buyer
@@ -378,23 +425,15 @@ export function PricingModule({
             }
           />
 
-          {/* BAGIAN 01: HARGA GUDANG, HPP & NILAI BARANG (EXW) */}
+          {/* BAGIAN 01: PEMBEDAHAN INDIKATOR HPP & HARGA GUDANG (EXW) */}
           <div className="form-section">
             <div className="form-section-title">
               <span className="section-number">01</span>
               <div>
-                <b>Harga Gudang, HPP &amp; Nilai Barang (EXW)</b>
-                <small>Basis penyerahan di gudang/pabrik penjual ({shipment.currency})</small>
+                <b>Pembedahan Indikator HPP &amp; Harga Gudang (EXW)</b>
+                <small>Basis biaya pengadaan komoditas dan penyerahan di gudang/pabrik penjual ({shipment.currency})</small>
               </div>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className={`section-factor-btn ${showHppCalculator ? "highlight" : ""}`}
-                  onClick={() => setShowHppCalculator((prev) => !prev)}
-                  title="Buka kalkulator HPP untuk menghitung harga pokok trader atau produsen"
-                >
-                  <Calculator size={12} /> {showHppCalculator ? "Tutup Kalkulator HPP" : "🧮 Kalkulator HPP (Trader / Produsen)"}
-                </button>
                 <button
                   type="button"
                   className="section-factor-btn"
@@ -406,153 +445,160 @@ export function PricingModule({
               </div>
             </div>
 
-            {/* EXPANDABLE KALKULATOR HPP (TRADER & PRODUSEN) */}
-            {showHppCalculator && (
-              <div className="hpp-calculator-card">
-                <div className="hpp-calculator-head">
-                  <div className="hpp-calculator-title">
-                    <Calculator size={16} />
-                    <span>Kalkulator HPP ({hppMode === "trader" ? "Eksportir Trader / Sourcing" : "Produsen Langsung"})</span>
+            {/* PEMBEDAHAN INDIKATOR HPP SECARA TERBUKA (TRADER & PRODUSEN) */}
+            <div className="hpp-dissection-card">
+              <div className="hpp-dissection-head">
+                <div className="hpp-dissection-title">
+                  <div className="hpp-dissection-icon">
+                    <Calculator size={18} />
                   </div>
-                  <div className="hpp-mode-switch">
-                    <button
-                      type="button"
-                      className={`hpp-mode-btn ${hppMode === "trader" ? "active" : ""}`}
-                      onClick={() => setHppMode("trader")}
-                    >
-                      🏢 Mode Trader / Sourcing Petani
-                    </button>
-                    <button
-                      type="button"
-                      className={`hpp-mode-btn ${hppMode === "manufacturer" ? "active" : ""}`}
-                      onClick={() => setHppMode("manufacturer")}
-                    >
-                      🏭 Mode Produsen / Pabrik
-                    </button>
+                  <div className="hpp-dissection-texts">
+                    <b>Pembedahan Indikator HPP (Harga Pokok Penjualan)</b>
+                    <small>Rincian indikator pembentuk harga komoditas per {shipment.unit || "unit"} sebelum masuk ke tangga ekspor</small>
                   </div>
                 </div>
 
-                {hppMode === "trader" ? (
-                  <div className="hpp-fields-grid">
-                    <Field
-                      label={`Harga beli supplier/petani (per ${shipment.unit || "unit"})`}
-                      value={traderBuyPrice}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setTraderBuyPrice(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label="Estimasi susut sortasi / kadar air"
-                      value={traderShrinkage}
-                      type="number"
-                      suffix="%"
-                      step="0.5"
-                      onChange={(val) => setTraderShrinkage(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Angkut lokal ke gudang (per ${shipment.unit || "unit"})`}
-                      value={traderSourcingFreight}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setTraderSourcingFreight(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Upah sortasi & grading (per ${shipment.unit || "unit"})`}
-                      value={traderSortingLabor}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setTraderSortingLabor(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Kemasan primer/inner (per ${shipment.unit || "unit"})`}
-                      value={traderInnerPackaging}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setTraderInnerPackaging(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Fee / margin pengadaan (per ${shipment.unit || "unit"})`}
-                      value={traderMargin}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setTraderMargin(parseFloat(val) || 0)}
-                    />
-                  </div>
-                ) : (
-                  <div className="hpp-fields-grid">
-                    <Field
-                      label={`Bahan baku utama (per ${shipment.unit || "unit"})`}
-                      value={mfgRawMaterial}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setMfgRawMaterial(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Bahan penolong/tambahan (per ${shipment.unit || "unit"})`}
-                      value={mfgAuxiliary}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setMfgAuxiliary(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Tenaga kerja langsung (per ${shipment.unit || "unit"})`}
-                      value={mfgDirectLabor}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setMfgDirectLabor(parseFloat(val) || 0)}
-                    />
-                    <Field
-                      label={`Overhead pabrik & QC (per ${shipment.unit || "unit"})`}
-                      value={mfgOverhead}
-                      type="number"
-                      prefix={shipment.currency}
-                      onChange={(val) => setMfgOverhead(parseFloat(val) || 0)}
-                    />
-                  </div>
-                )}
-
-                <div className="hpp-result-banner">
-                  <div className="hpp-result-summary">
-                    <div className="hpp-result-main">
-                      <span>HPP Bersih:</span>
-                      <strong>{formatCurrencyAmount(activeHppResult.totalHppPerUnit, shipment.currency)}</strong>
-                      <span>/ {shipment.unit || "unit"}</span>
-                    </div>
-                    <div className="hpp-result-sub">
-                      {hppMode === "trader" ? (
-                        <>
-                          Bahan efektif setelah susut {traderShrinkage}%: {formatCurrencyAmount(traderHppResult.effectiveMaterialCostPerUnit, shipment.currency)}
-                          {traderHppResult.shrinkageCostImpactPerUnit > 0 && (
-                            <> (Dampak susut: +{formatCurrencyAmount(traderHppResult.shrinkageCostImpactPerUnit, shipment.currency)})</>
-                          )}
-                          {" · "}Total HPP ({formatNumber(shipment.quantity)} {shipment.unit}): {formatCurrencyAmount(activeHppResult.totalHppOverall, shipment.currency)}
-                        </>
-                      ) : (
-                        <>Total HPP Produksi ({formatNumber(shipment.quantity)} {shipment.unit}): {formatCurrencyAmount(activeHppResult.totalHppOverall, shipment.currency)}</>
-                      )}
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <button
-                      type="button"
-                      className="hpp-apply-btn"
-                      onClick={handleApplyHppToUnitPrice}
-                      title={`Terapkan HPP hasil perhitungan ke harga satuan transaksi ekspor`}
-                    >
-                      <Zap size={13} /> Terapkan HPP ke Harga per {shipment.unit || "unit"}
-                    </button>
-                    <button
-                      type="button"
-                      className="hpp-close-link"
-                      onClick={() => setShowHppCalculator(false)}
-                    >
-                      Tutup
-                    </button>
-                  </div>
+                <div className="hpp-mode-switch">
+                  <button
+                    type="button"
+                    className={`hpp-mode-btn ${hppMode === "trader" ? "active" : ""}`}
+                    onClick={() => {
+                      setHppMode("trader");
+                      update("hppMode", "trader");
+                    }}
+                  >
+                    🏢 Mode Trader / Sourcing Petani
+                  </button>
+                  <button
+                    type="button"
+                    className={`hpp-mode-btn ${hppMode === "manufacturer" ? "active" : ""}`}
+                    onClick={() => {
+                      setHppMode("manufacturer");
+                      update("hppMode", "manufacturer");
+                    }}
+                  >
+                    🏭 Mode Produsen / Pabrik
+                  </button>
                 </div>
               </div>
-            )}
+
+              {hppMode === "trader" ? (
+                <div className="hpp-fields-grid">
+                  <Field
+                    label={`1. Harga beli supplier/petani (per ${shipment.unit || "unit"})`}
+                    value={traderBuyPrice}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateTraderHpp("traderBuyPrice", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label="2. Estimasi susut sortasi & kadar air"
+                    value={traderShrinkage}
+                    type="number"
+                    suffix="%"
+                    step="0.5"
+                    onChange={(val) => handleUpdateTraderHpp("traderShrinkage", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`3. Angkut lokal ke gudang (per ${shipment.unit || "unit"})`}
+                    value={traderSourcingFreight}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateTraderHpp("traderSourcingFreight", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`4. Upah sortasi, grading & cleaning (per ${shipment.unit || "unit"})`}
+                    value={traderSortingLabor}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateTraderHpp("traderSortingLabor", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`5. Kemasan primer / inner pack (per ${shipment.unit || "unit"})`}
+                    value={traderInnerPackaging}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateTraderHpp("traderInnerPackaging", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`6. Fee pengadaan / sourcing margin (per ${shipment.unit || "unit"})`}
+                    value={traderMargin}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateTraderHpp("traderMargin", parseFloat(val) || 0)}
+                  />
+
+                  {traderShrinkage > 0 && (
+                    <div className="hpp-shrinkage-callout">
+                      <TrendingUp size={15} />
+                      <span>
+                        <b>Kompensasi Susut Bobot ({traderShrinkage}%):</b> Untuk menghasilkan 1 {shipment.unit || "unit"} komoditas ekspor, dibutuhkan {(1 / (1 - traderShrinkage / 100)).toFixed(2)} {shipment.unit || "unit"} bahan mentah. Harga bahan efektif menjadi <b>{formatCurrencyAmount(traderHppResult.effectiveMaterialCostPerUnit, shipment.currency)}</b> (dampak susut: +{formatCurrencyAmount(traderHppResult.shrinkageCostImpactPerUnit, shipment.currency)}/{shipment.unit || "unit"}).
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="hpp-fields-grid">
+                  <Field
+                    label={`1. Bahan baku utama (Raw Material per ${shipment.unit || "unit"})`}
+                    value={mfgRawMaterial}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateMfgHpp("mfgRawMaterial", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`2. Bahan penolong / pembantu (Auxiliary per ${shipment.unit || "unit"})`}
+                    value={mfgAuxiliary}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateMfgHpp("mfgAuxiliary", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`3. Upah tenaga kerja langsung (Direct Labor per ${shipment.unit || "unit"})`}
+                    value={mfgDirectLabor}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateMfgHpp("mfgDirectLabor", parseFloat(val) || 0)}
+                  />
+                  <Field
+                    label={`4. Overhead pabrik & QC (Factory Overhead per ${shipment.unit || "unit"})`}
+                    value={mfgOverhead}
+                    type="number"
+                    prefix={shipment.currency}
+                    onChange={(val) => handleUpdateMfgHpp("mfgOverhead", parseFloat(val) || 0)}
+                  />
+                </div>
+              )}
+
+              <div className="hpp-result-banner">
+                <div className="hpp-result-summary">
+                  <div className="hpp-result-main">
+                    <span>Indikator HPP Bersih:</span>
+                    <strong>{formatCurrencyAmount(activeHppResult.totalHppPerUnit, shipment.currency)}</strong>
+                    <span>/ {shipment.unit || "unit"}</span>
+                    <span className="hpp-sync-badge">
+                      <Check size={12} /> Otomatis Masuk Nilai Unit
+                    </span>
+                  </div>
+                  <div className="hpp-result-sub">
+                    Subtotal Nilai HPP Barang ({formatNumber(shipment.quantity)} {shipment.unit}):{" "}
+                    <b>{formatCurrencyAmount(activeHppResult.totalHppOverall, shipment.currency)}</b>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    type="button"
+                    className="hpp-apply-btn"
+                    onClick={() => handleApplyHppToUnitPrice(activeHppResult.totalHppPerUnit)}
+                    title="Terapkan HPP hasil pembedahan indikator ke harga satuan transaksi ekspor"
+                  >
+                    <Zap size={13} /> Terapkan HPP ({formatCurrencyAmount(activeHppResult.totalHppPerUnit, shipment.currency)}) ke Transaksi
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div className="form-grid four">
               <Field
                 label="Produk utama"
@@ -599,7 +645,7 @@ export function PricingModule({
                 onChange={(value) => updateNumber("unitPrice", value)}
               />
               <Field
-                label="Kemasan & packaging ekspor"
+                label="Kemasan & packaging ekspor master / pallet"
                 value={shipment.packaging}
                 type="number"
                 prefix={shipment.currency}
@@ -663,11 +709,11 @@ export function PricingModule({
                 ))}
             </div>
 
-            {/* RINGKASAN HARGA GUDANG / HPP KOMODITAS (EXW) */}
+            {/* RINGKASAN INDIKATOR HARGA GUDANG (EXW) */}
             <div className="exw-summary-strip">
               <div className="exw-summary-left">
                 <span className="exw-summary-label">
-                  <Package size={14} /> Total Harga Gudang / Nilai Barang (EXW):
+                  <Package size={14} /> Indikator Harga Gudang (EXW):
                 </span>
                 <strong className="exw-summary-value">
                   {formatCurrencyAmount(goodsSubtotal, shipment.currency)}
@@ -677,9 +723,9 @@ export function PricingModule({
                 </span>
               </div>
               <div className="exw-summary-breakdown">
-                Bahan/Produk: {formatCurrencyAmount(shipment.quantity * shipment.unitPrice, shipment.currency)}
-                {shipment.packaging > 0 && <> + Packaging: {formatCurrencyAmount(shipment.packaging, shipment.currency)}</>}
-                {additionalGoods > 0 && <> + Biaya Kustom: {formatCurrencyAmount(additionalGoods, shipment.currency)}</>}
+                Total HPP Komoditas: {formatCurrencyAmount(shipment.quantity * shipment.unitPrice, shipment.currency)}
+                {shipment.packaging > 0 && <> + Kemasan Ekspor: {formatCurrencyAmount(shipment.packaging, shipment.currency)}</>}
+                {additionalGoods > 0 && <> + Biaya Tambahan: {formatCurrencyAmount(additionalGoods, shipment.currency)}</>}
               </div>
             </div>
           </div>
@@ -760,6 +806,25 @@ export function PricingModule({
                   onChange={(value) => updateNumber("customs", value)}
                 />
               </div>
+
+              <div className="stage-subtotal-bar">
+                <span>Indikator Biaya Tambahan POL (FOB):</span>
+                <b>
+                  + {formatCurrencyAmount(
+                    (Number(shipment.inlandTransport) || 0) +
+                    (Number(shipment.originHandling) || 0) +
+                    (Number(shipment.customs) || 0),
+                    shipment.currency
+                  )}
+                  {" "}· Kumulatif Biaya Pokok FOB: {formatCurrencyAmount(
+                    goodsSubtotal +
+                    (Number(shipment.inlandTransport) || 0) +
+                    (Number(shipment.originHandling) || 0) +
+                    (Number(shipment.customs) || 0),
+                    shipment.currency
+                  )}
+                </b>
+              </div>
             </div>
 
             {/* TAHAP 2: PENGAPALAN INTERNASIONAL (CFR / CIF) */}
@@ -786,6 +851,25 @@ export function PricingModule({
                   prefix={shipment.currency}
                   onChange={(value) => updateNumber("insurance", value)}
                 />
+              </div>
+
+              <div className="stage-subtotal-bar">
+                <span>Indikator Biaya Pengapalan &amp; Asuransi (CIF):</span>
+                <b>
+                  + {formatCurrencyAmount(
+                    (Number(shipment.freight) || 0) + (Number(shipment.insurance) || 0),
+                    shipment.currency
+                  )}
+                  {" "}· Kumulatif Biaya Pokok CIF: {formatCurrencyAmount(
+                    goodsSubtotal +
+                    (Number(shipment.inlandTransport) || 0) +
+                    (Number(shipment.originHandling) || 0) +
+                    (Number(shipment.customs) || 0) +
+                    (Number(shipment.freight) || 0) +
+                    (Number(shipment.insurance) || 0),
+                    shipment.currency
+                  )}
+                </b>
               </div>
             </div>
 
@@ -820,6 +904,30 @@ export function PricingModule({
                   prefix={shipment.currency}
                   onChange={(value) => updateNumber("importDuty", value)}
                 />
+              </div>
+
+              <div className="stage-subtotal-bar">
+                <span>Indikator Biaya POD, Last Mile &amp; Pajak (DDP):</span>
+                <b>
+                  + {formatCurrencyAmount(
+                    (Number(shipment.destinationHandling) || 0) +
+                    (Number(shipment.lastMile) || 0) +
+                    (Number(shipment.importDuty) || 0),
+                    shipment.currency
+                  )}
+                  {" "}· Kumulatif Biaya Pokok DDP: {formatCurrencyAmount(
+                    goodsSubtotal +
+                    (Number(shipment.inlandTransport) || 0) +
+                    (Number(shipment.originHandling) || 0) +
+                    (Number(shipment.customs) || 0) +
+                    (Number(shipment.freight) || 0) +
+                    (Number(shipment.insurance) || 0) +
+                    (Number(shipment.destinationHandling) || 0) +
+                    (Number(shipment.lastMile) || 0) +
+                    (Number(shipment.importDuty) || 0),
+                    shipment.currency
+                  )}
+                </b>
               </div>
             </div>
 
@@ -1447,51 +1555,116 @@ export function PricingModule({
         </div>
       )}
 
+      {/* TANGGA INDIKATOR HARGA EKSPOR SESUAI RUMUS RESMI INCOTERMS® 2020 */}
       <section className="panel panel-padding">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">INCOTERM COMPARISON · INCOTERMS® 2020</span>
-            <h3>Perbandingan cepat 7 skenario ({shipment.currency})</h3>
+            <span className="eyebrow">RUMUS PERHITUNGAN HARGA EKSPOR &amp; TANGGA INCOTERMS® 2020</span>
+            <h3>Tangga Indikator Harga Ekspor (Incoterms Waterfall)</h3>
           </div>
-          <span className="muted-note">Margin tetap {shipment.margin}%</span>
+          <span className="muted-note">Target Margin: {shipment.margin}% · Contingency: {shipment.contingency}% · Basis: {formatNumber(shipment.quantity)} {shipment.unit || "unit"}</span>
         </div>
-        <div className="comparison-cards">
-          {pricing.scenarios.map((scenario) => (
-            <button
-              type="button"
-              key={scenario.term}
-              className={`comparison-card ${scenario.term === shipment.incoterm ? "active" : ""}`}
-              onClick={() => update("incoterm", scenario.term)}
-            >
-              <div className="comparison-term">
-                <b>{scenario.term}</b>
-                {scenario.term === shipment.incoterm && <Check size={14} />}
+
+        <div className="ladder-container">
+          {/* STEP 0: HPP (HARGA POKOK KOMODITAS) */}
+          <div className="ladder-step-card hpp-step">
+            <div className="ladder-badge-col">
+              <span className="ladder-term-badge">HPP</span>
+              <small style={{ fontSize: 10, color: "#64748b" }}>Basis Sourcing</small>
+            </div>
+            <div className="ladder-desc-col">
+              <span className="ladder-desc-name">Harga Pokok Penjualan (HPP Komoditas)</span>
+              <span className="ladder-desc-formula">
+                {hppMode === "trader"
+                  ? "Bahan baku (setelah susut) + angkut lokal + upah sortasi + kemasan primer"
+                  : "Bahan baku utama + bahan penolong + tenaga kerja langsung + overhead pabrik"}
+              </span>
+            </div>
+            <div className="ladder-offer-col">
+              <span className="ladder-offer-label">Total Nilai HPP</span>
+              <strong className="ladder-offer-amount">{formatCurrencyAmount(activeHppResult.totalHppOverall, shipment.currency)}</strong>
+            </div>
+            <div className="ladder-unit-col">
+              <span className="ladder-unit-label">HPP Bersih / Unit</span>
+              <span className="ladder-unit-amount">{formatCurrencyAmount(activeHppResult.totalHppPerUnit, shipment.currency)} / {shipment.unit || "unit"}</span>
+            </div>
+            <div className="ladder-action-col">
+              <span className="ladder-active-pill" style={{ background: "#475569" }}>
+                Basis Pokok
+              </span>
+            </div>
+          </div>
+
+          {/* STEP 1 HINGGA 7: INCOTERMS LADDER WATERFALL */}
+          {pricing.scenarios.map((scenario) => {
+            const isActive = scenario.term === shipment.incoterm;
+            const termMeta = INCOTERM_TEMPLATES[scenario.term];
+            const formulaDesc =
+              scenario.term === "EXW"
+                ? "Total HPP + Kemasan Ekspor Master & Pallet ISPM-15"
+                : scenario.term === "FCA"
+                  ? "EXW + Inland Transport Trucking ke POL"
+                  : scenario.term === "FOB"
+                    ? "FCA + Origin Handling THC POL + Customs Clearance PEB Ekspor"
+                    : scenario.term === "CFR"
+                      ? "FOB + Uang Tambang Ocean Freight Internasional POL ke POD"
+                      : scenario.term === "CIF"
+                        ? "CFR + Marine Cargo Insurance (Asuransi Pengangkutan Laut)"
+                        : scenario.term === "DAP"
+                          ? "CIF + Destination THC POD + Last Mile Trucking ke Alamat Gudang Buyer"
+                          : "DAP + Bea Masuk Impor (Import Duty) & Pajak Negara Buyer";
+
+            return (
+              <div
+                key={scenario.term}
+                className={`ladder-step-card ${isActive ? "active" : ""}`}
+              >
+                <div className="ladder-badge-col">
+                  <span className="ladder-term-badge">{scenario.term}</span>
+                  {isActive && <small style={{ fontSize: 10, color: "#0284c7", fontWeight: 700 }}>Disepakati</small>}
+                </div>
+                <div className="ladder-desc-col">
+                  <span className="ladder-desc-name">
+                    {termMeta?.name || scenario.term}
+                  </span>
+                  <span className="ladder-desc-formula">{formulaDesc}</span>
+                </div>
+                <div className="ladder-offer-col">
+                  <span className="ladder-offer-label">Total Penawaran Utama</span>
+                  <strong className="ladder-offer-amount">
+                    {formatCurrencyAmount(scenario.offer, shipment.currency)}
+                  </strong>
+                </div>
+                <div className="ladder-unit-col">
+                  <span className="ladder-unit-label">Harga per {shipment.unit || "unit"}</span>
+                  <span className="ladder-unit-amount">
+                    {formatCurrencyAmount(scenario.unit, shipment.currency)}
+                  </span>
+                </div>
+                <div className="ladder-action-col">
+                  {isActive ? (
+                    <span className="ladder-active-pill">
+                      <Check size={13} /> Incoterm Aktif
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="ladder-select-btn"
+                      onClick={() => {
+                        update("incoterm", scenario.term);
+                        toast.success(`Incoterm diubah ke ${scenario.term}`, {
+                          description: `Penawaran otomatis disesuaikan ke ${formatCurrencyAmount(scenario.offer, shipment.currency)}.`,
+                        });
+                      }}
+                      title={`Terapkan penawaran berbasis ${scenario.term}`}
+                    >
+                      Pilih {scenario.term}
+                    </button>
+                  )}
+                </div>
               </div>
-              <strong>{formatCurrencyAmount(scenario.offer, shipment.currency)}</strong>
-              <small>
-                {scenario.term === "EXW"
-                  ? "Warehouse"
-                  : scenario.term === "FCA"
-                    ? "First carrier"
-                    : scenario.term === "FOB"
-                      ? "On vessel"
-                      : scenario.term === "CFR"
-                        ? "Freight"
-                        : scenario.term === "CIF"
-                          ? "Freight + insurance"
-                          : scenario.term === "DAP"
-                            ? "At destination"
-                            : "Delivered duty paid"}
-              </small>
-              <div className="comparison-bar">
-                <i
-                  style={{
-                    width: `${Math.min(100, Math.max(18, (scenario.offer / maxScenarioOffer) * 100))}%`,
-                  }}
-                />
-              </div>
-            </button>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

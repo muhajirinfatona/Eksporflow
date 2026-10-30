@@ -28,8 +28,8 @@ export const incotermCostKeys: Record<Incoterm, CostKey[]> = {
   FOB: ["goods", "packaging", "inlandTransport", "originHandling", "customs"],
   CFR: ["goods", "packaging", "inlandTransport", "originHandling", "customs", "freight"],
   CIF: ["goods", "packaging", "inlandTransport", "originHandling", "customs", "freight", "insurance"],
-  DAP: ["goods", "packaging", "inlandTransport", "originHandling", "customs", "freight", "insurance", "destinationHandling"],
-  DDP: ["goods", "packaging", "inlandTransport", "originHandling", "customs", "freight", "insurance", "destinationHandling", "importDuty", "lastMile"],
+  DAP: ["goods", "packaging", "inlandTransport", "originHandling", "customs", "freight", "insurance", "destinationHandling", "lastMile"],
+  DDP: ["goods", "packaging", "inlandTransport", "originHandling", "customs", "freight", "insurance", "destinationHandling", "lastMile", "importDuty"],
 };
 
 export type PricingInput = Pick<

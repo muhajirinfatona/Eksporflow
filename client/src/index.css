@@ -8245,69 +8245,90 @@ textarea:focus-visible {
 }
 
 /* ==========================================================================
-   15. Interactive HPP Calculator (Trader & Manufacturer Sourcing Engine)
+   15. Interactive HPP Indicator Dissection & Export Price Ladder Waterfall
    ========================================================================== */
 
-.hpp-calculator-card {
-  background: #fdfefe;
+.hpp-dissection-card {
+  background: #ffffff;
   border: 1.5px solid #0284c7;
   border-radius: var(--radius);
-  padding: 16px 18px;
-  margin-top: 14px;
-  margin-bottom: 14px;
+  padding: 18px 20px;
+  margin-bottom: 18px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.08);
-  animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  gap: 16px;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.07);
 }
 
-.hpp-calculator-head {
+.hpp-dissection-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e0f2fe;
 }
 
-.hpp-calculator-title {
+.hpp-dissection-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0369a1;
+  gap: 10px;
+}
+
+.hpp-dissection-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: #e0f2fe;
+  color: #0284c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.hpp-dissection-texts b {
+  font-size: 14px;
+  color: #0c4a6e;
+  display: block;
+}
+
+.hpp-dissection-texts small {
+  font-size: 11.5px;
+  color: #0284c7;
+  font-weight: 500;
 }
 
 .hpp-mode-switch {
   display: inline-flex;
   background: #f1f5f9;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  padding: 2px;
-  gap: 2px;
+  border-radius: 8px;
+  padding: 3px;
+  gap: 4px;
 }
 
 .hpp-mode-btn {
   border: 0;
   background: transparent;
   color: #475569;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 4px 10px;
-  border-radius: 4px;
+  padding: 6px 12px;
+  border-radius: 6px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  transition: all 0.12s ease;
+  gap: 6px;
+  transition: all 0.15s ease;
   white-space: nowrap;
 }
 
 .hpp-mode-btn.active {
   background: #ffffff;
   color: #0284c7;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
   font-weight: 700;
 }
 
@@ -8318,31 +8339,54 @@ textarea:focus-visible {
 .hpp-fields-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  gap: 14px;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
+  .hpp-fields-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
   .hpp-fields-grid {
     grid-template-columns: 1fr;
   }
 }
 
+.hpp-shrinkage-callout {
+  grid-column: 1 / -1;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  color: #92400e;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hpp-shrinkage-callout b {
+  color: #78350f;
+}
+
 .hpp-result-banner {
-  background: #f0f9ff;
-  border: 1px solid #bae6fd;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1.5px solid #bae6fd;
   border-radius: 8px;
-  padding: 12px 16px;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 16px;
   flex-wrap: wrap;
 }
 
 .hpp-result-summary {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
 }
 
 .hpp-result-main {
@@ -8351,52 +8395,222 @@ textarea:focus-visible {
   color: #0369a1;
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .hpp-result-main strong {
-  font-size: 18px;
+  font-size: 20px;
   color: #0c4a6e;
   font-variant-numeric: tabular-nums;
 }
 
 .hpp-result-sub {
-  font-size: 11.5px;
-  color: #0284c7;
+  font-size: 12px;
+  color: #0369a1;
+  font-weight: 500;
 }
 
-.hpp-apply-btn {
-  background: #0284c7;
-  color: #ffffff;
-  border: 0;
-  border-radius: 6px;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
+.hpp-sync-badge {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  transition: all 0.12s ease;
-  white-space: nowrap;
-  box-shadow: 0 2px 4px rgba(2, 132, 199, 0.2);
+  gap: 5px;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
 }
 
-.hpp-apply-btn:hover {
-  background: #0369a1;
-  box-shadow: 0 3px 6px rgba(2, 132, 199, 0.3);
+/* Subtotal indicators inside stages */
+.stage-subtotal-bar {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #475569;
 }
 
-.hpp-close-link {
+.stage-subtotal-bar b {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+/* ==========================================================================
+   16. Export Price Ladder Waterfall (Tangga Indikator Harga Ekspor)
+   ========================================================================== */
+
+.ladder-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.ladder-step-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 100px 1.4fr 1.3fr 1.1fr 140px;
+  align-items: center;
+  gap: 16px;
+  transition: all 0.15s ease;
+  position: relative;
+}
+
+.ladder-step-card:hover {
+  border-color: #94a3b8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.ladder-step-card.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.12);
+}
+
+.ladder-badge-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.ladder-term-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.ladder-step-card.active .ladder-term-badge {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.ladder-step-card.hpp-step .ladder-term-badge {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.ladder-desc-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ladder-desc-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.ladder-desc-formula {
   font-size: 11.5px;
   color: #64748b;
-  background: transparent;
-  border: 0;
-  cursor: pointer;
-  text-decoration: underline;
-  padding: 0;
 }
 
-.hpp-close-link:hover {
+.ladder-offer-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ladder-offer-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.ladder-offer-amount {
+  font-size: 16px;
+  font-weight: 800;
   color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.ladder-step-card.active .ladder-offer-amount {
+  color: #0369a1;
+}
+
+.ladder-unit-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ladder-unit-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.ladder-unit-amount {
+  font-size: 14px;
+  font-weight: 700;
+  color: #334155;
+  font-variant-numeric: tabular-nums;
+}
+
+.ladder-action-col {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.ladder-active-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ladder-select-btn {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.ladder-select-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+@media (max-width: 900px) {
+  .ladder-step-card {
+    grid-template-columns: 80px 1fr 1fr;
+    gap: 12px;
+  }
+  .ladder-unit-col, .ladder-action-col {
+    grid-column: 2 / -1;
+  }
 }

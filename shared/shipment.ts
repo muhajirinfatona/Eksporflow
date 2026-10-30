@@ -96,6 +96,17 @@ export type Shipment = {
   attachments: string[];
   lineItems: LineItem[];
   additionalCostFactors: AdditionalCostFactor[];
+  hppMode?: "trader" | "manufacturer";
+  traderBuyPrice?: number;
+  traderShrinkage?: number;
+  traderSourcingFreight?: number;
+  traderSortingLabor?: number;
+  traderInnerPackaging?: number;
+  traderMargin?: number;
+  mfgRawMaterial?: number;
+  mfgAuxiliary?: number;
+  mfgDirectLabor?: number;
+  mfgOverhead?: number;
 };
 
 export const initialShipment: Shipment = {
@@ -151,6 +162,17 @@ export const initialShipment: Shipment = {
   shipmentStatus: "Quotation",
   attachments: ["Buyer_PO_NPI-2026-118.pdf"],
   additionalCostFactors: [],
+  hppMode: "trader",
+  traderBuyPrice: 15.5,
+  traderShrinkage: 5,
+  traderSourcingFreight: 0.6,
+  traderSortingLabor: 0.5,
+  traderInnerPackaging: 0.8,
+  traderMargin: 0,
+  mfgRawMaterial: 14,
+  mfgAuxiliary: 1.5,
+  mfgDirectLabor: 1.2,
+  mfgOverhead: 0.8,
   lineItems: [{ id: "item-1", description: "Organic Coconut Sugar", hsCode: "1702.90", quantity: 2400, unit: "carton", unitPrice: 18.5, weight: 12, length: 40, width: 30, height: 25, packagingType: "Karton box", shrinkageRate: 1.5, palletEnabled: true, palletCount: 60, palletLength: 120, palletWidth: 100, palletHeight: 15, palletWeight: 22 }],
 };
 
@@ -232,6 +254,17 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     attachments: [],
     lineItems: [{ ...emptyLineItem }],
     additionalCostFactors: [],
+    hppMode: "trader",
+    traderBuyPrice: 0,
+    traderShrinkage: 5,
+    traderSourcingFreight: 0,
+    traderSortingLabor: 0,
+    traderInnerPackaging: 0,
+    traderMargin: 0,
+    mfgRawMaterial: 0,
+    mfgAuxiliary: 0,
+    mfgDirectLabor: 0,
+    mfgOverhead: 0,
   };
 }
 
