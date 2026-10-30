@@ -947,9 +947,11 @@ textarea:focus-visible {
 
 .form-section-title {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 14px;
+  flex-wrap: wrap;
 }
 
 .section-number {
@@ -961,12 +963,49 @@ textarea:focus-visible {
   padding: 3px 7px;
   font-size: 11px;
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .form-section-title > div {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  flex: 1;
+  min-width: 200px;
+}
+
+.section-factor-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.section-factor-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.section-factor-btn.highlight {
+  background: #f0f9ff;
+  border-color: #7dd3fc;
+  color: #0284c7;
+}
+
+.section-factor-btn.highlight:hover {
+  background: #e0f2fe;
+  border-color: #38bdf8;
+  color: #0369a1;
 }
 
 .form-section-title b {
@@ -7709,4 +7748,441 @@ textarea:focus-visible {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
+}
+
+/* ==========================================================================
+   14. Pricing Factors & Regulations Management (Modal & Aside Summary)
+   ========================================================================== */
+
+/* Quote Factor Summary Box in Offer Preview Aside (Replaces standalone Per-carton) */
+.quote-factor-summary-box {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-sizing: border-box;
+}
+
+.quote-factor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.quote-factor-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #93c5fd;
+}
+
+.quote-manage-factor-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.quote-manage-factor-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.quote-factor-breakdown {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.factor-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11.5px;
+}
+
+.factor-row span {
+  color: #cbd5e1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.factor-row b {
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.factor-row.status-row {
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 2px;
+}
+
+.quote-unit-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+}
+
+.quote-unit-footer span {
+  color: #94a3b8;
+}
+
+.quote-unit-footer b {
+  color: #e2e8f0;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Modal Faktor Harga & Regulasi */
+.factors-modal-card {
+  background: #ffffff;
+  border-radius: 12px;
+  width: 95%;
+  max-width: 680px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+  animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.factors-modal-header {
+  padding: 16px 20px;
+  background: #0f172a;
+  color: #ffffff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.factors-modal-header h4 {
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.factors-modal-header p {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 4px 0 0;
+}
+
+.factors-close-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+  color: #cbd5e1;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.factors-close-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+}
+
+.factors-tabs {
+  display: flex;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 16px;
+  gap: 6px;
+  overflow-x: auto;
+}
+
+.factors-tab-btn {
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #64748b;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.factors-tab-btn:hover {
+  color: #0f172a;
+}
+
+.factors-tab-btn.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+  background: #ffffff;
+}
+
+.factors-modal-body {
+  padding: 18px 20px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.incoterm-summary-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.incoterm-badge-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.incoterm-badge {
+  background: #0284c7;
+  color: #ffffff;
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.incoterm-resp-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .incoterm-resp-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.incoterm-resp-col {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.incoterm-resp-col b {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: #475569;
+}
+
+.incoterm-resp-col ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #334155;
+}
+
+.incoterm-resp-col li {
+  margin-bottom: 3px;
+}
+
+.incoterm-auto-apply-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.incoterm-auto-apply-box b {
+  font-size: 13px;
+  color: #1e3a8a;
+  display: block;
+}
+
+.incoterm-auto-apply-box p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: #1e40af;
+}
+
+.incoterm-auto-apply-box button {
+  background: #0284c7;
+  color: #ffffff;
+  border: 0;
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.12s ease;
+}
+
+.incoterm-auto-apply-box button:hover {
+  background: #0369a1;
+}
+
+.factors-preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.factors-preset-item {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.12s ease;
+}
+
+.factors-preset-item:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.preset-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+
+.preset-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.preset-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.preset-tag {
+  font-size: 10.5px;
+  background: #f1f5f9;
+  color: #475569;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-weight: 500;
+}
+
+.preset-tag.rec {
+  background: #dcfce7;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.preset-desc {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 0;
+}
+
+.preset-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.preset-amount {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  font-variant-numeric: tabular-nums;
+}
+
+.preset-add-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #0284c7;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+
+.preset-add-btn:hover {
+  background: #f0f9ff;
+  border-color: #0284c7;
+}
+
+.custom-factor-form {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.factors-modal-footer {
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }

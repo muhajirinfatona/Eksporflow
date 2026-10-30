@@ -1,6 +1,12 @@
 import type { ApprovalDecision, PartnerEntry } from "@/hooks/useWorkspaceFlow";
 import { trpc } from "@/lib/trpc";
 import {
+  convertTemplateCost,
+  COUNTRY_REGULATION_PRESETS,
+  INCOTERM_TEMPLATES,
+  type CountryRegulationPreset,
+} from "@shared/costFactors";
+import {
   convertCurrencyValue,
   formatCurrencyAmount,
   getBiRateForCurrency,
@@ -10,20 +16,27 @@ import {
   type SupportedCurrency,
 } from "@shared/currencies";
 import { formatMoney, formatNumber } from "@shared/format";
-import type { Pricing } from "@shared/pricing";
+import { incotermCostKeys, type Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
 import type { Incoterm, LineItem, Shipment } from "@shared/shipment";
 import {
   ArrowRightLeft,
   ArrowUpRight,
   Check,
+  CheckCircle2,
   ClipboardCheck,
+  FileCheck,
   Globe,
   Info,
+  Layers,
+  Plus,
   RefreshCw,
+  Scale,
   ShieldAlert,
+  SlidersHorizontal,
   Sparkles,
   TrendingUp,
+  X,
   Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -53,6 +66,13 @@ export function PricingModule({
 }) {
   const [showConvertModal, setShowConvertModal] = useState(false);
   const [targetConvertCurrency, setTargetConvertCurrency] = useState<string>("USD");
+
+  // State untuk Modal Faktor Pembentuk Harga & Regulasi Buyer
+  const [showCostFactorsModal, setShowCostFactorsModal] = useState<boolean>(false);
+  const [costFactorTab, setCostFactorTab] = useState<"incoterm" | "regulations" | "custom">("incoterm");
+  const [customFactorName, setCustomFactorName] = useState<string>("");
+  const [customFactorAmount, setCustomFactorAmount] = useState<string>("");
+  const [customFactorTarget, setCustomFactorTarget] = useState<keyof Shipment>("customs");
 
   // Rekomendasi negara buyer
   const recommendedCurrency = getRecommendedCurrencyForCountry(shipment.buyerCountry);
@@ -132,6 +152,79 @@ export function PricingModule({
     currentFxRate,
     liveRates?.rates,
   );
+
+  // Subtotal komponen pembentuk harga transaksi ekspor
+  const goodsSubtotal = pricing.goods + (shipment.packaging || 0);
+  const activeIncotermKeys = incotermCostKeys[shipment.incoterm] || [];
+  const logisticsSubtotal = activeIncotermKeys
+    .filter((k) => k !== "goods" && k !== "packaging")
+    .reduce((sum, key) => sum + (Number(shipment[key]) || 0), 0);
+
+  const directCostTotal = goodsSubtotal + logisticsSubtotal;
+  const contingencyAmount = (directCostTotal * Math.max(0, shipment.contingency)) / 100;
+  const totalCostWithContingency = directCostTotal + contingencyAmount;
+  const targetMargin = shipment.margin / 100;
+  const netOfferBeforeDiscount = targetMargin < 1 ? totalCostWithContingency / Math.max(0.0001, 1 - targetMargin) : 0;
+  const totalOffer = Math.max(0, netOfferBeforeDiscount - shipment.discount);
+  const totalProfit = Math.max(0, totalOffer - totalCostWithContingency);
+
+  const convertedGoods = convertCurrencyValue(goodsSubtotal, shipment.currency, activeDualCurrency, currentFxRate, liveRates?.rates);
+  const convertedLogistics = convertCurrencyValue(logisticsSubtotal, shipment.currency, activeDualCurrency, currentFxRate, liveRates?.rates);
+  const convertedContingency = convertCurrencyValue(contingencyAmount, shipment.currency, activeDualCurrency, currentFxRate, liveRates?.rates);
+
+  // Auto-apply faktor Incoterm
+  const handleApplyIncotermTemplate = (term: Incoterm) => {
+    const template = INCOTERM_TEMPLATES[term];
+    if (!template) return;
+    const costs = template.defaultCostsIdr;
+    update("packaging", convertTemplateCost(costs.packaging, shipment.currency, currentFxRate));
+    update("inlandTransport", convertTemplateCost(costs.inlandTransport, shipment.currency, currentFxRate));
+    update("originHandling", convertTemplateCost(costs.originHandling, shipment.currency, currentFxRate));
+    update("customs", convertTemplateCost(costs.customs, shipment.currency, currentFxRate));
+    update("freight", convertTemplateCost(costs.freight, shipment.currency, currentFxRate));
+    update("insurance", convertTemplateCost(costs.insurance, shipment.currency, currentFxRate));
+    update("destinationHandling", convertTemplateCost(costs.destinationHandling, shipment.currency, currentFxRate));
+    update("importDuty", convertTemplateCost(costs.importDuty, shipment.currency, currentFxRate));
+    update("lastMile", convertTemplateCost(costs.lastMile, shipment.currency, currentFxRate));
+
+    if (shipment.contingency <= 0) {
+      update("contingency", template.recommendedContingency);
+    }
+
+    toast.success(`Faktor biaya standar ${term} (${template.name}) berhasil diterapkan`, {
+      description: `Seluruh pos logistik dan tanggung jawab penjual telah disinkronkan (${shipment.currency}).`,
+    });
+  };
+
+  // Tambah regulasi preset
+  const handleAddRegulationPreset = (preset: CountryRegulationPreset) => {
+    const amountInCurrency = convertTemplateCost(preset.defaultAmountIdr, shipment.currency, currentFxRate);
+    if (preset.field === "contingency") {
+      const nextContingency = Math.min(15, (shipment.contingency || 0) + 2);
+      update("contingency", nextContingency);
+      toast.success(`Buffer kontinjensi diperbarui menjadi ${nextContingency}%`);
+      return;
+    }
+    const currentVal = Number(shipment[preset.field]) || 0;
+    const newVal = Number((currentVal + amountInCurrency).toFixed(2));
+    update(preset.field, newVal);
+    toast.success(`${preset.name} (+${formatCurrencyAmount(amountInCurrency, shipment.currency)}) berhasil ditambahkan`);
+  };
+
+  // Tambah faktor manual kustom
+  const handleAddCustomFactor = () => {
+    const num = parseFloat(customFactorAmount.replace(/[^0-9.-]+/g, ""));
+    if (isNaN(num) || num <= 0) {
+      toast.error("Masukkan nominal angka faktor biaya yang valid");
+      return;
+    }
+    const currentVal = Number(shipment[customFactorTarget]) || 0;
+    const newVal = Number((currentVal + num).toFixed(2));
+    update(customFactorTarget, newVal);
+    toast.success(`Faktor "${customFactorName || 'Biaya Khusus Buyer'}" (+${formatCurrencyAmount(num, shipment.currency)}) berhasil ditambahkan ke pos ${customFactorTarget}`);
+    setCustomFactorName("");
+    setCustomFactorAmount("");
+  };
 
   // Apply Bank Indonesia rate to transaction
   const handleApplyBiRate = (type: "sell" | "middle" | "buy") => {
@@ -252,9 +345,20 @@ export function PricingModule({
             <div className="form-section-title">
               <span className="section-number">01</span>
               <div>
-                <b>Nilai barang</b>
+                <b>Nilai barang & komoditas</b>
                 <small>Basis perhitungan dari seluruh line item ({shipment.currency})</small>
               </div>
+              <button
+                type="button"
+                className="section-factor-btn"
+                onClick={() => {
+                  setCostFactorTab("regulations");
+                  setShowCostFactorsModal(true);
+                }}
+                title="Buka form faktor regulasi produk & kemasan ekspor"
+              >
+                <SlidersHorizontal size={12} /> Faktor Regulasi Barang
+              </button>
             </div>
             <div className="form-grid four">
               <Field
@@ -317,6 +421,17 @@ export function PricingModule({
                 <b>Biaya logistik & kepabeanan</b>
                 <small>Aktif otomatis sesuai cakupan Incoterm ({shipment.currency})</small>
               </div>
+              <button
+                type="button"
+                className="section-factor-btn"
+                onClick={() => {
+                  setCostFactorTab("incoterm");
+                  setShowCostFactorsModal(true);
+                }}
+                title="Isi otomatis estimasi biaya logistik berdasarkan Incoterm"
+              >
+                <Zap size={12} /> Auto-Fill Faktor Incoterm ({shipment.incoterm})
+              </button>
             </div>
             <div className="form-grid three">
               <Field
@@ -394,6 +509,17 @@ export function PricingModule({
                   Formula tersimpan sebagai {shipment.formulaVersion}. Mendukung pemilihan mata uang per negara dan kurs realtime.
                 </small>
               </div>
+              <button
+                type="button"
+                className="section-factor-btn highlight"
+                onClick={() => {
+                  setCostFactorTab("incoterm");
+                  setShowCostFactorsModal(true);
+                }}
+                title="Buka form faktor harga Incoterm dan regulasi buyer"
+              >
+                <Scale size={12} /> Kelola Faktor Harga & Regulasi
+              </button>
             </div>
 
             {/* KURS BANK INDONESIA (PANEL BERSIH & TERTATA) */}
@@ -664,37 +790,60 @@ export function PricingModule({
               </div>
             </div>
 
-            <div className="quote-unit">
-              <span>Per {shipment.unit}</span>
-              <div className="quote-unit-val">
-                <b>{formatCurrencyAmount(pricing.active.unit, shipment.currency)}</b>
-                <span className="quote-unit-dual">
-                  (≈ {formatCurrencyAmount(convertedUnit, activeDualCurrency)})
+            {/* TOTAL TRANSAKSI KESELURUHAN BERDASARKAN FAKTOR HARGA YANG DITAMBAHKAN */}
+            <div className="quote-factor-summary-box">
+              <div className="quote-factor-header">
+                <span className="quote-factor-title">
+                  <Layers size={13} /> Rincian Faktor ({shipment.incoterm})
                 </span>
+                <button
+                  type="button"
+                  className="quote-manage-factor-btn"
+                  onClick={() => {
+                    setCostFactorTab("incoterm");
+                    setShowCostFactorsModal(true);
+                  }}
+                  title="Kelola faktor harga otomatis & manual"
+                >
+                  <SlidersHorizontal size={11} /> Faktor Harga
+                </button>
               </div>
-            </div>
 
-            <div className="quote-breakdown">
-              <div>
-                <span>Cost to serve + contingency</span>
+              <div className="quote-factor-breakdown">
+                <div className="factor-row">
+                  <span>📦 Nilai Barang & Kemasan:</span>
+                  <b>{formatCurrencyAmount(goodsSubtotal, shipment.currency)}</b>
+                </div>
+                <div className="factor-row">
+                  <span>🚢 Logistik & Regulasi ({shipment.incoterm}):</span>
+                  <b>{formatCurrencyAmount(logisticsSubtotal, shipment.currency)}</b>
+                </div>
+                <div className="factor-row">
+                  <span>🛡️ Contingency ({shipment.contingency}%):</span>
+                  <b>+ {formatCurrencyAmount(contingencyAmount, shipment.currency)}</b>
+                </div>
+                <div className="factor-row">
+                  <span>📈 Target Margin ({shipment.margin}%):</span>
+                  <b className="mint-text">+ {formatCurrencyAmount(pricing.active.profit, shipment.currency)}</b>
+                </div>
+                {shipment.discount > 0 && (
+                  <div className="factor-row">
+                    <span>🏷️ Diskon Buyer:</span>
+                    <b className="text-amber">- {formatCurrencyAmount(shipment.discount, shipment.currency)}</b>
+                  </div>
+                )}
+                <div className="factor-row status-row">
+                  <span>Status Persetujuan:</span>
+                  <b>{effectiveApprovalStatus}</b>
+                </div>
+              </div>
+
+              {/* INFORMASI UNIT SEKUNDER (BUKAN UTAMA) */}
+              <div className="quote-unit-footer">
+                <span>Ekuivalen per {shipment.unit || "unit"}:</span>
                 <b>
-                  {formatCurrencyAmount(pricing.active.cost, shipment.currency)}
-                  <small className="breakdown-dual-sub">
-                    {" "}(≈ {formatCurrencyAmount(convertedCost, activeDualCurrency)})
-                  </small>
+                  {formatCurrencyAmount(pricing.active.unit, shipment.currency)}
                 </b>
-              </div>
-              <div>
-                <span>Margin {shipment.margin}%</span>
-                <b className="mint-text">+ {formatCurrencyAmount(pricing.active.profit, shipment.currency)}</b>
-              </div>
-              <div>
-                <span>Diskon</span>
-                <b>{shipment.discount ? `- ${formatCurrencyAmount(shipment.discount, shipment.currency)}` : "—"}</b>
-              </div>
-              <div>
-                <span>Status Persetujuan</span>
-                <b>{effectiveApprovalStatus}</b>
               </div>
             </div>
 
@@ -850,6 +999,240 @@ export function PricingModule({
                 onClick={() => executeConversion(targetConvertCurrency)}
               >
                 Konversikan Semua Angka ke {targetConvertCurrency}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL KELOLA FAKTOR PEMBENTUK HARGA & REGULASI BUYER */}
+      {showCostFactorsModal && (
+        <div className="fx-modal-backdrop" onClick={() => setShowCostFactorsModal(false)}>
+          <div className="factors-modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="factors-modal-header">
+              <div>
+                <h4>
+                  <Scale size={18} /> Faktor Pembentuk Harga & Regulasi Buyer
+                </h4>
+                <p>
+                  Incoterm: <b>{shipment.incoterm}</b> ({INCOTERM_TEMPLATES[shipment.incoterm]?.name}) · Buyer: <b>{shipment.buyer || "Umum"}</b> ({shipment.buyerCountry || "Internasional"})
+                </p>
+              </div>
+              <button
+                type="button"
+                className="factors-close-btn"
+                onClick={() => setShowCostFactorsModal(false)}
+                title="Tutup form"
+              >
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="factors-tabs">
+              <button
+                type="button"
+                className={`factors-tab-btn ${costFactorTab === "incoterm" ? "active" : ""}`}
+                onClick={() => setCostFactorTab("incoterm")}
+              >
+                <Zap size={13} /> Otomatis Incoterm ({shipment.incoterm})
+              </button>
+              <button
+                type="button"
+                className={`factors-tab-btn ${costFactorTab === "regulations" ? "active" : ""}`}
+                onClick={() => setCostFactorTab("regulations")}
+              >
+                <FileCheck size={13} /> Regulasi Negara Buyer
+              </button>
+              <button
+                type="button"
+                className={`factors-tab-btn ${costFactorTab === "custom" ? "active" : ""}`}
+                onClick={() => setCostFactorTab("custom")}
+              >
+                <Plus size={13} /> Tambah Faktor Manual
+              </button>
+            </div>
+
+            <div className="factors-modal-body">
+              {costFactorTab === "incoterm" && (
+                <div className="incoterm-tab-content">
+                  <div className="incoterm-summary-card">
+                    <div className="incoterm-badge-row">
+                      <span className="incoterm-badge">{shipment.incoterm}</span>
+                      <span style={{ fontSize: 11.5, color: "#64748b" }}>Standar ICC Incoterms® 2020</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: 12.5, color: "#334155", lineHeight: 1.4 }}>
+                      {INCOTERM_TEMPLATES[shipment.incoterm]?.description}
+                    </p>
+                    <div className="incoterm-resp-grid">
+                      <div className="incoterm-resp-col">
+                        <b>Tanggung Jawab Penjual (Eksportir):</b>
+                        <ul>
+                          {INCOTERM_TEMPLATES[shipment.incoterm]?.sellerResponsibility.map((resp, i) => (
+                            <li key={i}>{resp}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="incoterm-resp-col">
+                        <b>Tanggung Jawab Buyer:</b>
+                        <ul>
+                          {INCOTERM_TEMPLATES[shipment.incoterm]?.buyerResponsibility.map((resp, i) => (
+                            <li key={i}>{resp}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="incoterm-auto-apply-box">
+                    <div>
+                      <b>Terapkan Estimasi Biaya Standar {shipment.incoterm}</b>
+                      <p>
+                        Otomatis mengisi pos logistik, freight, asuransi, THC, dan bea sesuai tanggung jawab {shipment.incoterm} ke dalam mata uang <b>{shipment.currency}</b>.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleApplyIncotermTemplate(shipment.incoterm)}
+                    >
+                      <Zap size={14} /> Terapkan Otomatis
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {costFactorTab === "regulations" && (
+                <div className="regulations-tab-content">
+                  <p style={{ margin: "0 0 10px", fontSize: 12.5, color: "#475569" }}>
+                    Daftar regulasi dan sertifikasi resmi yang umumnya dipersyaratkan negara buyer ({shipment.buyerCountry || "Internasional"}):
+                  </p>
+                  <div className="factors-preset-list">
+                    {COUNTRY_REGULATION_PRESETS.map((preset) => {
+                      const amountInCur = convertTemplateCost(preset.defaultAmountIdr, shipment.currency, currentFxRate);
+                      const isRecommended =
+                        shipment.buyerCountry &&
+                        preset.targetCountry.toLowerCase().includes(shipment.buyerCountry.toLowerCase());
+                      const targetFieldLabel =
+                        preset.category === "goods"
+                          ? "Bagian 01: Nilai Barang (Packaging)"
+                          : preset.category === "logistics"
+                            ? `Bagian 02: Biaya Logistik (${preset.field})`
+                            : "Bagian 03: Strategi (Contingency)";
+
+                      return (
+                        <div className="factors-preset-item" key={preset.id}>
+                          <div className="preset-info">
+                            <div className="preset-title-row">
+                              <span className="preset-title">{preset.name}</span>
+                              <span className={`preset-tag ${isRecommended ? "rec" : ""}`}>
+                                {isRecommended ? `⭐ Diperlukan ${shipment.buyerCountry}` : preset.targetCountry}
+                              </span>
+                            </div>
+                            <p className="preset-desc">{preset.description}</p>
+                            <span style={{ fontSize: 11, color: "#64748b" }}>Alokasi: {targetFieldLabel}</span>
+                          </div>
+                          <div className="preset-action">
+                            {preset.field !== "contingency" ? (
+                              <span className="preset-amount">
+                                + {formatCurrencyAmount(amountInCur, shipment.currency)}
+                              </span>
+                            ) : (
+                              <span className="preset-amount">+2% buffer</span>
+                            )}
+                            <button
+                              type="button"
+                              className="preset-add-btn"
+                              onClick={() => handleAddRegulationPreset(preset)}
+                              title={`Tambahkan ke pos ${preset.field}`}
+                            >
+                              <Plus size={12} /> Tambahkan
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {costFactorTab === "custom" && (
+                <div className="custom-factor-tab-content">
+                  <div className="custom-factor-form">
+                    <b style={{ fontSize: 13.5, color: "#0f172a" }}>
+                      Tambah Faktor Biaya Regulasi / Permintaan Khusus Buyer
+                    </b>
+                    <p style={{ margin: 0, fontSize: 12, color: "#64748b" }}>
+                      Tambahkan pos biaya khusus yang diminta buyer atau regulasi spesifik pelabuhan negara tujuan.
+                    </p>
+
+                    <div className="form-grid two">
+                      <div className="field">
+                        <span>Nama Faktor / Dokumen</span>
+                        <input
+                          type="text"
+                          placeholder="Contoh: Uji Lab Sucofindo, Pallet Plastik Food Grade..."
+                          value={customFactorName}
+                          onChange={(e) => setCustomFactorName(e.target.value)}
+                        />
+                      </div>
+                      <div className="field">
+                        <span>Nominal Biaya ({shipment.currency})</span>
+                        <input
+                          type="number"
+                          placeholder={`Nominal dalam ${shipment.currency}`}
+                          value={customFactorAmount}
+                          onChange={(e) => setCustomFactorAmount(e.target.value)}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="field">
+                      <span>Alokasi Pos Biaya</span>
+                      <div className="input-shell select-shell">
+                        <select
+                          value={customFactorTarget}
+                          onChange={(e) => setCustomFactorTarget(e.target.value as keyof Shipment)}
+                        >
+                          <optgroup label="Bagian 01: Nilai Barang">
+                            <option value="packaging">Packaging Ekspor Khusus & Labelling</option>
+                          </optgroup>
+                          <optgroup label="Bagian 02: Biaya Logistik & Kepabeanan">
+                            <option value="customs">Customs Clearance / PEB / Sertifikat Karantina</option>
+                            <option value="inlandTransport">Inland Transport / Trucking Origin</option>
+                            <option value="originHandling">Origin Handling / THC POL</option>
+                            <option value="freight">Ocean / Air Freight Internasional</option>
+                            <option value="insurance">Marine Cargo Insurance</option>
+                            <option value="destinationHandling">Destination Handling / THC POD</option>
+                            <option value="importDuty">Bea Masuk & Pajak Impor Negara Buyer</option>
+                            <option value="lastMile">Last-mile Delivery ke Alamat Buyer</option>
+                          </optgroup>
+                        </select>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      className="save-button"
+                      onClick={handleAddCustomFactor}
+                      style={{ alignSelf: "flex-start", marginTop: 4 }}
+                    >
+                      <Plus size={14} /> Tambahkan Faktor ke Form
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="factors-modal-footer">
+              <div style={{ fontSize: 12, color: "#475569" }}>
+                Total Biaya Pokok: <b>{formatCurrencyAmount(directCostTotal, shipment.currency)}</b> · Total Penawaran: <b>{formatCurrencyAmount(pricing.active.offer, shipment.currency)}</b>
+              </div>
+              <button
+                type="button"
+                className="save-button"
+                style={{ width: "auto", minHeight: 34, padding: "0 16px" }}
+                onClick={() => setShowCostFactorsModal(false)}
+              >
+                Selesai & Tutup
               </button>
             </div>
           </div>
