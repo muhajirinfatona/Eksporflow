@@ -559,17 +559,10 @@ export function TransactionsModule({
                   Rekomendasi Regulasi &amp; Sertifikat Ekspor (AI Advisor)
                 </span>
                 <p>
-                  Saran dokumen kepatuhan belum ditampilkan karena belum ada PO/LOI dari buyer. Unggah atau scan dokumen <strong>PO (Purchase Order)</strong> atau <strong>LOI (Letter of Intent)</strong> agar AI Advisor dapat memindai negara tujuan dan memunculkan dokumen yang wajib Anda siapkan.
+                  Saran dokumen kepatuhan belum ditampilkan karena belum ada PO/LOI dari buyer. Gunakan tombol <strong>+ Scan Dokumen PO / LOI</strong> di atas agar AI Advisor dapat memindai negara tujuan dan memunculkan dokumen yang wajib Anda siapkan.
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              className="trans-compliance-pending-btn"
-              onClick={() => setPoModalOpen(true)}
-            >
-              <FileSpreadsheet size={14} /> + Scan Dokumen PO / LOI
-            </button>
           </div>
         ) : (
           /* Dokumen & Sertifikat Kepatuhan Ekspor Hasil Scan AI */

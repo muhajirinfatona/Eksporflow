@@ -8010,16 +8010,14 @@ textarea:focus-visible {
   margin-top: 14px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
+  gap: 14px;
 }
 
 .trans-compliance-pending-left {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  flex: 1 1 320px;
+  width: 100%;
 }
 
 .trans-compliance-pending-icon {
