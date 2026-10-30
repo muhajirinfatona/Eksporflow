@@ -169,53 +169,142 @@ Payment Terms:
  * 4. Website Perusahaan (Domain resmi)
  * Serta validasi rute logistik dan keamanan klausul pembayaran.
  */
-export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreeningResult {
+export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeningResult {
   const clean = text || "";
+  const lines = clean
+    .split(/\r?\n/)
+    .map((l) => l.trim())
+    .filter(Boolean);
 
-  // 1. Ekstraksi PO Reference
+  // 1. Ekstraksi Nomor Referensi PO / LOI / Kontrak
   const poMatch =
-    clean.match(/(?:(?:PO|LOI|Contract)\s*(?:Number|No\.?|#)?\s*[:=\-]?\s*)([A-Z0-9\/\-_]+)/i) ||
-    clean.match(/((?:PO|LOI)-[0-9]{4}[A-Z0-9\/\-_]*)/i) ||
-    clean.match(/([A-Z]{2,4}-[0-9]{4}[A-Z0-9\/\-_]*)/i);
-  const reference = poMatch ? poMatch[1].trim() : "PO-" + new Date().getFullYear() + "/01";
+    clean.match(/(?:(?:No\.?|Nomor|Kode)\s*(?:PO|LOI|Pesanan|Kontrak|Order)\s*[:=\-]?\s*)([A-Z0-9\/\-_]{3,35})/i) ||
+    clean.match(/(?:(?:P\.O\.|PO|L\.O\.I\.|LOI|Purchase\s*Order|Pesanan\s*Pembelian|Order|Pesanan|Kontrak|Invoice|Contract)\s*(?:Number|No\.?|#|Kode|ID)\s*[:=\-]?\s*)([A-Z0-9\/\-_]{3,35})/i) ||
+    clean.match(/(?:(?:P\.O\.|PO|LOI)\s*[:=\-]\s*)([A-Z0-9\/\-_]{3,35})/i);
 
-  // 2. Ekstraksi Nama Buyer
-  const buyerOnNextLine = clean.match(/(?:Company\s*Name|Buyer|Importer|Purchaser|Customer)[^\n:]*:\s*\r?\n\s*([^\n\r(]+)/i);
-  const buyerSameLine = clean.match(/(?:Company\s*Name|Buyer|Importer|Purchaser|Customer)\s*[:=\-]\s*([^\n\r(]+)/i);
-  let buyer = (buyerOnNextLine ? buyerOnNextLine[1] : buyerSameLine ? buyerSameLine[1] : "").trim();
-  buyer = buyer.replace(/^\/\s*[a-zA-Z]+\s*[:=]?\s*/i, "").trim();
+  const standaloneCodeMatch =
+    clean.match(/\b((?:PO|LOI|ORD|INV|CTR)[-_\/][A-Z0-9\/\-_]{3,25})\b/i) ||
+    clean.match(/\bPO\s*#?\s*([A-Z0-9\/\-_]{3,20})\b/i);
 
-  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name)$/i.test(buyer)) {
+  let fileRef = "";
+  if (fileName) {
+    const fnMatch = fileName.match(/((?:PO|LOI|INV|ORD)[-_\/0-9A-Z]+)/i);
+    if (fnMatch) fileRef = fnMatch[1].replace(/[_.]/g, "-");
+  }
+
+  const reference = poMatch
+    ? poMatch[1].trim()
+    : standaloneCodeMatch
+      ? standaloneCodeMatch[1].trim()
+      : fileRef || "PO-" + new Date().getFullYear() + "/01";
+
+  // 2. Ekstraksi Nama Buyer / Importir
+  const buyerSameLine = /(?:Company\s*Name|Buyer\s*Name|Buyer|Importer\s*Name|Importer|Purchaser\s*Name|Purchaser|Customer\s*Name|Customer|Bill\s*To|Invoice\s*To|Sold\s*To|Consignee|Applicant|Nama\s*Perusahaan|Nama\s*Pembeli|Pembeli|Importir|Pihak\s*Pembeli|Kepada\s*(?:Yth\.?)?|Messrs|Client|Ordered\s*By)\s*[:=\-]\s*([^\n\r(]+)/i;
+  const buyerNextLine = /(?:Company\s*Name|Buyer\s*Name|Buyer|Importer\s*Name|Importer|Purchaser\s*Name|Purchaser|Customer\s*Name|Customer|Bill\s*To|Invoice\s*To|Sold\s*To|Consignee|Applicant|Nama\s*Perusahaan|Nama\s*Pembeli|Pembeli|Importir|Pihak\s*Pembeli|Kepada\s*(?:Yth\.?)?|Messrs|Client|Ordered\s*By)[^\n:]*:\s*\r?\n\s*([^\n\r(]+)/i;
+
+  const bMatch1 = clean.match(buyerSameLine);
+  const bMatch2 = clean.match(buyerNextLine);
+  let buyer = (bMatch2 ? bMatch2[1] : bMatch1 ? bMatch1[1] : "").trim();
+  buyer = buyer
+    .replace(/^\/\s*[a-zA-Z]+\s*[:=]?\s*/i, "")
+    .replace(/^(Attn|Attention|Mr\.?|Mrs\.?|Ms\.?)\s*[:=\-]?\s*[^\n,]+/i, "")
+    .trim();
+
+  // Jika belum ketemu, cari baris dengan akhiran badan hukum resmi internasional/nasional
+  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan)$/i.test(buyer)) {
+    const legalSuffixRegex = /\b(PT\.?|CV\.?|UD\.?|Ltd\.?|LLC|Inc\.?|Corp\.?|Corporation|GmbH|Co\.,?\s*Ltd\.?|Pte\.?\s*Ltd\.?|Sdn\.?\s*Bhd\.?|S\.A\.|S\.p\.A\.|B\.V\.|AG|Oy|AB|Trading\s+LLC)\b/i;
+    for (const line of lines.slice(0, 15)) {
+      if (
+        legalSuffixRegex.test(line) &&
+        !/^(PURCHASE ORDER|LETTER OF INTENT|INVOICE|CONTRACT|PACKING LIST|PROFORMA)/i.test(line) &&
+        !/@/.test(line) &&
+        !/http|www\./i.test(line) &&
+        line.length >= 4 &&
+        line.length <= 60
+      ) {
+        buyer = line.replace(/^(Buyer|Importer|Purchaser|Company|Customer|Messrs)\s*[:=\-]?\s*/i, "").trim();
+        break;
+      }
+    }
+  }
+
+  // Fallback nama buyer terdeteksi dari sampel atau baris atas dokumen
+  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan)$/i.test(buyer)) {
     if (clean.includes("Nordic Pantry")) buyer = "Nordic Pantry AB";
     else if (clean.includes("Kyoto Trading")) buyer = "Kyoto Trading Co., Ltd.";
     else if (clean.includes("Hamburg Organic")) buyer = "Hamburg Organic Spices GmbH";
     else if (clean.includes("Gulf Gourmet")) buyer = "Gulf Gourmet General Trading LLC";
-    else buyer = "International Trade Buyer";
+    else {
+      for (const line of lines.slice(0, 8)) {
+        if (
+          line.length > 5 &&
+          line.length < 50 &&
+          !/^(purchase|order|po|loi|date|ref|nomor|invoice|tanggal|page)/i.test(line) &&
+          !/@/.test(line)
+        ) {
+          buyer = line;
+          break;
+        }
+      }
+      if (!buyer) buyer = "Buyer Internasional";
+    }
   }
 
-  // 3. Ekstraksi Negara Buyer
-  let buyerCountry = "Jepang";
-  if (/Sweden|Swedia|Gothenburg|Stockholm/i.test(clean)) buyerCountry = "Swedia";
-  else if (/Japan|Jepang|Tokyo|Yokohama|Kyoto|Osaka/i.test(clean)) buyerCountry = "Jepang";
-  else if (/Germany|Jerman|Hamburg|Bremen|Berlin/i.test(clean)) buyerCountry = "Jerman";
-  else if (/USA|United States|America|Amerika|Long Beach|Los Angeles|New York/i.test(clean)) buyerCountry = "Amerika Serikat";
-  else if (/UAE|Dubai|Jebel Ali|Emirat|Saudi|Arab/i.test(clean)) buyerCountry = "Uni Emirat Arab";
-  else if (/Netherlands|Belanda|Rotterdam|Amsterdam/i.test(clean)) buyerCountry = "Belanda";
-  else if (/Singapore|Singapura/i.test(clean)) buyerCountry = "Singapura";
-  else if (/Malaysia|Kuala Lumpur|Port Klang/i.test(clean)) buyerCountry = "Malaysia";
-  else if (/Australia|Sydney|Melbourne|Brisbane/i.test(clean)) buyerCountry = "Australia";
+  // 3. Ekstraksi Negara Buyer (Kamus Luas 30+ Negara Tujuan Ekspor Utama)
+  let buyerCountry = "";
+  const countryDict: [RegExp, string, string][] = [
+    [/Sweden|Swedia|Gothenburg|Stockholm|Malmo/i, "Swedia", "Port of Gothenburg"],
+    [/Japan|Jepang|Tokyo|Yokohama|Osaka|Kobe|Nagoya|Kyoto/i, "Jepang", "Port of Tokyo"],
+    [/Germany|Jerman|Deutschland|Hamburg|Bremen|Berlin|Frankfurt/i, "Jerman", "Port of Hamburg"],
+    [/USA|United States|America|Amerika|Long Beach|Los Angeles|New York|Houston|Miami/i, "Amerika Serikat", "Port of Long Beach"],
+    [/UAE|Dubai|Jebel Ali|Emirat|Abu Dhabi|Sharjah/i, "Uni Emirat Arab", "Jebel Ali Port, Dubai"],
+    [/Saudi|Arab Saudi|KSA|Jeddah|Riyadh|Dammam/i, "Arab Saudi", "Jeddah Islamic Port"],
+    [/China|Tiongkok|Cina|Shanghai|Ningbo|Shenzhen|Guangzhou|Qingdao|Tianjin/i, "Tiongkok (China)", "Port of Shanghai"],
+    [/South Korea|Korea Selatan|Korea|Busan|Incheon|Seoul/i, "Korea Selatan", "Port of Busan"],
+    [/India|Mumbai|Nhava Sheva|Chennai|Kolkata|Delhi/i, "India", "Nhava Sheva Port, Mumbai"],
+    [/United Kingdom|UK|Inggris|Great Britain|London|Southampton|Felixstowe/i, "Inggris (UK)", "Port of Southampton"],
+    [/Netherlands|Belanda|Holland|Rotterdam|Amsterdam/i, "Belanda", "Port of Rotterdam"],
+    [/Singapore|Singapura/i, "Singapura", "Port of Singapore"],
+    [/Malaysia|Kuala Lumpur|Port Klang|Penang|Johor/i, "Malaysia", "Port Klang"],
+    [/Australia|Sydney|Melbourne|Brisbane|Fremantle|Perth/i, "Australia", "Port of Melbourne"],
+    [/Canada|Kanada|Vancouver|Montreal|Toronto/i, "Kanada", "Port of Vancouver"],
+    [/France|Prancis|Le Havre|Marseille|Paris/i, "Prancis", "Port of Le Havre"],
+    [/Italy|Italia|Genoa|Trieste|La Spezia|Milan/i, "Italia", "Port of Genoa"],
+    [/Spain|Spanyol|Valencia|Barcelona|Algeciras/i, "Spanyol", "Port of Valencia"],
+    [/Turkey|Turki|Istanbul|Izmir|Mersin/i, "Turki", "Port of Istanbul"],
+    [/Egypt|Mesir|Alexandria|Port Said|Cairo/i, "Mesir", "Port of Alexandria"],
+    [/Thailand|Bangkok|Laem Chabang/i, "Thailand", "Laem Chabang Port"],
+    [/Vietnam|Ho Chi Minh|Hai Phong|Da Nang/i, "Vietnam", "Cat Lai Port, Ho Chi Minh"],
+    [/Philippines|Filipina|Manila|Cebu/i, "Filipina", "Port of Manila"],
+    [/Taiwan|Kaohsiung|Taipei|Keelung/i, "Taiwan", "Port of Kaohsiung"],
+    [/Qatar|Doha|Hamad/i, "Qatar", "Hamad Port, Doha"],
+    [/Kuwait|Shuwaikh/i, "Kuwait", "Shuwaikh Port"],
+    [/Oman|Muscat|Sohar|Salalah/i, "Oman", "Sohar Port"],
+    [/Brazil|Brasil|Santos|Paranagua/i, "Brasil", "Port of Santos"],
+    [/South Africa|Afrika Selatan|Durban|Cape Town/i, "Afrika Selatan", "Port of Durban"],
+    [/Russia|Rusia|Vladivostok|St\. Petersburg/i, "Rusia", "Port of Vladivostok"],
+    [/New Zealand|Selandia Baru|Auckland/i, "Selandia Baru", "Port of Auckland"],
+    [/Belgium|Belgia|Antwerp/i, "Belgia", "Port of Antwerp"],
+    [/Poland|Polandia|Gdansk|Gdynia/i, "Polandia", "Port of Gdansk"],
+  ];
+
+  let defaultPort = "Port of Discharge";
+  for (const [pattern, country, port] of countryDict) {
+    if (pattern.test(clean)) {
+      buyerCountry = country;
+      defaultPort = port;
+      break;
+    }
+  }
+
+  if (!buyerCountry) {
+    const cMatch = clean.match(/(?:Country|Negara\s*(?:Tujuan)?)\s*[:=\-]\s*([a-zA-Z\s]{3,25})/i);
+    buyerCountry = cMatch ? cMatch[1].trim() : "Negara Tujuan Ekspor";
+  }
 
   // 4. Ekstraksi Pelabuhan Bongkar (POD / Destination)
-  const podMatch = clean.match(/(?:Port of Discharge|Destination|Delivery Port|POD|Discharge Port)\s*[:=\-]?\s*([^\n\r]+)/i);
-  let destination = podMatch ? podMatch[1].trim() : "";
-  if (!destination) {
-    if (buyerCountry === "Swedia") destination = "Port of Gothenburg";
-    else if (buyerCountry === "Jepang") destination = "Port of Tokyo";
-    else if (buyerCountry === "Jerman") destination = "Port of Hamburg";
-    else if (buyerCountry === "Amerika Serikat") destination = "Port of Long Beach";
-    else if (buyerCountry === "Uni Emirat Arab") destination = "Jebel Ali Port, Dubai";
-    else destination = "Port of Discharge";
-  }
+  const podMatch = clean.match(/(?:Port\s*of\s*Discharge|POD|Port\s*of\s*Destination|Destination\s*Port|Discharge\s*Port|Destination|Delivery\s*Port|Pelabuhan\s*Bongkar|Pelabuhan\s*Tujuan|Tujuan\s*Pengiriman|Ship\s*To)\s*[:=\-]?\s*([^\n\r,]+)/i);
+  let destination = podMatch ? podMatch[1].trim() : defaultPort;
 
   // 5. Ekstraksi 4 Pilar Identitas Bisnis (Nama, Email, Kontak, Website)
   // Email Perusahaan
@@ -227,13 +316,13 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
 
   // Nomor Kontak
   const phoneMatch =
-    clean.match(/(?:Phone|Tel|Telp|Mobile|Contact|WhatsApp)\s*[:=\-]?\s*([+0-9\s\-()]{8,22})/i) ||
+    clean.match(/(?:Phone|Tel|Telp|Mobile|Contact|WhatsApp|Telepon|HP|Fax)\s*[:=\-]?\s*([+0-9\s\-()]{8,22})/i) ||
     clean.match(/(\+[0-9]{1,3}\s*[0-9\s\-()]{7,18})/);
   const contactNumber = phoneMatch ? phoneMatch[1].trim() : "";
 
   // Website Perusahaan
   const webMatch =
-    clean.match(/(?:Website|Web|URL)\s*[:=\-]?\s*(https?:\/\/[^\s\n\r]+|www\.[^\s\n\r]+)/i) ||
+    clean.match(/(?:Website|Web|URL|Situs)\s*[:=\-]?\s*(https?:\/\/[^\s\n\r]+|www\.[^\s\n\r]+)/i) ||
     clean.match(/(https?:\/\/[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s\n\r]*)/i) ||
     clean.match(/(www\.[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}[^\s\n\r]*)/i);
   let companyWebsite = webMatch ? webMatch[1].trim() : "";
@@ -243,31 +332,49 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
   }
 
   // 6. Ekstraksi Komoditas & HS Code
-  const hsMatch = clean.match(/(?:HS\s*Code|Harmonized Code|HS|Tariff)\s*[:=\-]?\s*([0-9]{4}(?:\.[0-9]{2})?)/i);
+  const hsMatch =
+    clean.match(/(?:HS\s*Code|Harmonized\s*Code|Tariff\s*Code|Tariff|Kode\s*HS|HS)\s*[:=\-]?\s*([0-9]{4}(?:\.[0-9]{2}(?:\.[0-9]{2})?)?)/i) ||
+    clean.match(/\b([0-9]{4}\.[0-9]{2})\b/);
   let hsCode = hsMatch ? hsMatch[1].trim() : "";
-  let product = "Komoditas Ekspor";
 
-  if (/Coconut Sugar|Gula Kelapa/i.test(clean)) {
-    product = "Organic Coconut Sugar";
+  const prodMatch = clean.match(/(?:Item\s*Description|Description\s*of\s*Goods|Product\s*Name|Commodity|Description|Barang|Nama\s*Barang|Nama\s*Produk|Komoditas)\s*[:=\-]?\s*([^\n\r]+)/i);
+  let product = prodMatch ? prodMatch[1].replace(/^[0-9.]+\s*/, "").trim() : "";
+
+  if (/Coconut Sugar|Gula Kelapa|Gula Semut/i.test(clean)) {
+    if (!product) product = "Organic Coconut Sugar";
     if (!hsCode) hsCode = "1702.90";
-  } else if (/Coffee|Kopi|Arabica|Robusta/i.test(clean)) {
-    product = "Specialty Coffee Beans";
+  } else if (/Coffee|Kopi|Arabica|Robusta|Green Beans/i.test(clean)) {
+    if (!product) product = "Specialty Coffee Beans";
     if (!hsCode) hsCode = "0901.11";
-  } else if (/Clove|Cengkeh|Spices|Rempah/i.test(clean)) {
-    product = "Organic Whole Cloves";
+  } else if (/Clove|Cengkeh/i.test(clean)) {
+    if (!product) product = "Organic Whole Cloves";
     if (!hsCode) hsCode = "0907.10";
   } else if (/Cocoa|Cokelat|Cacao/i.test(clean)) {
-    product = "Fermented Cocoa Beans";
+    if (!product) product = "Fermented Cocoa Beans";
     if (!hsCode) hsCode = "1801.00";
+  } else if (/Briquette|Charcoal|Arang/i.test(clean)) {
+    if (!product) product = "Coconut Charcoal Briquette";
+    if (!hsCode) hsCode = "4402.90";
+  } else if (/Ginger|Jahe/i.test(clean)) {
+    if (!product) product = "Fresh / Dried Ginger";
+    if (!hsCode) hsCode = "0910.11";
+  } else if (/Vanilla|Vanili/i.test(clean)) {
+    if (!product) product = "Planifolia Vanilla Beans";
+    if (!hsCode) hsCode = "0905.10";
+  } else if (/Desiccated Coconut|Kelapa Parut/i.test(clean)) {
+    if (!product) product = "Desiccated Coconut High Fat";
+    if (!hsCode) hsCode = "0801.11";
   }
+
+  if (!product) product = "Komoditas Ekspor";
   if (!hsCode) hsCode = "0901.11";
 
   // 7. Ekstraksi Kuantitas & Harga
-  const qtyMatch = clean.match(/(?:Quantity|Qty)\s*[:=\-]?\s*([0-9.,]+)\s*([a-zA-Z]+)?/i);
-  const quantity = qtyMatch ? parseFloat(qtyMatch[1].replace(/,/g, "")) || 2400 : 2400;
-  const unit = qtyMatch && qtyMatch[2] ? qtyMatch[2].toLowerCase() : "carton";
+  const qtyMatch = clean.match(/(?:Quantity|Qty|Volume|Jumlah|Kuantitas)\s*[:=\-]?\s*([0-9.,]+)\s*([a-zA-Z]+)?/i);
+  const quantity = qtyMatch ? parseFloat(qtyMatch[1].replace(/,/g, "")) || 20 : 20;
+  const unit = qtyMatch && qtyMatch[2] ? qtyMatch[2].toLowerCase() : "MT";
 
-  const priceMatch = clean.match(/(?:Unit Price|Price per [a-zA-Z]+|Price)\s*[:=\-]?\s*(?:USD|\$|EUR|€)?\s*([0-9.,]+)/i);
+  const priceMatch = clean.match(/(?:Unit\s*Price|Price\s*per\s*[a-zA-Z]+|Price|Harga\s*Satuan|Harga)\s*[:=\-]?\s*(?:USD|\$|EUR|€|IDR|Rp)?\s*([0-9.,]+)/i);
   const unitPrice = priceMatch ? parseFloat(priceMatch[1].replace(/,/g, "")) || 18.5 : 18.5;
 
   // 8. Ekstraksi Incoterms
@@ -279,13 +386,15 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
   else if (/\bEXW\b/i.test(clean)) incoterm = "EXW";
   else if (/\bDAP\b/i.test(clean)) incoterm = "DAP";
   else if (/\bDDP\b/i.test(clean)) incoterm = "DDP";
+  else if (/\bCIP\b/i.test(clean)) incoterm = "CIF";
+  else if (/\bCPT\b/i.test(clean)) incoterm = "CFR";
 
   // 9. Ekstraksi Payment Terms
-  const payMatch = clean.match(/(?:Payment Terms?|Terms of Payment)\s*[:=\-]?\s*([^\n\r]+(?:\n[^\n\r]+)?)/i);
+  const payMatch = clean.match(/(?:Payment\s*Terms?|Terms\s*of\s*Payment|Syarat\s*Pembayaran|Metode\s*Pembayaran|Payment)\s*[:=\-]?\s*([^\n\r]+(?:\n[^\n\r]+)?)/i);
   const paymentTerms = payMatch ? payMatch[1].replace(/\s+/g, " ").trim() : "30% Down Payment / 70% against B/L copy";
 
   // 10. AI ADVISOR SCREENING EVALUATION TERHADAP 4 PILAR
-  const hasLegalSuffix = /\b(AB|GmbH|Ltd|LLC|Inc|Corporation|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i.test(buyer);
+  const hasLegalSuffix = /\b(PT\.?|CV\.?|UD\.?|AB|GmbH|Ltd|LLC|Inc|Corporation|Corp|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i.test(buyer);
   const hasContact = Boolean(contactNumber && contactNumber.length >= 8);
   const hasWebsite = Boolean(companyWebsite && companyWebsite.length >= 6);
 
@@ -295,37 +404,37 @@ export function parsePoTextAndScreen(text: string, _fileName?: string): PoScreen
     value: buyer,
     isValid: hasLegalSuffix,
     note: hasLegalSuffix
-      ? `Badan hukum resmi teridentifikasi (${buyer.match(/\b(AB|GmbH|Ltd|LLC|Inc|Corporation|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i)?.[0]})`
-      : "Nama perusahaan belum mencantumkan bentuk badan hukum (PT/Ltd/GmbH/AB)",
+      ? `Badan hukum resmi teridentifikasi (${buyer.match(/\b(PT\.?|CV\.?|UD\.?|AB|GmbH|Ltd|LLC|Inc|Corporation|Corp|S\.A\.|S\.p\.A\.|Sdn\s*Bhd|Pte\s*Ltd|AG|Oy|BV)\b/i)?.[0]})`
+      : "Nama perusahaan dapat disesuaikan manual di form jika belum menyertakan PT/Ltd/GmbH",
   };
 
   const pillarEmail: VerificationPillar = {
     label: "Email Perusahaan",
-    value: companyEmail || "(Tidak tercantum di dokumen PO)",
+    value: companyEmail || "(Tidak tercantum di dokumen)",
     isValid: isCorporateEmail,
     note: isCorporateEmail
       ? `Domain korporasi resmi aktif (@${companyEmail.split("@")[1]}) · Bebas email gratisan`
       : companyEmail
         ? "Waspada: Menggunakan domain email publik gratisan, bukan email domain korporasi"
-        : "Email korespondensi resmi belum tercantum di dokumen PO",
+        : "Email korespondensi dapat dilengkapi di profil mitra buyer",
   };
 
   const pillarContact: VerificationPillar = {
     label: "Nomor Kontak",
-    value: contactNumber || "(Tidak tercantum di dokumen PO)",
+    value: contactNumber || "(Tidak tercantum di dokumen)",
     isValid: hasContact,
     note: hasContact
       ? `Nomor telepon format internasional valid (${contactNumber})`
-      : "Nomor telepon/kontak perwakilan buyer belum tercantum",
+      : "Nomor kontak telepon dapat dicatat untuk korespondensi pengiriman",
   };
 
   const pillarWebsite: VerificationPillar = {
     label: "Website Perusahaan",
-    value: companyWebsite || "(Tidak ditemukan)",
+    value: companyWebsite || "(Dapat dilengkapi)",
     isValid: hasWebsite,
     note: hasWebsite
       ? `Domain resmi online (${companyWebsite.replace(/^https?:\/\//, "")})`
-      : "Situs web resmi belum dapat diverifikasi secara publik",
+      : "Situs web dapat dicatat untuk referensi verifikasi profil",
   };
 
   // Analisis Pembayaran & Risiko Sanksi

@@ -3,11 +3,16 @@ import {
   parsePoTextAndScreen,
   type PoScreeningResult,
 } from "@shared/poScreening";
+import type { Incoterm } from "@shared/shipment";
+import { extractTextFromDocument } from "@/lib/documentExtractor";
 import {
   AlertCircle,
   Building2,
   CheckCircle2,
   ChevronRight,
+  Edit2,
+  Eye,
+  EyeOff,
   FileText,
   Globe,
   Info,
@@ -35,7 +40,18 @@ export function PoIngestionModal({
   const [poText, setPoText] = useState("");
   const [fileName, setFileName] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analyzingStatus, setAnalyzingStatus] = useState("AI Advisor sedang memindai dokumen...");
   const [screeningResult, setScreeningResult] = useState<PoScreeningResult | null>(null);
+
+  // Parameter yang dapat disesuaikan manual oleh user sebelum diterapkan
+  const [isEditingData, setIsEditingData] = useState(false);
+  const [showRawText, setShowRawText] = useState(false);
+  const [editedBuyer, setEditedBuyer] = useState("");
+  const [editedCountry, setEditedCountry] = useState("");
+  const [editedRef, setEditedRef] = useState("");
+  const [editedDest, setEditedDest] = useState("");
+  const [editedProduct, setEditedProduct] = useState("");
+  const [editedIncoterm, setEditedIncoterm] = useState<Incoterm>("FOB");
 
   if (!isOpen) return null;
 
@@ -44,28 +60,41 @@ export function PoIngestionModal({
     setFileName("");
     setScreeningResult(null);
     setIsAnalyzing(false);
+    setIsEditingData(false);
+    setShowRawText(false);
     onClose();
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setFileName(file.name);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = String(e.target?.result || "");
-      setPoText(text);
-      runValidation(text, file.name);
-    };
-    reader.readAsText(file);
+    setIsAnalyzing(true);
+    setAnalyzingStatus(`Membaca dan mengekstrak teks digital dari ${file.name}...`);
+
+    try {
+      const extractedText = await extractTextFromDocument(file);
+      setPoText(extractedText);
+      setAnalyzingStatus("AI Advisor sedang memvalidasi data buyer, negara tujuan & regulasi...");
+      setTimeout(() => {
+        runValidation(extractedText, file.name);
+      }, 350);
+    } catch (err: unknown) {
+      setIsAnalyzing(false);
+      const msg = err instanceof Error ? err.message : "Gagal mengekstrak teks dari file.";
+      toast.error("Pemberitahuan Ekstraksi File", {
+        description: msg,
+      });
+    }
   };
 
   const runValidation = (textToValidate: string, docName?: string) => {
     if (!textToValidate.trim() || textToValidate.trim().length < 15) {
-      toast.error("Dokumen PO Kosong", {
+      toast.error("Dokumen PO/LOI Kosong", {
         description: "Silakan unggah dokumen atau tempel teks PO yang valid terlebih dahulu.",
       });
+      setIsAnalyzing(false);
       return;
     }
 
@@ -73,11 +102,17 @@ export function PoIngestionModal({
     setTimeout(() => {
       const parsed = parsePoTextAndScreen(textToValidate, docName || fileName || "Dokumen-PO.txt");
       setScreeningResult(parsed);
+      setEditedBuyer(parsed.buyer);
+      setEditedCountry(parsed.buyerCountry);
+      setEditedRef(parsed.reference);
+      setEditedDest(parsed.destination);
+      setEditedProduct(parsed.product);
+      setEditedIncoterm(parsed.incoterm);
       setIsAnalyzing(false);
-      toast.success("Dokumen PO Berhasil Divalidasi", {
-        description: `Profil buyer ${parsed.buyer} berhasil diskrining oleh AI Advisor.`,
+      toast.success("Dokumen Berhasil Dipindai", {
+        description: `Buyer ${parsed.buyer} (${parsed.buyerCountry}) berhasil dideteksi oleh AI Advisor.`,
       });
-    }, 600);
+    }, 400);
   };
 
   const handleLoadSample = (sampleId: string) => {
@@ -90,9 +125,18 @@ export function PoIngestionModal({
 
   const handleConfirmApply = () => {
     if (!screeningResult) return;
-    onApply(screeningResult);
-    toast.success("Transaksi Dibuat dari Dokumen PO", {
-      description: `Data PO ${screeningResult.reference} (${screeningResult.buyer}) telah diterapkan ke form.`,
+    const finalResult: PoScreeningResult = {
+      ...screeningResult,
+      buyer: editedBuyer.trim() || screeningResult.buyer,
+      buyerCountry: editedCountry.trim() || screeningResult.buyerCountry,
+      reference: editedRef.trim() || screeningResult.reference,
+      destination: editedDest.trim() || screeningResult.destination,
+      product: editedProduct.trim() || screeningResult.product,
+      incoterm: editedIncoterm || screeningResult.incoterm,
+    };
+    onApply(finalResult);
+    toast.success("Data Transaksi Diterapkan", {
+      description: `Data PO ${finalResult.reference} (${finalResult.buyer}) berhasil diterapkan. Rekomendasi regulasi negara ${finalResult.buyerCountry} telah aktif.`,
     });
     handleClose();
   };
@@ -189,8 +233,8 @@ export function PoIngestionModal({
           {isAnalyzing && (
             <div className="po-analyzing-state">
               <Loader2 size={32} className="spin-icon" />
-              <h3>AI Advisor sedang menganalisis dokumen PO...</h3>
-              <p>Memvalidasi nama perusahaan, domain email, nomor kontak, website, dan klausul pembayaran.</p>
+              <h3>{analyzingStatus}</h3>
+              <p>Membaca teks digital, memvalidasi identitas legal buyer, pelabuhan bongkar, dan regulasi kepatuhan.</p>
             </div>
           )}
 
@@ -201,7 +245,7 @@ export function PoIngestionModal({
               <div className="po-advisory-disclaimer">
                 <Info size={15} />
                 <span>
-                  <b>Peran AI Advisor:</b> Sistem hanya melakukan penapisan (*screening*) identitas dan memberikan saran mitigasi risiko. AI tidak mengambil keputusan transaksi — keputusan akhir menerima atau menolak pesanan sepenuhnya adalah wewenang perusahaan Anda.
+                  <b>Peran AI Advisor:</b> Sistem memindai identitas dan menyaring klausul risiko. Periksa kembali data hasil ekstraksi di bawah, Anda dapat menyesuaikannya sebelum diterapkan ke form transaksi.
                 </span>
               </div>
 
@@ -294,24 +338,125 @@ export function PoIngestionModal({
                 </div>
               </div>
 
-              {/* Data Parameter Ekspor yang Diekstrak Anti-Typo */}
-              <div className="po-summary-strip">
-                <div className="summary-field">
-                  <small>Nomor Transaksi (PO)</small>
-                  <b>{screeningResult.reference}</b>
+              {/* Data Parameter Ekspor yang Diekstrak & Dapat Disesuaikan Manual */}
+              <div className="po-edit-card">
+                <div className="po-edit-card-head">
+                  <div>
+                    <span className="eyebrow">PARAMETER TRANSAKSI DARI DOKUMEN</span>
+                    <h4 className="po-edit-card-title">Data yang Diterapkan ke Transaksi</h4>
+                  </div>
+                  <div className="po-edit-card-actions">
+                    <button
+                      type="button"
+                      className="po-card-btn"
+                      onClick={() => setShowRawText(!showRawText)}
+                      title="Lihat teks digital yang diekstrak dari dokumen"
+                    >
+                      {showRawText ? <EyeOff size={13} /> : <Eye size={13} />}
+                      <span>{showRawText ? "Tutup Teks" : "Teks Dokumen"}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`po-card-btn ${isEditingData ? "active" : ""}`}
+                      onClick={() => setIsEditingData(!isEditingData)}
+                    >
+                      <Edit2 size={13} />
+                      <span>{isEditingData ? "Selesai Edit" : "Sesuaikan Data"}</span>
+                    </button>
+                  </div>
                 </div>
-                <div className="summary-field">
-                  <small>Tujuan (POD)</small>
-                  <b>{screeningResult.destination} ({screeningResult.buyerCountry})</b>
-                </div>
-                <div className="summary-field">
-                  <small>Komoditas &amp; HS Code</small>
-                  <b>{screeningResult.product} · {screeningResult.hsCode}</b>
-                </div>
-                <div className="summary-field">
-                  <small>Kuantitas &amp; Harga</small>
-                  <b>{screeningResult.quantity.toLocaleString()} {screeningResult.unit} · {screeningResult.incoterm} (${screeningResult.unitPrice})</b>
-                </div>
+
+                {showRawText && (
+                  <div className="po-raw-text-panel">
+                    <small>Teks Digital Dokumen yang Berhasil Diekstrak ({poText.length} karakter):</small>
+                    <textarea
+                      readOnly
+                      rows={5}
+                      className="po-raw-textarea"
+                      value={poText}
+                    />
+                  </div>
+                )}
+
+                {isEditingData ? (
+                  <div className="po-fields-edit-grid">
+                    <div className="po-input-group">
+                      <label>Nomor Transaksi / PO</label>
+                      <input
+                        type="text"
+                        value={editedRef}
+                        onChange={(e) => setEditedRef(e.target.value)}
+                        placeholder="Contoh: PO-001"
+                      />
+                    </div>
+                    <div className="po-input-group">
+                      <label>Nama Buyer</label>
+                      <input
+                        type="text"
+                        value={editedBuyer}
+                        onChange={(e) => setEditedBuyer(e.target.value)}
+                        placeholder="Nama perusahaan pembeli"
+                      />
+                    </div>
+                    <div className="po-input-group">
+                      <label>Negara Tujuan</label>
+                      <input
+                        type="text"
+                        value={editedCountry}
+                        onChange={(e) => setEditedCountry(e.target.value)}
+                        placeholder="Contoh: Jepang, Jerman, UAE"
+                      />
+                    </div>
+                    <div className="po-input-group">
+                      <label>Pelabuhan Tujuan (POD)</label>
+                      <input
+                        type="text"
+                        value={editedDest}
+                        onChange={(e) => setEditedDest(e.target.value)}
+                        placeholder="Contoh: Port of Tokyo"
+                      />
+                    </div>
+                    <div className="po-input-group">
+                      <label>Komoditas</label>
+                      <input
+                        type="text"
+                        value={editedProduct}
+                        onChange={(e) => setEditedProduct(e.target.value)}
+                        placeholder="Nama komoditas ekspor"
+                      />
+                    </div>
+                    <div className="po-input-group">
+                      <label>Incoterm</label>
+                      <select
+                        value={editedIncoterm}
+                        onChange={(e) => setEditedIncoterm(e.target.value as Incoterm)}
+                      >
+                        {["EXW", "FCA", "FOB", "CFR", "CIF", "DAP", "DDP"].map((t) => (
+                          <option key={t} value={t}>{t}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="po-summary-strip">
+                    <div className="summary-field">
+                      <small>Nomor Transaksi (PO)</small>
+                      <b>{editedRef || screeningResult.reference}</b>
+                    </div>
+                    <div className="summary-field">
+                      <small>Buyer &amp; Negara Tujuan</small>
+                      <b>{editedBuyer || screeningResult.buyer} ({editedCountry || screeningResult.buyerCountry})</b>
+                    </div>
+                    <div className="summary-field">
+                      <small>Komoditas &amp; HS Code</small>
+                      <b>{editedProduct || screeningResult.product} · {screeningResult.hsCode}</b>
+                    </div>
+                    <div className="summary-field">
+                      <small>Incoterm &amp; Pelabuhan</small>
+                      <b>{editedIncoterm || screeningResult.incoterm} · {editedDest || screeningResult.destination}</b>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
