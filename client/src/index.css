@@ -8060,6 +8060,28 @@ textarea:focus-visible {
   font-style: italic;
 }
 
+.custom-cost-confirm-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #16a34a;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.custom-cost-confirm-btn:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #ffffff;
+}
+
 .custom-cost-delete-btn {
   display: inline-flex;
   align-items: center;

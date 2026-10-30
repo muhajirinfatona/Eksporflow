@@ -633,14 +633,34 @@ export function PricingModule({
                         value={factor.name}
                         placeholder="Ketik nama biaya..."
                         onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        title="Klik untuk ketik nama biaya barang / sertifikasi"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                            toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                          }
+                        }}
+                        title="Ketik nama biaya, lalu tekan Enter atau klik centang untuk konfirmasi"
                         autoFocus={!factor.name}
                       />
+                      <button
+                        type="button"
+                        className="custom-cost-confirm-btn"
+                        onClick={(e) => {
+                          const input = e.currentTarget.parentElement?.querySelector("input");
+                          input?.blur();
+                          toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                        }}
+                        title="Simpan / konfirmasi nama biaya ini"
+                        aria-label="Simpan nama biaya"
+                      >
+                        <Check size={13} />
+                      </button>
                       <button
                         type="button"
                         className="custom-cost-delete-btn"
                         onClick={() => handleDeleteFactorField(factor.id)}
                         title="Hapus isian ini"
+                        aria-label="Hapus isian"
                       >
                         <X size={13} />
                       </button>
@@ -779,14 +799,34 @@ export function PricingModule({
                         value={factor.name}
                         placeholder="Ketik nama biaya..."
                         onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        title="Klik untuk ketik nama biaya logistik"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                            toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                          }
+                        }}
+                        title="Ketik nama biaya, lalu tekan Enter atau klik centang untuk konfirmasi"
                         autoFocus={!factor.name}
                       />
+                      <button
+                        type="button"
+                        className="custom-cost-confirm-btn"
+                        onClick={(e) => {
+                          const input = e.currentTarget.parentElement?.querySelector("input");
+                          input?.blur();
+                          toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                        }}
+                        title="Simpan / konfirmasi nama biaya ini"
+                        aria-label="Simpan nama biaya"
+                      >
+                        <Check size={13} />
+                      </button>
                       <button
                         type="button"
                         className="custom-cost-delete-btn"
                         onClick={() => handleDeleteFactorField(factor.id)}
                         title="Hapus form isian ini"
+                        aria-label="Hapus isian"
                       >
                         <X size={13} />
                       </button>
@@ -1038,14 +1078,34 @@ export function PricingModule({
                         value={factor.name}
                         placeholder="Ketik nama biaya..."
                         onChange={(e) => handleUpdateFactorField(factor.id, "name", e.target.value)}
-                        title="Klik untuk ketik nama biaya strategis"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.currentTarget.blur();
+                            toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                          }
+                        }}
+                        title="Ketik nama biaya, lalu tekan Enter atau klik centang untuk konfirmasi"
                         autoFocus={!factor.name}
                       />
+                      <button
+                        type="button"
+                        className="custom-cost-confirm-btn"
+                        onClick={(e) => {
+                          const input = e.currentTarget.parentElement?.querySelector("input");
+                          input?.blur();
+                          toast.success(factor.name ? `Nama biaya tersimpan: "${factor.name}"` : "Isian biaya diperbarui");
+                        }}
+                        title="Simpan / konfirmasi nama biaya ini"
+                        aria-label="Simpan nama biaya"
+                      >
+                        <Check size={13} />
+                      </button>
                       <button
                         type="button"
                         className="custom-cost-delete-btn"
                         onClick={() => handleDeleteFactorField(factor.id)}
                         title="Hapus form isian ini"
+                        aria-label="Hapus isian"
                       >
                         <X size={13} />
                       </button>

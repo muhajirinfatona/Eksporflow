@@ -173,7 +173,17 @@ export function useActiveShipment() {
 
   const saveShipment = useCallback(async () => {
     if (!user) {
-      toast.error("Silakan masuk ke akun Anda terlebih dahulu.");
+      // Simpan draft lokal secara otomatis dan aman jika pengguna belum masuk akun
+      try {
+        localStorage.setItem(getDraftStorageKey(null), JSON.stringify(shipment));
+        localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
+        setSaveState("local-draft");
+        toast.success("Draft Transaksi Tersimpan", {
+          description: "Data tersimpan aman di penyimpanan browser perangkat Anda. Masuk akun untuk sinkronisasi ke cloud.",
+        });
+      } catch {
+        toast.info("Draft transaksi tersimpan secara lokal di browser.");
+      }
       return;
     }
 
