@@ -6,10 +6,7 @@ import {
 } from "@shared/hpp";
 import {
   convertTemplateCost,
-  COUNTRY_REGULATION_PRESETS,
-  getAiRecommendedRegulations,
   INCOTERM_TEMPLATES,
-  type CountryRegulationPreset,
 } from "@shared/costFactors";
 import {
   convertCurrencyValue,
@@ -228,9 +225,6 @@ export function PricingModule({
   const totalOffer = Math.max(0, netOfferBeforeDiscount - shipment.discount);
   const totalProfit = Math.max(0, totalOffer - totalCostWithContingency);
 
-  // AI Advisor secara otomatis menganalisis negara buyer & komoditas
-  const aiRegulations = getAiRecommendedRegulations(shipment.buyerCountry, shipment.product);
-
   // Fungsi tambah form isian kustom (langsung di grid seperti isian standar)
   const handleAddFactorField = (
     section: "goods" | "logistics" | "strategy",
@@ -263,12 +257,6 @@ export function PricingModule({
     const current = shipment.additionalCostFactors || [];
     const updated = current.filter((f) => f.id !== id);
     update("additionalCostFactors", updated);
-  };
-
-  // Klik rekomendasi AI langsung menambahkan form isian ke bagian yang sesuai
-  const handleAddAiRegulationToForm = (reg: CountryRegulationPreset) => {
-    const amountInCur = convertTemplateCost(reg.defaultAmountIdr, shipment.currency, currentFxRate);
-    handleAddFactorField(reg.category, reg.name, amountInCur);
   };
 
   // Auto-apply faktor Incoterm secara langsung (tanpa popup)
@@ -676,55 +664,6 @@ export function PricingModule({
               currency={shipment.currency}
               onOpenCatalog={() => navigate("products")}
             />
-          </div>
-
-          {/* AI ADVISOR REKOMENDASI REGULASI SECARA LANGSUNG DARI NEGARA BUYER (TANPA POPUP) */}
-          <div className="ai-advisor-reg-banner">
-            <div className="ai-advisor-reg-head">
-              <div>
-                <div className="ai-advisor-reg-title">
-                  <Sparkles size={16} />
-                  <span>AI Advisor · Rekomendasi Regulasi Negara Buyer ({shipment.buyerCountry || "Internasional"})</span>
-                </div>
-                <p className="ai-advisor-reg-meta">
-                  AI membaca negara buyer <b>{shipment.buyerCountry || "Tujuan Ekspor"}</b>. Klik tombol rekomendasi di bawah untuk langsung memunculkan baris form isian biayanya:
-                </p>
-              </div>
-            </div>
-
-            <div className="ai-advisor-chips-grid">
-              {aiRegulations.map((reg) => {
-                const isAdded = (shipment.additionalCostFactors || []).some((f) =>
-                  f.name.toLowerCase().includes(reg.name.toLowerCase().slice(0, 15))
-                );
-                const costInCur = convertTemplateCost(reg.defaultAmountIdr, shipment.currency, currentFxRate);
-                return (
-                  <div className={`ai-reg-chip ${isAdded ? "added" : ""}`} key={reg.id}>
-                    <div className="ai-reg-info">
-                      <span className="ai-reg-name" title={reg.name}>{reg.name}</span>
-                      <span className="ai-reg-cost">+{formatCurrencyAmount(costInCur, shipment.currency)}</span>
-                      <span className="ai-reg-target-badge">
-                        Alokasi: {reg.category === "goods" ? "Bagian 01 (Barang)" : "Bagian 02 (Logistik)"}
-                      </span>
-                    </div>
-                    {isAdded ? (
-                      <span className="ai-reg-added-badge">
-                        <Check size={12} /> Di Form
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="ai-reg-add-btn"
-                        onClick={() => handleAddAiRegulationToForm(reg)}
-                        title={`Tambahkan isian form untuk ${reg.name}`}
-                      >
-                        <Plus size={11} /> Tambah ke Form
-                      </button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
           </div>
 
           {/* BAGIAN 02: BIAYA LOGISTIK & KEPABEANAN */}

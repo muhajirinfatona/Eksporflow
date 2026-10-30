@@ -173,6 +173,8 @@ export type CountryRegulationPreset = {
   category: "goods" | "logistics" | "strategy";
   field: "packaging" | "customs" | "insurance" | "contingency";
   description: string;
+  issuingAuthority: string;
+  preparationTip: string;
   defaultAmountIdr: number;
 };
 
@@ -184,7 +186,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Semua Negara (Wajib Hasil Bumi/Rempah)",
     category: "logistics",
     field: "customs",
-    description: "Pemeriksaan resmi Badan Karantina Indonesia untuk komoditas rempah, biji kopi, kelapa, dan tanaman.",
+    description: "Pemeriksaan resmi Badan Karantina Indonesia untuk komoditas rempah, biji kopi, kelapa, dan tanaman agar bebas hama/penyakit.",
+    issuingAuthority: "Badan Karantina Indonesia (Barantan)",
+    preparationTip: "Ajukan permohonan pemeriksaan karantina (PPK Online Barantan) sebelum stuffing kontainer.",
     defaultAmountIdr: 450000,
   },
   {
@@ -193,7 +197,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Uni Eropa, AS, Australia, Jepang",
     category: "logistics",
     field: "customs",
-    description: "Perlakuan fumigasi metil bromida / heat treatment pada pallet kayu & kontainer bebas hama rayap.",
+    description: "Perlakuan fumigasi metil bromida atau fosfin pada muatan dan pallet kayu kemasan agar steril dan bebas serangga/rayap.",
+    issuingAuthority: "Perusahaan Fumigator Terdaftar Barantan (AFASID)",
+    preparationTip: "Pastikan pallet kayu memiliki stempel resmi logo gandum ISPM-15 dan sertifikat diterbitkan sebelum kapal berangkat.",
     defaultAmountIdr: 1350000,
   },
   {
@@ -202,7 +208,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Jepang & Uni Eropa",
     category: "goods",
     field: "packaging",
-    description: "Pengujian lab independen (SGS / Intertek) memenuhi batas maksimum residu (MRL) negara tujuan.",
+    description: "Pengujian lab independen terakreditasi untuk memastikan kadar residu pestisida, aflatoksin, dan cemaran berada di bawah batas MRL.",
+    issuingAuthority: "Lab Terakreditasi ISO 17025 (SGS / Intertek / Sucofindo)",
+    preparationTip: "Kirimkan sampel uji dari lot produksi ke laboratorium minimal 1-2 minggu sebelum jadwal pengapalan.",
     defaultAmountIdr: 3500000,
   },
   {
@@ -211,7 +219,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "UAE, Arab Saudi & Timur Tengah",
     category: "logistics",
     field: "customs",
-    description: "Sertifikat halal resmi yang diakui otoritas Timur Tengah untuk produk pangan & turunan.",
+    description: "Sertifikat halal resmi yang diakui otoritas Timur Tengah untuk kelancaran bea cukai produk pangan & konsumsi.",
+    issuingAuthority: "BPJPH Kemenag / Lembaga Halal Luar Negeri Terafiliasi",
+    preparationTip: "Pastikan sertifikat BPJPH masih berlaku aktif dan lampirkan salinan legalisir untuk dokumen perkapalan.",
     defaultAmountIdr: 2500000,
   },
   {
@@ -220,7 +230,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Negara Mitra FTA Indonesia",
     category: "logistics",
     field: "customs",
-    description: "Surat Keterangan Asal dari Kemendag agar buyer mendapatkan pembebasan bea masuk (0%).",
+    description: "Surat Keterangan Asal resmi dari Kemendag agar buyer mendapatkan pembebasan atau keringanan tarif bea masuk (0%).",
+    issuingAuthority: "Instansi Penerbit SKA (IPSKA) / Kemendag e-SKA",
+    preparationTip: "Siapkan PEB (Pemberitahuan Ekspor Barang), B/L, dan Invoice-Packing List final untuk diajukan di sistem e-SKA.",
     defaultAmountIdr: 350000,
   },
   {
@@ -229,7 +241,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Amerika Serikat (USA)",
     category: "logistics",
     field: "customs",
-    description: "Pendaftaran nomor fasilitas pabrik pangan ke Food and Drug Administration AS.",
+    description: "Pendaftaran Food Facility Registration (FFR) pabrik/eksportir dan konfirmasi Prior Notice sebelum kontainer tiba di pelabuhan AS.",
+    issuingAuthority: "U.S. Food and Drug Administration (FDA)",
+    preparationTip: "Pastikan nomor fasilitas FDA dan US Agent terdaftar aktif, lalu serahkan Prior Notice Confirmation Number ke forwarder.",
     defaultAmountIdr: 2200000,
   },
   {
@@ -238,7 +252,9 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Timur Tengah & Afrika",
     category: "logistics",
     field: "customs",
-    description: "Stempel legalisasi invoice dan packing list oleh kedutaan besar negara buyer.",
+    description: "Pengesahan dokumen ekspor (Invoice, Packing List, SKA) oleh KADIN Indonesia dan kedutaan besar negara buyer.",
+    issuingAuthority: "KADIN Indonesia & Kedubes Negara Buyer di Jakarta",
+    preparationTip: "Koordinasikan estimasi waktu pengurusan dengan forwarder karena proses kedutaan biasanya butuh 3-7 hari kerja.",
     defaultAmountIdr: 1800000,
   },
   {
@@ -247,16 +263,20 @@ export const COUNTRY_REGULATION_PRESETS: CountryRegulationPreset[] = [
     targetCountry: "Negara Jarak Jauh (Ocean 30+ Hari)",
     category: "goods",
     field: "packaging",
-    description: "Kantung barrier kedap udara dan silica gel desiccant kontainer pencegah jamur muatan.",
+    description: "Perlindungan kantung barrier kedap udara, inner liner, serta container dry bag pencegah jamur dan kondensasi selama transit laut.",
+    issuingAuthority: "Standar Eksportir & Supplier Kemasan",
+    preparationTip: "Gunakan kemasan food-grade bersertifikat dan gantungkan container desiccant secukupnya di dalam kontainer.",
     defaultAmountIdr: 1500000,
   },
   {
     id: "reg-contingency-buffer",
-    name: "Buffer Risiko Fluktuasi Logistik & Regulasi Lokal",
+    name: "Cadangan Kepatuhan & Surveyor Independen",
     targetCountry: "Semua Negara",
     category: "strategy",
     field: "contingency",
-    description: "Cadangan proteksi margin mengantisipasi kenaikan bunker fuel surcharge atau demurrage pelabuhan.",
+    description: "Inspeksi pre-shipment oleh surveyor independen untuk memverifikasi kesesuaian kualitas dan volume muatan dengan kontrak.",
+    issuingAuthority: "Surveyor Independen (Sucofindo / Carsurin / Surveyor Indonesia)",
+    preparationTip: "Minta Certificate of Inspection (COI) jika Letter of Credit (L/C) atau kontrak buyer mensyaratkan pemeriksaan surveyor.",
     defaultAmountIdr: 0,
   },
 ];

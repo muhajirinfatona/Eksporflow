@@ -26,6 +26,7 @@ import { useMemo, useState } from "react";
 import { PoIngestionModal } from "./PoIngestionModal";
 import { ChecklistItem, Field, StatusPill } from "./Primitives";
 import { toast } from "sonner";
+import { getAiRecommendedRegulations } from "@shared/costFactors";
 
 export type ShipmentListItem = {
   id: string;
@@ -94,6 +95,11 @@ export function TransactionsModule({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
   const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(null);
+
+  // AI Advisor mendeteksi regulasi & dokumen kepatuhan ekspor sesuai negara buyer
+  const aiRegulations = useMemo(() => {
+    return getAiRecommendedRegulations(shipment.buyerCountry, shipment.product);
+  }, [shipment.buyerCountry, shipment.product]);
 
   const handleSaveDraft = () => {
     try {
@@ -287,6 +293,43 @@ export function TransactionsModule({
             placeholder="Contoh: 0901.11"
             onChange={(value) => update("hsCode", value)}
           />
+        </div>
+
+        {/* AI Advisor Rekomendasi Regulasi & Dokumen Ekspor (Khusus Kepatuhan Eksportir Tanpa Perkiraan Harga) */}
+        <div className="trans-regulation-card">
+          <div className="trans-reg-header-top">
+            <div className="trans-reg-title-wrap">
+              <h4 className="trans-reg-title">
+                <Sparkles size={16} color="#0284c7" />
+                AI Advisor · Dokumen & Regulasi Kepatuhan Ekspor ({shipment.buyerCountry || "Internasional"})
+              </h4>
+              <p className="trans-reg-meta">
+                Menganalisis negara buyer <b>{shipment.buyerCountry || "Tujuan Ekspor"}</b> {shipment.product ? <>untuk produk <b>{shipment.product}</b></> : null}. Berikut rekomendasi dokumen, sertifikasi mutu, dan perizinan yang wajib disiapkan:
+              </p>
+            </div>
+            <span className="trans-reg-forwarder-note">
+              ℹ️ Tanpa perkiraan harga · Tarif pengurusan dapat langsung Anda tanyakan ke freight forwarder
+            </span>
+          </div>
+
+          <div className="trans-reg-grid">
+            {aiRegulations.map((reg) => (
+              <div className="trans-reg-item" key={reg.id}>
+                <div className="trans-reg-item-top">
+                  <div className="trans-reg-item-title">{reg.name}</div>
+                  <span className="trans-reg-auth-badge">{reg.issuingAuthority}</span>
+                </div>
+                <div className="trans-reg-scope">
+                  <span>Lingkup: {reg.targetCountry}</span>
+                </div>
+                <p className="trans-reg-desc">{reg.description}</p>
+                <div className="trans-reg-tip-box">
+                  <strong>Yang Perlu Disiapkan Eksportir:</strong>
+                  {reg.preparationTip}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Rel Navigasi Antar Modul Terintegrasi */}
