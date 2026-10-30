@@ -7868,13 +7868,15 @@ textarea:focus-visible {
   background: #ffffff;
   border-radius: 12px;
   width: 95%;
-  max-width: 680px;
-  max-height: 90vh;
+  max-width: 720px;
+  height: 85vh;
+  max-height: 720px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.22);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
   overflow: hidden;
   animation: modal-pop 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 .factors-modal-header {
@@ -7885,6 +7887,7 @@ textarea:focus-visible {
   align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
+  flex-shrink: 0;
 }
 
 .factors-modal-header h4 {
@@ -7914,6 +7917,7 @@ textarea:focus-visible {
   place-items: center;
   cursor: pointer;
   transition: all 0.12s ease;
+  flex-shrink: 0;
 }
 
 .factors-close-btn:hover {
@@ -7924,44 +7928,64 @@ textarea:focus-visible {
 .factors-tabs {
   display: flex;
   background: #f1f5f9;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #cbd5e1;
   padding: 0 16px;
   gap: 6px;
+  flex-shrink: 0;
+  min-height: 44px;
+  align-items: flex-end;
   overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .factors-tab-btn {
-  padding: 10px 14px;
+  padding: 10px 16px;
   font-size: 12.5px;
   font-weight: 600;
   color: #64748b;
   background: transparent;
   border: 0;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
+  border-radius: 6px 6px 0 0;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   transition: all 0.12s ease;
   white-space: nowrap;
+  flex-shrink: 0;
+  height: 38px;
 }
 
 .factors-tab-btn:hover {
   color: #0f172a;
+  background: #e2e8f0;
 }
 
 .factors-tab-btn.active {
   color: #0284c7;
   border-bottom-color: #0284c7;
   background: #ffffff;
+  font-weight: 700;
 }
 
 .factors-modal-body {
-  padding: 18px 20px;
+  padding: 20px 22px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex: 1 1 auto;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.regulations-tab-content,
+.incoterm-tab-content,
+.custom-factor-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
 .incoterm-summary-card {
@@ -8185,4 +8209,5 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  flex-shrink: 0;
 }
