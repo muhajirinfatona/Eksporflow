@@ -77,7 +77,7 @@ export type ExportCalculatorResult = {
 };
 
 export const defaultHppInput: HppComponentInput = {
-  buyPricePerMtRaw: 1200,      // $1.200 per MT gula mentah petani (~Rp 19.500/kg)
+  buyPricePerMtRaw: 1200,      // $1.200 per MT bahan baku mentah (~Rp 19.500/kg)
   yieldPercent: 90,           // 90% yield (10% susut kadar air & sortasi)
   sourcingFreightPerMtRaw: 35, // $35 per MT angkut lokal
   processingCostPerMt: 65,    // $65 per MT rework/pengeringan/kristalisasi
