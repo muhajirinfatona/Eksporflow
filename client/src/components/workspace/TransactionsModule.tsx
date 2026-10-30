@@ -14,6 +14,7 @@ import {
   FileSpreadsheet,
   FileText,
   FolderOpen,
+  Layers,
   MessageSquare,
   Package,
   Plus,
@@ -23,6 +24,7 @@ import {
   ShieldAlert,
   ShieldCheck,
   Sparkles,
+  Trash2,
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -254,6 +256,36 @@ export type ShipmentListItem = {
   updatedAt: Date | string;
 };
 
+export type LocalShipmentRecord = {
+  id: string;
+  reference: string;
+  buyer: string;
+  buyerCountry: string;
+  product: string;
+  incoterm: string;
+  quantity: number;
+  unit: string;
+  status: string;
+  updatedAt: string;
+  shipment: Shipment;
+};
+
+export type UnifiedTransactionItem = {
+  id: string;
+  reference: string;
+  buyer: string;
+  buyerCountry: string;
+  product: string;
+  incoterm: string;
+  quantity: number;
+  unit: string;
+  status: string;
+  version?: number;
+  updatedAt: string | Date;
+  isCloud: boolean;
+  shipment?: Shipment;
+};
+
 function formatShortDate(value: Date | string): string {
   const date = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(date.getTime())) return "Baru saja";
@@ -286,8 +318,9 @@ export function TransactionsModule({
   container,
   flow,
   loadShipment,
+  loadCustomShipment,
   saveShipment,
-  createNewDraft: _createNewDraft,
+  createNewDraft,
   login,
   navigate,
 }: {
@@ -303,6 +336,7 @@ export function TransactionsModule({
   container?: ContainerCalc;
   flow?: WorkspaceFlow;
   loadShipment: (id: string) => Promise<void>;
+  loadCustomShipment?: (shipment: Shipment, id?: string | null) => void;
   saveShipment: () => Promise<void>;
   createNewDraft: (customRef?: string) => void;
   login: () => Promise<void>;
@@ -320,6 +354,15 @@ export function TransactionsModule({
     }
   });
 
+  const [localList, setLocalList] = useState<LocalShipmentRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem("eksporflow_local_shipments_v1");
+      return saved ? (JSON.parse(saved) as LocalShipmentRecord[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
   // Alur Ekspor Fleksibel Khusus Kewajiban Eksportir Berdasarkan Incoterm yang Disepakati
   const workflow = useMemo(() => {
     return getExporterWorkflow(shipment, pricing, container, flow);
@@ -334,14 +377,92 @@ export function TransactionsModule({
     return getAiRecommendedRegulations(shipment.buyerCountry, shipment.product);
   }, [shipment.buyerCountry, shipment.product]);
 
+  const saveToLocalList = (targetShipment: Shipment, status = "Draft") => {
+    const ref = targetShipment.reference?.trim() || targetShipment.poNumber?.trim() || "";
+    const buyer = targetShipment.buyer?.trim() || "";
+    if (!ref && !buyer) return;
+
+    const id = ref ? `local-${ref.replace(/[^a-zA-Z0-9_-]/g, "_")}` : `local-${Date.now()}`;
+    setLocalList((prev) => {
+      const existingIdx = prev.findIndex(
+        (p) => p.id === id || (ref && p.reference.toLowerCase() === ref.toLowerCase())
+      );
+      const record: LocalShipmentRecord = {
+        id,
+        reference: ref || "Draft PO",
+        buyer: buyer || "Buyer Luar Negeri",
+        buyerCountry: targetShipment.buyerCountry || "-",
+        product: targetShipment.product || "Komoditas Ekspor",
+        incoterm: targetShipment.incoterm || "FOB",
+        quantity: targetShipment.quantity || 20,
+        unit: targetShipment.unit || "MT",
+        status,
+        updatedAt: new Date().toISOString(),
+        shipment: targetShipment,
+      };
+
+      const updated = existingIdx >= 0
+        ? prev.map((item, i) => (i === existingIdx ? record : item))
+        : [record, ...prev];
+
+      try {
+        localStorage.setItem("eksporflow_local_shipments_v1", JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
+  };
+
   const handleSaveDraft = () => {
     try {
+      saveToLocalList(shipment, "Draft");
       localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
       toast.success("Draft Transaksi Disimpan", {
-        description: "Data tersimpan di penyimpanan draft perangkat Anda (belum dicatat ke Cloud).",
+        description: "Data tersimpan di penyimpanan draft perangkat Anda.",
       });
     } catch {
       toast.info("Draft transaksi tersimpan secara lokal");
+    }
+  };
+
+  const handleSaveShipmentWithLocal = async () => {
+    saveToLocalList(shipment, "Confirmed");
+    await saveShipment();
+  };
+
+  const handleNewTransactionClick = () => {
+    if (shipment.reference || shipment.buyer) {
+      saveToLocalList(shipment, "Draft");
+    }
+    setLastScreening(null);
+    createNewDraft();
+  };
+
+  const handleSwitchTransaction = async (item: UnifiedTransactionItem) => {
+    if (shipment.reference || shipment.buyer) {
+      saveToLocalList(shipment, "Draft");
+    }
+
+    if (item.isCloud) {
+      await loadShipment(item.id);
+    } else if (item.shipment && loadCustomShipment) {
+      loadCustomShipment(item.shipment, item.id);
+    }
+  };
+
+  const handleDeleteLocalTx = (id: string, ref: string) => {
+    if (confirm(`Hapus arsip transaksi ${ref || "ini"} dari daftar?`)) {
+      setLocalList((prev) => {
+        const next = prev.filter((p) => p.id !== id);
+        try {
+          localStorage.setItem("eksporflow_local_shipments_v1", JSON.stringify(next));
+        } catch {
+          // ignore
+        }
+        return next;
+      });
+      toast.success("Transaksi dihapus dari daftar");
     }
   };
 
@@ -359,6 +480,24 @@ export function TransactionsModule({
     update("incoterm", data.incoterm);
     update("paymentTerms", data.paymentTerms);
     setLastScreening(data);
+
+    const updatedShipment: Shipment = {
+      ...shipment,
+      reference: data.reference,
+      poNumber: data.reference,
+      buyer: data.buyer,
+      buyerCountry: data.buyerCountry,
+      destination: data.destination,
+      product: data.product,
+      hsCode: data.hsCode,
+      quantity: data.quantity,
+      unit: data.unit,
+      unitPrice: data.unitPrice,
+      incoterm: data.incoterm,
+      paymentTerms: data.paymentTerms,
+    };
+    saveToLocalList(updatedShipment, "Draft");
+
     try {
       localStorage.setItem("eksporflow_last_po_screening", JSON.stringify(data));
     } catch {
@@ -387,24 +526,6 @@ export function TransactionsModule({
     );
   }, [shipmentsList]);
 
-  // Jika belum ada transaksi asli buatan user, sembunyikan tabel daftar transaksi
-  const hasSavedTransactions = genuineShipments.length > 0;
-
-  const filteredCloudList = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return genuineShipments.filter((row) => {
-      const matchQuery =
-        !q || row.reference.toLowerCase().includes(q) || row.status.toLowerCase().includes(q);
-      const matchStatus = statusFilter === "ALL" || row.status === statusFilter;
-      return matchQuery && matchStatus;
-    });
-  }, [genuineShipments, query, statusFilter]);
-
-  const draftCount = genuineShipments.filter((r) => r.status === "Draft" || r.status === "Quotation").length;
-  const activeExecutionCount = genuineShipments.filter(
-    (r) => !["Draft", "Quotation", "Completed"].includes(r.status),
-  ).length;
-
   // Clean value for reference: don't show dummy codes
   const displayReference =
     shipment.reference === "EXP-2026-001" ||
@@ -412,6 +533,86 @@ export function TransactionsModule({
     shipment.reference.startsWith("EXP-2026-")
       ? ""
       : shipment.reference;
+
+  // Menggabungkan transaksi cloud dan draft lokal ke satu daftar bersih
+  const allTransactions = useMemo(() => {
+    const list: UnifiedTransactionItem[] = [];
+
+    // 1. Masukkan transaksi cloud user jika ada
+    for (const s of genuineShipments) {
+      list.push({
+        id: s.id,
+        reference: s.reference,
+        buyer: s.reference === shipment.reference ? shipment.buyer : "Mitra Cloud",
+        buyerCountry: s.reference === shipment.reference ? shipment.buyerCountry : "-",
+        product: s.reference === shipment.reference ? shipment.product : "-",
+        incoterm: s.reference === shipment.reference ? shipment.incoterm : "FOB",
+        quantity: s.reference === shipment.reference ? shipment.quantity : 20,
+        unit: s.reference === shipment.reference ? shipment.unit : "MT",
+        status: s.status,
+        version: s.version,
+        updatedAt: s.updatedAt,
+        isCloud: true,
+      });
+    }
+
+    // 2. Masukkan transaksi lokal jika belum ada di list cloud
+    for (const loc of localList) {
+      const already = list.some(
+        (item) => item.reference && item.reference.toLowerCase() === loc.reference.toLowerCase(),
+      );
+      if (!already) {
+        list.push({
+          id: loc.id,
+          reference: loc.reference,
+          buyer: loc.buyer,
+          buyerCountry: loc.buyerCountry,
+          product: loc.product,
+          incoterm: loc.incoterm,
+          quantity: loc.quantity,
+          unit: loc.unit,
+          status: loc.status,
+          updatedAt: loc.updatedAt,
+          isCloud: false,
+          shipment: loc.shipment,
+        });
+      }
+    }
+
+    // 3. Pastikan transaksi yang sedang diedit saat ini muncul di switcher
+    const currentRef = displayReference || shipment.poNumber?.trim();
+    if (currentRef || shipment.buyer) {
+      const exists = list.some(
+        (item) => currentRef && item.reference.toLowerCase() === currentRef.toLowerCase(),
+      );
+      if (!exists) {
+        list.unshift({
+          id: activeShipmentId || "current-active",
+          reference: currentRef || "Draft PO Baru",
+          buyer: shipment.buyer || "Buyer Baru",
+          buyerCountry: shipment.buyerCountry || "-",
+          product: shipment.product || "Komoditas Ekspor",
+          incoterm: shipment.incoterm || "FOB",
+          quantity: shipment.quantity || 20,
+          unit: shipment.unit || "MT",
+          status: "Draft",
+          updatedAt: new Date(),
+          isCloud: Boolean(activeShipmentId),
+          shipment,
+        });
+      }
+    }
+
+    return list;
+  }, [genuineShipments, localList, shipment, displayReference, activeShipmentId]);
+
+  // Apakah ada transaksi tersimpan
+  const hasSavedTransactions = allTransactions.length > 0;
+
+  const draftCount = allTransactions.filter((r) => r.status === "Draft" || r.status === "Quotation").length;
+  const activeExecutionCount = allTransactions.filter(
+    (r) => !["Draft", "Quotation", "Completed"].includes(r.status),
+  ).length;
 
   // Apakah dokumen PO atau LOI sudah discan atau sudah ada dokumen resmi buyer
   const hasScannedPo = Boolean(
@@ -444,6 +645,14 @@ export function TransactionsModule({
           <div className="active-order-header-actions">
             <button
               type="button"
+              className="ghost-button"
+              onClick={handleNewTransactionClick}
+              title="Buat transaksi ekspor atau PO baru dari buyer lain"
+            >
+              <Plus size={14} /> + Transaksi Baru
+            </button>
+            <button
+              type="button"
               className="create-po-btn"
               onClick={() => setPoModalOpen(true)}
               title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
@@ -461,7 +670,7 @@ export function TransactionsModule({
             <button
               type="button"
               className="save-button"
-              onClick={() => void saveShipment()}
+              onClick={() => void handleSaveShipmentWithLocal()}
               disabled={saveState === "saving"}
               title="Simpan transaksi ke database cloud"
             >
@@ -480,6 +689,46 @@ export function TransactionsModule({
             </span>
           </div>
         </div>
+
+        {/* Switcher Tab Peralihan Cepat Antar PO Buyer */}
+        {allTransactions.length > 0 && (
+          <div className="po-multi-switcher-wrap">
+            <div className="po-multi-switcher-header">
+              <div className="po-switcher-title">
+                <span className="dot-pulse" />
+                <span>Peralihan Transaksi / PO Aktif ({allTransactions.length} Permintaan):</span>
+              </div>
+              <button
+                type="button"
+                className="po-new-tx-btn"
+                onClick={handleNewTransactionClick}
+                title="Input PO atau mulai transaksi dari buyer baru"
+              >
+                <Plus size={13} /> + PO Buyer Baru
+              </button>
+            </div>
+
+            <div className="po-switcher-tabs-row">
+              {allTransactions.map((tx) => {
+                const isActive = (tx.reference && tx.reference === displayReference) || (tx.id === activeShipmentId);
+                return (
+                  <button
+                    key={tx.id}
+                    type="button"
+                    className={`po-switcher-tab-btn ${isActive ? "active" : ""}`}
+                    onClick={() => void handleSwitchTransaction(tx)}
+                    title={`Buka transaksi ${tx.reference} (${tx.buyer})`}
+                  >
+                    <span className={`tab-indicator ${isActive ? "active" : ""}`} />
+                    <b className="tab-ref">{tx.reference || "PO Baru"}</b>
+                    <span className="tab-buyer">{tx.buyer ? `· ${tx.buyer}` : ""}</span>
+                    <span className="tab-badge">{tx.buyerCountry || tx.incoterm || "FOB"}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Banner Hasil Screening AI Advisor Buyer Jika Ada */}
         {lastScreening && (
@@ -713,16 +962,16 @@ export function TransactionsModule({
         </div>
       </section>
 
-      {/* 4. DAFTAR ARSIP & RIWAYAT TRANSAKSI: Hanya Tampil Bila Ada Transaksi Tersimpan */}
-      {hasSavedTransactions && (
+      {/* 4. DAFTAR SEMUA TRANSAKSI & PO BUYER */}
+      {allTransactions.length > 0 && (
         <>
           <section className="panel panel-padding">
             <div className="panel-head">
               <div>
                 <span className="eyebrow">DATABASE WORKSPACE</span>
-                <h3>Daftar Transaksi Perusahaan</h3>
+                <h3>Daftar Permintaan &amp; Transaksi Ekspor ({allTransactions.length})</h3>
                 <p className="profile-description">
-                  Kelola dan buka kembali arsip transaksi ekspor yang pernah disimpan ke database cloud. Setiap transaksi memiliki riwayat versi dan audit log.
+                  Kelola banyak PO dari berbagai buyer secara terpisah. Klik &quot;Buka Transaksi&quot; untuk beralih mengelola kalkulasi harga, kontainer, dokumen, dan alur ekspor buyer terkait.
                 </p>
               </div>
 
@@ -733,50 +982,49 @@ export function TransactionsModule({
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Cari nomor transaksi, status..."
+                    placeholder="Cari PO, nama buyer..."
                   />
                 </div>
-                <select
-                  className="clean-select compact"
-                  value={statusFilter}
-                  onChange={(event) => setStatusFilter(event.target.value)}
-                  aria-label="Filter status transaksi"
+                <button
+                  type="button"
+                  className="save-button"
+                  onClick={handleNewTransactionClick}
+                  style={{ padding: "6px 12px", fontSize: "12px" }}
                 >
-                  <option value="ALL">Semua Status ({genuineShipments.length})</option>
-                  <option value="Draft">Draft</option>
-                  <option value="Quotation">Quotation</option>
-                  <option value="Confirmed">Confirmed</option>
-                  <option value="Ready to Ship">Ready to Ship</option>
-                  <option value="Booked">Booked</option>
-                  <option value="Stuffing">Stuffing</option>
-                  <option value="In Transit">In Transit</option>
-                  <option value="Completed">Completed</option>
-                </select>
+                  <Plus size={13} /> + Transaksi Baru
+                </button>
               </div>
             </div>
 
             {/* Isi Tabel Riwayat Transaksi */}
-            {isLoadingList ? (
-              <div className="empty-attachment">Memuat daftar transaksi dari server...</div>
-            ) : filteredCloudList.length === 0 ? (
-              <div className="empty-attachment">
-                Tidak ada transaksi yang cocok dengan kata kunci pencarian atau filter status.
-              </div>
-            ) : (
-              <div className="clean-table-wrap">
-                <table className="clean-table">
-                  <thead>
-                    <tr>
-                      <th>Nomor / Referensi Internal</th>
-                      <th>Status Operasional</th>
-                      <th>Versi Database</th>
-                      <th>Terakhir Diperbarui</th>
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredCloudList.map((row) => {
-                      const isCurrent = row.id === activeShipmentId;
+            <div className="clean-table-wrap">
+              <table className="clean-table">
+                <thead>
+                  <tr>
+                    <th>Nomor PO / Referensi</th>
+                    <th>Nama Buyer &amp; Negara</th>
+                    <th>Komoditas &amp; Incoterm</th>
+                    <th>Status Operasional</th>
+                    <th>Terakhir Diperbarui</th>
+                    <th>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {allTransactions
+                    .filter((row) => {
+                      const q = query.trim().toLowerCase();
+                      if (!q) return true;
+                      return (
+                        row.reference.toLowerCase().includes(q) ||
+                        row.buyer.toLowerCase().includes(q) ||
+                        row.buyerCountry.toLowerCase().includes(q) ||
+                        row.product.toLowerCase().includes(q)
+                      );
+                    })
+                    .map((row) => {
+                      const isCurrent =
+                        (row.reference && row.reference === displayReference) ||
+                        row.id === activeShipmentId;
                       return (
                         <tr key={row.id} className={isCurrent ? "active-row" : ""}>
                           <td>
@@ -788,33 +1036,48 @@ export function TransactionsModule({
                             </div>
                           </td>
                           <td>
-                            <StatusPill tone={statusTone(row.status)}>{row.status}</StatusPill>
+                            <div style={{ fontWeight: 600, color: "#1e293b" }}>{row.buyer}</div>
+                            <small style={{ color: "#64748b" }}>{row.buyerCountry}</small>
                           </td>
                           <td>
-                            <span className="mono-code">v{row.version}</span>
+                            <div>{row.product}</div>
+                            <small style={{ color: "#0284c7", fontWeight: 600 }}>{row.incoterm} · {row.quantity} {row.unit}</small>
+                          </td>
+                          <td>
+                            <StatusPill tone={statusTone(row.status)}>{row.status}</StatusPill>
                           </td>
                           <td style={{ color: "var(--muted)", fontSize: "12px" }}>
                             {formatShortDate(row.updatedAt)}
                           </td>
                           <td>
-                            <div className="row-actions">
+                            <div className="row-actions" style={{ display: "flex", gap: "6px" }}>
                               <button
                                 type="button"
                                 className={isCurrent ? "ghost-button" : "save-button"}
-                                onClick={() => void loadShipment(row.id)}
-                                title={isCurrent ? "Muat ulang data dari server" : "Buka transaksi ini ke workspace"}
+                                onClick={() => void handleSwitchTransaction(row)}
+                                title={isCurrent ? "Sedang aktif di workspace" : "Buka transaksi ini ke workspace"}
                               >
-                                <FolderOpen size={13} /> {isCurrent ? "Muat Ulang" : "Buka Transaksi"}
+                                <FolderOpen size={13} /> {isCurrent ? "Aktif" : "Buka"}
                               </button>
+                              {!row.isCloud && !isCurrent && (
+                                <button
+                                  type="button"
+                                  className="ghost-button"
+                                  style={{ color: "#ef4444", padding: "4px 8px" }}
+                                  onClick={() => handleDeleteLocalTx(row.id, row.reference)}
+                                  title="Hapus transaksi lokal ini"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
                       );
                     })}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           {/* Ringkasan Statistik Eksekutif */}

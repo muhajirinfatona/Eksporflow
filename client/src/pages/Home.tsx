@@ -60,6 +60,7 @@ export default function Home() {
     updateLineItems,
     saveShipment,
     loadShipment,
+    loadCustomShipment,
     reloadLatest,
     createNewDraft,
     resetTransaction,
@@ -185,6 +186,7 @@ export default function Home() {
           container={container}
           flow={flow}
           loadShipment={loadShipment}
+          loadCustomShipment={loadCustomShipment}
           saveShipment={saveShipment}
           createNewDraft={createNewDraft}
           login={refreshAuth}

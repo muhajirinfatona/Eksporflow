@@ -251,12 +251,26 @@ export function useActiveShipment() {
       toast.success(
         nextRef ? `Transaksi baru ${nextRef} siap diisi` : "Formulir transaksi baru siap diisi",
         {
-          description: "Silakan masukkan nomor referensi internal dan data buyer Anda.",
+          description: "Silakan masukkan nomor PO dan data buyer baru.",
         },
       );
     },
     [shipment.exporter, user?.companyName],
   );
+
+  const loadCustomShipment = useCallback((next: Shipment, customId?: string | null) => {
+    setShipment(next);
+    setActiveShipmentId(customId ?? null);
+    setVersion(1);
+    setSaveState("unsaved");
+    setStatusNote(null);
+    toast.success(
+      next.reference ? `Transaksi ${next.reference} dibuka` : "Transaksi dibuka",
+      {
+        description: next.buyer ? `Buyer: ${next.buyer} (${next.buyerCountry || "-"})` : "Data transaksi siap dikelola.",
+      },
+    );
+  }, []);
 
   const resetTransaction = useCallback(() => {
     const clean = createEmptyShipment({
@@ -319,6 +333,7 @@ export function useActiveShipment() {
     updateLineItems,
     saveShipment,
     loadShipment,
+    loadCustomShipment,
     reloadLatest,
     createNewDraft,
     resetTransaction,
