@@ -8835,6 +8835,129 @@ textarea:focus-visible {
   color: #64748b;
 }
 
+/* Clean Input Group with integrated unit dropdown */
+.calc-input-group {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  background: #ffffff;
+  transition: all 0.15s ease;
+  max-width: 175px;
+  width: 100%;
+}
+
+.calc-input-group:focus-within {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.12);
+}
+
+.calc-input-group input {
+  border: 0;
+  outline: none;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #0f172a;
+  width: 100%;
+  min-width: 60px;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+}
+
+.calc-input-group select {
+  border: 0;
+  border-left: 1px solid #e2e8f0;
+  outline: none;
+  background: #f8fafc;
+  padding: 5px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.calc-input-group select:focus {
+  background: #f1f5f9;
+}
+
+/* Row Delete Button */
+.calc-row-del-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.calc-row-del-btn:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+/* Inline Yield Pill */
+.calc-yield-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 11px;
+  color: #166534;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+.calc-yield-inline-pill input {
+  width: 44px;
+  padding: 1px 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-align: center;
+  border: 1px solid #86efac;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #15803d;
+}
+
+/* Unit Display Toggle Button Group */
+.calc-unit-display-toggle {
+  display: inline-flex;
+  align-items: center;
+  background: #f1f5f9;
+  border-radius: 6px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.calc-unit-toggle-btn {
+  border: 0;
+  background: transparent;
+  padding: 3px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #64748b;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.calc-unit-toggle-btn.active {
+  background: #ffffff;
+  color: #0284c7;
+  font-weight: 700;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
 .calc-guide-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;

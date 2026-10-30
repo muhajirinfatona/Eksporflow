@@ -1,12 +1,11 @@
 import type { ApprovalDecision, PartnerEntry } from "@/hooks/useWorkspaceFlow";
 import { trpc } from "@/lib/trpc";
 import {
-  AdditionalCostItem,
+  calculateEffectiveCostPerMt,
   calculateExportPricingModel,
-  defaultAdditionalCosts,
-  defaultHppInput,
+  CostUnit,
+  DynamicHppItem,
   ExportCalculatorResult,
-  HppComponentInput,
   IncotermChainRow,
 } from "@shared/exportCalculator";
 import {
@@ -41,6 +40,14 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Field, SectionTitle, SelectField, StatusPill } from "./Primitives";
 
+export type DynamicLogisticRow = {
+  id: string;
+  name: string;
+  amount: number;
+  unit: CostUnit;
+  stage: "FCA" | "FOB" | "CFR" | "CIF" | "DAP" | "DPU" | "DDP";
+};
+
 export function PricingModule({
   shipment,
   update,
@@ -66,8 +73,16 @@ export function PricingModule({
   const [targetConvertCurrency, setTargetConvertCurrency] = useState<string>("USD");
   const [showGuide, setShowGuide] = useState(false);
 
-  // Kuantitas dalam satuan MT (Metric Ton) untuk kalkulasi ekspor
+  // Satuan aktif transaksi (kg atau ton/MT)
   const isKg = shipment.unit?.toLowerCase() === "kg";
+  const [displayUnit, setDisplayUnit] = useState<"kg" | "MT">(isKg ? "kg" : "MT");
+
+  // Jika satuan shipment diubah di form atas, sinkronkan opsi tampilan
+  useEffect(() => {
+    setDisplayUnit(isKg ? "kg" : "MT");
+  }, [isKg]);
+
+  // Kuantitas dalam satuan MT (Metric Ton) untuk perhitungan resmi
   const quantityInMt = Math.max(
     0.01,
     isKg ? (shipment.quantity || 1) / 1000 : (shipment.quantity || 1)
@@ -76,141 +91,337 @@ export function PricingModule({
   // Target persentase keuntungan eksportir (%)
   const markupPercent = shipment.margin > 0 ? shipment.margin : 15;
 
-  // Tawaran harga dari pembeli per MT untuk cek untung/rugi
+  // Persentase Hasil Jadi (Yield) bahan baku
+  const [yieldPercent, setYieldPercent] = useState<number>(90);
+
+  // Penawaran dari pembeli per MT
   const [buyerOfferPerMt, setBuyerOfferPerMt] = useState<number>(
     shipment.unitPrice
       ? (isKg ? shipment.unitPrice * 1000 : shipment.unitPrice)
       : 1850
   );
 
-  // State Bagian A: Biaya Modal Produk (HPP)
-  const [hppState, setHppState] = useState<HppComponentInput>(() => {
+  // State Bagian A: Daftar Komponen Biaya Modal (HPP) Fleksibel & Dinamis
+  const [hppItems, setHppItems] = useState<DynamicHppItem[]>(() => {
     const isIdr = shipment.currency === "IDR";
     if (isIdr) {
-      return {
-        buyPricePerMtRaw: 18000000,
-        yieldPercent: 90,
-        sourcingFreightPerMtRaw: 350000,
-        processingCostPerMt: 650000,
-        laborCostPerMt: 450000,
-        overheadCostPerMt: 300000,
-        packagingCostPerMt: 400000,
-        labelCostPerMt: 150000,
-        qcLabCostPerMt: 250000,
-        otherProdCostPerMt: 0,
-        fixedPrepCostOrder: 1500000,
-      };
+      return [
+        {
+          id: "hpp-raw",
+          name: "Bahan baku mentah (dari pemasok / petani)",
+          amount: 18000,
+          unit: "kg",
+          applyYield: true,
+        },
+        {
+          id: "hpp-freight",
+          name: "Ongkos angkut bahan ke gudang olah",
+          amount: 350,
+          unit: "kg",
+          applyYield: false,
+        },
+        {
+          id: "hpp-process",
+          name: "Biaya olah, sortir & perapian mutu",
+          amount: 650,
+          unit: "kg",
+          applyYield: false,
+        },
+        {
+          id: "hpp-labor",
+          name: "Upah pekerja olah & packing",
+          amount: 450,
+          unit: "kg",
+          applyYield: false,
+        },
+        {
+          id: "hpp-overhead",
+          name: "Sewa gudang, listrik & operasional",
+          amount: 300,
+          unit: "kg",
+          applyYield: false,
+        },
+        {
+          id: "hpp-pack",
+          name: "Kemasan ekspor (karung/karton food-grade)",
+          amount: 400,
+          unit: "kg",
+          applyYield: false,
+        },
+        {
+          id: "hpp-label",
+          name: "Label kemasan, stiker & barcode",
+          amount: 150,
+          unit: "kg",
+          applyYield: false,
+        },
+        {
+          id: "hpp-qc",
+          name: "Uji laboratorium mutu (COA)",
+          amount: 2500000,
+          unit: "dokumen",
+          applyYield: false,
+        },
+        {
+          id: "hpp-prep",
+          name: "Biaya persiapan pesanan (tetap)",
+          amount: 1500000,
+          unit: "order",
+          applyYield: false,
+        },
+      ];
     }
-    return { ...defaultHppInput };
+    return [
+      {
+        id: "hpp-raw",
+        name: "Bahan baku mentah (Sourcing / Supplier)",
+        amount: 1.2,
+        unit: "kg",
+        applyYield: true,
+      },
+      {
+        id: "hpp-freight",
+        name: "Ongkos angkut bahan ke gudang",
+        amount: 35,
+        unit: "MT",
+        applyYield: false,
+      },
+      {
+        id: "hpp-process",
+        name: "Biaya pengolahan & standarisasi mutu",
+        amount: 65,
+        unit: "MT",
+        applyYield: false,
+      },
+      {
+        id: "hpp-labor",
+        name: "Upah pekerja olah & packing",
+        amount: 45,
+        unit: "MT",
+        applyYield: false,
+      },
+      {
+        id: "hpp-overhead",
+        name: "Sewa tempat & utilitas gudang",
+        amount: 30,
+        unit: "MT",
+        applyYield: false,
+      },
+      {
+        id: "hpp-pack",
+        name: "Kemasan ekspor",
+        amount: 40,
+        unit: "MT",
+        applyYield: false,
+      },
+      {
+        id: "hpp-label",
+        name: "Label & stiker barcode",
+        amount: 15,
+        unit: "MT",
+        applyYield: false,
+      },
+      {
+        id: "hpp-qc",
+        name: "Uji lab sertifikasi mutu (COA)",
+        amount: 200,
+        unit: "dokumen",
+        applyYield: false,
+      },
+      {
+        id: "hpp-prep",
+        name: "Biaya persiapan pesanan (tetap)",
+        amount: 200,
+        unit: "order",
+        applyYield: false,
+      },
+    ];
   });
 
-  // Komponen biaya modal tambahan
-  const [customHppItems, setCustomHppItems] = useState<
-    Array<{ id: string; name: string; costPerMt: number }>
-  >([]);
-
-  // State Bagian B: Biaya Pengiriman & Dokumen
-  const [additionalCosts, setAdditionalCosts] = useState<AdditionalCostItem[]>(() => {
+  // State Bagian B: Biaya Pengiriman & Dokumen Fleksibel & Dinamis
+  const [logisticItems, setLogisticItems] = useState<DynamicLogisticRow[]>(() => {
     const isIdr = shipment.currency === "IDR";
     if (isIdr) {
       return [
         {
           id: "fca-trucking",
           name: "Truk dari gudang ke pelabuhan muat (Inland POL)",
-          perMt: 350000,
-          fixedOrder: 2500000,
+          amount: 350000,
+          unit: "MT",
           stage: "FCA",
-          description: "Truk angkut ke pelabuhan muat asal.",
         },
         {
           id: "fca-customs",
           name: "Izin ekspor Bea Cukai (PEB)",
-          perMt: 0,
-          fixedOrder: 1750000,
+          amount: 1750000,
+          unit: "dokumen",
           stage: "FCA",
-          description: "Pemberitahuan Ekspor Barang & PPJK.",
         },
         {
           id: "fca-docs",
           name: "Sertifikat ekspor (Karantina, SKA/COO, Fumigasi)",
-          perMt: 0,
-          fixedOrder: 2200000,
+          amount: 2200000,
+          unit: "dokumen",
           stage: "FCA",
-          description: "Pengurusan sertifikat ekspor.",
         },
         {
           id: "fob-terminal",
           name: "Biaya bongkar muat pelabuhan asal (THC POL)",
-          perMt: 120000,
-          fixedOrder: 2500000,
+          amount: 120000,
+          unit: "MT",
           stage: "FOB",
-          description: "Biaya pelabuhan muat asal.",
         },
         {
           id: "cfr-freight",
           name: "Ongkos kapal kontainer internasional (Ocean Freight)",
-          perMt: 1250000,
-          fixedOrder: 7500000,
+          amount: 1250000,
+          unit: "MT",
           stage: "CFR",
-          description: "Uang tambang kapal kontainer ke pelabuhan tujuan.",
         },
         {
           id: "cif-insurance",
           name: "Asuransi pengiriman laut (Marine Cargo)",
-          perMt: 150000,
-          fixedOrder: 1200000,
+          amount: 150000,
+          unit: "MT",
           stage: "CIF",
-          description: "Premi proteksi risiko di laut.",
         },
         {
           id: "dap-lastmile",
           name: "Truk antar ke gudang pembeli (Last-Mile)",
-          perMt: 350000,
-          fixedOrder: 3500000,
+          amount: 350000,
+          unit: "MT",
           stage: "DAP",
-          description: "Pengantaran pelabuhan tujuan ke alamat pembeli.",
         },
         {
           id: "ddp-duty",
           name: "Pajak & bea masuk negara tujuan (khusus DDP)",
-          perMt: 650000,
-          fixedOrder: 0,
+          amount: 650000,
+          unit: "MT",
           stage: "DDP",
-          description: "Pajak impor negara pembeli (khusus DDP).",
         },
       ];
     }
-    return defaultAdditionalCosts.map((item) => ({ ...item }));
+    return [
+      {
+        id: "fca-trucking",
+        name: "Truk ke pelabuhan muat (Inland POL)",
+        amount: 25,
+        unit: "MT",
+        stage: "FCA",
+      },
+      {
+        id: "fca-customs",
+        name: "Izin ekspor Bea Cukai (PEB)",
+        amount: 150,
+        unit: "dokumen",
+        stage: "FCA",
+      },
+      {
+        id: "fca-docs",
+        name: "Sertifikat ekspor (COO, Fumigasi)",
+        amount: 180,
+        unit: "dokumen",
+        stage: "FCA",
+      },
+      {
+        id: "fob-terminal",
+        name: "Biaya bongkar muat pelabuhan muat (THC POL)",
+        amount: 20,
+        unit: "MT",
+        stage: "FOB",
+      },
+      {
+        id: "cfr-freight",
+        name: "Ocean freight kapal kontainer",
+        amount: 110,
+        unit: "MT",
+        stage: "CFR",
+      },
+      {
+        id: "cif-insurance",
+        name: "Asuransi pengiriman laut",
+        amount: 12,
+        unit: "MT",
+        stage: "CIF",
+      },
+      {
+        id: "dap-lastmile",
+        name: "Truk antar ke gudang pembeli",
+        amount: 25,
+        unit: "MT",
+        stage: "DAP",
+      },
+      {
+        id: "ddp-duty",
+        name: "Pajak & bea masuk (DDP)",
+        amount: 45,
+        unit: "MT",
+        stage: "DDP",
+      },
+    ];
   });
 
-  // Perhitungan Rantai Harga & Keuntungan Ekspor
-  const exportCalcResult: ExportCalculatorResult = useMemo(() => {
-    const customHppTotalPerMt = customHppItems.reduce(
-      (sum, item) => sum + (Number(item.costPerMt) || 0),
-      0
-    );
-    const effectiveHpp: HppComponentInput = {
-      ...hppState,
-      otherProdCostPerMt: (hppState.otherProdCostPerMt || 0) + customHppTotalPerMt,
-    };
+  // Konversi logisticItems ke format AdditionalCostItem untuk kalkulator resmi
+  const normalizedAdditionalCosts = useMemo(() => {
+    return logisticItems.map((item) => {
+      const isFixed = item.unit === "order" || item.unit === "dokumen";
+      const isPerContainer = item.unit === "kontainer";
+      const isPerKg = item.unit === "kg";
 
+      if (isFixed) {
+        return {
+          id: item.id,
+          name: item.name,
+          perMt: 0,
+          fixedOrder: item.amount,
+          stage: item.stage,
+          description: "",
+        };
+      }
+      if (isPerContainer) {
+        const numContainers = Math.max(1, Math.ceil(quantityInMt / 20));
+        return {
+          id: item.id,
+          name: item.name,
+          perMt: (item.amount * numContainers) / quantityInMt,
+          fixedOrder: 0,
+          stage: item.stage,
+          description: "",
+        };
+      }
+      if (isPerKg) {
+        return {
+          id: item.id,
+          name: item.name,
+          perMt: item.amount * 1000,
+          fixedOrder: 0,
+          stage: item.stage,
+          description: "",
+        };
+      }
+      return {
+        id: item.id,
+        name: item.name,
+        perMt: item.amount,
+        fixedOrder: 0,
+        stage: item.stage,
+        description: "",
+      };
+    });
+  }, [logisticItems, quantityInMt]);
+
+  // Perhitungan Rantai Harga & Profitabilitas
+  const exportCalcResult: ExportCalculatorResult = useMemo(() => {
     return calculateExportPricingModel({
       currency: shipment.currency,
       quantityMt: quantityInMt,
       targetMarkup: markupPercent / 100,
       buyerPricePerMt: buyerOfferPerMt,
-      hpp: effectiveHpp,
-      additionalCosts: additionalCosts,
+      dynamicHppItems: hppItems,
+      yieldPercent: yieldPercent,
+      additionalCosts: normalizedAdditionalCosts,
     });
-  }, [
-    hppState,
-    customHppItems,
-    additionalCosts,
-    quantityInMt,
-    markupPercent,
-    buyerOfferPerMt,
-    shipment.currency,
-  ]);
+  }, [hppItems, yieldPercent, normalizedAdditionalCosts, quantityInMt, markupPercent, buyerOfferPerMt, shipment.currency]);
 
   // Baris aktif Incoterm yang dipilih
   const activeChainRow = useMemo(() => {
@@ -279,29 +490,60 @@ export function PricingModule({
     liveRates?.rates
   );
 
-  const updateHppField = (key: keyof HppComponentInput, value: number) => {
-    setHppState((prev) => ({ ...prev, [key]: value }));
+  // Helper HPP Handlers
+  const handleUpdateHppItem = (
+    id: string,
+    field: "name" | "amount" | "unit" | "applyYield",
+    val: any
+  ) => {
+    setHppItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, [field]: val } : it))
+    );
   };
 
-  const handleAddCustomHpp = () => {
-    const newItem = {
+  const handleDeleteHppItem = (id: string) => {
+    setHppItems((prev) => prev.filter((it) => it.id !== id));
+    toast.success("Baris biaya modal dihapus");
+  };
+
+  const handleAddHppItem = () => {
+    const newItem: DynamicHppItem = {
       id: "hpp-" + Date.now(),
-      name: "Biaya Modal Tambahan",
-      costPerMt: 0,
+      name: "Biaya Modal Baru",
+      amount: 0,
+      unit: isKg ? "kg" : "MT",
+      applyYield: false,
     };
-    setCustomHppItems((prev) => [...prev, newItem]);
+    setHppItems((prev) => [...prev, newItem]);
+    toast.success("Baris biaya modal baru ditambahkan");
   };
 
-  const handleAddAdditionalCost = () => {
-    const newItem: AdditionalCostItem = {
-      id: "cost-" + Date.now(),
+  // Helper Logistic Handlers
+  const handleUpdateLogisticItem = (
+    id: string,
+    field: "name" | "amount" | "unit" | "stage",
+    val: any
+  ) => {
+    setLogisticItems((prev) =>
+      prev.map((it) => (it.id === id ? { ...it, [field]: val } : it))
+    );
+  };
+
+  const handleDeleteLogisticItem = (id: string) => {
+    setLogisticItems((prev) => prev.filter((it) => it.id !== id));
+    toast.success("Baris biaya pengiriman dihapus");
+  };
+
+  const handleAddLogisticItem = () => {
+    const newItem: DynamicLogisticRow = {
+      id: "log-" + Date.now(),
       name: "Biaya Pengiriman Baru",
-      perMt: 0,
-      fixedOrder: 0,
-      stage: shipment.incoterm === "EXW" ? "FCA" : (shipment.incoterm as any),
-      description: "Biaya penyerahan pengiriman",
+      amount: 0,
+      unit: "dokumen",
+      stage: (shipment.incoterm as any) || "FOB",
     };
-    setAdditionalCosts((prev) => [...prev, newItem]);
+    setLogisticItems((prev) => [...prev, newItem]);
+    toast.success("Baris biaya pengiriman baru ditambahkan");
   };
 
   // Muat contoh simulasi data
@@ -313,39 +555,14 @@ export function PricingModule({
     update("unit", "ton");
     update("incoterm", "CIF");
     update("margin", 15);
+    setYieldPercent(90);
 
     if (shipment.currency === "USD") {
-      setHppState({
-        buyPricePerMtRaw: 1200,
-        yieldPercent: 90,
-        sourcingFreightPerMtRaw: 35,
-        processingCostPerMt: 65,
-        laborCostPerMt: 45,
-        overheadCostPerMt: 30,
-        packagingCostPerMt: 40,
-        labelCostPerMt: 15,
-        qcLabCostPerMt: 20,
-        otherProdCostPerMt: 0,
-        fixedPrepCostOrder: 200,
-      });
       setBuyerOfferPerMt(1900);
     } else {
-      setHppState({
-        buyPricePerMtRaw: 18500000,
-        yieldPercent: 90,
-        sourcingFreightPerMtRaw: 450000,
-        processingCostPerMt: 750000,
-        laborCostPerMt: 500000,
-        overheadCostPerMt: 350000,
-        packagingCostPerMt: 450000,
-        labelCostPerMt: 180000,
-        qcLabCostPerMt: 280000,
-        otherProdCostPerMt: 0,
-        fixedPrepCostOrder: 2000000,
-      });
       setBuyerOfferPerMt(29500000);
     }
-    toast.success("Contoh data simulasi ekspor diterapkan");
+    toast.success("Contoh simulasi angka diterapkan");
   };
 
   const handleApplyBiRate = (type: "sell" | "middle" | "buy") => {
@@ -430,7 +647,7 @@ export function PricingModule({
               />
 
               <SelectField
-                label="Satuan"
+                label="Satuan pesanan"
                 value={shipment.unit}
                 onChange={(val) => {
                   update("unit", val);
@@ -492,7 +709,7 @@ export function PricingModule({
               </div>
 
               <Field
-                label="Target Keuntungan / Markup (%)"
+                label="Target Keuntungan (%)"
                 value={shipment.margin}
                 type="number"
                 suffix="%"
@@ -501,11 +718,18 @@ export function PricingModule({
               />
 
               <Field
-                label={`Tawaran Harga Pembeli / MT (${shipment.currency})`}
-                value={buyerOfferPerMt}
+                label={`Tawaran Pembeli (${displayUnit === "kg" ? "/kg" : "/MT"})`}
+                value={
+                  displayUnit === "kg"
+                    ? Number((buyerOfferPerMt / 1000).toFixed(2))
+                    : buyerOfferPerMt
+                }
                 type="number"
                 prefix={shipment.currency}
-                onChange={(value) => setBuyerOfferPerMt(parseFloat(value) || 0)}
+                onChange={(value) => {
+                  const val = parseFloat(value) || 0;
+                  setBuyerOfferPerMt(displayUnit === "kg" ? val * 1000 : val);
+                }}
               />
             </div>
 
@@ -620,374 +844,162 @@ export function PricingModule({
                 <span className="calc-sheet-badge">BAGIAN A</span>
                 <div className="calc-sheet-titles">
                   <h3>Biaya Modal Produk Siap Ekspor (HPP)</h3>
-                  <p>Modal beli bahan baku dari pemasok, penyusutan olah (yield), upah pekerja, kemasan, dan uji mutu.</p>
+                  <p>Bebas tentukan satuan tiap biaya (/kilo, /MT, /dokumen, /order) dan hapus biaya yang tidak diperlukan.</p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                className="section-factor-btn"
-                onClick={handleAddCustomHpp}
-              >
-                <Plus size={13} /> Tambah Biaya Modal
-              </button>
+              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                {/* Unit Display Segmented Toggle */}
+                <div className="calc-unit-display-toggle">
+                  <button
+                    type="button"
+                    className={`calc-unit-toggle-btn ${displayUnit === "kg" ? "active" : ""}`}
+                    onClick={() => setDisplayUnit("kg")}
+                    title="Tampilkan rincian dalam satuan per Kilogram"
+                  >
+                    Per kg
+                  </button>
+                  <button
+                    type="button"
+                    className={`calc-unit-toggle-btn ${displayUnit === "MT" ? "active" : ""}`}
+                    onClick={() => setDisplayUnit("MT")}
+                    title="Tampilkan rincian dalam satuan per Metric Ton"
+                  >
+                    Per MT
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  className="section-factor-btn"
+                  onClick={handleAddHppItem}
+                >
+                  <Plus size={13} /> Tambah Biaya Modal
+                </button>
+              </div>
             </div>
 
             <div className="calc-sheet-table-wrapper">
               <table className="calc-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 40 }}>No</th>
-                    <th>Komponen Modal (HPP)</th>
-                    <th style={{ width: 170 }}>Biaya Satuan Awal</th>
-                    <th style={{ width: 150, textAlign: "right" }}>Modal per MT Jadi</th>
-                    <th style={{ width: 80, textAlign: "right" }}>Porsi Modal</th>
-                    <th style={{ width: 220 }}>Hasil Jadi (Yield)</th>
+                    <th style={{ width: 36, textAlign: "center" }}>#</th>
+                    <th>Komponen Modal Produk</th>
+                    <th style={{ width: 195 }}>Biaya &amp; Satuan Bebas</th>
+                    <th style={{ width: 160, textAlign: "right" }}>
+                      Modal Jadi ({displayUnit === "kg" ? "/kg" : "/MT"})
+                    </th>
+                    <th style={{ width: 85, textAlign: "right" }}>Porsi</th>
+                    <th style={{ width: 44, textAlign: "center" }}>Hapus</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {/* Row 1: Bahan Baku & Yield */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>1</td>
-                    <td>
-                      <strong>Bahan baku mentah (dari pemasok / petani)</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.buyPricePerMtRaw}
-                          onChange={(e) =>
-                            updateHppField("buyPricePerMtRaw", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 700 }}>
-                      {formatCurrencyAmount(exportCalcResult.effectiveRawCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.rawMaterial.toFixed(1)}%
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <span style={{ fontSize: 11.5 }}>Hasil Jadi:</span>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          style={{ width: 55 }}
-                          value={hppState.yieldPercent}
-                          onChange={(e) =>
-                            updateHppField("yieldPercent", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#475569" }}>
-                          % → butuh <b>{exportCalcResult.rawMaterialPerMtOutput.toFixed(2)}x</b> bahan
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
+                  {hppItems.map((item, idx) => {
+                    const eff = calculateEffectiveCostPerMt(
+                      item.amount,
+                      item.unit,
+                      quantityInMt,
+                      item.applyYield,
+                      yieldPercent
+                    );
+                    const formattedUnitVal =
+                      displayUnit === "kg"
+                        ? formatCurrencyAmount(eff.perKg, shipment.currency)
+                        : formatCurrencyAmount(eff.perMt, shipment.currency);
 
-                  {/* Row 2: Angkut Lokal Bahan */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>2</td>
-                    <td>
-                      <strong>Ongkos angkut bahan ke gudang olah</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.sourcingFreightPerMtRaw}
-                          onChange={(e) =>
-                            updateHppField("sourcingFreightPerMtRaw", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(
-                        exportCalcResult.effectiveSourcingFreightPerMt,
-                        shipment.currency
-                      )}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.sourcingFreight.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Disesuaikan faktor susut ({hppState.yieldPercent}%)</td>
-                  </tr>
+                    const porsiPercent =
+                      exportCalcResult.totalHppPerMt > 0
+                        ? ((eff.perMt / exportCalcResult.totalHppPerMt) * 100).toFixed(1)
+                        : "0.0";
 
-                  {/* Row 3: Biaya Olah & Sortir */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>3</td>
-                    <td>
-                      <strong>Biaya olah, sortir &amp; perapian mutu</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.processingCostPerMt}
-                          onChange={(e) =>
-                            updateHppField("processingCostPerMt", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(hppState.processingCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.processing.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Standarisasi spesifikasi pembeli</td>
-                  </tr>
-
-                  {/* Row 4: Upah Pekerja */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>4</td>
-                    <td>
-                      <strong>Upah pekerja olah &amp; packing</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.laborCostPerMt}
-                          onChange={(e) =>
-                            updateHppField("laborCostPerMt", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(hppState.laborCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.labor.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Tenaga kerja langsung</td>
-                  </tr>
-
-                  {/* Row 5: Overhead Gudang */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>5</td>
-                    <td>
-                      <strong>Sewa gudang, listrik &amp; operasional</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.overheadCostPerMt}
-                          onChange={(e) =>
-                            updateHppField("overheadCostPerMt", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(hppState.overheadCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.overhead.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Biaya operasional tempat olah</td>
-                  </tr>
-
-                  {/* Row 6: Kemasan Ekspor */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>6</td>
-                    <td>
-                      <strong>Kemasan ekspor (karung/karton food-grade)</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.packagingCostPerMt}
-                          onChange={(e) =>
-                            updateHppField("packagingCostPerMt", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(hppState.packagingCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.packaging.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Kemasan pelindung barang</td>
-                  </tr>
-
-                  {/* Row 7: Label & Barcode */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>7</td>
-                    <td>
-                      <strong>Label kemasan, stiker &amp; barcode</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.labelCostPerMt}
-                          onChange={(e) =>
-                            updateHppField("labelCostPerMt", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(hppState.labelCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.label.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Label bahasa negara pembeli</td>
-                  </tr>
-
-                  {/* Row 8: Uji Lab Mutu */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>8</td>
-                    <td>
-                      <strong>Uji laboratorium &amp; sertifikat mutu (COA)</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.qcLabCostPerMt}
-                          onChange={(e) =>
-                            updateHppField("qcLabCostPerMt", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(hppState.qcLabCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.qcLab.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>Uji mutu independen resmi</td>
-                  </tr>
-
-                  {/* Row 9: Biaya Persiapan Order */}
-                  <tr>
-                    <td style={{ textAlign: "center", fontWeight: 700 }}>9</td>
-                    <td>
-                      <strong>Biaya persiapan pesanan (tetap per pesanan)</strong>
-                    </td>
-                    <td>
-                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                        <input
-                          type="number"
-                          className="calc-input-compact"
-                          value={hppState.fixedPrepCostOrder}
-                          onChange={(e) =>
-                            updateHppField("fixedPrepCostOrder", parseFloat(e.target.value) || 0)
-                          }
-                        />
-                        <span style={{ fontSize: 11.5, color: "#64748b" }}>/order</span>
-                      </div>
-                    </td>
-                    <td style={{ textAlign: "right", fontWeight: 600 }}>
-                      {formatCurrencyAmount(exportCalcResult.fixedPrepCostPerMt, shipment.currency)}
-                    </td>
-                    <td style={{ textAlign: "right", color: "#64748b" }}>
-                      {exportCalcResult.hppBreakdownPercentages.fixedPrep.toFixed(1)}%
-                    </td>
-                    <td style={{ fontSize: 11.5, color: "#64748b" }}>
-                      Dibagi volume {formatNumber(quantityInMt)} MT
-                    </td>
-                  </tr>
-
-                  {/* Custom HPP Rows */}
-                  {customHppItems.map((customItem, idx) => (
-                    <tr key={customItem.id}>
-                      <td style={{ textAlign: "center", fontWeight: 700 }}>{10 + idx}</td>
-                      <td>
-                        <input
-                          type="text"
-                          className="calc-input-compact"
-                          value={customItem.name}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setCustomHppItems((prev) =>
-                              prev.map((it) => (it.id === customItem.id ? { ...it, name: val } : it))
-                            );
-                          }}
-                        />
-                      </td>
-                      <td>
-                        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    return (
+                      <tr key={item.id}>
+                        <td style={{ textAlign: "center", color: "#94a3b8", fontWeight: 600 }}>
+                          {idx + 1}
+                        </td>
+                        <td>
                           <input
-                            type="number"
+                            type="text"
                             className="calc-input-compact"
-                            value={customItem.costPerMt}
-                            onChange={(e) => {
-                              const val = parseFloat(e.target.value) || 0;
-                              setCustomHppItems((prev) =>
-                                prev.map((it) =>
-                                  it.id === customItem.id ? { ...it, costPerMt: val } : it
-                                )
-                              );
-                            }}
+                            style={{ fontWeight: 600, border: "none", background: "transparent", padding: 0 }}
+                            value={item.name}
+                            onChange={(e) => handleUpdateHppItem(item.id, "name", e.target.value)}
                           />
-                          <span style={{ fontSize: 11.5, color: "#64748b" }}>/MT</span>
-                        </div>
-                      </td>
-                      <td style={{ textAlign: "right", fontWeight: 600 }}>
-                        {formatCurrencyAmount(customItem.costPerMt, shipment.currency)}
-                      </td>
-                      <td style={{ textAlign: "right", color: "#64748b" }}>
-                        {exportCalcResult.totalHppPerMt > 0
-                          ? ((customItem.costPerMt / exportCalcResult.totalHppPerMt) * 100).toFixed(1)
-                          : "0.0"}%
-                      </td>
-                      <td>
-                        <button
-                          type="button"
-                          className="custom-cost-delete-btn"
-                          onClick={() =>
-                            setCustomHppItems((prev) => prev.filter((it) => it.id !== customItem.id))
-                          }
-                          title="Hapus baris"
-                        >
-                          <Trash2 size={13} /> Hapus
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+
+                          {/* Inline Yield Setting khusus baris bahan baku */}
+                          {item.applyYield && (
+                            <div className="calc-yield-inline-pill">
+                              <span>🌾 Hasil Jadi (Yield):</span>
+                              <input
+                                type="number"
+                                value={yieldPercent}
+                                onChange={(e) => setYieldPercent(parseFloat(e.target.value) || 0)}
+                              />
+                              <span>% → butuh <b>{(1 / (Math.max(1, yieldPercent) / 100)).toFixed(2)}x</b> bahan</span>
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          <div className="calc-input-group">
+                            <input
+                              type="number"
+                              value={item.amount || ""}
+                              placeholder="0"
+                              onChange={(e) =>
+                                handleUpdateHppItem(item.id, "amount", parseFloat(e.target.value) || 0)
+                              }
+                            />
+                            <select
+                              value={item.unit}
+                              onChange={(e) =>
+                                handleUpdateHppItem(item.id, "unit", e.target.value as CostUnit)
+                              }
+                              title="Pilih satuan biaya"
+                            >
+                              <option value="kg">/kg</option>
+                              <option value="MT">/MT</option>
+                              <option value="dokumen">/dokumen</option>
+                              <option value="order">/order</option>
+                              <option value="kontainer">/kontainer</option>
+                              <option value="pcs">/pcs</option>
+                            </select>
+                          </div>
+                        </td>
+                        <td style={{ textAlign: "right", fontWeight: 700 }}>
+                          {formattedUnitVal}
+                        </td>
+                        <td style={{ textAlign: "right", color: "#64748b" }}>
+                          {porsiPercent}%
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          <button
+                            type="button"
+                            className="calc-row-del-btn"
+                            onClick={() => handleDeleteHppItem(item.id)}
+                            title="Hapus baris biaya ini"
+                          >
+                            <Trash2 size={13} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
 
                   {/* Total Modal HPP */}
                   <tr className="calc-row-total">
                     <td colSpan={3} style={{ textAlign: "right", paddingRight: 16 }}>
                       TOTAL BIAYA MODAL PRODUK (HPP):
                     </td>
-                    <td style={{ textAlign: "right", fontSize: 14 }}>
-                      {formatCurrencyAmount(exportCalcResult.totalHppPerMt, shipment.currency)} / MT
+                    <td style={{ textAlign: "right", fontSize: 13.5, whiteSpace: "nowrap" }}>
+                      {displayUnit === "kg"
+                        ? `${formatCurrencyAmount(exportCalcResult.totalHppPerMt / 1000, shipment.currency)} / kg`
+                        : `${formatCurrencyAmount(exportCalcResult.totalHppPerMt, shipment.currency)} / MT`}
                     </td>
-                    <td style={{ textAlign: "right" }}>100.0%</td>
-                    <td>
-                      Total Pesanan: <b>{formatCurrencyAmount(exportCalcResult.totalHppOrder, shipment.currency)}</b>
+                    <td style={{ textAlign: "right" }}>100%</td>
+                    <td style={{ textAlign: "center" }}>
+                      <span style={{ fontSize: 11, color: "#0369a1", fontWeight: 700 }}>
+                        {formatCurrencyAmount(exportCalcResult.totalHppOrder, shipment.currency)}
+                      </span>
                     </td>
                   </tr>
                 </tbody>
@@ -1002,16 +1014,16 @@ export function PricingModule({
                 <span className="calc-sheet-badge accent">BAGIAN B</span>
                 <div className="calc-sheet-titles">
                   <h3>Biaya Pengiriman &amp; Dokumen Ekspor</h3>
-                  <p>Biaya di luar modal produk: truk pelabuhan, izin Bea Cukai, sewa kapal, dan asuransi laut.</p>
+                  <p>Truk pelabuhan, izin Bea Cukai, ocean freight, dan asuransi laut. Satuan bebas disesuaikan.</p>
                 </div>
               </div>
 
               <button
                 type="button"
                 className="section-factor-btn"
-                onClick={handleAddAdditionalCost}
+                onClick={handleAddLogisticItem}
               >
-                <Plus size={13} /> Tambah Biaya Pengiriman
+                <Plus size={13} /> Tambah Biaya Kirim
               </button>
             </div>
 
@@ -1019,81 +1031,86 @@ export function PricingModule({
               <table className="calc-table">
                 <thead>
                   <tr>
-                    <th style={{ width: 40 }}>No</th>
+                    <th style={{ width: 36, textAlign: "center" }}>#</th>
                     <th>Jenis Biaya Pengiriman</th>
-                    <th style={{ width: 140 }}>Biaya per MT</th>
-                    <th style={{ width: 150 }}>Biaya Tetap per Pesanan</th>
-                    <th style={{ width: 160, textAlign: "right" }}>Biaya Riil per MT</th>
+                    <th style={{ width: 195 }}>Biaya &amp; Satuan Bebas</th>
                     <th style={{ width: 100 }}>Tahap Serah</th>
-                    <th style={{ width: 50, textAlign: "center" }}>Aksi</th>
+                    <th style={{ width: 160, textAlign: "right" }}>
+                      Biaya Riil ({displayUnit === "kg" ? "/kg" : "/MT"})
+                    </th>
+                    <th style={{ width: 44, textAlign: "center" }}>Hapus</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {additionalCosts.map((item, idx) => {
-                    const effectivePerMt =
-                      (Number(item.perMt) || 0) + (Number(item.fixedOrder) || 0) / quantityInMt;
+                  {logisticItems.map((item, idx) => {
+                    const eff = calculateEffectiveCostPerMt(
+                      item.amount,
+                      item.unit,
+                      quantityInMt,
+                      false,
+                      100
+                    );
+                    const formattedUnitVal =
+                      displayUnit === "kg"
+                        ? formatCurrencyAmount(eff.perKg, shipment.currency)
+                        : formatCurrencyAmount(eff.perMt, shipment.currency);
 
                     return (
                       <tr key={item.id}>
-                        <td style={{ textAlign: "center", fontWeight: 700 }}>{idx + 1}</td>
+                        <td style={{ textAlign: "center", color: "#94a3b8", fontWeight: 600 }}>
+                          {idx + 1}
+                        </td>
                         <td>
                           <input
                             type="text"
                             className="calc-input-compact"
+                            style={{ fontWeight: 600, border: "none", background: "transparent", padding: 0 }}
                             value={item.name}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setAdditionalCosts((prev) =>
-                                prev.map((it) => (it.id === item.id ? { ...it, name: val } : it))
-                              );
-                            }}
+                            onChange={(e) =>
+                              handleUpdateLogisticItem(item.id, "name", e.target.value)
+                            }
                           />
                         </td>
                         <td>
-                          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                          <div className="calc-input-group">
                             <input
                               type="number"
-                              className="calc-input-compact"
-                              value={item.perMt}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value) || 0;
-                                setAdditionalCosts((prev) =>
-                                  prev.map((it) => (it.id === item.id ? { ...it, perMt: val } : it))
-                                );
-                              }}
+                              value={item.amount || ""}
+                              placeholder="0"
+                              onChange={(e) =>
+                                handleUpdateLogisticItem(
+                                  item.id,
+                                  "amount",
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
                             />
-                            <span style={{ fontSize: 11, color: "#64748b" }}>/MT</span>
+                            <select
+                              value={item.unit}
+                              onChange={(e) =>
+                                handleUpdateLogisticItem(
+                                  item.id,
+                                  "unit",
+                                  e.target.value as CostUnit
+                                )
+                              }
+                            >
+                              <option value="MT">/MT</option>
+                              <option value="kg">/kg</option>
+                              <option value="dokumen">/dokumen</option>
+                              <option value="order">/order</option>
+                              <option value="kontainer">/kontainer</option>
+                            </select>
                           </div>
-                        </td>
-                        <td>
-                          <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                            <input
-                              type="number"
-                              className="calc-input-compact"
-                              value={item.fixedOrder}
-                              onChange={(e) => {
-                                const val = parseFloat(e.target.value) || 0;
-                                setAdditionalCosts((prev) =>
-                                  prev.map((it) => (it.id === item.id ? { ...it, fixedOrder: val } : it))
-                                );
-                              }}
-                            />
-                            <span style={{ fontSize: 11, color: "#64748b" }}>/ord</span>
-                          </div>
-                        </td>
-                        <td style={{ textAlign: "right", fontWeight: 700 }}>
-                          {formatCurrencyAmount(effectivePerMt, shipment.currency)}
                         </td>
                         <td>
                           <select
                             className="calc-input-compact"
+                            style={{ padding: "4px 6px" }}
                             value={item.stage}
-                            onChange={(e) => {
-                              const val = e.target.value as any;
-                              setAdditionalCosts((prev) =>
-                                prev.map((it) => (it.id === item.id ? { ...it, stage: val } : it))
-                              );
-                            }}
+                            onChange={(e) =>
+                              handleUpdateLogisticItem(item.id, "stage", e.target.value as any)
+                            }
                           >
                             <option value="FCA">FCA</option>
                             <option value="FOB">FOB</option>
@@ -1104,14 +1121,15 @@ export function PricingModule({
                             <option value="DDP">DDP</option>
                           </select>
                         </td>
+                        <td style={{ textAlign: "right", fontWeight: 700 }}>
+                          {formattedUnitVal}
+                        </td>
                         <td style={{ textAlign: "center" }}>
                           <button
                             type="button"
-                            className="custom-cost-delete-btn"
-                            onClick={() =>
-                              setAdditionalCosts((prev) => prev.filter((it) => it.id !== item.id))
-                            }
-                            title="Hapus baris"
+                            className="calc-row-del-btn"
+                            onClick={() => handleDeleteLogisticItem(item.id)}
+                            title="Hapus baris biaya ini"
                           >
                             <Trash2 size={13} />
                           </button>
@@ -1134,7 +1152,7 @@ export function PricingModule({
                 <div className="calc-sheet-titles">
                   <h3>Daftar Harga Incoterms &amp; Simulasi Keuntungan</h3>
                   <p>
-                    Perbandingan harga modal impas, rekomendasi harga jual target, dan perkiraan keuntungan bersih.
+                    Perbandingan harga modal impas, rekomendasi harga jual target (+keuntungan {markupPercent}%), dan keuntungan bersih.
                   </p>
                 </div>
               </div>
@@ -1150,20 +1168,48 @@ export function PricingModule({
                 <thead>
                   <tr>
                     <th style={{ width: 70 }}>Syarat Serah</th>
-                    <th style={{ width: 100 }}>Lokasi Serah</th>
-                    <th style={{ textAlign: "right" }}>Biaya Kirim / MT</th>
-                    <th style={{ textAlign: "right" }}>Harga Modal Impas / MT</th>
-                    <th style={{ textAlign: "right" }}>Harga Jual Target / MT</th>
+                    <th style={{ width: 110 }}>Lokasi Serah</th>
+                    <th style={{ textAlign: "right" }}>
+                      Biaya Kirim ({displayUnit === "kg" ? "/kg" : "/MT"})
+                    </th>
+                    <th style={{ textAlign: "right" }}>
+                      Modal Impas ({displayUnit === "kg" ? "/kg" : "/MT"})
+                    </th>
+                    <th style={{ textAlign: "right" }}>
+                      Harga Jual ({displayUnit === "kg" ? "/kg" : "/MT"})
+                    </th>
                     <th style={{ textAlign: "right" }}>Total Nilai Pesanan</th>
-                    <th style={{ textAlign: "right" }}>Keuntungan Bersih / MT</th>
+                    <th style={{ textAlign: "right" }}>
+                      Untung Bersih ({displayUnit === "kg" ? "/kg" : "/MT"})
+                    </th>
                     <th style={{ textAlign: "center", width: 105 }}>Hasil Penawaran</th>
                     <th style={{ textAlign: "center", width: 125 }}>Kesesuaian Target</th>
-                    <th style={{ textAlign: "center", width: 85 }}>Pilih</th>
+                    <th style={{ textAlign: "center", width: 80 }}>Pilih</th>
                   </tr>
                 </thead>
                 <tbody>
                   {exportCalcResult.chain.map((row: IncotermChainRow) => {
                     const isActive = row.term === shipment.incoterm;
+
+                    const cumCost =
+                      displayUnit === "kg"
+                        ? row.cumulativeCostPerMt / 1000
+                        : row.cumulativeCostPerMt;
+
+                    const breakEvenVal =
+                      displayUnit === "kg"
+                        ? row.breakEvenPricePerMt / 1000
+                        : row.breakEvenPricePerMt;
+
+                    const targetPriceVal =
+                      displayUnit === "kg"
+                        ? row.targetPricePerMt / 1000
+                        : row.targetPricePerMt;
+
+                    const profitVal =
+                      displayUnit === "kg"
+                        ? row.targetProfitPerMt / 1000
+                        : row.targetProfitPerMt;
 
                     return (
                       <tr key={row.term} className={isActive ? "active-term-row" : ""}>
@@ -1177,19 +1223,19 @@ export function PricingModule({
                         </td>
                         <td style={{ fontSize: 11.5, color: "#64748b" }}>{row.group}</td>
                         <td style={{ textAlign: "right" }}>
-                          {formatCurrencyAmount(row.cumulativeCostPerMt, shipment.currency)}
+                          {formatCurrencyAmount(cumCost, shipment.currency)}
                         </td>
                         <td style={{ textAlign: "right", fontWeight: 600 }}>
-                          {formatCurrencyAmount(row.breakEvenPricePerMt, shipment.currency)}
+                          {formatCurrencyAmount(breakEvenVal, shipment.currency)}
                         </td>
                         <td style={{ textAlign: "right", fontWeight: 800, color: "#0369a1" }}>
-                          {formatCurrencyAmount(row.targetPricePerMt, shipment.currency)}
+                          {formatCurrencyAmount(targetPriceVal, shipment.currency)}
                         </td>
                         <td style={{ textAlign: "right", fontWeight: 700 }}>
                           {formatCurrencyAmount(row.totalTargetOrder, shipment.currency)}
                         </td>
                         <td style={{ textAlign: "right", color: "#059669", fontWeight: 600 }}>
-                          +{formatCurrencyAmount(row.targetProfitPerMt, shipment.currency)}
+                          +{formatCurrencyAmount(profitVal, shipment.currency)}
                         </td>
                         <td style={{ textAlign: "center" }}>
                           {row.breakEvenIndicator === "UNTUNG" ? (
@@ -1284,8 +1330,8 @@ export function PricingModule({
                 <div style={{ background: "#ffffff", padding: 10, borderRadius: 6, border: "1px solid #e2e8f0" }}>
                   <b style={{ color: "#059669", fontSize: 12 }}>Hasil Jadi &amp; Modal Impas:</b>
                   <p style={{ fontSize: 11.5, color: "#475569", margin: "4px 0 0" }}>
-                    • <b>Hasil Jadi (Yield {hppState.yieldPercent}%)</b>: 1 MT produk siap kirim butuh{" "}
-                    <b>{exportCalcResult.rawMaterialPerMtOutput.toFixed(2)} MT</b> bahan mentah awal.<br />
+                    • <b>Hasil Jadi (Yield {yieldPercent}%)</b>: 1 MT produk siap kirim butuh{" "}
+                    <b>{(1 / (Math.max(1, yieldPercent) / 100)).toFixed(2)} MT</b> bahan mentah awal.<br />
                     • <b>Harga Modal Impas</b>: Titik impas di mana modal dan seluruh biaya kirim tertutupi.<br />
                     • <b>Harga Target</b>: Harga impas ditambah target keuntungan {markupPercent}%.
                   </p>

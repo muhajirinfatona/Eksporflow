@@ -25,6 +25,68 @@ export type HppComponentInput = {
   fixedPrepCostOrder: number;        // Biaya tetap persiapan order (total per order, e.g. setup/inspeksi)
 };
 
+export type CostUnit = "kg" | "MT" | "order" | "dokumen" | "kontainer" | "pcs";
+
+export type DynamicHppItem = {
+  id: string;
+  name: string;
+  amount: number;
+  unit: CostUnit;
+  applyYield?: boolean;
+};
+
+export type DynamicLogisticItem = {
+  id: string;
+  name: string;
+  amount: number;
+  unit: CostUnit;
+  stage: "FCA" | "FOB" | "CFR" | "CIF" | "DAP" | "DPU" | "DDP";
+  description?: string;
+};
+
+export function calculateEffectiveCostPerMt(
+  amount: number,
+  unit: CostUnit,
+  quantityMt: number,
+  applyYield: boolean = false,
+  yieldPercent: number = 90
+): { perMt: number; perKg: number; totalCost: number } {
+  const qty = Math.max(0.001, quantityMt || 1);
+  const yieldRatio = Math.max(0.1, (yieldPercent || 100) / 100);
+  let perMt = 0;
+
+  switch (unit) {
+    case "kg":
+      perMt = (Number(amount) || 0) * 1000;
+      if (applyYield) perMt = perMt / yieldRatio;
+      break;
+    case "MT":
+      perMt = Number(amount) || 0;
+      if (applyYield) perMt = perMt / yieldRatio;
+      break;
+    case "order":
+    case "dokumen":
+      perMt = (Number(amount) || 0) / qty;
+      break;
+    case "kontainer":
+      const containers = Math.max(1, Math.ceil(qty / 20));
+      perMt = ((Number(amount) || 0) * containers) / qty;
+      break;
+    case "pcs":
+      perMt = (Number(amount) || 0) * 1000;
+      break;
+    default:
+      perMt = Number(amount) || 0;
+  }
+
+  const roundedPerMt = Number(perMt.toFixed(2));
+  return {
+    perMt: roundedPerMt,
+    perKg: Number((roundedPerMt / 1000).toFixed(4)),
+    totalCost: Number((roundedPerMt * qty).toFixed(2)),
+  };
+}
+
 export type AdditionalCostItem = {
   id: string;
   name: string;
@@ -39,7 +101,9 @@ export type ExportCalculatorInput = {
   quantityMt: number;             // Kuantitas produk jadi (MT)
   targetMarkup: number;           // Target markup atas biaya (e.g. 0.20 untuk 20%)
   buyerPricePerMt?: number;       // Input penawaran buyer per MT (opsional untuk cek profitabilitas)
-  hpp: HppComponentInput;
+  hpp?: HppComponentInput;
+  dynamicHppItems?: DynamicHppItem[];
+  yieldPercent?: number;
   additionalCosts: AdditionalCostItem[];
 };
 
@@ -198,42 +262,76 @@ export function calculateExportPricingModel(input: ExportCalculatorInput): Expor
   const buyerPrice = Math.max(0, input.buyerPricePerMt || 0);
 
   // A. HPP Calculation
-  const rawYield = input.hpp.yieldPercent || 100;
-  const yieldRatio = rawYield <= 1 ? Math.max(0.1, rawYield) : Math.max(0.1, rawYield / 100);
-  const rawMaterialPerMtOutput = 1 / yieldRatio;
-  
-  const effectiveRawCostPerMt = input.hpp.buyPricePerMtRaw / yieldRatio;
-  const shrinkageCostImpactPerMt = effectiveRawCostPerMt - input.hpp.buyPricePerMtRaw;
-  const effectiveSourcingFreightPerMt = input.hpp.sourcingFreightPerMtRaw / yieldRatio;
-  const fixedPrepCostPerMt = input.hpp.fixedPrepCostOrder / qty;
+  let totalHppPerMt = 0;
+  let rawMaterialPerMtOutput = 1;
+  let yieldRatio = 1;
+  let effectiveRawCostPerMt = 0;
+  let shrinkageCostImpactPerMt = 0;
+  let effectiveSourcingFreightPerMt = 0;
+  let fixedPrepCostPerMt = 0;
+  const hppBreakdownPercentages: Record<string, number> = {};
 
-  const totalHppPerMt =
-    effectiveRawCostPerMt +
-    effectiveSourcingFreightPerMt +
-    input.hpp.processingCostPerMt +
-    input.hpp.laborCostPerMt +
-    input.hpp.overheadCostPerMt +
-    input.hpp.packagingCostPerMt +
-    input.hpp.labelCostPerMt +
-    input.hpp.qcLabCostPerMt +
-    input.hpp.otherProdCostPerMt +
-    fixedPrepCostPerMt;
+  if (input.dynamicHppItems && input.dynamicHppItems.length > 0) {
+    const rawYield = input.yieldPercent || 90;
+    yieldRatio = rawYield <= 1 ? Math.max(0.1, rawYield) : Math.max(0.1, rawYield / 100);
+    rawMaterialPerMtOutput = 1 / yieldRatio;
+
+    const calculatedItems = input.dynamicHppItems.map((item) => {
+      const eff = calculateEffectiveCostPerMt(
+        item.amount,
+        item.unit,
+        qty,
+        item.applyYield,
+        rawYield
+      );
+      return { ...item, perMt: eff.perMt };
+    });
+
+    totalHppPerMt = calculatedItems.reduce((sum, it) => sum + it.perMt, 0);
+    calculatedItems.forEach((it) => {
+      hppBreakdownPercentages[it.id] = totalHppPerMt > 0 ? (it.perMt / totalHppPerMt) * 100 : 0;
+    });
+
+    const rawItem = calculatedItems.find((it) => it.applyYield);
+    if (rawItem) {
+      effectiveRawCostPerMt = rawItem.perMt;
+      shrinkageCostImpactPerMt = effectiveRawCostPerMt - (rawItem.unit === "kg" ? rawItem.amount * 1000 : rawItem.amount);
+    }
+  } else if (input.hpp) {
+    const rawYield = input.hpp.yieldPercent || 100;
+    yieldRatio = rawYield <= 1 ? Math.max(0.1, rawYield) : Math.max(0.1, rawYield / 100);
+    rawMaterialPerMtOutput = 1 / yieldRatio;
+    
+    effectiveRawCostPerMt = input.hpp.buyPricePerMtRaw / yieldRatio;
+    shrinkageCostImpactPerMt = effectiveRawCostPerMt - input.hpp.buyPricePerMtRaw;
+    effectiveSourcingFreightPerMt = input.hpp.sourcingFreightPerMtRaw / yieldRatio;
+    fixedPrepCostPerMt = input.hpp.fixedPrepCostOrder / qty;
+
+    totalHppPerMt =
+      effectiveRawCostPerMt +
+      effectiveSourcingFreightPerMt +
+      input.hpp.processingCostPerMt +
+      input.hpp.laborCostPerMt +
+      input.hpp.overheadCostPerMt +
+      input.hpp.packagingCostPerMt +
+      input.hpp.labelCostPerMt +
+      input.hpp.qcLabCostPerMt +
+      input.hpp.otherProdCostPerMt +
+      fixedPrepCostPerMt;
+
+    hppBreakdownPercentages.rawMaterial = totalHppPerMt > 0 ? (effectiveRawCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.sourcingFreight = totalHppPerMt > 0 ? (effectiveSourcingFreightPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.processing = totalHppPerMt > 0 ? (input.hpp.processingCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.labor = totalHppPerMt > 0 ? (input.hpp.laborCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.overhead = totalHppPerMt > 0 ? (input.hpp.overheadCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.packaging = totalHppPerMt > 0 ? (input.hpp.packagingCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.label = totalHppPerMt > 0 ? (input.hpp.labelCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.qcLab = totalHppPerMt > 0 ? (input.hpp.qcLabCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.other = totalHppPerMt > 0 ? (input.hpp.otherProdCostPerMt / totalHppPerMt) * 100 : 0;
+    hppBreakdownPercentages.fixedPrep = totalHppPerMt > 0 ? (fixedPrepCostPerMt / totalHppPerMt) * 100 : 0;
+  }
 
   const totalHppOrder = totalHppPerMt * qty;
-
-  // Percentage breakdown of HPP
-  const hppBreakdownPercentages: Record<string, number> = {
-    rawMaterial: totalHppPerMt > 0 ? (effectiveRawCostPerMt / totalHppPerMt) * 100 : 0,
-    sourcingFreight: totalHppPerMt > 0 ? (effectiveSourcingFreightPerMt / totalHppPerMt) * 100 : 0,
-    processing: totalHppPerMt > 0 ? (input.hpp.processingCostPerMt / totalHppPerMt) * 100 : 0,
-    labor: totalHppPerMt > 0 ? (input.hpp.laborCostPerMt / totalHppPerMt) * 100 : 0,
-    overhead: totalHppPerMt > 0 ? (input.hpp.overheadCostPerMt / totalHppPerMt) * 100 : 0,
-    packaging: totalHppPerMt > 0 ? (input.hpp.packagingCostPerMt / totalHppPerMt) * 100 : 0,
-    label: totalHppPerMt > 0 ? (input.hpp.labelCostPerMt / totalHppPerMt) * 100 : 0,
-    qcLab: totalHppPerMt > 0 ? (input.hpp.qcLabCostPerMt / totalHppPerMt) * 100 : 0,
-    other: totalHppPerMt > 0 ? (input.hpp.otherProdCostPerMt / totalHppPerMt) * 100 : 0,
-    fixedPrep: totalHppPerMt > 0 ? (fixedPrepCostPerMt / totalHppPerMt) * 100 : 0,
-  };
 
   // B. Additional Costs Effective Calculation
   const additionalCostsEffective = input.additionalCosts.map((item) => {
