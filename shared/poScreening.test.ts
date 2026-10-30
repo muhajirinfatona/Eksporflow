@@ -91,4 +91,40 @@ describe("PO Text Parsing & AI Advisor Buyer Screening (4 Pillars)", () => {
     expect(result.destination).toContain("New York");
     expect(result.incoterm).toBe("CIF");
   });
+
+  it("akurat membaca buyer UEA (Al Barakah Foods) dan tidak tertukar menjadi Amerika Serikat karena sebutan mata uang USD", () => {
+    const poUae = `
+      AL BARAKAH FOODS TRADING LLC
+      P.O. Box 8812, Al Quoz Industrial Area 3, Dubai, United Arab Emirates
+      Phone: +971 4 223 4567
+      Corporate Email: procurement@albarakahfoods.ae
+      Website: https://www.albarakahfoods.ae
+
+      PURCHASE ORDER
+      PO Number: ABF-PO-2026-089
+      Date: 28 October 2026
+
+      Delivery / Port of Discharge: Jebel Ali Port, Dubai
+      Delivery Terms: FOB Tanjung Priok, Jakarta
+
+      Order Items:
+      Item No | Description & Specifications | HS Code | Qty | Unit Price | Total Amount
+      1 | Organic Coconut Sugar (Grade A) | 1702.90 | 20 MT | USD 1,850 | USD 37,000
+
+      Currency & Payment Terms:
+      All payments shall be made in United States Dollars (USD) via wire transfer.
+      30% Advance Deposit by T/T upon Proforma Invoice confirmation.
+    `;
+
+    const result = parsePoTextAndScreen(poUae);
+    expect(result.reference).toBe("ABF-PO-2026-089");
+    expect(result.buyer).toContain("Al Barakah Foods");
+    expect(result.buyerCountry).toBe("Uni Emirat Arab");
+    expect(result.destination).toContain("Jebel Ali Port");
+    expect(result.product).toContain("Organic Coconut Sugar");
+    expect(result.product).not.toContain("Specifications");
+    expect(result.product).not.toContain("HS Code");
+    expect(result.validation.pillars.companyWebsite.value).toBe("https://www.albarakahfoods.ae");
+    expect(result.validation.pillars.contactNumber.value).toBe("+971 4 223 4567");
+  });
 });

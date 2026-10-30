@@ -198,115 +198,7 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
       ? standaloneCodeMatch[1].trim()
       : fileRef || "PO-" + new Date().getFullYear() + "/01";
 
-  // 2. Ekstraksi Nama Buyer / Importir
-  const buyerSameLine = /(?:Company\s*Name|Buyer\s*Name|Buyer|Importer\s*Name|Importer|Purchaser\s*Name|Purchaser|Customer\s*Name|Customer|Bill\s*To|Invoice\s*To|Sold\s*To|Consignee|Applicant|Nama\s*Perusahaan|Nama\s*Pembeli|Pembeli|Importir|Pihak\s*Pembeli|Kepada\s*(?:Yth\.?)?|Messrs|Client|Ordered\s*By)\s*[:=\-]\s*([^\n\r(]+)/i;
-  const buyerNextLine = /(?:Company\s*Name|Buyer\s*Name|Buyer|Importer\s*Name|Importer|Purchaser\s*Name|Purchaser|Customer\s*Name|Customer|Bill\s*To|Invoice\s*To|Sold\s*To|Consignee|Applicant|Nama\s*Perusahaan|Nama\s*Pembeli|Pembeli|Importir|Pihak\s*Pembeli|Kepada\s*(?:Yth\.?)?|Messrs|Client|Ordered\s*By)[^\n:]*:\s*\r?\n\s*([^\n\r(]+)/i;
-
-  const bMatch1 = clean.match(buyerSameLine);
-  const bMatch2 = clean.match(buyerNextLine);
-  let buyer = (bMatch2 ? bMatch2[1] : bMatch1 ? bMatch1[1] : "").trim();
-  buyer = buyer
-    .replace(/^\/\s*[a-zA-Z]+\s*[:=]?\s*/i, "")
-    .replace(/^(Attn|Attention|Mr\.?|Mrs\.?|Ms\.?)\s*[:=\-]?\s*[^\n,]+/i, "")
-    .trim();
-
-  // Jika belum ketemu, cari baris dengan akhiran badan hukum resmi internasional/nasional
-  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan)$/i.test(buyer)) {
-    const legalSuffixRegex = /\b(PT\.?|CV\.?|UD\.?|Ltd\.?|LLC|Inc\.?|Corp\.?|Corporation|GmbH|Co\.,?\s*Ltd\.?|Pte\.?\s*Ltd\.?|Sdn\.?\s*Bhd\.?|S\.A\.|S\.p\.A\.|B\.V\.|AG|Oy|AB|Trading\s+LLC)\b/i;
-    for (const line of lines.slice(0, 15)) {
-      if (
-        legalSuffixRegex.test(line) &&
-        !/^(PURCHASE ORDER|LETTER OF INTENT|INVOICE|CONTRACT|PACKING LIST|PROFORMA)/i.test(line) &&
-        !/@/.test(line) &&
-        !/http|www\./i.test(line) &&
-        line.length >= 4 &&
-        line.length <= 60
-      ) {
-        buyer = line.replace(/^(Buyer|Importer|Purchaser|Company|Customer|Messrs)\s*[:=\-]?\s*/i, "").trim();
-        break;
-      }
-    }
-  }
-
-  // Fallback nama buyer terdeteksi dari sampel atau baris atas dokumen
-  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan)$/i.test(buyer)) {
-    if (clean.includes("Nordic Pantry")) buyer = "Nordic Pantry AB";
-    else if (clean.includes("Kyoto Trading")) buyer = "Kyoto Trading Co., Ltd.";
-    else if (clean.includes("Hamburg Organic")) buyer = "Hamburg Organic Spices GmbH";
-    else if (clean.includes("Gulf Gourmet")) buyer = "Gulf Gourmet General Trading LLC";
-    else {
-      for (const line of lines.slice(0, 8)) {
-        if (
-          line.length > 5 &&
-          line.length < 50 &&
-          !/^(purchase|order|po|loi|date|ref|nomor|invoice|tanggal|page)/i.test(line) &&
-          !/@/.test(line)
-        ) {
-          buyer = line;
-          break;
-        }
-      }
-      if (!buyer) buyer = "Buyer Internasional";
-    }
-  }
-
-  // 3. Ekstraksi Negara Buyer (Kamus Luas 30+ Negara Tujuan Ekspor Utama)
-  let buyerCountry = "";
-  const countryDict: [RegExp, string, string][] = [
-    [/Sweden|Swedia|Gothenburg|Stockholm|Malmo/i, "Swedia", "Port of Gothenburg"],
-    [/Japan|Jepang|Tokyo|Yokohama|Osaka|Kobe|Nagoya|Kyoto/i, "Jepang", "Port of Tokyo"],
-    [/Germany|Jerman|Deutschland|Hamburg|Bremen|Berlin|Frankfurt/i, "Jerman", "Port of Hamburg"],
-    [/USA|United States|America|Amerika|Long Beach|Los Angeles|New York|Houston|Miami/i, "Amerika Serikat", "Port of Long Beach"],
-    [/UAE|Dubai|Jebel Ali|Emirat|Abu Dhabi|Sharjah/i, "Uni Emirat Arab", "Jebel Ali Port, Dubai"],
-    [/Saudi|Arab Saudi|KSA|Jeddah|Riyadh|Dammam/i, "Arab Saudi", "Jeddah Islamic Port"],
-    [/China|Tiongkok|Cina|Shanghai|Ningbo|Shenzhen|Guangzhou|Qingdao|Tianjin/i, "Tiongkok (China)", "Port of Shanghai"],
-    [/South Korea|Korea Selatan|Korea|Busan|Incheon|Seoul/i, "Korea Selatan", "Port of Busan"],
-    [/India|Mumbai|Nhava Sheva|Chennai|Kolkata|Delhi/i, "India", "Nhava Sheva Port, Mumbai"],
-    [/United Kingdom|UK|Inggris|Great Britain|London|Southampton|Felixstowe/i, "Inggris (UK)", "Port of Southampton"],
-    [/Netherlands|Belanda|Holland|Rotterdam|Amsterdam/i, "Belanda", "Port of Rotterdam"],
-    [/Singapore|Singapura/i, "Singapura", "Port of Singapore"],
-    [/Malaysia|Kuala Lumpur|Port Klang|Penang|Johor/i, "Malaysia", "Port Klang"],
-    [/Australia|Sydney|Melbourne|Brisbane|Fremantle|Perth/i, "Australia", "Port of Melbourne"],
-    [/Canada|Kanada|Vancouver|Montreal|Toronto/i, "Kanada", "Port of Vancouver"],
-    [/France|Prancis|Le Havre|Marseille|Paris/i, "Prancis", "Port of Le Havre"],
-    [/Italy|Italia|Genoa|Trieste|La Spezia|Milan/i, "Italia", "Port of Genoa"],
-    [/Spain|Spanyol|Valencia|Barcelona|Algeciras/i, "Spanyol", "Port of Valencia"],
-    [/Turkey|Turki|Istanbul|Izmir|Mersin/i, "Turki", "Port of Istanbul"],
-    [/Egypt|Mesir|Alexandria|Port Said|Cairo/i, "Mesir", "Port of Alexandria"],
-    [/Thailand|Bangkok|Laem Chabang/i, "Thailand", "Laem Chabang Port"],
-    [/Vietnam|Ho Chi Minh|Hai Phong|Da Nang/i, "Vietnam", "Cat Lai Port, Ho Chi Minh"],
-    [/Philippines|Filipina|Manila|Cebu/i, "Filipina", "Port of Manila"],
-    [/Taiwan|Kaohsiung|Taipei|Keelung/i, "Taiwan", "Port of Kaohsiung"],
-    [/Qatar|Doha|Hamad/i, "Qatar", "Hamad Port, Doha"],
-    [/Kuwait|Shuwaikh/i, "Kuwait", "Shuwaikh Port"],
-    [/Oman|Muscat|Sohar|Salalah/i, "Oman", "Sohar Port"],
-    [/Brazil|Brasil|Santos|Paranagua/i, "Brasil", "Port of Santos"],
-    [/South Africa|Afrika Selatan|Durban|Cape Town/i, "Afrika Selatan", "Port of Durban"],
-    [/Russia|Rusia|Vladivostok|St\. Petersburg/i, "Rusia", "Port of Vladivostok"],
-    [/New Zealand|Selandia Baru|Auckland/i, "Selandia Baru", "Port of Auckland"],
-    [/Belgium|Belgia|Antwerp/i, "Belgia", "Port of Antwerp"],
-    [/Poland|Polandia|Gdansk|Gdynia/i, "Polandia", "Port of Gdansk"],
-  ];
-
-  let defaultPort = "Port of Discharge";
-  for (const [pattern, country, port] of countryDict) {
-    if (pattern.test(clean)) {
-      buyerCountry = country;
-      defaultPort = port;
-      break;
-    }
-  }
-
-  if (!buyerCountry) {
-    const cMatch = clean.match(/(?:Country|Negara\s*(?:Tujuan)?)\s*[:=\-]\s*([a-zA-Z\s]{3,25})/i);
-    buyerCountry = cMatch ? cMatch[1].trim() : "Negara Tujuan Ekspor";
-  }
-
-  // 4. Ekstraksi Pelabuhan Bongkar (POD / Destination)
-  const podMatch = clean.match(/(?:Port\s*of\s*Discharge|POD|Port\s*of\s*Destination|Destination\s*Port|Discharge\s*Port|Destination|Delivery\s*Port|Pelabuhan\s*Bongkar|Pelabuhan\s*Tujuan|Tujuan\s*Pengiriman|Ship\s*To)\s*[:=\-]?\s*([^\n\r,]+)/i);
-  let destination = podMatch ? podMatch[1].trim() : defaultPort;
-
-  // 5. Ekstraksi 4 Pilar Identitas Bisnis (Nama, Email, Kontak, Website)
+  // 2. Ekstraksi 4 Pilar Identitas Bisnis Awal (Email, Kontak, Website) untuk referensi deteksi buyer & negara
   // Email Perusahaan
   const emailMatch = clean.match(/([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})/);
   const companyEmail = emailMatch ? emailMatch[1].toLowerCase() : "";
@@ -331,42 +223,540 @@ export function parsePoTextAndScreen(text: string, fileName?: string): PoScreeni
     companyWebsite = `https://www.${domain}`;
   }
 
-  // 6. Ekstraksi Komoditas & HS Code
+  // 3. Ekstraksi Nama Buyer / Importir
+  const buyerSameLine = /(?:Company\s*Name|Buyer\s*Name|Buyer|Importer\s*Name|Importer|Purchaser\s*Name|Purchaser|Customer\s*Name|Customer|Bill\s*To|Invoice\s*To|Sold\s*To|Consignee|Applicant|Nama\s*Perusahaan|Nama\s*Pembeli|Pembeli|Importir|Pihak\s*Pembeli|Kepada\s*(?:Yth\.?)?|Messrs|Client|Ordered\s*By|Issued\s*By)\s*[:=\-]\s*([^\n\r(]+)/i;
+  const buyerNextLine = /(?:Company\s*Name|Buyer\s*Name|Buyer|Importer\s*Name|Importer|Purchaser\s*Name|Purchaser|Customer\s*Name|Customer|Bill\s*To|Invoice\s*To|Sold\s*To|Consignee|Applicant|Nama\s*Perusahaan|Nama\s*Pembeli|Pembeli|Importir|Pihak\s*Pembeli|Kepada\s*(?:Yth\.?)?|Messrs|Client|Ordered\s*By|Issued\s*By)[^\n:]*:\s*\r?\n\s*([^\n\r(]+)/i;
+
+  const bMatch1 = clean.match(buyerSameLine);
+  const bMatch2 = clean.match(buyerNextLine);
+  let buyer = (bMatch2 ? bMatch2[1] : bMatch1 ? bMatch1[1] : "").trim();
+  buyer = buyer
+    .replace(/^\/\s*[a-zA-Z]+\s*[:=]?\s*/i, "")
+    .replace(/^(Attn|Attention|Mr\.?|Mrs\.?|Ms\.?)\s*[:=\-]?\s*[^\n,]+/i, "")
+    .trim();
+
+  // Cari baris dengan akhiran badan hukum resmi internasional/nasional
+  const legalSuffixRegex = /\b(PT\.?|CV\.?|UD\.?|Ltd\.?|LLC|Inc\.?|Corp\.?|Corporation|GmbH|Co\.,?\s*Ltd\.?|Pte\.?\s*Ltd\.?|Sdn\.?\s*Bhd\.?|S\.A\.|S\.p\.A\.|B\.V\.|AG|Oy|AB|Trading\s+LLC|General\s+Trading)\b/i;
+  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan)$/i.test(buyer)) {
+    for (const line of lines.slice(0, 20)) {
+      if (
+        legalSuffixRegex.test(line) &&
+        !/^(PURCHASE ORDER|LETTER OF INTENT|INVOICE|CONTRACT|PACKING LIST|PROFORMA|TAX INVOICE)/i.test(line) &&
+        !/@/.test(line) &&
+        !/http|www\./i.test(line) &&
+        !/(Indico|Seller|Exporter|Eksportir|Pemasok|Supplier)/i.test(line) &&
+        line.length >= 4 &&
+        line.length <= 70
+      ) {
+        buyer = line.replace(/^(Buyer|Importer|Purchaser|Company|Customer|Messrs|Bill\s*To|Consignee)\s*[:=\-]?\s*/i, "").trim();
+        break;
+      }
+    }
+  }
+
+  // Fallback domain / website / email brand matching (Contoh: albarakahfoods.ae -> "Al Barakah Foods")
+  if ((!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan|buyer internasional)$/i.test(buyer)) && (companyWebsite || companyEmail)) {
+    const rawDomain = (companyWebsite || companyEmail.split("@")[1])
+      .replace(/^https?:\/\//i, "")
+      .replace(/^www\./i, "")
+      .split(".")[0];
+
+    if (rawDomain && rawDomain.length >= 4) {
+      // 1. Coba cari baris yang memuat teks domain (misal "Al Barakah Foods LLC")
+      for (const line of lines.slice(0, 25)) {
+        const compact = line.toLowerCase().replace(/[^a-z0-9]/g, "");
+        if (
+          compact.includes(rawDomain.toLowerCase()) &&
+          !/http|www\.|@/i.test(line) &&
+          line.length >= 4 &&
+          line.length <= 70
+        ) {
+          buyer = line.replace(/^(Buyer|Importer|Purchaser|Company|Customer|Messrs)\s*[:=\-]?\s*/i, "").trim();
+          break;
+        }
+      }
+
+      // 2. Format domain jadi nama bersih jika belum ketemu baris spesifik
+      if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan|buyer internasional)$/i.test(buyer)) {
+        const formatted = rawDomain
+          .replace(/(foods|trading|general|group|global|trade|import|export|logistics|corp|intl|international)/gi, " $1")
+          .trim()
+          .split(/\s+/)
+          .map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+          .join(" ");
+        if (formatted.length >= 3) {
+          buyer = formatted;
+        }
+      }
+    }
+  }
+
+  // Fallback sampel PO bawaan jika ada kata kunci khusus
+  if (!buyer || buyer.length < 3 || /^(importer|purchaser|buyer|company name|customer|pembeli|perusahaan)$/i.test(buyer)) {
+    if (clean.includes("Nordic Pantry")) buyer = "Nordic Pantry AB";
+    else if (clean.includes("Kyoto Trading")) buyer = "Kyoto Trading Co., Ltd.";
+    else if (clean.includes("Hamburg Organic")) buyer = "Hamburg Organic Spices GmbH";
+    else if (clean.includes("Gulf Gourmet")) buyer = "Gulf Gourmet General Trading LLC";
+    else {
+      for (const line of lines.slice(0, 8)) {
+        if (
+          line.length > 5 &&
+          line.length < 50 &&
+          !/^(purchase|order|po|loi|date|ref|nomor|invoice|tanggal|page)/i.test(line) &&
+          !/@/.test(line)
+        ) {
+          buyer = line;
+          break;
+        }
+      }
+      if (!buyer) buyer = "Buyer Internasional";
+    }
+  }
+
+  // Format ke Title Case jika nama buyer seluruhnya huruf kapital (ALL CAPS)
+  if (buyer && buyer === buyer.toUpperCase() && buyer.length > 3) {
+    buyer = buyer
+      .split(/\s+/)
+      .map((word) => {
+        if (/^(PT\.?|CV\.?|UD\.?|LLC|LTD\.?|GMBH|AB|BV|SA|SPA|AG|OY|UK|USA|UAE|KSA)$/i.test(word)) {
+          return word.toUpperCase();
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+      })
+      .join(" ");
+  }
+
+  // 4. Ekstraksi Pelabuhan Bongkar (POD / Destination)
+  const podMatch = clean.match(
+    /(?:Port\s*of\s*Discharge|POD|Port\s*of\s*Destination|Destination\s*Port|Discharge\s*Port|Destination|Delivery\s*Port|Pelabuhan\s*Bongkar|Pelabuhan\s*Tujuan|Tujuan\s*Pengiriman|Ship\s*To(?:\s*Port)?)\s*[:=\-]?\s*([^\n\r,]+)/i
+  );
+  let destination = podMatch ? podMatch[1].trim() : "";
+
+  // 5. Ekstraksi Negara Buyer dengan multi-sinyal cerdas (Bebas dari jebakan mata uang "United States Dollar")
+  // Bersihkan sebutan mata uang seperti 'United States Dollar', 'USD', 'US Dollars' agar tidak memicu deteksi salah Amerika Serikat!
+  const textWithoutCurrency = clean
+    .replace(/\b(?:United\s+States\s+Dollars?|US\s+Dollars?|U\.S\.\s*Dollars?|American\s+Dollars?)\b/gi, "USD")
+    .replace(/\bBank\s+of\s+America\b/gi, "BankCorp")
+    .replace(/\bAmerican\s+Express\b/gi, "AmexCard");
+
+  // Definisi Kamus Pelabuhan Utama, Awalan Telepon, TLD Website, dan Nama Negara
+  interface CountryRule {
+    country: string;
+    defaultPort: string;
+    portPattern: RegExp;
+    phonePattern?: RegExp;
+    tldPattern?: RegExp;
+    textPattern: RegExp;
+  }
+
+  const countryRules: CountryRule[] = [
+    {
+      country: "Uni Emirat Arab",
+      defaultPort: "Jebel Ali Port, Dubai",
+      portPattern: /Jebel Ali|Dubai|Abu Dhabi|Sharjah|Khor Fakkan|Fujairah|Port Rashid/i,
+      phonePattern: /^\+971/,
+      tldPattern: /\.ae\b/i,
+      textPattern: /\b(?:UAE|U\.A\.E\.|United\s+Arab\s+Emirates|Dubai|Abu\s+Dhabi|Sharjah|Emirat)\b/i,
+    },
+    {
+      country: "Arab Saudi",
+      defaultPort: "Jeddah Islamic Port",
+      portPattern: /Jeddah|Dammam|Riyadh|King Abdulaziz|Jubail|Yanbu/i,
+      phonePattern: /^\+966/,
+      tldPattern: /\.sa\b/i,
+      textPattern: /\b(?:Saudi|KSA|Arab\s+Saudi|Kingdom\s+of\s+Saudi\s+Arabia|Jeddah|Riyadh|Dammam)\b/i,
+    },
+    {
+      country: "Jepang",
+      defaultPort: "Port of Tokyo",
+      portPattern: /Tokyo|Yokohama|Osaka|Kobe|Nagoya|Hakata|Moji|Chiba/i,
+      phonePattern: /^\+81/,
+      tldPattern: /\.jp\b|\.co\.jp\b/i,
+      textPattern: /\b(?:Japan|Jepang|Tokyo|Yokohama|Osaka|Kobe|Nagoya|Kyoto)\b/i,
+    },
+    {
+      country: "Swedia",
+      defaultPort: "Port of Gothenburg",
+      portPattern: /Gothenburg|Stockholm|Malmo|Helsingborg/i,
+      phonePattern: /^\+46/,
+      tldPattern: /\.se\b/i,
+      textPattern: /\b(?:Sweden|Swedia|Sverige|Gothenburg|Stockholm|Malmo)\b/i,
+    },
+    {
+      country: "Jerman",
+      defaultPort: "Port of Hamburg",
+      portPattern: /Hamburg|Bremen|Bremerhaven|Duisburg/i,
+      phonePattern: /^\+49/,
+      tldPattern: /\.de\b/i,
+      textPattern: /\b(?:Germany|Jerman|Deutschland|Hamburg|Bremen|Berlin|Frankfurt|Munich|München)\b/i,
+    },
+    {
+      country: "Singapura",
+      defaultPort: "Port of Singapore",
+      portPattern: /Singapore|Jurong|Pasir Panjang/i,
+      phonePattern: /^\+65/,
+      tldPattern: /\.sg\b/i,
+      textPattern: /\b(?:Singapore|Singapura)\b/i,
+    },
+    {
+      country: "Malaysia",
+      defaultPort: "Port Klang",
+      portPattern: /Port Klang|Penang|Tanjung Pelepas|Pasir Gudang/i,
+      phonePattern: /^\+60/,
+      tldPattern: /\.my\b/i,
+      textPattern: /\b(?:Malaysia|Kuala\s+Lumpur|Port\s+Klang|Penang|Johor)\b/i,
+    },
+    {
+      country: "Belanda",
+      defaultPort: "Port of Rotterdam",
+      portPattern: /Rotterdam|Amsterdam/i,
+      phonePattern: /^\+31/,
+      tldPattern: /\.nl\b/i,
+      textPattern: /\b(?:Netherlands|Belanda|Holland|Rotterdam|Amsterdam)\b/i,
+    },
+    {
+      country: "Inggris (UK)",
+      defaultPort: "Port of Southampton",
+      portPattern: /Southampton|Felixstowe|London Gateway|Liverpool|Tilbury/i,
+      phonePattern: /^\+44/,
+      tldPattern: /\.uk\b|\.co\.uk\b/i,
+      textPattern: /\b(?:United\s+Kingdom|UK|Inggris|Great\s+Britain|England|London|Southampton|Felixstowe)\b/i,
+    },
+    {
+      country: "Amerika Serikat",
+      defaultPort: "Port of Long Beach",
+      portPattern: /Long Beach|Los Angeles|New York|New Jersey|Houston|Oakland|Savannah|Miami|Seattle|Charleston|Norfolk|Baltimore/i,
+      phonePattern: /^\+1\s*[2-9]/,
+      tldPattern: /\.us\b/i,
+      textPattern: /\b(?:USA|U\.S\.A\.|United\s+States(?!\s*Dollar)|America(?!\s*Express)|California|Texas|Florida|New\s+York(?!\s*Coffee)|Los\s+Angeles|Houston|Miami)\b/i,
+    },
+    {
+      country: "Tiongkok (China)",
+      defaultPort: "Port of Shanghai",
+      portPattern: /Shanghai|Ningbo|Shenzhen|Qingdao|Guangzhou|Tianjin|Xiamen|Dalian/i,
+      phonePattern: /^\+86/,
+      tldPattern: /\.cn\b/i,
+      textPattern: /\b(?:China|Tiongkok|Cina|PRC|Shanghai|Ningbo|Shenzhen|Guangzhou|Qingdao)\b/i,
+    },
+    {
+      country: "Korea Selatan",
+      defaultPort: "Port of Busan",
+      portPattern: /Busan|Incheon|Gwangyang|Pyeongtaek/i,
+      phonePattern: /^\+82/,
+      tldPattern: /\.kr\b|\.co\.kr\b/i,
+      textPattern: /\b(?:South\s+Korea|Korea\s+Selatan|Korea|Busan|Incheon|Seoul)\b/i,
+    },
+    {
+      country: "India",
+      defaultPort: "Nhava Sheva Port, Mumbai",
+      portPattern: /Nhava Sheva|Jawaharlal Nehru|Mundra|Chennai|Kolkata|Mumbai|Cochin/i,
+      phonePattern: /^\+91/,
+      tldPattern: /\.in\b|\.co\.in\b/i,
+      textPattern: /\b(?:India|Mumbai|Nhava\s+Sheva|Chennai|Kolkata|Delhi|Gujarat)\b/i,
+    },
+    {
+      country: "Australia",
+      defaultPort: "Port of Melbourne",
+      portPattern: /Melbourne|Sydney|Brisbane|Fremantle|Adelaide|Perth/i,
+      phonePattern: /^\+61/,
+      tldPattern: /\.au\b/i,
+      textPattern: /\b(?:Australia|Sydney|Melbourne|Brisbane|Fremantle|Perth)\b/i,
+    },
+    {
+      country: "Kanada",
+      defaultPort: "Port of Vancouver",
+      portPattern: /Vancouver|Montreal|Toronto|Halifax|Prince Rupert/i,
+      phonePattern: /^\+1/,
+      tldPattern: /\.ca\b/i,
+      textPattern: /\b(?:Canada|Kanada|Vancouver|Montreal|Toronto|Ontario|Quebec)\b/i,
+    },
+    {
+      country: "Prancis",
+      defaultPort: "Port of Le Havre",
+      portPattern: /Le Havre|Marseille|Fos/i,
+      phonePattern: /^\+33/,
+      tldPattern: /\.fr\b/i,
+      textPattern: /\b(?:France|Prancis|Le\s+Havre|Marseille|Paris)\b/i,
+    },
+    {
+      country: "Italia",
+      defaultPort: "Port of Genoa",
+      portPattern: /Genoa|La Spezia|Trieste|Livorno|Naples/i,
+      phonePattern: /^\+39/,
+      tldPattern: /\.it\b/i,
+      textPattern: /\b(?:Italy|Italia|Genoa|Trieste|La\s+Spezia|Milan|Milano|Rome)\b/i,
+    },
+    {
+      country: "Spanyol",
+      defaultPort: "Port of Valencia",
+      portPattern: /Valencia|Barcelona|Algeciras|Bilbao/i,
+      phonePattern: /^\+34/,
+      tldPattern: /\.es\b/i,
+      textPattern: /\b(?:Spain|Spanyol|España|Valencia|Barcelona|Algeciras|Madrid)\b/i,
+    },
+    {
+      country: "Turki",
+      defaultPort: "Port of Istanbul",
+      portPattern: /Istanbul|Izmir|Mersin|Ambarli|Gemlik/i,
+      phonePattern: /^\+90/,
+      tldPattern: /\.tr\b/i,
+      textPattern: /\b(?:Turkey|Turki|Türkiye|Istanbul|Izmir|Mersin)\b/i,
+    },
+    {
+      country: "Mesir",
+      defaultPort: "Port of Alexandria",
+      portPattern: /Alexandria|Port Said|Damietta|Sokhna/i,
+      phonePattern: /^\+20/,
+      tldPattern: /\.eg\b/i,
+      textPattern: /\b(?:Egypt|Mesir|Alexandria|Port\s+Said|Cairo)\b/i,
+    },
+    {
+      country: "Thailand",
+      defaultPort: "Laem Chabang Port",
+      portPattern: /Laem Chabang|Bangkok/i,
+      phonePattern: /^\+66/,
+      tldPattern: /\.th\b/i,
+      textPattern: /\b(?:Thailand|Bangkok|Laem\s+Chabang)\b/i,
+    },
+    {
+      country: "Vietnam",
+      defaultPort: "Cat Lai Port, Ho Chi Minh",
+      portPattern: /Cat Lai|Hai Phong|Da Nang|Ho Chi Minh/i,
+      phonePattern: /^\+84/,
+      tldPattern: /\.vn\b/i,
+      textPattern: /\b(?:Vietnam|Ho\s+Chi\s+Minh|Hai\s+Phong|Da\s+Nang|Hanoi)\b/i,
+    },
+    {
+      country: "Filipina",
+      defaultPort: "Port of Manila",
+      portPattern: /Manila|Cebu|Batangas|Subic/i,
+      phonePattern: /^\+63/,
+      tldPattern: /\.ph\b/i,
+      textPattern: /\b(?:Philippines|Filipina|Manila|Cebu)\b/i,
+    },
+    {
+      country: "Taiwan",
+      defaultPort: "Port of Kaohsiung",
+      portPattern: /Kaohsiung|Keelung|Taichung|Taipei/i,
+      phonePattern: /^\+886/,
+      tldPattern: /\.tw\b/i,
+      textPattern: /\b(?:Taiwan|Kaohsiung|Taipei|Keelung)\b/i,
+    },
+    {
+      country: "Qatar",
+      defaultPort: "Hamad Port, Doha",
+      portPattern: /Hamad|Doha/i,
+      phonePattern: /^\+974/,
+      tldPattern: /\.qa\b/i,
+      textPattern: /\b(?:Qatar|Doha|Hamad)\b/i,
+    },
+    {
+      country: "Kuwait",
+      defaultPort: "Shuwaikh Port",
+      portPattern: /Shuwaikh|Shuaiba/i,
+      phonePattern: /^\+965/,
+      tldPattern: /\.kw\b/i,
+      textPattern: /\b(?:Kuwait|Shuwaikh)\b/i,
+    },
+    {
+      country: "Oman",
+      defaultPort: "Sohar Port",
+      portPattern: /Sohar|Salalah|Muscat/i,
+      phonePattern: /^\+968/,
+      tldPattern: /\.om\b/i,
+      textPattern: /\b(?:Oman|Muscat|Sohar|Salalah)\b/i,
+    },
+    {
+      country: "Brasil",
+      defaultPort: "Port of Santos",
+      portPattern: /Santos|Paranagua|Rio de Janeiro/i,
+      phonePattern: /^\+55/,
+      tldPattern: /\.br\b/i,
+      textPattern: /\b(?:Brazil|Brasil|Santos|Paranagua|Sao\s+Paulo)\b/i,
+    },
+    {
+      country: "Afrika Selatan",
+      defaultPort: "Port of Durban",
+      portPattern: /Durban|Cape Town|Port Elizabeth/i,
+      phonePattern: /^\+27/,
+      tldPattern: /\.za\b/i,
+      textPattern: /\b(?:South\s+Africa|Afrika\s+Selatan|Durban|Cape\s+Town|Johannesburg)\b/i,
+    },
+    {
+      country: "Selandia Baru",
+      defaultPort: "Port of Auckland",
+      portPattern: /Auckland|Tauranga|Lyttelton/i,
+      phonePattern: /^\+64/,
+      tldPattern: /\.nz\b/i,
+      textPattern: /\b(?:New\s+Zealand|Selandia\s+Baru|Auckland|Wellington)\b/i,
+    },
+    {
+      country: "Belgia",
+      defaultPort: "Port of Antwerp",
+      portPattern: /Antwerp|Zeebrugge/i,
+      phonePattern: /^\+32/,
+      tldPattern: /\.be\b/i,
+      textPattern: /\b(?:Belgium|Belgia|Antwerp|Brussels)\b/i,
+    },
+    {
+      country: "Polandia",
+      defaultPort: "Port of Gdansk",
+      portPattern: /Gdansk|Gdynia/i,
+      phonePattern: /^\+48/,
+      tldPattern: /\.pl\b/i,
+      textPattern: /\b(?:Poland|Polandia|Polska|Gdansk|Gdynia|Warsaw)\b/i,
+    },
+  ];
+
+  let buyerCountry = "";
+  let defaultPort = "Port of Discharge";
+
+  // Langkah 5A: Evaluasi berdasarkan Pelabuhan Bongkar (POD) yang teridentifikasi
+  if (destination) {
+    for (const rule of countryRules) {
+      if (rule.portPattern.test(destination)) {
+        buyerCountry = rule.country;
+        defaultPort = rule.defaultPort;
+        break;
+      }
+    }
+  }
+
+  // Langkah 5B: Evaluasi berdasarkan Kode Panggilan Telepon Internasional (+971, +81, +49, dll)
+  if (!buyerCountry && contactNumber) {
+    for (const rule of countryRules) {
+      if (rule.phonePattern && rule.phonePattern.test(contactNumber)) {
+        buyerCountry = rule.country;
+        defaultPort = rule.defaultPort;
+        break;
+      }
+    }
+  }
+
+  // Langkah 5C: Evaluasi berdasarkan Ekstensi Domain Resmi Website (.ae, .jp, .de, .se, dll)
+  if (!buyerCountry && companyWebsite) {
+    for (const rule of countryRules) {
+      if (rule.tldPattern && rule.tldPattern.test(companyWebsite)) {
+        buyerCountry = rule.country;
+        defaultPort = rule.defaultPort;
+        break;
+      }
+    }
+  }
+
+  // Langkah 5D: Evaluasi berdasarkan Label Eksplisit "Country:" atau "Negara Tujuan:" di teks dokumen
+  if (!buyerCountry) {
+    const explicitCountryMatch = clean.match(
+      /(?:Country(?:\s*of\s*(?:Destination|Discharge|Import))?|Destination\s*Country|Buyer(?:\s*['’]s)?\s*Country|Negara\s*(?:Tujuan|Buyer|Pembeli|Importir)?)\s*[:=\-]\s*([a-zA-Z\s]{2,30})/i
+    );
+    if (explicitCountryMatch) {
+      const cand = explicitCountryMatch[1].trim();
+      for (const rule of countryRules) {
+        if (rule.textPattern.test(cand)) {
+          buyerCountry = rule.country;
+          defaultPort = rule.defaultPort;
+          break;
+        }
+      }
+      if (!buyerCountry && cand.length >= 3) {
+        buyerCountry = cand;
+      }
+    }
+  }
+
+  // Langkah 5E: Evaluasi berdasarkan pencocokan kata di teks dokumen yang sudah dibersihkan dari sebutan mata uang
+  if (!buyerCountry) {
+    for (const rule of countryRules) {
+      if (rule.portPattern.test(textWithoutCurrency) || rule.textPattern.test(textWithoutCurrency)) {
+        buyerCountry = rule.country;
+        defaultPort = rule.defaultPort;
+        break;
+      }
+    }
+  }
+
+  if (!buyerCountry) {
+    buyerCountry = "Negara Tujuan Ekspor";
+  }
+
+  if (!destination) {
+    destination = defaultPort;
+  }
+
+  // 6. Ekstraksi Komoditas & HS Code dengan Pembersihan Header Tabel
   const hsMatch =
     clean.match(/(?:HS\s*Code|Harmonized\s*Code|Tariff\s*Code|Tariff|Kode\s*HS|HS)\s*[:=\-]?\s*([0-9]{4}(?:\.[0-9]{2}(?:\.[0-9]{2})?)?)/i) ||
     clean.match(/\b([0-9]{4}\.[0-9]{2})\b/);
   let hsCode = hsMatch ? hsMatch[1].trim() : "";
 
-  const prodMatch = clean.match(/(?:Item\s*Description|Description\s*of\s*Goods|Product\s*Name|Commodity|Description|Barang|Nama\s*Barang|Nama\s*Produk|Komoditas)\s*[:=\-]?\s*([^\n\r]+)/i);
-  let product = prodMatch ? prodMatch[1].replace(/^[0-9.]+\s*/, "").trim() : "";
+  const headerTokens = /\b(HS\s*Code|Qty|Quantity|Unit\s*Price|Total|Specification|Specifications|Amount|Price|No\.|Item\s*No)\b/i;
 
-  if (/Coconut Sugar|Gula Kelapa|Gula Semut/i.test(clean)) {
-    if (!product) product = "Organic Coconut Sugar";
-    if (!hsCode) hsCode = "1702.90";
-  } else if (/Coffee|Kopi|Arabica|Robusta|Green Beans/i.test(clean)) {
-    if (!product) product = "Specialty Coffee Beans";
-    if (!hsCode) hsCode = "0901.11";
-  } else if (/Clove|Cengkeh/i.test(clean)) {
-    if (!product) product = "Organic Whole Cloves";
-    if (!hsCode) hsCode = "0907.10";
-  } else if (/Cocoa|Cokelat|Cacao/i.test(clean)) {
-    if (!product) product = "Fermented Cocoa Beans";
-    if (!hsCode) hsCode = "1801.00";
-  } else if (/Briquette|Charcoal|Arang/i.test(clean)) {
-    if (!product) product = "Coconut Charcoal Briquette";
-    if (!hsCode) hsCode = "4402.90";
-  } else if (/Ginger|Jahe/i.test(clean)) {
-    if (!product) product = "Fresh / Dried Ginger";
-    if (!hsCode) hsCode = "0910.11";
-  } else if (/Vanilla|Vanili/i.test(clean)) {
-    if (!product) product = "Planifolia Vanilla Beans";
-    if (!hsCode) hsCode = "0905.10";
-  } else if (/Desiccated Coconut|Kelapa Parut/i.test(clean)) {
-    if (!product) product = "Desiccated Coconut High Fat";
-    if (!hsCode) hsCode = "0801.11";
+  const prodMatch = clean.match(
+    /(?:Item\s*Description|Description\s*of\s*Goods|Product\s*Name|Commodity|Barang|Nama\s*Barang|Nama\s*Produk|Komoditas)\s*[:=\-]?\s*([^\n\r]+)/i
+  );
+
+  let product = "";
+  if (prodMatch) {
+    const candidate = prodMatch[1].replace(/^[0-9.]+\s*/, "").trim();
+    // Cegah kebocoran kolom tabel seperti "& Specifications HS Code Qty Unit Price Total"
+    if (!headerTokens.test(candidate) && candidate.length > 2 && candidate.length < 80) {
+      product = candidate;
+    }
   }
 
-  if (!product) product = "Komoditas Ekspor";
+  // Jika belum ketemu, cari baris item pertama (misal: "1. Organic Coconut Sugar" atau "1 | Organic Coconut Sugar")
+  if (!product) {
+    for (const line of lines) {
+      const itemRowMatch = line.match(/^(?:1|01|item\s*1)\s*[:.\-|]\s*([^|,\n\r]{4,70})/i);
+      if (itemRowMatch && !headerTokens.test(itemRowMatch[1])) {
+        product = itemRowMatch[1].trim();
+        break;
+      }
+    }
+  }
+
+  // Deteksi kategori komoditas unggulan ekspor Indonesia
+  if (!product || headerTokens.test(product)) {
+    if (/Coconut Sugar|Gula Kelapa|Gula Semut/i.test(clean)) {
+      product = "Organic Coconut Sugar";
+      if (!hsCode) hsCode = "1702.90";
+    } else if (/Coffee|Kopi|Arabica|Robusta|Green Beans/i.test(clean)) {
+      product = "Specialty Coffee Beans";
+      if (!hsCode) hsCode = "0901.11";
+    } else if (/Clove|Cengkeh/i.test(clean)) {
+      product = "Organic Whole Cloves";
+      if (!hsCode) hsCode = "0907.10";
+    } else if (/Cocoa|Cokelat|Cacao/i.test(clean)) {
+      product = "Fermented Cocoa Beans";
+      if (!hsCode) hsCode = "1801.00";
+    } else if (/Briquette|Charcoal|Arang/i.test(clean)) {
+      product = "Coconut Charcoal Briquette";
+      if (!hsCode) hsCode = "4402.90";
+    } else if (/Ginger|Jahe/i.test(clean)) {
+      product = "Fresh / Dried Ginger";
+      if (!hsCode) hsCode = "0910.11";
+    } else if (/Vanilla|Vanili/i.test(clean)) {
+      product = "Planifolia Vanilla Beans";
+      if (!hsCode) hsCode = "0905.10";
+    } else if (/Desiccated Coconut|Kelapa Parut/i.test(clean)) {
+      product = "Desiccated Coconut High Fat";
+      if (!hsCode) hsCode = "0801.11";
+    } else if (/Nutmeg|Pala/i.test(clean)) {
+      product = "Organic Whole Nutmeg";
+      if (!hsCode) hsCode = "0908.11";
+    } else if (/Cinnamon|Kayu Manis/i.test(clean)) {
+      product = "Cassia Cinnamon Sticks";
+      if (!hsCode) hsCode = "0906.11";
+    } else if (/Pepper|Lada/i.test(clean)) {
+      product = "Black / White Pepper";
+      if (!hsCode) hsCode = "0904.11";
+    } else if (/Cashew|Mente/i.test(clean)) {
+      product = "Raw / Roasted Cashew Nuts";
+      if (!hsCode) hsCode = "0801.31";
+    }
+  }
+
+  if (!product || headerTokens.test(product)) product = "Komoditas Ekspor";
   if (!hsCode) hsCode = "0901.11";
 
   // 7. Ekstraksi Kuantitas & Harga

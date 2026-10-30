@@ -62,12 +62,38 @@ async function extractTextFromPdf(arrayBuffer: ArrayBuffer): Promise<string> {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
-      const pageStrings = textContent.items
-        .map((item) => ("str" in item ? (item as { str: string }).str : ""))
-        .filter(Boolean)
-        .join(" ");
-      if (pageStrings.trim()) {
-        fullText += pageStrings + "\n";
+      
+      let pageText = "";
+      let lastY: number | null = null;
+
+      for (const rawItem of textContent.items) {
+        if (!("str" in rawItem)) continue;
+        const item = rawItem as { str: string; transform?: number[]; hasEOL?: boolean };
+        const text = item.str;
+        if (!text) continue;
+
+        const currentY = item.transform && item.transform.length >= 6 ? item.transform[5] : null;
+
+        // Beda posisi vertikal lebih dari 4 pt menandakan baris baru dalam layout dokumen PDF
+        if (lastY !== null && currentY !== null && Math.abs(currentY - lastY) > 4) {
+          pageText += "\n";
+        } else if (pageText.length > 0 && !pageText.endsWith("\n") && !pageText.endsWith(" ") && !text.startsWith(" ")) {
+          pageText += " ";
+        }
+
+        pageText += text;
+
+        if (item.hasEOL) {
+          pageText += "\n";
+        }
+
+        if (currentY !== null) {
+          lastY = currentY;
+        }
+      }
+
+      if (pageText.trim()) {
+        fullText += pageText.trim() + "\n\n";
       }
     }
 
