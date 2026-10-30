@@ -1,10 +1,12 @@
 export type TraderHppInput = {
-  supplierBuyPrice: number;      // Harga beli supplier/petani per unit
-  shrinkageRatePercent: number;  // % susut bobot sortasi/pengeringan (0-90%)
-  sourcingFreightPerUnit: number;// Biaya angkut lokal dari supplier/kebun ke gudang
-  sortingLaborPerUnit: number;   // Biaya tenaga kerja sortasi/cleaning/grading
-  innerPackagingPerUnit: number; // Biaya kemasan primer/inner pack
-  traderMarginPerUnit: number;   // Biaya operasional/margin pengadaan sourcing trader
+  supplierBuyPrice: number;       // Harga beli supplier/petani per unit (gula mentah dari petani)
+  shrinkageRatePercent: number;   // % susut bobot saat diolah agar masuk spek ekspor (0-80%)
+  sourcingFreightPerUnit: number; // Biaya angkut lokal dari petani/kebun ke gudang olah
+  sortingLaborPerUnit: number;    // Gaji/upah karyawan olah, sortasi & packing
+  innerPackagingPerUnit: number;  // Biaya kemasan produk (pouch, karung, plastik)
+  labelPackagingPerUnit?: number; // Biaya label kemasan (stiker, printing, barcode)
+  staffingOverheadPerUnit?: number; // Biaya staffing, listrik gudang, uji lab & lain-lain
+  traderMarginPerUnit: number;    // Margin pengadaan trader (opsional di HPP)
   quantity: number;
 };
 
@@ -41,6 +43,8 @@ export function calculateTraderHpp(input: TraderHppInput): HppResult {
     Math.max(0, input.sourcingFreightPerUnit || 0) +
     Math.max(0, input.sortingLaborPerUnit || 0) +
     Math.max(0, input.innerPackagingPerUnit || 0) +
+    Math.max(0, input.labelPackagingPerUnit || 0) +
+    Math.max(0, input.staffingOverheadPerUnit || 0) +
     Math.max(0, input.traderMarginPerUnit || 0);
 
   const qty = Math.max(1, input.quantity || 1);

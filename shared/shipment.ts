@@ -102,6 +102,8 @@ export type Shipment = {
   traderSourcingFreight?: number;
   traderSortingLabor?: number;
   traderInnerPackaging?: number;
+  traderLabelPackaging?: number;
+  traderStaffingOverhead?: number;
   traderMargin?: number;
   mfgRawMaterial?: number;
   mfgAuxiliary?: number;
@@ -165,9 +167,11 @@ export const initialShipment: Shipment = {
   hppMode: "trader",
   traderBuyPrice: 15.5,
   traderShrinkage: 5,
-  traderSourcingFreight: 0.6,
-  traderSortingLabor: 0.5,
-  traderInnerPackaging: 0.8,
+  traderSourcingFreight: 0.3,
+  traderSortingLabor: 0.4,
+  traderInnerPackaging: 0.4,
+  traderLabelPackaging: 0.2,
+  traderStaffingOverhead: 0.2,
   traderMargin: 0,
   mfgRawMaterial: 14,
   mfgAuxiliary: 1.5,
@@ -260,6 +264,8 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     traderSourcingFreight: 0,
     traderSortingLabor: 0,
     traderInnerPackaging: 0,
+    traderLabelPackaging: 0,
+    traderStaffingOverhead: 0,
     traderMargin: 0,
     mfgRawMaterial: 0,
     mfgAuxiliary: 0,
