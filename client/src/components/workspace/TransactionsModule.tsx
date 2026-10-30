@@ -4,15 +4,18 @@ import { formatMoney } from "@shared/format";
 import type { PoScreeningResult } from "@shared/poScreening";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
-import type { ContainerCalc, Shipment } from "@shared/shipment";
+import type { ContainerCalc, Incoterm, Shipment } from "@shared/shipment";
 import {
   Calculator,
+  Check,
   CheckCircle2,
   ChevronRight,
+  Clock,
   Cloud,
   FileSpreadsheet,
   FileText,
   FolderOpen,
+  Globe,
   Package,
   Plus,
   Save,
@@ -24,9 +27,289 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PoIngestionModal } from "./PoIngestionModal";
-import { ChecklistItem, Field, StatusPill } from "./Primitives";
+import { Field, StatusPill } from "./Primitives";
 import { toast } from "sonner";
 import { getAiRecommendedRegulations } from "@shared/costFactors";
+
+export type StageStatus = "completed" | "in_progress" | "buyer_scope";
+
+export type ExportStage = {
+  id: number;
+  stageNumber: number;
+  title: string;
+  subtitle: string;
+  responsibilityLabel: string;
+  responsibilityTone: "blue" | "green" | "slate" | "indigo" | "amber";
+  status: StageStatus;
+  statusLabel: string;
+  meta: string;
+  targetScreen: ScreenId;
+  targetScreenLabel: string;
+};
+
+function getIncotermExplanation(term: string): string {
+  switch (term) {
+    case "EXW":
+      return "Pada EXW (Ex Works), barang diserahkan di gudang/pabrik penjual. Seluruh pengurusan logistik darat, kepabeanan ekspor (PEB), pemuatan kapal, ocean freight, asuransi kargo, dan kepabeanan impor ditanggung oleh Buyer.";
+    case "FCA":
+      return "Pada FCA (Free Carrier), eksportir mengurus kepabeanan ekspor (PEB) dan menyerahkan barang kepada pihak pengangkut yang ditunjuk buyer di lokasi asal yang disepakati.";
+    case "FAS":
+      return "Pada FAS (Free Alongside Ship), eksportir mengurus kepabeanan ekspor dan menyerahkan barang di dermaga samping kapal di pelabuhan muat. Ongkos muat ke kapal dan ocean freight ditanggung buyer.";
+    case "FOB":
+      return "Pada FOB (Free On Board), eksportir bertanggung jawab mengurus barang hingga selesai dimuat ke atas kapal (on-board) di pelabuhan muat Indonesia termasuk PEB. Ongkos kapal laut (ocean freight) dan asuransi ditanggung Buyer.";
+    case "CFR":
+      return "Pada CFR (Cost and Freight), eksportir menanggung biaya logistik dan ongkos kapal laut (ocean freight) hingga pelabuhan tujuan. Asuransi kargo laut dan kepabeanan impor diurus oleh Buyer.";
+    case "CIF":
+      return "Pada CIF (Cost, Insurance and Freight), eksportir menanggung ongkos kapal laut hingga pelabuhan tujuan dan wajib membelikan polis asuransi kargo laut (Marine Cargo) atas nama buyer. Kepabeanan impor ditanggung Buyer.";
+    case "DAP":
+      return "Pada DAP (Delivered at Place), eksportir mengurus pengiriman hingga tiba di alamat/gudang buyer di negara tujuan. Pajak dan bea masuk impor ditanggung Buyer.";
+    case "DDP":
+      return "Pada DDP (Delivered Duty Paid), eksportir bertanggung jawab penuh end-to-end hingga barang masuk gudang buyer, termasuk pembayaran seluruh bea masuk impor dan pajak di negara tujuan.";
+    default:
+      return "Alur operasional disesuaikan otomatis dengan batas tanggung jawab Incoterms® 2020.";
+  }
+}
+
+function getExportOperationalStages(
+  shipment: Shipment,
+  pricing: Pricing,
+  container?: ContainerCalc,
+  flow?: WorkspaceFlow,
+): ExportStage[] {
+  const incoterm = shipment.incoterm || "FOB";
+
+  // Stage 1: Kontrak Penjualan & Validasi Kepatuhan
+  const s1Done = Boolean(shipment.buyer.trim() && shipment.buyerCountry.trim() && shipment.destination.trim() && shipment.hsCode.trim());
+  const stage1: ExportStage = {
+    id: 1,
+    stageNumber: 1,
+    title: "Tahap 1: Kontrak Penjualan & Validasi Kepatuhan",
+    subtitle: "Sales Contract / PO, Validasi Profil Buyer & Cek Regulasi Lartas Ekspor Kemendag",
+    responsibilityLabel: "Wajib Eksportir",
+    responsibilityTone: "blue",
+    status: s1Done ? "completed" : "in_progress",
+    statusLabel: s1Done ? "Selesai" : "Perlu Dilengkapi",
+    meta: s1Done
+      ? `Buyer: ${shipment.buyer} (${shipment.buyerCountry}) · HS ${shipment.hsCode} · Pelabuhan Tujuan: ${shipment.destination}`
+      : "Nama buyer, negara tujuan, atau HS Code belum diisi lengkap",
+    targetScreen: "partners",
+    targetScreenLabel: "Buka Profil Mitra",
+  };
+
+  // Stage 2: Pembayaran Uang Muka (DP) / Instrumen Keuangan
+  const s2Done = Boolean((flow?.paidAmount && flow.paidAmount > 0) || flow?.finance?.dpConfirmed);
+  const stage2: ExportStage = {
+    id: 2,
+    stageNumber: 2,
+    title: "Tahap 2: Pembayaran Awal / Instrumen Keuangan",
+    subtitle: "Penerimaan Uang Muka (DP T/T) atau Verifikasi Letter of Credit (L/C)",
+    responsibilityLabel: "Wajib Finansial",
+    responsibilityTone: "indigo",
+    status: s2Done ? "completed" : "in_progress",
+    statusLabel: s2Done ? "DP Terkonfirmasi" : "Menunggu Pembayaran",
+    meta: s2Done
+      ? `Tercatat masuk ${formatMoney(flow?.paidAmount ?? 0, shipment.currency)} (${flow?.finance?.dpConfirmed ? "DP Terkonfirmasi" : "Sebagian"}) · Syarat: ${shipment.paymentTerms || "T/T DP"}`
+      : `Belum ada pembayaran DP tercatat di Rekonsiliasi Bank · Syarat: ${shipment.paymentTerms || "T/T DP"}`,
+    targetScreen: "finance",
+    targetScreenLabel: "Buka Keuangan & AR",
+  };
+
+  // Stage 3: Kesiapan Mutu, Kemasan & Sertifikasi Ekspor
+  const s3Done = Boolean(flow?.readiness?.certReady || flow?.legalChecklist?.originEvidence);
+  const stage3: ExportStage = {
+    id: 3,
+    stageNumber: 3,
+    title: "Tahap 3: Kesiapan Mutu, Kemasan & Sertifikasi Ekspor",
+    subtitle: "Standarisasi Mutu (COA), Kemasan Ekspor, Fumigasi ISPM-15 & Karantina",
+    responsibilityLabel: "Wajib Eksportir",
+    responsibilityTone: "blue",
+    status: s3Done ? "completed" : "in_progress",
+    statusLabel: s3Done ? "Mutu Terverifikasi" : "Persiapan Sertifikat",
+    meta: s3Done
+      ? "Sertifikasi mutu, bukti asal barang & kemasan ekspor telah diverifikasi"
+      : `Siapkan dokumen uji lab (COA), fumigasi kayu/ISPM-15, dan karantina sesuai negara tujuan (${shipment.buyerCountry || "Internasional"})`,
+    targetScreen: "risk",
+    targetScreenLabel: "Buka Risk Center",
+  };
+
+  // Stage 4: Muatan Kontainer & Booking Armada Logistik (Cargo)
+  const isExw = incoterm === "EXW";
+  const s4ContainerOk = Boolean(
+    container &&
+    (container.volumeUtilization > 0 || container.weightUtilization > 0) &&
+    container.volumeUtilization <= 100 &&
+    container.weightUtilization <= 100
+  );
+  const stage4: ExportStage = {
+    id: 4,
+    stageNumber: 4,
+    title: "Tahap 4: Muatan Kontainer & Booking Armada Logistik",
+    subtitle: isExw
+      ? "Penyerahan Barang di Gudang / Pabrik Penjual (Armada dari Buyer)"
+      : "Simulasi Muatan 3D, Booking Kontainer/Truk & Penimbangan Resmi VGM (Solas)",
+    responsibilityLabel: isExw ? "Ditanggung Buyer (EXW)" : "Wajib Eksportir",
+    responsibilityTone: isExw ? "slate" : "blue",
+    status: isExw ? "buyer_scope" : s4ContainerOk ? "completed" : "in_progress",
+    statusLabel: isExw ? "Cakupan Buyer" : s4ContainerOk ? "Kapasitas Pas" : "Perlu Simulasi",
+    meta: isExw
+      ? "Pada EXW, kontainer dan truk penjemputan disediakan langsung oleh pihak buyer."
+      : s4ContainerOk
+      ? `${container?.containers ?? 1} × ${shipment.containerType} · Berat ${container ? container.weightUtilization.toFixed(0) : 0}% (${container ? container.volumeUtilization.toFixed(0) : 0}% vol) · Aman / Tidak Overload`
+      : "Simulasi muatan belum optimal atau belum dihitung kapasitas kontainernya",
+    targetScreen: "cargo",
+    targetScreenLabel: "Buka Rencana Muatan",
+  };
+
+  // Stage 5: Kepabeanan Ekspor (PEB) & Pemuatan Pelabuhan Asal
+  const s5Done = Boolean(flow?.legalChecklist?.sanctionsScreened && flow?.legalChecklist?.hsCodeReviewed);
+  const stage5: ExportStage = {
+    id: 5,
+    stageNumber: 5,
+    title: "Tahap 5: Kepabeanan Ekspor (PEB) & Pemuatan Pelabuhan Asal",
+    subtitle: isExw
+      ? "Pengurusan Ekspor di Pelabuhan Asal Dilakukan Buyer / Agen Buyer"
+      : "Pengajuan PEB di Bea Cukai (CEISA), Penerbitan NPE & Muat ke Kapal (On-Board)",
+    responsibilityLabel: isExw ? "Ditanggung Buyer (EXW)" : "Wajib Eksportir (Bea Cukai)",
+    responsibilityTone: isExw ? "slate" : "blue",
+    status: isExw ? "buyer_scope" : s5Done ? "completed" : "in_progress",
+    statusLabel: isExw ? "Cakupan Buyer" : s5Done ? "Kepatuhan Terverifikasi" : "Siapkan PEB & NPE",
+    meta: isExw
+      ? "Tanggung jawab kepabeanan ekspor di Indonesia berada di pihak buyer atau forwarder buyer."
+      : s5Done
+      ? "Pemeriksaan sanksi & verifikasi HS Code kepabeanan selesai · Siap pengajuan PEB & bayar THC Origin."
+      : "Lakukan review legalitas dokumen ekspor & kepabeanan di Risk Center sebelum pengajuan PEB.",
+    targetScreen: "risk",
+    targetScreenLabel: "Buka Risk Center",
+  };
+
+  // Stage 6: Pengapalan Internasional & Asuransi Kargo Laut
+  const isFreightCollect = incoterm === "EXW" || incoterm === "FOB" || incoterm === "FCA";
+  const isCfr = incoterm === "CFR";
+  const isCif = incoterm === "CIF";
+  const s6PricingOk = pricing.active.offer > 0 && pricing.validationErrors.length === 0;
+
+  let s6Resp = "Wajib Eksportir";
+  let s6Tone: "blue" | "green" | "slate" | "indigo" | "amber" = "blue";
+  if (isFreightCollect) {
+    s6Resp = `Ditanggung Buyer (${incoterm})`;
+    s6Tone = "slate";
+  } else if (isCfr) {
+    s6Resp = "Freight: Eksportir · Asuransi: Buyer";
+    s6Tone = "amber";
+  } else if (isCif) {
+    s6Resp = "Freight & Asuransi: Wajib Eksportir (CIF)";
+    s6Tone = "blue";
+  }
+
+  const stage6: ExportStage = {
+    id: 6,
+    stageNumber: 6,
+    title: "Tahap 6: Pengapalan Internasional & Asuransi Kargo Laut",
+    subtitle: isFreightCollect
+      ? "Ocean Freight (Kapal Laut) & Asuransi Kargo Dibooking & Dibayar Oleh Buyer"
+      : isCfr
+      ? "Ocean Freight Ditanggung Eksportir (Freight Prepaid) · Asuransi Ditanggung Buyer"
+      : isCif
+      ? "Ocean Freight & Polis Asuransi Kargo Laut (ICC Clause A) Wajib Disediakan Eksportir"
+      : "Pengapalan Internasional & Proteksi Kargo Ditanggung Eksportir Hingga Negara Tujuan",
+    responsibilityLabel: s6Resp,
+    responsibilityTone: s6Tone,
+    status: isFreightCollect ? "buyer_scope" : s6PricingOk ? "completed" : "in_progress",
+    statusLabel: isFreightCollect ? "Cakupan Buyer (Freight Collect)" : s6PricingOk ? "Biaya Terkalkulasi" : "Hitung Freight & Asuransi",
+    meta: isFreightCollect
+      ? "Ocean freight kapal dan polis asuransi dibooking serta dibayar oleh Buyer di negara tujuan."
+      : isCfr
+      ? `Ocean freight telah terkalkulasi (${formatMoney(pricing.active.offer, shipment.currency)}) · Asuransi kargo ditutup oleh buyer.`
+      : isCif
+      ? `Ocean freight & premi asuransi kargo telah terkalkulasi (${formatMoney(pricing.active.offer, shipment.currency)}) · Siap terbitkan polis asuransi.`
+      : `Pengapalan laut internasional dan proteksi transit terkalkulasi (${formatMoney(pricing.active.offer, shipment.currency)}).`,
+    targetScreen: "pricing",
+    targetScreenLabel: "Buka Harga & Order",
+  };
+
+  // Stage 7: Penerbitan Dokumen Resmi Ekspor & Surat Keterangan Asal (e-SKA)
+  const s7Done = Boolean(shipment.documentReviewed);
+  const stage7: ExportStage = {
+    id: 7,
+    stageNumber: 7,
+    title: "Tahap 7: Penerbitan Dokumen Resmi Ekspor & Kirim Dokumen",
+    subtitle: "Final Commercial Invoice, Packing List, Bill of Lading (B/L) & COO Form e-SKA Kemendag",
+    responsibilityLabel: "Wajib Eksportir",
+    responsibilityTone: "blue",
+    status: s7Done ? "completed" : "in_progress",
+    statusLabel: s7Done ? "Dokumen Siap" : "Perlu Review",
+    meta: s7Done
+      ? `Dokumen ekspor terverifikasi (Rev R${shipment.documentRevision}) · Siap dikirim ke buyer / diserahkan ke bank L/C`
+      : "Review Commercial Invoice, Packing List, draft B/L pelayaran, dan pengajuan Surat Keterangan Asal (e-SKA)",
+    targetScreen: "documents",
+    targetScreenLabel: "Buka Dokumen Ekspor",
+  };
+
+  // Stage 8: Pengantaran ke Alamat Buyer & Bea Masuk Impor
+  const isPortTerm = incoterm === "EXW" || incoterm === "FOB" || incoterm === "CFR" || incoterm === "CIF" || incoterm === "FCA";
+  const isDap = incoterm === "DAP";
+  const isDdp = incoterm === "DDP";
+
+  let s8Resp = "Ditanggung Buyer di Pelabuhan Tujuan";
+  let s8Tone: "blue" | "green" | "slate" | "indigo" | "amber" = "slate";
+  let s8Status: StageStatus = "buyer_scope";
+  let s8StatusLabel = "Selesai di Pelabuhan (Cakupan Buyer)";
+  let s8Meta = `Tanggung jawab eksportir selesai di pelabuhan. Pengeluaran kargo, bea masuk impor & pajak di ${shipment.destination || "negara tujuan"} diurus buyer.`;
+
+  if (isDap) {
+    s8Resp = "Truk ke Alamat: Eksportir · Pajak: Buyer";
+    s8Tone = "amber";
+    const dapOk = shipment.destinationHandling > 0 || shipment.lastMile > 0;
+    s8Status = dapOk ? "completed" : "in_progress";
+    s8StatusLabel = dapOk ? "Biaya Terkalkulasi" : "Siapkan Tarif Last-Mile";
+    s8Meta = "Eksportir menanggung biaya terminal bongkar dan truk lokal ke alamat buyer. Pajak impor dibayar buyer.";
+  } else if (isDdp) {
+    s8Resp = "Wajib Eksportir Penuh (DDP)";
+    s8Tone = "blue";
+    const ddpOk = shipment.destinationHandling > 0 && shipment.importDuty > 0 && shipment.lastMile > 0;
+    s8Status = ddpOk ? "completed" : "in_progress";
+    s8StatusLabel = ddpOk ? "Biaya Terkalkulasi" : "Siapkan Tarif Impor & Last-Mile";
+    s8Meta = "Eksportir menanggung biaya terminal bongkar, custom clearance impor, pembayaran bea masuk & pajak hingga tiba di gudang buyer.";
+  }
+
+  const stage8: ExportStage = {
+    id: 8,
+    stageNumber: 8,
+    title: "Tahap 8: Pengantaran ke Alamat Buyer & Kepabeanan Impor",
+    subtitle: isPortTerm
+      ? "Kepabeanan Impor & Pengambilan Barang di Pelabuhan Tujuan Diurus Pembeli"
+      : isDap
+      ? "Penanganan Pelabuhan Bongkar & Truk Hingga Gudang Buyer (Pajak Impor oleh Buyer)"
+      : "Penanganan Bongkar, Pembayaran Bea Masuk Impor & Antar Sampai Pintu Gudang Buyer",
+    responsibilityLabel: s8Resp,
+    responsibilityTone: s8Tone,
+    status: s8Status,
+    statusLabel: s8StatusLabel,
+    meta: s8Meta,
+    targetScreen: "pricing",
+    targetScreenLabel: "Buka Harga & Order",
+  };
+
+  // Stage 9: Pelunasan Akhir & Devisa Hasil Ekspor (DHE BI)
+  const s9Done = Boolean(flow?.finance?.settlementConfirmed && (flow?.remainingReceivable ?? 0) <= 0);
+  const stage9: ExportStage = {
+    id: 9,
+    stageNumber: 9,
+    title: "Tahap 9: Pelunasan Akhir & Devisa Hasil Ekspor (DHE BI)",
+    subtitle: "Penerimaan Pelunasan Sisa Tagihan (Settlement), Rekonsiliasi Bank & Pelaporan DHE ke Bank Indonesia",
+    responsibilityLabel: "Kepatuhan BI & Bea Cukai",
+    responsibilityTone: "indigo",
+    status: s9Done ? "completed" : "in_progress",
+    statusLabel: s9Done ? "Lunas & Patuh DHE" : "Menunggu Pelunasan",
+    meta: s9Done
+      ? "Pelunasan 100% diterima di rekening devisa · Siap pelaporan Devisa Hasil Ekspor (DHE) via SiMoDIS Bank Indonesia (PP 36/2023)"
+      : `Sisa piutang: ${formatMoney(flow?.remainingReceivable ?? pricing.active.offer, shipment.currency)} · Pantau di Rekonsiliasi Bank & laporkan DHE setelah dana masuk`,
+    targetScreen: "finance",
+    targetScreenLabel: "Buka Keuangan & AR",
+  };
+
+  return [stage1, stage2, stage3, stage4, stage5, stage6, stage7, stage8, stage9];
+}
 
 export type ShipmentListItem = {
   id: string;
@@ -93,8 +376,26 @@ export function TransactionsModule({
 }) {
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
+  const [stageFilter, setStageFilter] = useState<"ALL" | "EXPORTER" | "BUYER" | "DONE">("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
   const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(null);
+
+  // 9 Tahap Operasional Ekspor Dinamis Sesuai Incoterms 2020 & Regulasi Ekspor RI
+  const operationalStages = useMemo(() => {
+    return getExportOperationalStages(shipment, pricing, container, flow);
+  }, [shipment, pricing, container, flow]);
+
+  const totalStages = operationalStages.length;
+  const completedStagesCount = operationalStages.filter((s) => s.status === "completed").length;
+  const buyerStagesCount = operationalStages.filter((s) => s.status === "buyer_scope").length;
+  const exporterStagesCount = operationalStages.filter((s) => s.status !== "buyer_scope").length;
+
+  const filteredStages = useMemo(() => {
+    if (stageFilter === "EXPORTER") return operationalStages.filter((s) => s.status !== "buyer_scope");
+    if (stageFilter === "BUYER") return operationalStages.filter((s) => s.status === "buyer_scope");
+    if (stageFilter === "DONE") return operationalStages.filter((s) => s.status === "completed");
+    return operationalStages;
+  }, [operationalStages, stageFilter]);
 
   // AI Advisor mendeteksi regulasi & dokumen kepatuhan ekspor sesuai negara buyer
   const aiRegulations = useMemo(() => {
@@ -356,66 +657,106 @@ export function TransactionsModule({
         </div>
       </section>
 
-      {/* 3. ALUR OPERASIONAL TERHUBUNG: Checklist Kesiapan Transaksi */}
-      <section className="panel panel-padding">
+      {/* 3. ALUR OPERASIONAL EKSPOR TERINTEGRASI: 9 Tahap Lengkap Sesuai Incoterm */}
+      <section className="panel panel-padding export-workflow-panel">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">ALUR OPERASIONAL TERHUBUNG</span>
-            <h3>Checklist kesiapan transaksi</h3>
+            <span className="eyebrow">ALUR OPERASIONAL EKSPOR TERINTEGRASI</span>
+            <h3>9 Tahap Operasional Ekspor ({shipment.incoterm || "FOB"})</h3>
+            <p className="profile-description">
+              Rangkaian operasional ekspor terhubung dari kontrak awal, pembayaran uang muka, standarisasi mutu &amp; karantina, muatan kontainer, kepabeanan PEB Bea Cukai, ocean freight, dokumen e-SKA, hingga pelaporan Devisa Hasil Ekspor (DHE BI).
+            </p>
           </div>
           <button className="text-button" type="button" onClick={() => navigate("risk")}>
             Risk Center ({flow?.riskEvaluation?.readinessPercent ?? 11}%) <ChevronRight size={14} />
           </button>
         </div>
 
-        <div className="checklist">
-          <ChecklistItem
-            done={Boolean(shipment.buyer.trim() && shipment.destination.trim() && shipment.hsCode.trim())}
-            label="Profil buyer, tujuan & referensi HS Code"
-            meta={`${shipment.buyer.trim() || "Buyer belum diisi"} · HS ${shipment.hsCode.trim() || "belum diisi"}`}
-            onClick={() => navigate("partners")}
-          />
-          <ChecklistItem
-            done={pricing.active.offer > 0 && pricing.validationErrors.length === 0 && flow?.effectiveApprovalStatus === "Tercatat direview"}
-            label={`Harga ${shipment.incoterm || "FOB"} & persetujuan internal`}
-            meta={`${formatMoney(pricing.active.offer, shipment.currency)} · ${flow?.effectiveApprovalStatus || "Menunggu review"}`}
-            onClick={() => navigate("approvals")}
-          />
-          <ChecklistItem
-            done={Boolean(
-              container &&
-              (container.volumeUtilization > 0 || container.weightUtilization > 0) &&
-              container.volumeUtilization <= 100 &&
-              container.weightUtilization <= 100
-            )}
-            label="Kapasitas kemasan & kontainer 3D"
-            meta={
-              container && (container.volumeUtilization > 0 || container.weightUtilization > 0)
-                ? `${container.containers} × ${shipment.containerType} · Berat ${container.weightUtilization.toFixed(0)}%`
-                : `1 × ${shipment.containerType} · Berat 0%`
-            }
-            onClick={() => navigate("cargo")}
-          />
-          <ChecklistItem
-            done={Boolean(shipment.documentReviewed)}
-            label="Review 4 dokumen ekspor"
-            meta={
-              shipment.documentReviewed
-                ? `Direview · Rev R${shipment.documentRevision}`
-                : "Proforma, Commercial Invoice, Packing List & B/L Draft"
-            }
-            onClick={() => navigate("documents")}
-          />
-          <ChecklistItem
-            done={Boolean(flow?.paidAmount && flow.paidAmount > 0)}
-            label="Pencocokan pembayaran & AR Finance"
-            meta={
-              flow?.paidAmount && flow.paidAmount > 0
-                ? `Tercatat masuk ${formatMoney(flow.paidAmount, shipment.currency)} · AR ${flow.finance.arStatus}`
-                : "Belum ada pembayaran dicocokkan di Rekonsiliasi Bank"
-            }
-            onClick={() => navigate("finance")}
-          />
+        {/* Banner Panduan Incoterm Aktif & Pembagian Tanggung Jawab */}
+        <div className="incoterm-guide-banner">
+          <div className="incoterm-guide-header">
+            <div className="incoterm-guide-title">
+              <span className="incoterm-guide-badge">Incoterms® 2020: {shipment.incoterm || "FOB"}</span>
+              <span>Batas Tanggung Jawab Operasional</span>
+            </div>
+            <div className="incoterm-summary-pills">
+              <button
+                type="button"
+                className={`incoterm-pill-item ${stageFilter === "ALL" ? "info" : ""}`}
+                onClick={() => setStageFilter("ALL")}
+              >
+                Semua Tahap ({totalStages})
+              </button>
+              <button
+                type="button"
+                className={`incoterm-pill-item ${stageFilter === "EXPORTER" ? "info" : ""}`}
+                onClick={() => setStageFilter("EXPORTER")}
+              >
+                Wajib Eksportir ({exporterStagesCount})
+              </button>
+              <button
+                type="button"
+                className={`incoterm-pill-item ${stageFilter === "BUYER" ? "muted" : ""}`}
+                onClick={() => setStageFilter("BUYER")}
+              >
+                Ditanggung Buyer ({buyerStagesCount})
+              </button>
+              <button
+                type="button"
+                className={`incoterm-pill-item ${stageFilter === "DONE" ? "highlight" : ""}`}
+                onClick={() => setStageFilter("DONE")}
+              >
+                <Check size={11} strokeWidth={3} /> Selesai ({completedStagesCount}/{totalStages})
+              </button>
+            </div>
+          </div>
+          <p className="incoterm-guide-text">
+            {getIncotermExplanation(shipment.incoterm || "FOB")}
+          </p>
+        </div>
+
+        {/* Daftar 9 Tahapan Operasi */}
+        <div className="export-stage-list">
+          {filteredStages.map((stage) => {
+            const isCompleted = stage.status === "completed";
+            const isBuyer = stage.status === "buyer_scope";
+
+            return (
+              <div
+                key={stage.id}
+                className={`export-stage-card ${isCompleted ? "is-completed" : isBuyer ? "is-buyer" : "is-in-progress"}`}
+                onClick={() => navigate(stage.targetScreen)}
+                title={`Klik untuk menuju modul ${stage.targetScreenLabel}`}
+              >
+                <div className="stage-number-bubble">
+                  {isCompleted ? <Check size={14} strokeWidth={3} /> : isBuyer ? <Globe size={13} /> : stage.stageNumber}
+                </div>
+
+                <div className="stage-body">
+                  <div className="stage-row-top">
+                    <h4 className="stage-title">{stage.title}</h4>
+                    <span className={`stage-resp-tag ${stage.responsibilityTone}`}>
+                      {stage.responsibilityLabel}
+                    </span>
+                  </div>
+                  <p className="stage-desc">{stage.subtitle}</p>
+                  <div className="stage-meta-line">
+                    <span>{stage.meta}</span>
+                  </div>
+                </div>
+
+                <div className="stage-side-action">
+                  <span className={`stage-status-badge ${stage.status}`}>
+                    {isCompleted && <Check size={11} strokeWidth={3} />}
+                    {isBuyer && <Globe size={11} />}
+                    {!isCompleted && !isBuyer && <Clock size={11} />}
+                    <span>{stage.statusLabel}</span>
+                  </span>
+                  <ChevronRight size={15} color="#94a3b8" />
+                </div>
+              </div>
+            );
+          })}
         </div>
       </section>
 
