@@ -1,4 +1,4 @@
-import type { Incoterm, LineItem, Shipment } from "./shipment";
+import type { AdditionalCostFactor, Incoterm, LineItem, Shipment } from "./shipment";
 
 export type Pricing = {
   active: { offer: number; cost: number; profit: number; unit: number };
@@ -51,7 +51,10 @@ export type PricingInput = Pick<
   | "exchangeRate"
   | "namedPlace"
   | "formulaVersion"
-> & { lineItems: Pick<LineItem, "quantity" | "unitPrice">[] };
+> & {
+  lineItems: Pick<LineItem, "quantity" | "unitPrice">[];
+  additionalCostFactors?: AdditionalCostFactor[];
+};
 
 export function validatePricing(input: PricingInput, totalQuantity: number): string[] {
   const errors: string[] = [];
@@ -70,7 +73,18 @@ export function validatePricing(input: PricingInput, totalQuantity: number): str
  */
 export function calculatePricing(input: PricingInput) {
   const totalQuantity = input.lineItems.reduce((total, item) => total + item.quantity, 0);
-  const goods = input.lineItems.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
+  const rawGoods = input.lineItems.reduce((total, item) => total + item.quantity * item.unitPrice, 0);
+  const additionalGoods = (input.additionalCostFactors || [])
+    .filter((f) => f.section === "goods")
+    .reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+  const additionalLogistics = (input.additionalCostFactors || [])
+    .filter((f) => f.section === "logistics")
+    .reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+  const additionalStrategy = (input.additionalCostFactors || [])
+    .filter((f) => f.section === "strategy")
+    .reduce((sum, f) => sum + (Number(f.amount) || 0), 0);
+  const goods = rawGoods + additionalGoods;
+
   const validationErrors = validatePricing(input, totalQuantity);
   const included = incotermCostKeys;
   const costs: Record<CostKey, number> = {
@@ -86,7 +100,10 @@ export function calculatePricing(input: PricingInput) {
     lastMile: input.lastMile,
   };
   const calculate = (term: Incoterm) => {
-    const directCost = included[term].reduce((total, key) => total + (costs[key] ?? 0), 0);
+    const directCost =
+      included[term].reduce((total, key) => total + (costs[key] ?? 0), 0) +
+      (term !== "EXW" ? additionalLogistics : 0) +
+      additionalStrategy;
     const cost = directCost + (directCost * Math.max(0, input.contingency)) / 100;
     const targetMargin = input.margin / 100;
     const netOfferBeforeDiscount = targetMargin < 1 ? cost / Math.max(0.0001, 1 - targetMargin) : 0;
@@ -97,6 +114,10 @@ export function calculatePricing(input: PricingInput) {
   const active = calculate(input.incoterm);
   return {
     goods,
+    rawGoods,
+    additionalGoods,
+    additionalLogistics,
+    additionalStrategy,
     totalQuantity,
     included,
     costs,

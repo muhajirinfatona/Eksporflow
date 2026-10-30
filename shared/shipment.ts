@@ -9,6 +9,14 @@ export type PreviewLanguage = "English" | "Bahasa Indonesia";
 export type ShipmentStatus = "Draft" | "Quotation" | "Confirmed" | "Ready to Ship" | "Booked" | "Stuffing" | "Departed" | "In Transit" | "Completed";
 export type LineItem = { id: string; description: string; hsCode: string; quantity: number; unit: string; unitPrice: number; weight: number; length: number; width: number; height: number; packagingType: string; shrinkageRate: number; palletEnabled: boolean; palletCount: number; palletLength: number; palletWidth: number; palletHeight: number; palletWeight: number };
 
+export type AdditionalCostFactor = {
+  id: string;
+  name: string;
+  amount: number;
+  section: "goods" | "logistics" | "strategy";
+  category?: string;
+};
+
 export type ContainerCalc = {
   name: string;
   innerL: number;
@@ -87,6 +95,7 @@ export type Shipment = {
   shipmentStatus: ShipmentStatus;
   attachments: string[];
   lineItems: LineItem[];
+  additionalCostFactors: AdditionalCostFactor[];
 };
 
 export const initialShipment: Shipment = {
@@ -141,6 +150,7 @@ export const initialShipment: Shipment = {
   sealNumber: "",
   shipmentStatus: "Quotation",
   attachments: ["Buyer_PO_NPI-2026-118.pdf"],
+  additionalCostFactors: [],
   lineItems: [{ id: "item-1", description: "Organic Coconut Sugar", hsCode: "1702.90", quantity: 2400, unit: "carton", unitPrice: 18.5, weight: 12, length: 40, width: 30, height: 25, packagingType: "Karton box", shrinkageRate: 1.5, palletEnabled: true, palletCount: 60, palletLength: 120, palletWidth: 100, palletHeight: 15, palletWeight: 22 }],
 };
 
@@ -221,6 +231,7 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     shipmentStatus: "Draft",
     attachments: [],
     lineItems: [{ ...emptyLineItem }],
+    additionalCostFactors: [],
   };
 }
 
@@ -307,6 +318,7 @@ export function hydrateShipment(input: {
     lineItems: migratedItems,
     exporter: typeof raw.exporter === "string" ? raw.exporter : base.exporter,
     letterheadText: typeof raw.letterheadText === "string" ? raw.letterheadText : base.letterheadText,
+    additionalCostFactors: Array.isArray(raw.additionalCostFactors) ? (raw.additionalCostFactors as AdditionalCostFactor[]) : [],
   };
 }
 

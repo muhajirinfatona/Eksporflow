@@ -269,3 +269,76 @@ export function convertTemplateCost(amountIdr: number, targetCurrency: string, e
   const rate = exchangeRate > 0 ? exchangeRate : 18274;
   return Number((amountIdr / rate).toFixed(2));
 }
+
+
+/**
+ * AI Advisor Engine: Membaca negara buyer dan komoditas secara otomatis,
+ * lalu merekomendasikan regulasi kepatuhan ekspor yang relevan.
+ */
+export function getAiRecommendedRegulations(countryName?: string, product?: string): CountryRegulationPreset[] {
+  if (!countryName || !countryName.trim()) {
+    return [
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-phyto")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
+    ].filter(Boolean);
+  }
+
+  const c = countryName.toLowerCase().trim();
+  const matched: CountryRegulationPreset[] = [];
+
+  // 1. Swedia, Jerman, Belanda, Uni Eropa
+  if (c.includes("swedia") || c.includes("sweden") || c.includes("eropa") || c.includes("jerman") || c.includes("germany") || c.includes("belanda") || c.includes("netherlands") || c.includes("prancis") || c.includes("france") || c.includes("italia") || c.includes("spanyol") || c.includes("poland") || c.includes("eu")) {
+    matched.push(
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-lab-test")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-packaging-special")!,
+    );
+  }
+  // 2. Jepang
+  else if (c.includes("jepang") || c.includes("japan") || c.includes("tokyo")) {
+    matched.push(
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-lab-test")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-phyto")!,
+    );
+  }
+  // 3. Amerika Serikat / USA / Kanada
+  else if (c.includes("amerika") || c.includes("usa") || c.includes("united states") || c.includes("kanada") || c.includes("canada")) {
+    matched.push(
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fda")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-lab-test")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-packaging-special")!,
+    );
+  }
+  // 4. UAE, Arab Saudi, Qatar, Kuwait, Timur Tengah
+  else if (c.includes("saudi") || c.includes("emirat") || c.includes("dubai") || c.includes("uae") || c.includes("qatar") || c.includes("kuwait") || c.includes("timur tengah") || c.includes("middle east")) {
+    matched.push(
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-halal")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-embassy")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-phyto")!,
+    );
+  }
+  // 5. Australia & New Zealand
+  else if (c.includes("australia") || c.includes("selandia") || c.includes("zealand")) {
+    matched.push(
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-phyto")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
+    );
+  }
+  // 6. General fallback
+  else {
+    matched.push(
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-phyto")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-fumigation")!,
+      COUNTRY_REGULATION_PRESETS.find((p) => p.id === "reg-coo")!,
+    );
+  }
+
+  return matched.filter(Boolean);
+}
