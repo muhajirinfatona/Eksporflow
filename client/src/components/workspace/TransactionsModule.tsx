@@ -784,76 +784,82 @@ export function TransactionsModule({
             </div>
           </div>
 
-          {/* Tab Navigasi Bersih & Profesional */}
-          <div className="clean-tabs" style={{ marginBottom: "16px" }}>
+          {/* Tab Navigasi Segmented Control (Jelas Bisa Diklik & Berstatus Aktif) */}
+          <div className="orders-segmented-control" style={{ marginBottom: "18px" }}>
             <button
               type="button"
-              className={activeTab === "list" ? "active" : ""}
+              className={`orders-seg-btn ${activeTab === "list" ? "active" : ""}`}
               onClick={() => setActiveTab("list")}
             >
-              <Layers size={15} /> Daftar Pesanan ({allTransactions.length})
+              <Layers size={15} />
+              <span>Daftar Pesanan ({allTransactions.length})</span>
             </button>
             <button
               type="button"
-              className={activeTab === "workflow" ? "active" : ""}
+              className={`orders-seg-btn ${activeTab === "workflow" ? "active" : ""}`}
               onClick={() => setActiveTab("workflow")}
             >
-              <Activity size={15} /> Alur Operasional: {displayReference || shipment.buyer || "Pesanan Aktif"}
+              <Activity size={15} />
+              <span>Alur Operasional: {displayReference || shipment.buyer || "Pesanan Aktif"}</span>
             </button>
           </div>
 
           {/* TAB KONTEN 1: TABEL DAFTAR PESANAN */}
           {activeTab === "list" && (
             <section className="panel panel-padding">
-              <div className="panel-head">
+              <div className="panel-head" style={{ marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
                   <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
-                  <h3>Daftar Pesanan Ekspor ({allTransactions.length})</h3>
+                  <h3 style={{ margin: "2px 0 0", fontSize: "17px", color: "var(--navy)" }}>
+                    Daftar Pesanan Ekspor ({allTransactions.length})
+                  </h3>
                 </div>
 
-                <div className="clean-table-toolbar">
-                  <div className="clean-search-box compact">
-                    <Search size={14} />
-                    <input
-                      value={query}
-                      onChange={(event) => setQuery(event.target.value)}
-                      placeholder="Cari PO, buyer, komoditas..."
-                    />
-                  </div>
-                  <button
-                    type="button"
-                    className="save-button"
-                    onClick={handleNewTransactionClick}
-                    style={{ padding: "7px 14px", fontSize: "12.5px" }}
-                  >
-                    <Plus size={14} /> Input PO Baru
-                  </button>
-                </div>
+                <button
+                  type="button"
+                  className="save-button"
+                  onClick={handleNewTransactionClick}
+                  style={{ padding: "8px 16px", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "6px" }}
+                >
+                  <Plus size={15} /> Input PO Baru
+                </button>
               </div>
 
-              {/* Status Filter Chips */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px", flexWrap: "wrap" }}>
-                {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
-                  <button
-                    key={st}
-                    type="button"
-                    onClick={() => setStatusFilter(st)}
-                    style={{
-                      padding: "4px 12px",
-                      borderRadius: "999px",
-                      fontSize: "12px",
-                      border: "1px solid",
-                      borderColor: statusFilter === st ? "#0284c7" : "#e2e8f0",
-                      background: statusFilter === st ? "#e0f2fe" : "#ffffff",
-                      color: statusFilter === st ? "#0369a1" : "#64748b",
-                      fontWeight: statusFilter === st ? 600 : 500,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    {st === "ALL" ? "Semua" : st}
-                  </button>
-                ))}
+              {/* Toolbar Pencarian & Filter Status Rapi Sejajar */}
+              <div className="orders-table-toolbar">
+                <div className="orders-filter-chips">
+                  {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
+                    <button
+                      key={st}
+                      type="button"
+                      className={`orders-filter-chip ${statusFilter === st ? "active" : ""}`}
+                      onClick={() => setStatusFilter(st)}
+                    >
+                      {st === "ALL" ? "Semua" : st}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="orders-search-input-wrap">
+                  <Search size={14} className="orders-search-icon" />
+                  <input
+                    type="text"
+                    value={query}
+                    onChange={(event) => setQuery(event.target.value)}
+                    placeholder="Cari PO, buyer, komoditas..."
+                    className="orders-search-input"
+                  />
+                  {query && (
+                    <button
+                      type="button"
+                      onClick={() => setQuery("")}
+                      className="orders-search-clear"
+                      title="Hapus pencarian"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
               </div>
 
               {/* Isi Tabel Riwayat Transaksi */}
