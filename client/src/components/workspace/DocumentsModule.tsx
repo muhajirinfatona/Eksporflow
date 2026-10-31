@@ -137,6 +137,7 @@ export function DocumentsModule({
 
   const buyerName = shipment.buyer || "AL BARAKAH FOODSTUFF TRADING LLC";
   const buyerAddress =
+    shipment.buyerAddress ||
     shipment.destination ||
     "P.O. Box 112233, Al Ras Area, Deira, Dubai, United Arab Emirates";
   const buyerCountry = shipment.buyerCountry || "United Arab Emirates";
@@ -148,6 +149,27 @@ export function DocumentsModule({
     shipment.product ||
     "Indonesian Organic Granulated Palm Sugar (Gula Aren Semut)";
   const hsCode = shipment.hsCode || "1702.90.91";
+
+  const isId = shipment.previewLanguage === "Bahasa Indonesia";
+  const signatoryName = shipment.signatoryName || "Muhajirin Fatona";
+  const signatoryRole = shipment.signatoryRole || (isId ? "Direktur Ekspor" : "Export Director");
+  const buyerPicName = shipment.buyerPicName || "Mr. Tariq Al-Mansoor";
+  const buyerPicRole =
+    shipment.buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director");
+  const buyerPhone = shipment.buyerPhone || "+971 4 223 4567";
+  const buyerEmail = shipment.buyerEmail || "procurement@albarakahfoods.ae";
+  const vesselName = shipment.vesselName || shipment.bookingNumber || "KMTC SHIMIZU V.2611N";
+  const containerNumber = shipment.containerNumber || "TGHU 2468135";
+  const sealNumber = shipment.sealNumber || "IDMKS998877";
+  const poNumber = shipment.poNumber || "ABF/LOI/2026/108";
+  const bankName = shipment.bankName || "PT. Bank Mandiri (Persero) Tbk";
+  const bankAccountNo = shipment.bankAccountNo || "152-00-9876543-2";
+  const bankSwift = shipment.bankSwift || "BMRIIDJA";
+  const paymentTerms =
+    shipment.paymentTerms ||
+    (isId
+      ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+      : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L");
 
   // Konversi kuantitas koli, berat net, berat gross, dan volume CBM
   const bagsCount =
@@ -177,7 +199,6 @@ export function DocumentsModule({
       ? pricing.active.offer
       : Math.round(netWeightMT * unitPricePerMT);
 
-  const isId = shipment.previewLanguage === "Bahasa Indonesia";
   const amountInWords = numberToWords(totalAmount, currency, isId ? "id" : "en");
 
   return (
@@ -229,6 +250,10 @@ export function DocumentsModule({
             </span>
             <span className="spec-dot">·</span>
             <span className="spec-item">
+              Penandatangan: <b>{signatoryName}</b> ({signatoryRole})
+            </span>
+            <span className="spec-dot">·</span>
+            <span className="spec-item">
               Status:{" "}
               <b className={shipment.documentReviewed ? "spec-reviewed" : "spec-draft"}>
                 {shipment.documentReviewed ? "✓ Selesai Diperiksa" : "Draft Transaksi"}
@@ -242,10 +267,10 @@ export function DocumentsModule({
             type="button"
             className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            title="Sesuaikan ukuran kertas, orientasi, logo, dan kop perusahaan"
+            title="Ubah data surat, permintaan buyer, kop, dan penandatangan"
           >
             <SlidersHorizontal size={14} />
-            <span>{isSettingsOpen ? "Tutup Setelan" : "Setelan Kop & Format"}</span>
+            <span>{isSettingsOpen ? "Tutup Pengaturan" : "Edit Dokumen & Setelan Kop"}</span>
             {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
 
@@ -303,6 +328,17 @@ export function DocumentsModule({
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
+              buyerPicName={buyerPicName}
+              buyerPicRole={buyerPicRole}
+              buyerPhone={buyerPhone}
+              buyerEmail={buyerEmail}
+              signatoryName={signatoryName}
+              signatoryRole={signatoryRole}
+              poNumber={poNumber}
+              bankName={bankName}
+              bankAccountNo={bankAccountNo}
+              bankSwift={bankSwift}
+              paymentTerms={paymentTerms}
               pol={pol}
               pod={pod}
               incoterm={incoterm}
@@ -320,11 +356,23 @@ export function DocumentsModule({
 
           {selectedDocument === "Sales Contract" && (
             <SalesContractDoc
+              shipment={shipment}
               exporterName={exporterName}
               exporterAddress={exporterAddress}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
+              buyerPicName={buyerPicName}
+              buyerPicRole={buyerPicRole}
+              buyerPhone={buyerPhone}
+              buyerEmail={buyerEmail}
+              signatoryName={signatoryName}
+              signatoryRole={signatoryRole}
+              poNumber={poNumber}
+              bankName={bankName}
+              bankAccountNo={bankAccountNo}
+              bankSwift={bankSwift}
+              paymentTerms={paymentTerms}
               pol={pol}
               pod={pod}
               incoterm={incoterm}
@@ -342,10 +390,20 @@ export function DocumentsModule({
 
           {selectedDocument === "Commercial Invoice" && (
             <CommercialInvoiceDoc
+              shipment={shipment}
               exporterName={exporterName}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
+              buyerPhone={buyerPhone}
+              buyerEmail={buyerEmail}
+              signatoryName={signatoryName}
+              signatoryRole={signatoryRole}
+              vesselName={vesselName}
+              containerNumber={containerNumber}
+              sealNumber={sealNumber}
+              poNumber={poNumber}
+              paymentTerms={paymentTerms}
               pol={pol}
               pod={pod}
               incoterm={incoterm}
@@ -365,10 +423,19 @@ export function DocumentsModule({
 
           {selectedDocument === "Packing List" && (
             <PackingListDoc
+              shipment={shipment}
               exporterName={exporterName}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
+              buyerPhone={buyerPhone}
+              buyerEmail={buyerEmail}
+              signatoryName={signatoryName}
+              signatoryRole={signatoryRole}
+              vesselName={vesselName}
+              containerNumber={containerNumber}
+              sealNumber={sealNumber}
+              poNumber={poNumber}
               pol={pol}
               pod={pod}
               productName={productName}
@@ -386,9 +453,21 @@ export function DocumentsModule({
           {(selectedDocument === "Shipping Instruction" ||
             selectedDocument === "Bill of Lading") && (
             <ShippingInstructionDoc
+              shipment={shipment}
               exporterName={exporterName}
+              exporterAddress={exporterAddress}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
+              buyerCountry={buyerCountry}
+              buyerPicName={buyerPicName}
+              buyerPhone={buyerPhone}
+              buyerEmail={buyerEmail}
+              signatoryName={signatoryName}
+              signatoryRole={signatoryRole}
+              vesselName={vesselName}
+              containerNumber={containerNumber}
+              sealNumber={sealNumber}
+              poNumber={poNumber}
               pol={pol}
               pod={pod}
               incoterm={incoterm}
@@ -471,10 +550,12 @@ function OfficialLetterhead({
 // --------------------------------------------------------------------------
 function OfficialStampAndSignature({
   exporterName,
+  signatoryName = "Muhajirin Fatona",
   role = "Export Director",
   isId = false,
 }: {
   exporterName: string;
+  signatoryName?: string;
   role?: string;
   showStamp?: boolean;
   isId?: boolean;
@@ -498,9 +579,9 @@ function OfficialStampAndSignature({
           {isId ? "[Tanda Tangan & Stempel Perusahaan]" : "[Signature & Company Stamp]"}
         </div>
       </div>
-      <b className="sig-signatory-name">{displayRole}</b>
+      <b className="sig-signatory-name">{signatoryName}</b>
       <span className="sig-signatory-title">
-        {isId ? "Penandatangan Berwenang (Authorized Signatory)" : "Authorized Signatory"}
+        {displayRole} {isId ? "(Penandatangan Berwenang)" : "· Authorized Signatory"}
       </span>
     </div>
   );
@@ -515,6 +596,17 @@ function ProformaInvoiceDoc({
   buyerName,
   buyerAddress,
   buyerCountry,
+  buyerPicName,
+  buyerPicRole,
+  buyerPhone,
+  buyerEmail,
+  signatoryName,
+  signatoryRole,
+  poNumber,
+  bankName,
+  bankAccountNo,
+  bankSwift,
+  paymentTerms,
   pol,
   pod,
   incoterm,
@@ -533,6 +625,17 @@ function ProformaInvoiceDoc({
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
+  buyerPicName?: string;
+  buyerPicRole?: string;
+  buyerPhone?: string;
+  buyerEmail?: string;
+  signatoryName?: string;
+  signatoryRole?: string;
+  poNumber?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankSwift?: string;
+  paymentTerms?: string;
   pol: string;
   pod: string;
   incoterm: string;
@@ -559,10 +662,13 @@ function ProformaInvoiceDoc({
           </span>
           <b className="doc-entity-name">{buyerName}</b>
           <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-          <p className="doc-entity-contact">Tel: +971 4 223 4567 | Email: procurement@albarakahfoods.ae</p>
+          <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
           <p className="doc-entity-contact">
             {isId ? "Narahubung:" : "Contact Person:"}{" "}
-            <b>Mr. Tariq Al-Mansoor {isId ? "(Direktur Pengadaan)" : "(Procurement Director)"}</b>
+            <b>
+              {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
+              {isId ? `(${buyerPicRole || "Direktur Pengadaan"})` : `(${buyerPicRole || "Procurement Director"})`}
+            </b>
           </p>
         </div>
 
@@ -581,7 +687,7 @@ function ProformaInvoiceDoc({
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Ref. Pembeli:" : "Buyer Ref:"}</span>
-            <span className="meta-value font-mono">{shipment.poNumber || "ABF/LOI/2026/108"}</span>
+            <span className="meta-value font-mono">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</span>
           </div>
         </div>
       </div>
@@ -612,9 +718,10 @@ function ProformaInvoiceDoc({
           <div className="col-span-full">
             <span className="terms-lbl">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>
             <b className="terms-val">
-              {isId
-                ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
-                : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L"}
+              {paymentTerms ||
+                (isId
+                  ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+                  : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
             </b>
           </div>
         </div>
@@ -684,7 +791,7 @@ function ProformaInvoiceDoc({
           <tbody>
             <tr>
               <td className="bank-lbl">{isId ? "Nama Bank:" : "Bank Name:"}</td>
-              <td className="bank-val font-semibold">PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang</td>
+              <td className="bank-val font-semibold">{bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Alamat Bank:" : "Bank Address:"}</td>
@@ -696,11 +803,11 @@ function ProformaInvoiceDoc({
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Nomor Rekening:" : "Account Number:"}</td>
-              <td className="bank-val font-mono font-bold">152-00-9876543-2 {isId ? "(Rekening Valas USD)" : "(USD Account)"}</td>
+              <td className="bank-val font-mono font-bold">{bankAccountNo || "152-00-9876543-2"} {isId ? "(Rekening Valas USD)" : "(USD Account)"}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Kode SWIFT / BIC:" : "SWIFT Code:"}</td>
-              <td className="bank-val font-mono font-bold">BMRIIDJA</td>
+              <td className="bank-val font-mono font-bold">{bankSwift || "BMRIIDJA"}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Mata Uang:" : "Currency:"}</td>
@@ -711,7 +818,12 @@ function ProformaInvoiceDoc({
       </div>
 
       <div className="doc-single-signature-wrap">
-        <OfficialStampAndSignature exporterName={exporterName} role="Export Director" isId={isId} />
+        <OfficialStampAndSignature
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole}
+          isId={isId}
+        />
       </div>
     </div>
   );
@@ -726,6 +838,17 @@ function SalesContractDoc({
   buyerName,
   buyerAddress,
   buyerCountry,
+  buyerPicName,
+  buyerPicRole,
+  buyerPhone,
+  buyerEmail,
+  signatoryName,
+  signatoryRole,
+  poNumber,
+  bankName,
+  bankAccountNo,
+  bankSwift,
+  paymentTerms,
   pol,
   pod,
   incoterm,
@@ -739,11 +862,23 @@ function SalesContractDoc({
   amountInWords,
   isId = false,
 }: {
+  shipment?: Shipment;
   exporterName: string;
   exporterAddress: string;
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
+  buyerPicName?: string;
+  buyerPicRole?: string;
+  buyerPhone?: string;
+  buyerEmail?: string;
+  signatoryName?: string;
+  signatoryRole?: string;
+  poNumber?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankSwift?: string;
+  paymentTerms?: string;
   pol: string;
   pod: string;
   incoterm: string;
@@ -771,6 +906,14 @@ function SalesContractDoc({
         <span>
           {isId ? "Tanggal:" : "Date:"} <b>{isId ? "2 November 2026" : "November 2, 2026"}</b>
         </span>
+        {poNumber && (
+          <>
+            <span>|</span>
+            <span>
+              {isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"} <b>{poNumber}</b>
+            </span>
+          </>
+        )}
       </div>
 
       <p className="doc-preamble-text">
@@ -799,12 +942,11 @@ function SalesContractDoc({
           <b className="party-name">{buyerName}</b>
           <p className="party-address">{buyerAddress}, {buyerCountry}</p>
           <p className="party-phone">
-            {isId ? "Telepon:" : "Phone:"} +971 4 223 4567 | Email: procurement@albarakahfoods.ae
+            {isId ? "Telepon:" : "Phone:"} {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
           </p>
           <p className="party-tax">
-            {isId
-              ? "Up: Mr. Tariq Al-Mansoor (Direktur Pengadaan)"
-              : "Attn: Mr. Tariq Al-Mansoor (Procurement Director)"}
+            {isId ? "Up:" : "Attn:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
+            ({isId ? buyerPicRole || "Direktur Pengadaan" : buyerPicRole || "Procurement Director"})
           </p>
         </div>
       </div>
@@ -858,19 +1000,18 @@ function SalesContractDoc({
           </h4>
           <p>
             {isId
-              ? "Pembayaran dilakukan melalui Telegraphic Transfer (T/T) ke rekening bank yang ditunjuk oleh Penjual (PT. Bank Mandiri (Persero) Tbk, No. Rek: 152-00-9876543-2, SWIFT: BMRIIDJA) sebagai berikut:"
-              : "Payment shall be made by Telegraphic Transfer (T/T) to Seller's designated bank account (PT. Bank Mandiri (Persero) Tbk, Acc No: 152-00-9876543-2, SWIFT: BMRIIDJA) as follows:"}
+              ? `Pembayaran dilakukan melalui Telegraphic Transfer (T/T) ke rekening bank yang ditunjuk oleh Penjual (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, No. Rek: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}) sebagai berikut:`
+              : `Payment shall be made by Telegraphic Transfer (T/T) to Seller's designated bank account (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, Acc No: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}) as follows:`}
           </p>
           <ol className="article-ordered-list">
             <li>
               <b>
-                {isId
-                  ? `50% Uang Muka (DP) (${currency} ${formatNumber(totalAmount * 0.5, 2)})`
-                  : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)})`}
+                {isId ? "Ketentuan:" : "Terms:"}
               </b>{" "}
-              {isId
-                ? "dibayarkan dalam waktu 3 (tiga) hari kerja setelah penandatanganan kontrak ini."
-                : "payable within 3 (three) working days after signing this contract."}
+              {paymentTerms ||
+                (isId
+                  ? `50% Uang Muka (DP) (${currency} ${formatNumber(totalAmount * 0.5, 2)}) dibayarkan dalam waktu 3 hari kerja.`
+                  : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)}) payable within 3 working days.`)}
             </li>
             <li>
               <b>
@@ -941,8 +1082,8 @@ function SalesContractDoc({
           <div className="sig-box-space">
             <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
           </div>
-          <b className="sig-name">Tariq Al-Mansoor</b>
-          <span className="sig-sub">{isId ? "Direktur Pengadaan" : "Procurement Director"}</span>
+          <b className="sig-name">{buyerPicName || "Tariq Al-Mansoor"}</b>
+          <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
         </div>
 
         <div className="sig-side sig-side-right">
@@ -953,8 +1094,10 @@ function SalesContractDoc({
           <div className="sig-box-space">
             <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
           </div>
-          <b className="sig-name">{isId ? "Direktur Ekspor" : "Export Director"}</b>
-          <span className="sig-sub">{isId ? "Penandatangan Berwenang" : "Authorized Signatory"}</span>
+          <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
+          <span className="sig-sub">
+            {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")} {isId ? "· Penandatangan Berwenang" : "· Authorized Signatory"}
+          </span>
         </div>
       </div>
     </div>
@@ -969,6 +1112,15 @@ function CommercialInvoiceDoc({
   buyerName,
   buyerAddress,
   buyerCountry,
+  buyerPhone,
+  buyerEmail,
+  signatoryName,
+  signatoryRole,
+  vesselName,
+  containerNumber,
+  sealNumber,
+  poNumber,
+  paymentTerms,
   pol,
   pod,
   incoterm,
@@ -984,10 +1136,20 @@ function CommercialInvoiceDoc({
   amountInWords,
   isId = false,
 }: {
+  shipment?: Shipment;
   exporterName: string;
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
+  buyerPhone?: string;
+  buyerEmail?: string;
+  signatoryName?: string;
+  signatoryRole?: string;
+  vesselName?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  poNumber?: string;
+  paymentTerms?: string;
   pol: string;
   pod: string;
   incoterm: string;
@@ -1027,7 +1189,7 @@ function CommercialInvoiceDoc({
             </span>
             <b className="doc-entity-name">{buyerName}</b>
             <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-            <p className="doc-entity-contact">Tel: +971 4 223 4567 | Email: procurement@albarakahfoods.ae</p>
+            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
           </div>
 
           <div className="doc-box">
@@ -1054,9 +1216,15 @@ function CommercialInvoiceDoc({
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
               <b className="meta-value font-mono">SC/IEI-ABF/XI/2026/001</b>
             </div>
+            {poNumber && (
+              <div className="meta-pair">
+                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
+                <b className="meta-value font-mono">{poNumber}</b>
+              </div>
+            )}
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>{" "}
-              <span className="meta-value">Telegraphic Transfer (T/T)</span>
+              <span className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</span>
             </div>
           </div>
 
@@ -1066,7 +1234,7 @@ function CommercialInvoiceDoc({
             </span>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
-              <b className="meta-value">KMTC SHIMIZU V.2611N</b>
+              <b className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
@@ -1078,7 +1246,7 @@ function CommercialInvoiceDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <b className="meta-value font-mono">TGHU 2468135 / IDMKS998877 (1x20&apos; FCL)</b>
+              <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
@@ -1101,7 +1269,7 @@ function CommercialInvoiceDoc({
         <tbody>
           <tr>
             <td className="font-mono text-xs">
-              <b>AL BARAKAH</b><br />
+              <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
               DUBAI - UAE<br />
               BATCH: 11/26<br />
               PROD: 11/2026<br />
@@ -1165,7 +1333,12 @@ function CommercialInvoiceDoc({
       </div>
 
       <div className="doc-single-signature-wrap">
-        <OfficialStampAndSignature exporterName={exporterName} role="Export Director" isId={isId} />
+        <OfficialStampAndSignature
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole}
+          isId={isId}
+        />
       </div>
     </div>
   );
@@ -1179,6 +1352,14 @@ function PackingListDoc({
   buyerName,
   buyerAddress,
   buyerCountry,
+  buyerPhone,
+  buyerEmail,
+  signatoryName,
+  signatoryRole,
+  vesselName,
+  containerNumber,
+  sealNumber,
+  poNumber,
   pol,
   pod,
   productName,
@@ -1191,10 +1372,19 @@ function PackingListDoc({
   totalCBM,
   isId = false,
 }: {
+  shipment?: Shipment;
   exporterName: string;
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
+  buyerPhone?: string;
+  buyerEmail?: string;
+  signatoryName?: string;
+  signatoryRole?: string;
+  vesselName?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  poNumber?: string;
   pol: string;
   pod: string;
   productName: string;
@@ -1231,7 +1421,7 @@ function PackingListDoc({
             </span>
             <b className="doc-entity-name">{buyerName}</b>
             <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-            <p className="doc-entity-contact">Tel: +971 4 223 4567 | Email: procurement@albarakahfoods.ae</p>
+            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
           </div>
 
           <div className="doc-box">
@@ -1262,6 +1452,12 @@ function PackingListDoc({
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
               <b className="meta-value font-mono">SC/IEI-ABF/XI/2026/001</b>
             </div>
+            {poNumber && (
+              <div className="meta-pair">
+                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
+                <b className="meta-value font-mono">{poNumber}</b>
+              </div>
+            )}
           </div>
 
           <div className="doc-box transport-box">
@@ -1270,7 +1466,7 @@ function PackingListDoc({
             </span>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
-              <b className="meta-value">KMTC SHIMIZU V.2611N</b>
+              <b className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
@@ -1282,7 +1478,7 @@ function PackingListDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <b className="meta-value font-mono">TGHU 2468135 / IDMKS998877 (1x20&apos; FCL)</b>
+              <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
@@ -1306,7 +1502,7 @@ function PackingListDoc({
         <tbody>
           <tr>
             <td className="font-mono text-xs">
-              <b>AL BARAKAH</b><br />
+              <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
               DUBAI - UAE<br />
               BATCH: 11/26<br />
               PROD: 11/2026<br />
@@ -1354,7 +1550,12 @@ function PackingListDoc({
       </table>
 
       <div className="doc-single-signature-wrap">
-        <OfficialStampAndSignature exporterName={exporterName} role="Export Director" isId={isId} />
+        <OfficialStampAndSignature
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole}
+          isId={isId}
+        />
       </div>
     </div>
   );
@@ -1365,8 +1566,18 @@ function PackingListDoc({
 // --------------------------------------------------------------------------
 function ShippingInstructionDoc({
   exporterName,
+  exporterAddress,
   buyerName,
   buyerAddress,
+  buyerPicName,
+  buyerPhone,
+  buyerEmail,
+  signatoryName,
+  signatoryRole,
+  vesselName,
+  containerNumber,
+  sealNumber,
+  poNumber,
   pol,
   pod,
   incoterm,
@@ -1378,9 +1589,21 @@ function ShippingInstructionDoc({
   totalCBM,
   isId = false,
 }: {
+  shipment?: Shipment;
   exporterName: string;
+  exporterAddress?: string;
   buyerName: string;
   buyerAddress: string;
+  buyerCountry?: string;
+  buyerPicName?: string;
+  buyerPhone?: string;
+  buyerEmail?: string;
+  signatoryName?: string;
+  signatoryRole?: string;
+  vesselName?: string;
+  containerNumber?: string;
+  sealNumber?: string;
+  poNumber?: string;
   pol: string;
   pod: string;
   incoterm: string;
@@ -1432,7 +1655,7 @@ function ShippingInstructionDoc({
           </div>
           <b className="party-title">{exporterName}</b>
           <p className="party-txt">
-            Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia
+            {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
           </p>
           <p className="party-txt">
             {isId ? "Telepon:" : "Tel:"} +62 812 3456 7890 | Email: official@indicoexport.com
@@ -1446,8 +1669,8 @@ function ShippingInstructionDoc({
           </div>
           <b className="party-title">{buyerName}</b>
           <p className="party-txt">{buyerAddress}</p>
-          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} +971 4 223 4567</p>
-          <p className="party-txt">Email: procurement@albarakahfoods.ae</p>
+          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
+          <p className="party-txt">Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
         </div>
 
         <div className="si-party-card">
@@ -1456,15 +1679,17 @@ function ShippingInstructionDoc({
           </div>
           <b className="party-title">{isId ? "SAMA DENGAN PENERIMA" : "SAME AS CONSIGNEE"}</b>
           <p className="party-txt mt-2">{buyerName}</p>
-          <p className="party-txt">{isId ? "Narahubung: Mr. Tariq Al-Mansoor" : "Contact: Mr. Tariq Al-Mansoor"}</p>
-          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} +971 4 223 4567</p>
+          <p className="party-txt">
+            {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}
+          </p>
+          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
         </div>
       </div>
 
       <div className="doc-transport-row-strip">
         <div className="strip-item">
           <span className="strip-lbl">{isId ? "Kapal / Pelayaran" : "Vessel / Voyage"}</span>
-          <b className="strip-val">KMTC SHIMIZU V.2611N</b>
+          <b className="strip-val">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
           <small className="strip-sub">ETD: Nov 21, 2026</small>
         </div>
         <div className="strip-item">
@@ -1495,7 +1720,7 @@ function ShippingInstructionDoc({
         <tbody>
           <tr>
             <td className="font-mono text-xs">
-              <b>AL BARAKAH</b><br />
+              <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
               DUBAI - UAE<br />
               BATCH: 11/26<br />
               PROD: 11/2026<br />
@@ -1517,7 +1742,7 @@ function ShippingInstructionDoc({
               </p>
               <p className="text-xs font-mono text-slate-700 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
               <p className="text-xs font-mono font-bold text-slate-800">
-                {isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"} TGHU 2468135 / IDMKS998877
+                {isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
               </p>
               <p className="text-xs font-bold text-slate-800">
                 {isId ? "NEGARA ASAL: INDONESIA" : "COUNTRY OF ORIGIN: INDONESIA"}
@@ -1582,7 +1807,8 @@ function ShippingInstructionDoc({
       <div className="doc-single-signature-wrap">
         <OfficialStampAndSignature
           exporterName={exporterName}
-          role="Logistics & Export Manager"
+          signatoryName={signatoryName}
+          role={signatoryRole || (isId ? "Manajer Logistik & Ekspor" : "Logistics & Export Manager")}
           isId={isId}
         />
       </div>
@@ -1604,7 +1830,9 @@ function DocumentSettings({
   onLetterheadImage: (file?: File) => void;
   onClose: () => void;
 }) {
+  const [settingsTab, setSettingsTab] = useState<"kop" | "content">("kop");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const isId = shipment.previewLanguage === "Bahasa Indonesia";
 
   const templates: { name: DocumentTemplate; badge: string; detail: string }[] = [
     {
@@ -1635,11 +1863,11 @@ function DocumentSettings({
         <div>
           <div className="doc-settings-eyebrow">
             <SlidersHorizontal size={13} />
-            <span>PENGATURAN KOP SURAT & FORMAT 5 DOKUMEN EKSPOR</span>
+            <span>PENGATURAN KOP SURAT & EDIT ISI DOKUMEN EKSPOR</span>
           </div>
-          <h3 className="doc-settings-heading">Konfigurasi Identitas Resmi & Parameter Ekspor</h3>
+          <h3 className="doc-settings-heading">Konfigurasi Identitas Resmi, Penandatangan & Data Dokumen</h3>
           <p className="doc-settings-sub">
-            Atur identitas kop surat perusahaan eksportir, pelabuhan muat, nomor kontainer/segel, ukuran kertas, dan gaya template cetak.
+            Atur nama & jabatan penandatangan eksportir, kop surat & logo, ukuran kertas, serta sesuaikan data buyer, kontainer, dan pengapalan sesuai request transaksi.
           </p>
         </div>
         <button
@@ -1652,161 +1880,339 @@ function DocumentSettings({
         </button>
       </div>
 
-      <div className="doc-settings-columns">
-        {/* Kolom 1: Format Kertas & Bahasa */}
-        <div className="doc-settings-card">
-          <div className="doc-settings-card-header">
-            <h4>1. Format Kertas & Output</h4>
-            <p>Spesifikasi cetak fisik dan bahasa tampilan dokumen.</p>
-          </div>
-          <div className="doc-settings-card-fields">
-            <SelectField
-              label="Ukuran Kertas Dokumen"
-              value={shipment.paperSize}
-              onChange={(value) => update("paperSize", value as PaperSize)}
-            >
-              <option value="A4">A4 · 210 × 297 mm (Standar Internasional ISO)</option>
-              <option value="Letter">US Letter · 8.5 × 11 in (Standar Amerika)</option>
-              <option value="Legal">US Legal · 8.5 × 14 in (Panjang)</option>
-            </SelectField>
+      {/* Tab Switcher */}
+      <div className="doc-settings-tabs-nav">
+        <button
+          type="button"
+          className={`doc-settings-nav-tab ${settingsTab === "kop" ? "active" : ""}`}
+          onClick={() => setSettingsTab("kop")}
+        >
+          <SlidersHorizontal size={14} />
+          <span>1. Setelan Kop, Format Kertas & Penandatangan</span>
+        </button>
+        <button
+          type="button"
+          className={`doc-settings-nav-tab ${settingsTab === "content" ? "active" : ""}`}
+          onClick={() => setSettingsTab("content")}
+        >
+          <FileText size={14} />
+          <span>2. Edit Isi Dokumen & Permintaan Buyer</span>
+          <span className="doc-settings-tab-badge">Permintaan Buyer / Transaksi</span>
+        </button>
+      </div>
 
-            <SelectField
-              label="Orientasi Kertas"
-              value={shipment.documentOrientation}
-              onChange={(value) => update("documentOrientation", value as DocumentOrientation)}
-            >
-              <option value="Portrait">Portrait · Default (Standar Invoice & PL)</option>
-              <option value="Landscape">Landscape · Horizontal (Untuk tabel lebar)</option>
-            </SelectField>
+      {settingsTab === "kop" ? (
+        <div className="doc-settings-columns">
+          {/* Kolom 1: Format Kertas & Bahasa */}
+          <div className="doc-settings-card">
+            <div className="doc-settings-card-header">
+              <h4>1. Format Kertas & Output</h4>
+              <p>Spesifikasi cetak fisik dan bahasa tampilan dokumen.</p>
+            </div>
+            <div className="doc-settings-card-fields">
+              <SelectField
+                label="Ukuran Kertas Dokumen"
+                value={shipment.paperSize}
+                onChange={(value) => update("paperSize", value as PaperSize)}
+              >
+                <option value="A4">A4 · 210 × 297 mm (Standar Internasional ISO)</option>
+                <option value="Letter">US Letter · 8.5 × 11 in (Standar Amerika)</option>
+                <option value="Legal">US Legal · 8.5 × 14 in (Panjang)</option>
+              </SelectField>
 
-            <SelectField
-              label="Bahasa Dokumen"
-              value={shipment.previewLanguage}
-              onChange={changeLanguage}
-            >
-              <option value="English">English · Standar Resmi Ekspor Global</option>
-              <option value="Bahasa Indonesia">Bahasa Indonesia · Pratinjau Internal</option>
-            </SelectField>
+              <SelectField
+                label="Orientasi Kertas"
+                value={shipment.documentOrientation}
+                onChange={(value) => update("documentOrientation", value as DocumentOrientation)}
+              >
+                <option value="Portrait">Portrait · Default (Standar Invoice & PL)</option>
+                <option value="Landscape">Landscape · Horizontal (Untuk tabel lebar)</option>
+              </SelectField>
 
-            <div className="doc-settings-note">
-              Dokumen ekspor (PI, SC, CI, PL, SI) dicetak dalam <b>English</b> sesuai ketentuan perdagangan internasional (ICC Incoterms & Kepabeanan).
+              <SelectField
+                label="Bahasa Dokumen"
+                value={shipment.previewLanguage}
+                onChange={changeLanguage}
+              >
+                <option value="English">English · Standar Resmi Ekspor Global</option>
+                <option value="Bahasa Indonesia">Bahasa Indonesia · Pratinjau Internal</option>
+              </SelectField>
+
+              <div className="doc-settings-note">
+                Dokumen ekspor (PI, SC, CI, PL, SI) dicetak dalam <b>English</b> sesuai ketentuan perdagangan internasional (ICC Incoterms & Kepabeanan).
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Kolom 2: Identitas Kop Surat & Port */}
-        <div className="doc-settings-card">
-          <div className="doc-settings-card-header">
-            <h4>2. Identitas Eksportir & Pelabuhan</h4>
-            <p>Informasi perusahaan yang dicetak pada kepala surat dokumen.</p>
-          </div>
-          <div className="doc-settings-card-fields">
-            <Field
-              label="Nama Perusahaan Eksportir"
-              value={shipment.exporter}
-              placeholder="Contoh: PT. INDICO EXPORT INDONESIA"
-              onChange={(value) => update("exporter", value)}
-            />
-
-            <Field
-              label="Pelabuhan Muat / Port of Loading (POL)"
-              value={shipment.namedPlace}
-              placeholder="Contoh: Makassar New Port, South Sulawesi, Indonesia"
-              onChange={(value) => update("namedPlace", value)}
-            />
-
-            <Field
-              label="Alamat & Kontak Kop Surat"
-              value={shipment.letterheadText}
-              placeholder="Jl. Adiyaksa Baru No. 1B, Makassar..."
-              onChange={(value) => update("letterheadText", value)}
-            />
-
-            {/* Custom Logo Upload Dropzone */}
-            <div className="doc-logo-field">
-              <label className="field-label">Logo Resmi Perusahaan Eksportir</label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                style={{ display: "none" }}
-                onChange={(e) => onLetterheadImage(e.target.files?.[0])}
+          {/* Kolom 2: Identitas Eksportir & Penandatangan */}
+          <div className="doc-settings-card">
+            <div className="doc-settings-card-header">
+              <h4>2. Identitas Eksportir & Penandatangan</h4>
+              <p>Nama legal perusahaan, pejabat penandatangan resmi, dan pelabuhan muat.</p>
+            </div>
+            <div className="doc-settings-card-fields">
+              <Field
+                label="Nama Perusahaan Eksportir"
+                value={shipment.exporter}
+                placeholder="Contoh: PT. INDICO EXPORT INDONESIA"
+                onChange={(value) => update("exporter", value)}
               />
-              {shipment.letterheadImage ? (
-                <div className="doc-logo-active-card">
-                  <div className="doc-logo-preview-thumb">
-                    <img src={shipment.letterheadImage} alt="Logo Perusahaan Aktif" />
-                  </div>
-                  <div className="doc-logo-meta">
-                    <b>Logo Resmi Terpasang</b>
-                    <small>Disematkan otomatis pada kop surat dokumen</small>
-                    <div className="doc-logo-btn-row">
-                      <button
-                        type="button"
-                        className="doc-logo-change-btn"
-                        onClick={() => fileInputRef.current?.click()}
-                      >
-                        Ganti File
-                      </button>
-                      <button
-                        type="button"
-                        className="doc-logo-delete-btn"
-                        onClick={() => update("letterheadImage", "")}
-                      >
-                        <Trash2 size={13} /> Hapus
-                      </button>
+
+              <Field
+                label="Nama Penandatangan Eksportir"
+                value={shipment.signatoryName ?? "Muhajirin Fatona"}
+                placeholder="Contoh: Muhajirin Fatona"
+                onChange={(value) => update("signatoryName", value)}
+              />
+
+              <Field
+                label="Jabatan Penandatangan"
+                value={shipment.signatoryRole ?? (isId ? "Direktur Ekspor" : "Export Director")}
+                placeholder="Contoh: Export Director / Direktur Ekspor"
+                onChange={(value) => update("signatoryRole", value)}
+              />
+
+              <Field
+                label="Pelabuhan Muat / Port of Loading (POL)"
+                value={shipment.namedPlace}
+                placeholder="Contoh: Makassar New Port, South Sulawesi, Indonesia"
+                onChange={(value) => update("namedPlace", value)}
+              />
+
+              <Field
+                label="Alamat & Kontak Kop Surat"
+                value={shipment.letterheadText}
+                placeholder="Jl. Adiyaksa Baru No. 1B, Makassar..."
+                onChange={(value) => update("letterheadText", value)}
+              />
+
+              {/* Custom Logo Upload Dropzone */}
+              <div className="doc-logo-field">
+                <label className="field-label">Logo Resmi Perusahaan Eksportir</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  style={{ display: "none" }}
+                  onChange={(e) => onLetterheadImage(e.target.files?.[0])}
+                />
+                {shipment.letterheadImage ? (
+                  <div className="doc-logo-active-card">
+                    <div className="doc-logo-preview-thumb">
+                      <img src={shipment.letterheadImage} alt="Logo Perusahaan Aktif" />
+                    </div>
+                    <div className="doc-logo-meta">
+                      <b>Logo Resmi Terpasang</b>
+                      <small>Disematkan otomatis pada kop surat dokumen</small>
+                      <div className="doc-logo-btn-row">
+                        <button
+                          type="button"
+                          className="doc-logo-change-btn"
+                          onClick={() => fileInputRef.current?.click()}
+                        >
+                          Ganti File
+                        </button>
+                        <button
+                          type="button"
+                          className="doc-logo-delete-btn"
+                          onClick={() => update("letterheadImage", "")}
+                        >
+                          <Trash2 size={13} /> Hapus
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ) : (
-                <div
-                  className="doc-logo-dropzone"
-                  onClick={() => fileInputRef.current?.click()}
-                  role="button"
-                  tabIndex={0}
-                >
-                  <div className="dropzone-icon-circle">
-                    <UploadCloud size={20} />
+                ) : (
+                  <div
+                    className="doc-logo-dropzone"
+                    onClick={() => fileInputRef.current?.click()}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="dropzone-icon-circle">
+                      <UploadCloud size={20} />
+                    </div>
+                    <div className="dropzone-text-group">
+                      <span className="dropzone-title">Klik untuk unggah logo resmi perusahaan</span>
+                      <span className="dropzone-hint">Format PNG, JPG, atau WEBP · Maksimal 2 MB</span>
+                    </div>
                   </div>
-                  <div className="dropzone-text-group">
-                    <span className="dropzone-title">Klik untuk unggah logo resmi perusahaan</span>
-                    <span className="dropzone-hint">Format PNG, JPG, atau WEBP · Maksimal 2 MB</span>
-                  </div>
-                </div>
-              )}
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Kolom 3: Template Gallery */}
+          <div className="doc-settings-card">
+            <div className="doc-settings-card-header">
+              <h4>3. Gaya Desain Template Eksekutif</h4>
+              <p>Pilih gaya estetika dokumen yang sesuai dengan profil perusahaan.</p>
+            </div>
+            <div className="doc-template-list">
+              {templates.map((tpl) => {
+                const isSelected = shipment.documentTemplate === tpl.name;
+                return (
+                  <button
+                    key={tpl.name}
+                    type="button"
+                    className={`doc-template-option-card ${isSelected ? "selected" : ""}`}
+                    onClick={() => update("documentTemplate", tpl.name)}
+                  >
+                    <div className="tpl-option-header">
+                      <span className="tpl-name">{tpl.name}</span>
+                      <span className={`tpl-badge ${isSelected ? "active" : ""}`}>
+                        {tpl.badge}
+                      </span>
+                    </div>
+                    <p className="tpl-detail">{tpl.detail}</p>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
-
-        {/* Kolom 3: Template Gallery */}
-        <div className="doc-settings-card">
-          <div className="doc-settings-card-header">
-            <h4>3. Gaya Desain Template Eksekutif</h4>
-            <p>Pilih gaya estetika dokumen yang sesuai dengan profil perusahaan.</p>
+      ) : (
+        /* Tab 2: Edit Isi Dokumen & Permintaan Buyer */
+        <div className="doc-settings-columns">
+          {/* Kolom 1: Data Pembeli / Buyer */}
+          <div className="doc-settings-card">
+            <div className="doc-settings-card-header">
+              <h4>1. Permintaan & Data Buyer (Penerima)</h4>
+              <p>Identitas importir, alamat kantor, dan narahubung pemesan.</p>
+            </div>
+            <div className="doc-settings-card-fields">
+              <Field
+                label="Nama Perusahaan Buyer"
+                value={shipment.buyer}
+                placeholder="Contoh: AL BARAKAH FOODSTUFF TRADING LLC"
+                onChange={(value) => update("buyer", value)}
+              />
+              <Field
+                label="Alamat Lengkap Buyer / Consignee"
+                value={shipment.buyerAddress || shipment.destination}
+                placeholder="P.O. Box 112233, Al Ras Area, Deira, Dubai"
+                onChange={(value) => update("buyerAddress", value)}
+              />
+              <Field
+                label="Negara Buyer"
+                value={shipment.buyerCountry}
+                placeholder="Contoh: United Arab Emirates"
+                onChange={(value) => update("buyerCountry", value)}
+              />
+              <Field
+                label="Nama Narahubung / PIC Buyer"
+                value={shipment.buyerPicName || "Tariq Al-Mansoor"}
+                placeholder="Contoh: Mr. Tariq Al-Mansoor"
+                onChange={(value) => update("buyerPicName", value)}
+              />
+              <Field
+                label="Jabatan Narahubung Buyer"
+                value={shipment.buyerPicRole || "Procurement Director"}
+                placeholder="Contoh: Procurement Director"
+                onChange={(value) => update("buyerPicRole", value)}
+              />
+              <Field
+                label="No. Telepon Buyer"
+                value={shipment.buyerPhone || "+971 4 223 4567"}
+                placeholder="+971 4 223 4567"
+                onChange={(value) => update("buyerPhone", value)}
+              />
+              <Field
+                label="Email Buyer"
+                value={shipment.buyerEmail || "procurement@albarakahfoods.ae"}
+                placeholder="buyer@domain.com"
+                onChange={(value) => update("buyerEmail", value)}
+              />
+            </div>
           </div>
-          <div className="doc-template-list">
-            {templates.map((tpl) => {
-              const isSelected = shipment.documentTemplate === tpl.name;
-              return (
-                <button
-                  key={tpl.name}
-                  type="button"
-                  className={`doc-template-option-card ${isSelected ? "selected" : ""}`}
-                  onClick={() => update("documentTemplate", tpl.name)}
-                >
-                  <div className="tpl-option-header">
-                    <span className="tpl-name">{tpl.name}</span>
-                    <span className={`tpl-badge ${isSelected ? "active" : ""}`}>
-                      {tpl.badge}
-                    </span>
-                  </div>
-                  <p className="tpl-detail">{tpl.detail}</p>
-                </button>
-              );
-            })}
+
+          {/* Kolom 2: Nomor Transaksi & Syarat Pembayaran */}
+          <div className="doc-settings-card">
+            <div className="doc-settings-card-header">
+              <h4>2. Referensi PO & Syarat Pembayaran</h4>
+              <p>Nomor PO pesanan buyer, termin pembayaran, dan rekening eksportir.</p>
+            </div>
+            <div className="doc-settings-card-fields">
+              <Field
+                label="No. PO / Referensi Buyer (Buyer Ref)"
+                value={shipment.poNumber || "ABF/LOI/2026/108"}
+                placeholder="Contoh: ABF/LOI/2026/108"
+                onChange={(value) => update("poNumber", value)}
+              />
+              <Field
+                label="Syarat Pembayaran (Payment Terms)"
+                value={shipment.paymentTerms || "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L"}
+                placeholder="Contoh: 50% DP / 50% against Copy of B/L"
+                onChange={(value) => update("paymentTerms", value)}
+              />
+              <Field
+                label="Nama Bank Eksportir"
+                value={shipment.bankName || "PT. Bank Mandiri (Persero) Tbk"}
+                placeholder="Contoh: PT. Bank Mandiri (Persero) Tbk"
+                onChange={(value) => update("bankName", value)}
+              />
+              <Field
+                label="Nomor Rekening Bank"
+                value={shipment.bankAccountNo || "152-00-9876543-2"}
+                placeholder="Contoh: 152-00-9876543-2"
+                onChange={(value) => update("bankAccountNo", value)}
+              />
+              <Field
+                label="Kode SWIFT Bank"
+                value={shipment.bankSwift || "BMRIIDJA"}
+                placeholder="Contoh: BMRIIDJA"
+                onChange={(value) => update("bankSwift", value)}
+              />
+            </div>
+          </div>
+
+          {/* Kolom 3: Logistik Pengapalan & Kontainer */}
+          <div className="doc-settings-card">
+            <div className="doc-settings-card-header">
+              <h4>3. Logistik Pengapalan & Kontainer</h4>
+              <p>Rute pelabuhan, nama kapal pengangkut, nomor kontainer dan segel.</p>
+            </div>
+            <div className="doc-settings-card-fields">
+              <Field
+                label="Nama Kapal & Voyage (Vessel / Voyage)"
+                value={shipment.vesselName || shipment.bookingNumber || "KMTC SHIMIZU V.2611N"}
+                placeholder="Contoh: KMTC SHIMIZU V.2611N"
+                onChange={(value) => {
+                  update("vesselName", value);
+                  update("bookingNumber", value);
+                }}
+              />
+              <Field
+                label="Nomor Kontainer"
+                value={shipment.containerNumber || "TGHU 2468135"}
+                placeholder="Contoh: TGHU 2468135"
+                onChange={(value) => update("containerNumber", value)}
+              />
+              <Field
+                label="Nomor Segel (Seal No.)"
+                value={shipment.sealNumber || "IDMKS998877"}
+                placeholder="Contoh: IDMKS998877"
+                onChange={(value) => update("sealNumber", value)}
+              />
+              <Field
+                label="Pelabuhan Bongkar / Port of Discharge (POD)"
+                value={shipment.destination || "Jebel Ali Port, Dubai, UAE"}
+                placeholder="Contoh: Jebel Ali Port, Dubai, UAE"
+                onChange={(value) => update("destination", value)}
+              />
+              <Field
+                label="Pelabuhan Muat / Port of Loading (POL)"
+                value={shipment.namedPlace || "Makassar New Port, South Sulawesi, Indonesia"}
+                placeholder="Contoh: Makassar New Port, South Sulawesi, Indonesia"
+                onChange={(value) => update("namedPlace", value)}
+              />
+              <div className="doc-settings-note">
+                💡 <b>Sinkronisasi Otomatis:</b> Setiap penyesuaian data buyer, PO, syarat pembayaran, kapal, dan kontainer langsung terhubung dan terbit di ke-5 dokumen ekspor secara serempak.
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </section>
   );
 }

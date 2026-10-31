@@ -98,6 +98,17 @@ export type Shipment = {
   bookingNumber: string;
   containerNumber: string;
   sealNumber: string;
+  signatoryName?: string;
+  signatoryRole?: string;
+  buyerAddress?: string;
+  buyerPicName?: string;
+  buyerPicRole?: string;
+  buyerPhone?: string;
+  buyerEmail?: string;
+  vesselName?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankSwift?: string;
   shipmentStatus: ShipmentStatus;
   attachments: string[];
   lineItems: LineItem[];
@@ -163,10 +174,21 @@ export const initialShipment: Shipment = {
   documentRevision: 1,
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",
-  poNumber: "NPI-2026-118",
-  bookingNumber: "",
-  containerNumber: "",
-  sealNumber: "",
+  poNumber: "ABF/LOI/2026/108",
+  bookingNumber: "KMTC SHIMIZU V.2611N",
+  containerNumber: "TGHU 2468135",
+  sealNumber: "IDMKS998877",
+  signatoryName: "Muhajirin Fatona",
+  signatoryRole: "Export Director",
+  buyerAddress: "P.O. Box 112233, Al Ras Area, Deira, Dubai, United Arab Emirates",
+  buyerPicName: "Tariq Al-Mansoor",
+  buyerPicRole: "Procurement Director",
+  buyerPhone: "+971 4 223 4567",
+  buyerEmail: "procurement@albarakahfoods.ae",
+  vesselName: "KMTC SHIMIZU V.2611N",
+  bankName: "PT. Bank Mandiri (Persero) Tbk",
+  bankAccountNo: "152-00-9876543-2",
+  bankSwift: "BMRIIDJA",
   shipmentStatus: "Quotation",
   attachments: ["Buyer_PO_NPI-2026-118.pdf"],
   additionalCostFactors: [],
@@ -260,6 +282,17 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     bookingNumber: "",
     containerNumber: "",
     sealNumber: "",
+    signatoryName: "Muhajirin Fatona",
+    signatoryRole: "Export Director",
+    buyerAddress: "",
+    buyerPicName: "",
+    buyerPicRole: "",
+    buyerPhone: "",
+    buyerEmail: "",
+    vesselName: "",
+    bankName: "PT. Bank Mandiri (Persero) Tbk",
+    bankAccountNo: "152-00-9876543-2",
+    bankSwift: "BMRIIDJA",
     shipmentStatus: "Draft",
     attachments: [],
     lineItems: [{ ...emptyLineItem }],
@@ -313,6 +346,20 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "documentTemplate",
   "letterheadText",
   "letterheadImage",
+  "signatoryName",
+  "signatoryRole",
+  "buyerAddress",
+  "buyerPicName",
+  "buyerPicRole",
+  "buyerPhone",
+  "buyerEmail",
+  "vesselName",
+  "containerNumber",
+  "sealNumber",
+  "poNumber",
+  "bankName",
+  "bankAccountNo",
+  "bankSwift",
 ];
 
 /**
