@@ -21,30 +21,22 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardList,
-  FileCheck,
   FileCheck2,
   FileSignature,
-  FileSpreadsheet,
   FileText,
   Landmark,
-  Mail,
-  MapPin,
-  Phone,
   Printer,
-  RefreshCcw,
   ShieldAlert,
   ShieldCheck,
   Ship,
   SlidersHorizontal,
-  Stamp,
   Trash2,
-  Truck,
   UploadCloud,
   X,
 } from "lucide-react";
 import React, { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Field, SelectField, StatusPill } from "./Primitives";
+import { Field, SelectField } from "./Primitives";
 
 export function DocumentsModule({
   shipment,
@@ -55,7 +47,6 @@ export function DocumentsModule({
   setSelectedDocument,
   printDocument,
   navigate,
-  effectiveApprovalStatus,
 }: {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
@@ -72,51 +63,13 @@ export function DocumentsModule({
   const documents: {
     type: DocumentType;
     code: string;
-    caption: string;
     icon: React.ReactNode;
-    status: string;
-    badgeTone: "green" | "amber" | "blue";
   }[] = [
-    {
-      type: "Proforma Invoice",
-      code: "PI",
-      caption: "Penawaran awal komersial, spesifikasi & rekening tujuan",
-      icon: <FileText size={18} />,
-      status: "Siap Terbit",
-      badgeTone: "green",
-    },
-    {
-      type: "Sales Contract",
-      code: "SC",
-      caption: "Kontrak resmi jual-beli ekspor (Articles 1 s/d 6)",
-      icon: <FileSignature size={18} />,
-      status: "Siap Terbit",
-      badgeTone: "green",
-    },
-    {
-      type: "Commercial Invoice",
-      code: "CI",
-      caption: "Faktur komersial penetapan pabean & bea cukai pelabuhan",
-      icon: <FileCheck2 size={18} />,
-      status: "Siap Terbit",
-      badgeTone: "green",
-    },
-    {
-      type: "Packing List",
-      code: "PL",
-      caption: "Rincian spesifikasi koli, dimensi, net & gross weight",
-      icon: <ClipboardList size={18} />,
-      status: "Siap Terbit",
-      badgeTone: "green",
-    },
-    {
-      type: "Shipping Instruction",
-      code: "SI",
-      caption: "Instruksi pengapalan resmi ke forwarder / pelayaran untuk B/L",
-      icon: <Ship size={18} />,
-      status: "Siap Terbit",
-      badgeTone: "green",
-    },
+    { type: "Proforma Invoice", code: "PI", icon: <FileText size={15} /> },
+    { type: "Sales Contract", code: "SC", icon: <FileSignature size={15} /> },
+    { type: "Commercial Invoice", code: "CI", icon: <FileCheck2 size={15} /> },
+    { type: "Packing List", code: "PL", icon: <ClipboardList size={15} /> },
+    { type: "Shipping Instruction", code: "SI", icon: <Ship size={15} /> },
   ];
 
   const handleLetterheadImage = (file?: File) => {
@@ -147,9 +100,15 @@ export function DocumentsModule({
 
   // Kalkulasi data turunan terpadu
   const exporterName = shipment.exporter || "PT. INDICO EXPORT INDONESIA";
-  const exporterAddress =
-    shipment.letterheadText ||
+  const defaultAddress =
     "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia";
+  const exporterAddress =
+    shipment.letterheadText &&
+    shipment.letterheadText.trim().toLowerCase() !== exporterName.trim().toLowerCase() &&
+    shipment.letterheadText.length > 15
+      ? shipment.letterheadText
+      : defaultAddress;
+
   const buyerName = shipment.buyer || "AL BARAKAH FOODSTUFF TRADING LLC";
   const buyerAddress =
     shipment.destination ||
@@ -193,189 +152,95 @@ export function DocumentsModule({
       : Math.round(netWeightMT * unitPricePerMT);
 
   const amountInWords = numberToWords(totalAmount, currency);
+  const docRefNumber = getDocumentNumber(
+    selectedDocument,
+    shipment.reference || "IEI-DXB/XI/2026/001",
+  );
 
   return (
     <div className="doc-center-root">
-      {/* Top Header Hub */}
-      <div className="doc-hub-header">
-        <div className="doc-hub-title-block">
-          <div className="doc-hub-badge-row">
-            <span className="doc-hub-tag">PUSAT DOKUMEN EKSPOR RESMI</span>
-            <span className="doc-hub-pill">Standar Ekspor Global · ICC Incoterms 2020 · UCP 600</span>
-          </div>
-          <h2 className="doc-hub-title">Pusat Penerbitan Dokumen Ekspor Terpadu</h2>
-          <p className="doc-hub-desc">
-            Sistem penerbitan 5 dokumen resmi ekspor (Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, dan Shipping Instruction) dengan template eksekutif siap cetak dan terverifikasi pabean.
-          </p>
+      {/* 1. Sleek Segmented Switcher & Executive Actions */}
+      <div className="doc-stage-control-bar">
+        <div className="doc-segmented-tabs" role="tablist">
+          {documents.map((doc) => {
+            const isActive = selectedDocument === doc.type;
+            return (
+              <button
+                key={doc.type}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                className={`doc-seg-tab ${isActive ? "active" : ""}`}
+                onClick={() => setSelectedDocument(doc.type)}
+              >
+                <span className="doc-seg-icon">{doc.icon}</span>
+                <span className="doc-seg-title">{doc.type}</span>
+                <span className="doc-seg-code">{doc.code}</span>
+              </button>
+            );
+          })}
         </div>
 
-        <div className="doc-hub-status-block">
-          <div className="doc-hub-meta">
-            <span className="doc-hub-meta-label">Revisi Transaksi:</span>
-            <span className="doc-hub-meta-val">Snapshot R{shipment.documentRevision}</span>
+        <div className="doc-stage-actions">
+          <div className="doc-meta-chips">
+            <span className="doc-chip-ref font-mono">#{docRefNumber}</span>
+            <span className="doc-chip-spec">
+              {shipment.paperSize} · {shipment.documentOrientation} · {shipment.documentTemplate}
+            </span>
+            {shipment.documentReviewed ? (
+              <span className="doc-chip-status green">✓ Verified</span>
+            ) : (
+              <span className="doc-chip-status amber">Draft</span>
+            )}
           </div>
-          <div className="doc-hub-meta">
-            <span className="doc-hub-meta-label">Status Otorisasi:</span>
-            <StatusPill tone={effectiveApprovalStatus === "Tercatat direview" ? "green" : "amber"}>
-              {effectiveApprovalStatus}
-            </StatusPill>
-          </div>
-          <button
-            type="button"
-            className="doc-refresh-btn"
-            onClick={() => toast.success("Data dokumen berhasil disinkronkan dari transaksi")}
-            title="Segarkan data dokumen"
-          >
-            <RefreshCcw size={13} /> Sinkron Data
-          </button>
-        </div>
-      </div>
 
-      {/* Horizontal Document Switcher Tabs (5 Essential Export Documents) */}
-      <div className="doc-tabs-grid five-cols">
-        {documents.map((doc) => {
-          const isActive = selectedDocument === doc.type;
-          return (
+          <div className="doc-btn-group">
             <button
-              key={doc.type}
               type="button"
-              className={`doc-tab-card ${isActive ? "active" : ""}`}
-              onClick={() => setSelectedDocument(doc.type)}
+              className={`doc-btn-tool ${isSettingsOpen ? "active" : ""}`}
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              title="Atur kop surat, pelabuhan, logo, dan gaya dokumen"
             >
-              <div className="doc-tab-top">
-                <div className={`doc-tab-icon-box ${isActive ? "active" : ""}`}>
-                  {doc.icon}
-                </div>
-                <div className="doc-tab-badges">
-                  <span className="doc-code-badge">{doc.code}</span>
-                  <StatusPill tone={doc.badgeTone}>{doc.status}</StatusPill>
-                </div>
-              </div>
-              <div className="doc-tab-body">
-                <h4 className="doc-tab-name">{doc.type}</h4>
-                <p className="doc-tab-desc">{doc.caption}</p>
-              </div>
-              {isActive && <div className="doc-tab-active-indicator" />}
+              <SlidersHorizontal size={14} />
+              <span>{isSettingsOpen ? "Tutup Setelan" : "Setelan Kop"}</span>
+              {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
             </button>
-          );
-        })}
-      </div>
 
-      {/* Action Bar */}
-      <div className="doc-action-bar">
-        <div className="doc-action-info">
-          <div className="doc-active-name-wrap">
-            <span className="doc-active-eyebrow">DOKUMEN DITINJAU:</span>
-            <h3 className="doc-active-title">{selectedDocument}</h3>
-            <span className="doc-active-ref">
-              No: {getDocumentNumber(selectedDocument, shipment.reference || "IEI-DXB/XI/2026/001")}
-            </span>
+            <button
+              type="button"
+              className="doc-btn-tool"
+              onClick={finishReview}
+              title="Tandai dokumen siap cetak"
+            >
+              <CheckCircle2 size={14} />
+              <span>Verifikasi</span>
+            </button>
+
+            <button
+              type="button"
+              className="doc-btn-primary"
+              onClick={printDocument}
+              title="Cetak atau unduh dokumen resmi dalam format PDF"
+            >
+              <Printer size={14} />
+              <span>Cetak / Unduh PDF</span>
+            </button>
           </div>
-          <div className="doc-active-specs">
-            <span className="spec-item">
-              Kertas: <b>{shipment.paperSize} ({shipment.documentOrientation})</b>
-            </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
-              Gaya Desain: <b>{shipment.documentTemplate}</b>
-            </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
-              Bahasa Output: <b>{shipment.previewLanguage}</b>
-            </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
-              Status:{" "}
-              <b className={shipment.documentReviewed ? "spec-reviewed" : "spec-draft"}>
-                {shipment.documentReviewed ? "✓ Telah Direview" : "Draft Transaksi"}
-              </b>
-            </span>
-          </div>
-        </div>
-
-        <div className="doc-action-buttons">
-          <button
-            type="button"
-            className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-          >
-            <SlidersHorizontal size={14} />
-            <span>{isSettingsOpen ? "Tutup Setelan" : "Setelan Kop & Format"}</span>
-            {isSettingsOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-
-          <button
-            type="button"
-            className="doc-btn-review"
-            onClick={finishReview}
-          >
-            <CheckCircle2 size={15} />
-            <span>Selesai Diperiksa</span>
-          </button>
-
-          <button
-            type="button"
-            className="doc-btn-print"
-            onClick={printDocument}
-          >
-            <Printer size={15} />
-            <span>Cetak / Unduh PDF</span>
-          </button>
         </div>
       </div>
 
-      {/* Collapsible Settings Panel or Quick Strip */}
-      {isSettingsOpen ? (
+      {/* 2. Collapsible Settings Drawer (only rendered when toggled) */}
+      {isSettingsOpen && (
         <DocumentSettings
           shipment={shipment}
           update={update}
           onLetterheadImage={handleLetterheadImage}
           onClose={() => setIsSettingsOpen(false)}
         />
-      ) : (
-        <div className="doc-quick-settings-strip">
-          <div className="quick-strip-left">
-            <SlidersHorizontal size={14} className="quick-strip-icon" />
-            <span className="quick-strip-label">Parameter Cetak:</span>
-            <span className="quick-strip-value">
-              Kertas <b>{shipment.paperSize} ({shipment.documentOrientation})</b>
-            </span>
-            <span className="quick-strip-dot">·</span>
-            <span className="quick-strip-value">
-              Gaya <b>{shipment.documentTemplate}</b>
-            </span>
-            <span className="quick-strip-dot">·</span>
-            <span className="quick-strip-value">
-              Eksportir: <b>{exporterName}</b>
-            </span>
-            <span className="quick-strip-dot">·</span>
-            <span className="quick-strip-value">
-              Port: <b>{pol}</b>
-            </span>
-          </div>
-          <button
-            type="button"
-            className="quick-strip-btn"
-            onClick={() => setIsSettingsOpen(true)}
-          >
-            Sesuaikan Kop & Gaya ⚙
-          </button>
-        </div>
       )}
 
-      {/* Centered Paper Desk Canvas */}
+      {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
-        <div className="doc-desk-header">
-          <div className="doc-desk-badge">
-            <ShieldCheck size={14} className="text-emerald-600" />
-            <span>STANDAR CETAK DOKUMEN RESMI EKSPOR (PRINT-READY CANVASS · ISO 216)</span>
-          </div>
-          <div className="doc-desk-notice">
-            Dokumen print/PDF mengikuti tata letak internasional yang siap diverifikasi bea cukai & perbankan L/C.
-          </div>
-        </div>
-
-        {/* Paper Document Container with selected template */}
         <div
           className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")}`}
         >
@@ -392,7 +257,6 @@ export function DocumentsModule({
             <ProformaInvoiceDoc
               shipment={shipment}
               exporterName={exporterName}
-              exporterAddress={exporterAddress}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
@@ -412,7 +276,6 @@ export function DocumentsModule({
 
           {selectedDocument === "Sales Contract" && (
             <SalesContractDoc
-              shipment={shipment}
               exporterName={exporterName}
               exporterAddress={exporterAddress}
               buyerName={buyerName}
@@ -434,9 +297,7 @@ export function DocumentsModule({
 
           {selectedDocument === "Commercial Invoice" && (
             <CommercialInvoiceDoc
-              shipment={shipment}
               exporterName={exporterName}
-              exporterAddress={exporterAddress}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
@@ -458,9 +319,7 @@ export function DocumentsModule({
 
           {selectedDocument === "Packing List" && (
             <PackingListDoc
-              shipment={shipment}
               exporterName={exporterName}
-              exporterAddress={exporterAddress}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
@@ -480,9 +339,7 @@ export function DocumentsModule({
           {(selectedDocument === "Shipping Instruction" ||
             selectedDocument === "Bill of Lading") && (
             <ShippingInstructionDoc
-              shipment={shipment}
               exporterName={exporterName}
-              exporterAddress={exporterAddress}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               pol={pol}
@@ -499,14 +356,14 @@ export function DocumentsModule({
         </div>
       </div>
 
-      {/* Operational Workflow Footer */}
+      {/* 4. Operational Workflow Footer */}
       <div className="doc-workflow-footer">
         <button
           type="button"
           className="workflow-link-btn"
           onClick={() => navigate("pricing")}
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={15} />
           <div className="workflow-link-text">
             <span className="workflow-sub">Tahap Sebelumnya</span>
             <span className="workflow-main">Harga & Otorisasi Pesanan</span>
@@ -542,7 +399,7 @@ export function DocumentsModule({
             <span className="workflow-sub">Tahap Berikutnya</span>
             <span className="workflow-main">Logistik & Pengiriman Ekspor</span>
           </div>
-          <ArrowRight size={16} />
+          <ArrowRight size={15} />
         </button>
       </div>
     </div>
@@ -574,21 +431,25 @@ function OfficialLetterhead({
               className="letterhead-logo"
             />
           ) : (
-            <button
-              type="button"
-              className="letterhead-logo-placeholder"
+            <div
+              className="letterhead-crest-badge"
               onClick={onOpenSettings}
-              title="Klik untuk memasang logo resmi perusahaan"
+              title="Klik untuk memasang logo perusahaan"
+              role="button"
+              tabIndex={0}
             >
-              <UploadCloud size={16} />
-              <span>+ Pasang Logo Resmi</span>
-            </button>
+              <Building2 size={24} className="text-slate-700" />
+              <span className="crest-tag">IEI</span>
+            </div>
           )}
           <div className="letterhead-text">
-            <h1 className="company-name">{exporterName}</h1>
+            <div className="letterhead-top-row">
+              <h1 className="company-name">{exporterName}</h1>
+              <span className="registered-badge">REGISTERED EXPORTER · INSW VALIDATED</span>
+            </div>
             <p className="company-details">{exporterAddress}</p>
             <p className="company-contact">
-              Tel: +62 812 3456 7890 | Email: official@indicoexport.com | NPWP: 01.234.567.8-801.000
+              Tel: +62 812 3456 7890 · Email: official@indicoexport.com · NPWP: 01.234.567.8-801.000
             </p>
           </div>
         </div>
@@ -659,7 +520,6 @@ function ProformaInvoiceDoc({
 }: {
   shipment: Shipment;
   exporterName: string;
-  exporterAddress: string;
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
@@ -687,13 +547,13 @@ function ProformaInvoiceDoc({
           <b className="doc-entity-name">{buyerName}</b>
           <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
           <p className="doc-entity-contact">Tel: +971 4 223 4567 | Email: procurement@albarakahfoods.ae</p>
-          <p className="doc-entity-contact">Contact Person: <b>Mr. Tariq Al-Mansoor</b></p>
+          <p className="doc-entity-contact">Contact Person: <b>Mr. Tariq Al-Mansoor (Procurement Director)</b></p>
         </div>
 
         <div className="doc-box">
           <div className="meta-pair">
             <span className="meta-label">Invoice No.:</span>
-            <b className="meta-value">PI/IEI-DXB/X/2026/001</b>
+            <b className="meta-value font-mono">PI/IEI-DXB/X/2026/001</b>
           </div>
           <div className="meta-pair">
             <span className="meta-label">Date:</span>
@@ -705,7 +565,7 @@ function ProformaInvoiceDoc({
           </div>
           <div className="meta-pair">
             <span className="meta-label">Buyer Ref:</span>
-            <span className="meta-value">{shipment.poNumber || "ABF/LOI/2026/108"}</span>
+            <span className="meta-value font-mono">{shipment.poNumber || "ABF/LOI/2026/108"}</span>
           </div>
         </div>
       </div>
@@ -741,9 +601,9 @@ function ProformaInvoiceDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "40px" }}>No</th>
+            <th style={{ width: "40px", textAlign: "center" }}>No</th>
             <th>Description of Goods</th>
-            <th style={{ width: "110px" }}>HS Code</th>
+            <th style={{ width: "110px", textAlign: "center" }}>HS Code</th>
             <th style={{ width: "110px", textAlign: "right" }}>Qty (MT)</th>
             <th style={{ width: "130px", textAlign: "right" }}>Unit Price</th>
             <th style={{ width: "140px", textAlign: "right" }}>Total Amount</th>
@@ -784,7 +644,7 @@ function ProformaInvoiceDoc({
 
       <div className="doc-bank-card">
         <div className="bank-card-title">
-          <Landmark size={15} />
+          <Landmark size={14} />
           <span>BANK DETAILS FOR BENEFICIARY</span>
         </div>
         <div className="bank-card-grid">
@@ -841,7 +701,6 @@ function SalesContractDoc({
   totalAmount,
   amountInWords,
 }: {
-  shipment: Shipment;
   exporterName: string;
   exporterAddress: string;
   buyerName: string;
@@ -894,7 +753,6 @@ function SalesContractDoc({
       </div>
 
       <div className="contract-articles-wrapper">
-        {/* Article 1 */}
         <div className="contract-article-block">
           <h4 className="article-title">ARTICLE 1: COMMODITY & SPECIFICATION</h4>
           <p>
@@ -906,7 +764,6 @@ function SalesContractDoc({
           </p>
         </div>
 
-        {/* Article 2 */}
         <div className="contract-article-block">
           <h4 className="article-title">ARTICLE 2: QUANTITY, PACKING & PRICE</h4>
           <p>
@@ -924,7 +781,6 @@ function SalesContractDoc({
           </p>
         </div>
 
-        {/* Article 3 */}
         <div className="contract-article-block">
           <h4 className="article-title">ARTICLE 3: TERMS OF PAYMENT</h4>
           <p>
@@ -941,7 +797,6 @@ function SalesContractDoc({
           </ol>
         </div>
 
-        {/* Article 4 */}
         <div className="contract-article-block">
           <h4 className="article-title">ARTICLE 4: SHIPMENT TERMS</h4>
           <p>
@@ -952,7 +807,6 @@ function SalesContractDoc({
           </p>
         </div>
 
-        {/* Article 5 */}
         <div className="contract-article-block">
           <h4 className="article-title">ARTICLE 5: REQUIRED DOCUMENTS</h4>
           <p>
@@ -960,7 +814,6 @@ function SalesContractDoc({
           </p>
         </div>
 
-        {/* Article 6 */}
         <div className="contract-article-block">
           <h4 className="article-title">ARTICLE 6: FORCE MAJEURE & ARBITRATION</h4>
           <p>
@@ -1018,9 +871,7 @@ function CommercialInvoiceDoc({
   totalAmount,
   amountInWords,
 }: {
-  shipment: Shipment;
   exporterName: string;
-  exporterAddress: string;
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
@@ -1176,9 +1027,7 @@ function PackingListDoc({
   grossWeightMT,
   totalCBM,
 }: {
-  shipment: Shipment;
   exporterName: string;
-  exporterAddress: string;
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
@@ -1320,9 +1169,7 @@ function ShippingInstructionDoc({
   grossWeightKgs,
   totalCBM,
 }: {
-  shipment: Shipment;
   exporterName: string;
-  exporterAddress: string;
   buyerName: string;
   buyerAddress: string;
   pol: string;

@@ -659,7 +659,7 @@ export function WorkspaceShell({
             </div>
           )}
 
-          <section className="page-heading">
+          <section className={`page-heading ${screen === "documents" ? "doc-screen-heading" : ""}`}>
             <div>
               <span className="eyebrow">
                 {activeMeta.phase}
@@ -678,7 +678,7 @@ export function WorkspaceShell({
                 ) : null}
               </span>
               <h1>{activeMeta.title}</h1>
-              <p>{activeMeta.description}</p>
+              {screen !== "documents" && <p>{activeMeta.description}</p>}
             </div>
             <div className="heading-actions">
               {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
