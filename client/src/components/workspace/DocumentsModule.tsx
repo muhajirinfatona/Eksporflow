@@ -116,15 +116,16 @@ export function DocumentsModule({
   };
 
   const finishReview = () => {
-    update("documentReviewed", !shipment.documentReviewed);
-    toast.success(
-      !shipment.documentReviewed
-        ? "Review dokumen ditandai selesai"
-        : "Status dokumen kembali ke draft",
-      {
-        description: `Output dokumen siap diterbitkan dalam ${shipment.previewLanguage}.`,
-      },
-    );
+    const nextReviewed = !shipment.documentReviewed;
+    update("documentReviewed", nextReviewed);
+    if (nextReviewed) {
+      update("previewLanguage", "English");
+      toast.success("Dokumen ditandai selesai diperiksa", {
+        description: "Bahasa dokumen dialihkan kembali ke Bahasa Inggris untuk standar ekspor internasional.",
+      });
+    } else {
+      toast.info("Status dokumen kembali ke draft");
+    }
   };
 
   // Kalkulasi data turunan terpadu
@@ -769,22 +770,10 @@ function ProformaInvoiceDoc({
         </table>
       </div>
 
-      <div className="doc-dual-signatures">
-        <div className="sig-side">
-          <span className="sig-header-txt">
-            {isId ? "Dikonfirmasi dan Disetujui oleh:" : "Confirmed and Accepted by:"}
-          </span>
-          <b>{buyerName}</b>
-          <div className="sig-box-space">
-            <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
-          </div>
-          <b className="sig-name">Tariq Al-Mansoor</b>
-          <span className="sig-sub">{isId ? "Direktur Pengadaan" : "Procurement Director"}</span>
-        </div>
-
+      <div className="doc-single-signature-wrap">
         <div className="sig-side sig-side-right">
           <span className="sig-header-txt">{isId ? "Diterbitkan oleh:" : "Issued by:"}</span>
-          <b>{exporterName}</b>
+          <b className="sig-name">{exporterName}</b>
           <div className="sig-box-space">
             <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
           </div>
