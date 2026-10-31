@@ -676,15 +676,15 @@ function ProformaInvoiceDoc({
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>
-            <span className="meta-value">{isId ? "31 Oktober 2026" : "October 31, 2026"}</span>
+            <b className="meta-value">{isId ? "31 Oktober 2026" : "October 31, 2026"}</b>
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Masa Berlaku:" : "Validity:"}</span>
-            <span className="meta-value">{isId ? "14 November 2026 (14 Hari)" : "November 14, 2026 (14 Days)"}</span>
+            <b className="meta-value">{isId ? "14 November 2026 (14 Hari)" : "November 14, 2026 (14 Days)"}</b>
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Ref. Pembeli:" : "Buyer Ref:"}</span>
-            <span className="meta-value font-mono">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</span>
+            <b className="meta-value font-mono">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</b>
           </div>
         </div>
       </div>
@@ -737,7 +737,7 @@ function ProformaInvoiceDoc({
         </thead>
         <tbody>
           <tr>
-            <td className="text-center font-bold">1</td>
+            <td className="text-center font-normal">1</td>
             <td>
               <b className="table-product-title">{productName}</b>
               <ul className="table-product-specs">
@@ -758,9 +758,9 @@ function ProformaInvoiceDoc({
                 </li>
               </ul>
             </td>
-            <td className="font-mono text-center">{hsCode}</td>
-            <td className="text-right font-bold">{formatNumber(netWeightMT, 2)} MT</td>
-            <td className="text-right">{formatMoney(unitPricePerMT, currency)} / MT</td>
+            <td className="font-mono text-center font-normal">{hsCode}</td>
+            <td className="text-right font-normal">{formatNumber(netWeightMT, 2)} MT</td>
+            <td className="text-right font-normal">{formatMoney(unitPricePerMT, currency)} / MT</td>
             <td className="text-right font-bold text-slate-900">{formatMoney(totalAmount, currency)}</td>
           </tr>
         </tbody>
@@ -777,7 +777,7 @@ function ProformaInvoiceDoc({
       </table>
 
       <div className="doc-words-banner">
-        <span>{isId ? "Terbilang:" : "Say:"}</span> <i>{amountInWords}</i>
+        <span className="font-medium">{isId ? "Terbilang:" : "Say:"}</span> <b className="font-bold italic">{amountInWords}</b>
       </div>
 
       <div className="doc-bank-card">
@@ -788,15 +788,15 @@ function ProformaInvoiceDoc({
           <tbody>
             <tr>
               <td className="bank-lbl">{isId ? "Nama Bank:" : "Bank Name:"}</td>
-              <td className="bank-val font-semibold">{bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"}</td>
+              <td className="bank-val font-bold">{bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Alamat Bank:" : "Bank Address:"}</td>
-              <td className="bank-val">Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia</td>
+              <td className="bank-val font-bold">Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Nama Rekening:" : "Account Name:"}</td>
-              <td className="bank-val font-semibold">{exporterName}</td>
+              <td className="bank-val font-bold">{exporterName}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Nomor Rekening:" : "Account Number:"}</td>
@@ -808,7 +808,7 @@ function ProformaInvoiceDoc({
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Mata Uang:" : "Currency:"}</td>
-              <td className="bank-val">{currency} {isId ? "(Dolar Amerika Serikat)" : "(United States Dollar)"}</td>
+              <td className="bank-val font-bold">{currency} {isId ? "(Dolar Amerika Serikat)" : "(United States Dollar)"}</td>
             </tr>
           </tbody>
         </table>
@@ -1202,7 +1202,7 @@ function CommercialInvoiceDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
-              <span className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</span>
+              <b className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
@@ -1216,7 +1216,7 @@ function CommercialInvoiceDoc({
             )}
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>{" "}
-              <span className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</span>
+              <b className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</b>
             </div>
           </div>
 
@@ -1230,11 +1230,11 @@ function CommercialInvoiceDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
-              <span className="meta-value">{pol}</span>
+              <b className="meta-value">{pol}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
-              <span className="meta-value">{pod}</span>
+              <b className="meta-value">{pod}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
@@ -1284,13 +1284,13 @@ function CommercialInvoiceDoc({
               </p>
               <p className="text-xs font-semibold text-slate-800">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
             </td>
-            <td className="text-right font-bold">
+            <td className="text-right font-normal">
               {formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}<br />
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="text-xs text-slate-700">
                 ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : "Net"})
               </span>
             </td>
-            <td className="text-right font-semibold">
+            <td className="text-right font-normal">
               {currency} {formatNumber(unitPricePerMT, 2)}<br />
               <span className="text-xs text-slate-700">/ MT</span>
             </td>
@@ -1312,7 +1312,7 @@ function CommercialInvoiceDoc({
       </table>
 
       <div className="doc-words-banner">
-        <span>{isId ? "Terbilang:" : "Amount in Words:"}</span> <b>{amountInWords}</b>
+        <span className="font-medium">{isId ? "Terbilang:" : "Amount in Words:"}</span> <b className="font-bold italic">{amountInWords}</b>
       </div>
 
       <div className="doc-cert-banner">
@@ -1438,7 +1438,7 @@ function PackingListDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
-              <span className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</span>
+              <b className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
@@ -1462,11 +1462,11 @@ function PackingListDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
-              <span className="meta-value">{pol}</span>
+              <b className="meta-value">{pol}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
-              <span className="meta-value">{pod}</span>
+              <b className="meta-value">{pod}</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
@@ -1624,7 +1624,7 @@ function ShippingInstructionDoc({
         </div>
         <div>
           <span className="si-lbl">{isId ? "Tanggal:" : "Date:"}</span>{" "}
-          <span>{isId ? "16 November 2026" : "November 16, 2026"}</span>
+          <b>{isId ? "16 November 2026" : "November 16, 2026"}</b>
         </div>
         <div>
           <span className="si-lbl">{isId ? "Ditujukan Kepada:" : "Attention:"}</span>{" "}

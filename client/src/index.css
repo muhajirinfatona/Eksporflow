@@ -5753,7 +5753,7 @@ textarea:focus-visible {
 
 .meta-label {
   color: #1e293b;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .meta-value {
@@ -5793,12 +5793,12 @@ textarea:focus-visible {
   color: #1e293b;
   display: block;
   font-size: 10.5px;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .terms-val {
   color: #0f172a;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .col-span-full {
@@ -5946,8 +5946,8 @@ textarea:focus-visible {
   max-width: 155px;
   padding: 6.5px 14px;
   font-size: 11px;
-  font-weight: 700;
-  color: #0f2942;
+  font-weight: 500;
+  color: #1e293b;
   white-space: nowrap;
   vertical-align: middle;
   background: #f8fafc;
@@ -5960,7 +5960,7 @@ textarea:focus-visible {
   color: #0f172a;
   vertical-align: middle;
   line-height: 1.4;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .bank-val.font-semibold {
@@ -9462,7 +9462,7 @@ textarea:focus-visible {
   }
   .meta-label {
     font-size: 10.5px !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     color: #1e293b !important;
   }
   .meta-value {
@@ -9492,7 +9492,7 @@ textarea:focus-visible {
   }
   .terms-lbl {
     font-size: 10px !important;
-    font-weight: 600 !important;
+    font-weight: 500 !important;
     color: #1e293b !important;
   }
   .terms-val {
@@ -9577,12 +9577,12 @@ textarea:focus-visible {
   }
   .bank-lbl {
     font-size: 10px !important;
-    font-weight: 700 !important;
-    color: #0f2942 !important;
+    font-weight: 500 !important;
+    color: #1e293b !important;
   }
   .bank-val {
     font-size: 11px !important;
-    font-weight: 600 !important;
+    font-weight: 700 !important;
     color: #0f172a !important;
   }
 
