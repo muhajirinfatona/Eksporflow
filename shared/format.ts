@@ -46,7 +46,65 @@ export function getDocumentNumber(type: DocumentType, reference: string): string
   return `${prefix}-${reference}`;
 }
 
-export function numberToWords(amount: number, currency = "USD"): string {
+function numberToWordsIndonesian(amount: number, currency = "USD"): string {
+  const integerPart = Math.floor(Math.abs(amount));
+  const decimalPart = Math.round((Math.abs(amount) - integerPart) * 100);
+
+  const angka = [
+    "",
+    "Satu",
+    "Dua",
+    "Tiga",
+    "Empat",
+    "Lima",
+    "Enam",
+    "Tujuh",
+    "Delapan",
+    "Sembilan",
+    "Sepuluh",
+    "Sebelas",
+  ];
+
+  function terbilang(n: number): string {
+    if (n < 12) return angka[n];
+    if (n < 20) return terbilang(n - 10) + " Belas";
+    if (n < 100) return terbilang(Math.floor(n / 10)) + " Puluh " + terbilang(n % 10);
+    if (n < 200) return "Seratus " + terbilang(n - 100);
+    if (n < 1000) return terbilang(Math.floor(n / 100)) + " Ratus " + terbilang(n % 100);
+    if (n < 2000) return "Seribu " + terbilang(n - 1000);
+    if (n < 1000000) return terbilang(Math.floor(n / 1000)) + " Ribu " + terbilang(n % 1000);
+    if (n < 1000000000) return terbilang(Math.floor(n / 1000000)) + " Juta " + terbilang(n % 1000000);
+    if (n < 1000000000000) return terbilang(Math.floor(n / 1000000000)) + " Miliar " + terbilang(n % 1000000000);
+    return terbilang(Math.floor(n / 1000000000000)) + " Triliun " + terbilang(n % 1000000000000);
+  }
+
+  const currencyUpper = currency.toUpperCase();
+  const currencyName =
+    currencyUpper === "USD"
+      ? "Dolar Amerika Serikat"
+      : currencyUpper === "EUR"
+        ? "Euro"
+        : currencyUpper === "IDR"
+          ? "Rupiah"
+          : currencyUpper;
+
+  if (integerPart === 0) {
+    return `NOL ${currencyName.toUpperCase()} SAJA`;
+  }
+
+  const words = terbilang(integerPart).replace(/\s+/g, " ").trim();
+  let result = `${currencyName} ${words}`;
+  if (decimalPart > 0) {
+    result += ` Koma ${terbilang(decimalPart).trim()} Sen`;
+  }
+  return (result + " Saja").toUpperCase();
+}
+
+export function numberToWords(amount: number, currency = "USD", lang: "en" | "id" = "en"): string {
+  if (lang === "id") {
+    return numberToWordsIndonesian(amount, currency);
+  }
+
   const integerPart = Math.floor(Math.abs(amount));
   const decimalPart = Math.round((Math.abs(amount) - integerPart) * 100);
 
