@@ -27,6 +27,7 @@ import {
   Package,
   Plus,
   RotateCcw,
+  Search,
   ShieldAlert,
   ShieldCheck,
   Ship,
@@ -579,7 +580,7 @@ const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
     role: "pimpinan",
     roleLabel: "Pimpinan / Direktur Eksekutif",
     department: "Direksi & Otorisasi",
-    authority: "Otorisasi final penawaran, dispensasi margin, & penandatanganan kontrak",
+    authority: "Otorisasi final penawaran harga, dispensasi margin, & penandatanganan kontrak",
     status: "Aktif",
     isOwner: true,
   },
@@ -600,7 +601,7 @@ const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
     role: "ops",
     roleLabel: "Operasional & Dokumen Ekspor",
     department: "Divisi Pengiriman & Kepabeanan",
-    authority: "Kelola PEB Bea Cukai, perizinan e-SKA/COO, karantina mutu, & kontainer",
+    authority: "Kelola PEB Bea Cukai, perizinan e-SKA/COO Kemendag, karantina mutu, & kontainer",
     status: "Aktif",
   },
   {
@@ -610,10 +611,36 @@ const DEFAULT_TEAM_MEMBERS: TeamMember[] = [
     role: "finance",
     roleLabel: "Keuangan & Akuntansi Ekspor",
     department: "Divisi Finansial & Perbankan",
-    authority: "Verifikasi pembayaran DP, pencairan L/C, & pelaporan devisa DHE BI",
+    authority: "Verifikasi pembayaran DP, validasi pencairan L/C, & pelaporan devisa DHE BI",
     status: "Aktif",
   },
 ];
+
+type ApprovalQueueItem = {
+  id: string;
+  reference: string;
+  revision: number;
+  buyer: string;
+  buyerCountry: string;
+  destination: string;
+  salesPic: string;
+  product: string;
+  quantity: number;
+  unit: string;
+  incoterm: string;
+  offerValue: number;
+  costValue: number;
+  currency: string;
+  margin: number;
+  discount: number;
+  paymentTerms: string;
+  containerType: string;
+  approvalStatus: string;
+  tone: "green" | "amber" | "red" | "blue" | "gray";
+  isCurrent: boolean;
+  isCloud: boolean;
+  shipmentData?: Shipment;
+};
 
 export function ApprovalsView({
   shipment,
@@ -642,17 +669,13 @@ export function ApprovalsView({
   loadShipment?: (id: string) => Promise<void>;
   loadCustomShipment?: (custom: Shipment, id?: string | null) => void;
 }) {
-  const [activeTab, setActiveTab] = useState<"approvals" | "team">("approvals");
-  const [comment, setComment] = useState(flow.approval.comment);
-  const [workflowMode, setWorkflowMode] = useState<"corporate" | "simple">(() => {
-    try {
-      return (localStorage.getItem("eksporflow_workflow_mode") as "corporate" | "simple") || "corporate";
-    } catch {
-      return "corporate";
-    }
-  });
+  const [activeTab, setActiveTab] = useState<"approvals" | "team" | "matrix">("approvals");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"ALL" | "PENDING" | "APPROVED">("ALL");
+  const [reviewModalItem, setReviewModalItem] = useState<ApprovalQueueItem | null>(null);
+  const [comment, setComment] = useState("");
 
-  // State Manajemen Tim Workspace (ERP Enterprise)
+  // State Tim Workspace (Enterprise RBAC)
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>(() => {
     try {
       const saved = localStorage.getItem("eksporflow_team_members_v1");
@@ -666,15 +689,7 @@ export function ApprovalsView({
   const [newMemberEmail, setNewMemberEmail] = useState("");
   const [newMemberRole, setNewMemberRole] = useState<"pimpinan" | "sales" | "ops" | "finance">("sales");
 
-  const statusTone =
-    flow.effectiveApprovalStatus === "Tercatat direview"
-      ? "green"
-      : flow.effectiveApprovalStatus === "Revisi diminta" ||
-          flow.effectiveApprovalStatus === "Perlu review ulang"
-        ? "red"
-        : "amber";
-
-  // Ambil data pesanan/PO lokal dari browser
+  // Ambil transaksi lokal
   const [localList] = useState<LocalShipmentRecord[]>(() => {
     try {
       const saved = localStorage.getItem("eksporflow_local_shipments_v1");
@@ -684,71 +699,47 @@ export function ApprovalsView({
     }
   });
 
-  const handleDecision = (next: "Revisi diminta" | "Tercatat direview") => {
-    if (next === "Revisi diminta" && !comment.trim()) {
-      toast.error("Catatan reviewer wajib diisi saat meminta revisi.");
-      return;
-    }
-    flow.recordApprovalDecision(next, comment.trim());
-    toast.success(`Status persetujuan diperbarui: ${next}`, {
-      description: `Status kini sinkron ke Harga & Order, Dokumen Ekspor, dan Risk Center untuk ${shipment.reference || "PO ini"}.`,
-    });
-  };
-
-  // Susun antrian penawaran & kontrak dari seluruh order perusahaan
+  // Susun antrian penawaran secara bersih dan konsisten
   const queueItems = useMemo(() => {
-    type QueueItem = {
-      id: string;
-      reference: string;
-      revision: number;
-      buyer: string;
-      buyerCountry: string;
-      destination?: string;
-      salesPic: string;
-      product: string;
-      quantity: number;
-      unit: string;
-      incoterm: string;
-      offerValue: number;
-      currency: string;
-      margin: number;
-      approvalStatus: string;
-      tone: "green" | "amber" | "red" | "blue" | "gray";
-      isCurrent: boolean;
-      isCloud: boolean;
-      shipmentData?: Shipment;
-    };
+    const list: ApprovalQueueItem[] = [];
 
-    const list: QueueItem[] = [];
-
-    // 1. Pesanan yang sedang aktif di workspace
-    const currentRef = shipment.reference?.trim() || shipment.poNumber?.trim() || "Draft PO Baru";
-    const currentBuyer = shipment.buyer?.trim() || "Buyer Belum Ditentukan";
-    const currentSales = user?.name?.trim() || "Muhajirin Fatona";
+    // 1. Order yang sedang aktif saat ini
+    const currentRef = shipment.reference?.trim() || shipment.poNumber?.trim() || "PO-DRAFT-01";
+    const currentBuyer = shipment.buyer?.trim() || "Mitra Pembeli Internasional";
+    const currentSales = user?.name?.trim() || "Muhajirin Fatona (Sales)";
 
     list.push({
       id: activeShipmentId || "current-active",
       reference: currentRef,
       revision: shipment.documentRevision || 1,
       buyer: currentBuyer,
-      buyerCountry: shipment.buyerCountry?.trim() || "-",
-      destination: shipment.destination?.trim() || "-",
+      buyerCountry: shipment.buyerCountry?.trim() || "Uni Emirat Arab",
+      destination: shipment.destination?.trim() || "Jebel Ali Port",
       salesPic: currentSales,
-      product: shipment.product?.trim() || "Komoditas Ekspor",
+      product: shipment.product?.trim() || "Biji Kopi Robusta Grade 1",
       quantity: shipment.quantity || 20,
       unit: shipment.unit || "MT",
       incoterm: shipment.incoterm || "FOB",
-      offerValue: pricing.active.offer || 0,
+      offerValue: pricing.active.offer > 0 ? pricing.active.offer : 84000,
+      costValue: pricing.active.cost > 0 ? pricing.active.cost : 68880,
       currency: shipment.currency || "USD",
-      margin: shipment.margin || 15,
+      margin: shipment.margin || 18,
+      discount: shipment.discount || 0,
+      paymentTerms: shipment.paymentTerms || "T/T 30% DP, 70% against B/L",
+      containerType: shipment.containerType || "20ft FCL",
       approvalStatus: flow.effectiveApprovalStatus,
-      tone: statusTone,
+      tone:
+        flow.effectiveApprovalStatus === "Tercatat direview"
+          ? "green"
+          : flow.effectiveApprovalStatus === "Revisi diminta"
+            ? "red"
+            : "amber",
       isCurrent: true,
       isCloud: Boolean(activeShipmentId),
       shipmentData: shipment,
     });
 
-    // 2. Transaksi database cloud
+    // 2. Order dari database cloud
     for (const s of shipmentsList) {
       if (s.id === activeShipmentId) continue;
       if (!s.reference || s.reference === "Transaksi Ekspor" || s.reference.startsWith("EXP-2026-")) continue;
@@ -757,17 +748,21 @@ export function ApprovalsView({
         id: s.id,
         reference: s.reference,
         revision: 1,
-        buyer: s.buyer?.trim() || "Mitra Buyer",
-        buyerCountry: s.buyerCountry?.trim() || "-",
-        destination: "-",
-        salesPic: "Muhajirin Fatona",
-        product: s.product?.trim() || "Komoditas Ekspor",
-        quantity: s.quantity || 20,
+        buyer: s.buyer?.trim() || "Tokyo Global Foods Co., Ltd.",
+        buyerCountry: s.buyerCountry?.trim() || "Jepang",
+        destination: "Port of Tokyo",
+        salesPic: "Ahmad Fauzi (Sales)",
+        product: s.product?.trim() || "Briket Arang Kelapa Premium",
+        quantity: s.quantity || 25,
         unit: s.unit || "MT",
-        incoterm: s.incoterm || "FOB",
-        offerValue: (s.quantity || 20) * 4200,
+        incoterm: s.incoterm || "CIF",
+        offerValue: 62500,
+        costValue: 48750,
         currency: "USD",
-        margin: 18,
+        margin: 22,
+        discount: 500,
+        paymentTerms: "Irrevocable At Sight L/C",
+        containerType: "40ft HC",
         approvalStatus: s.status === "Confirmed" ? "Tercatat direview" : "Menunggu review",
         tone: s.status === "Confirmed" ? "green" : "amber",
         isCurrent: false,
@@ -775,7 +770,7 @@ export function ApprovalsView({
       });
     }
 
-    // 3. Transaksi lokal tersimpan
+    // 3. Order dari draft lokal
     for (const loc of localList) {
       if (!loc.reference || loc.reference === "Transaksi Ekspor") continue;
       const already = list.some(
@@ -786,17 +781,21 @@ export function ApprovalsView({
           id: loc.id,
           reference: loc.reference,
           revision: loc.shipment?.documentRevision || 1,
-          buyer: loc.buyer || "Buyer Internasional",
-          buyerCountry: loc.buyerCountry || "-",
-          destination: loc.shipment?.destination || "-",
-          salesPic: "Muhajirin Fatona",
-          product: loc.product || "Komoditas Ekspor",
+          buyer: loc.buyer || "Al Barakah Foodstuff LLC",
+          buyerCountry: loc.buyerCountry || "Uni Emirat Arab",
+          destination: loc.shipment?.destination || "Port of Jebel Ali",
+          salesPic: "Muhajirin Fatona (Sales)",
+          product: loc.product || "Biji Kopi Robusta",
           quantity: loc.quantity || 20,
           unit: loc.unit || "MT",
           incoterm: loc.incoterm || "FOB",
-          offerValue: (loc.quantity || 20) * (loc.shipment?.unitPrice || 4200),
+          offerValue: 84000,
+          costValue: 68880,
           currency: loc.shipment?.currency || "USD",
           margin: loc.shipment?.margin || 18,
+          discount: loc.shipment?.discount || 0,
+          paymentTerms: loc.shipment?.paymentTerms || "T/T 30% DP",
+          containerType: loc.shipment?.containerType || "20ft FCL",
           approvalStatus: loc.status === "Confirmed" ? "Tercatat direview" : "Menunggu review",
           tone: loc.status === "Confirmed" ? "green" : "amber",
           isCurrent: false,
@@ -806,10 +805,10 @@ export function ApprovalsView({
       }
     }
 
-    // 4. Jika hanya ada 1 draft kosong, sertakan contoh penawaran riil (Buyer A vs Buyer B)
+    // 4. Jika hanya ada 1 draft, tampilkan 2 contoh transaksi korporasi (Buyer A vs Buyer B)
     if (list.length <= 1) {
       list.push({
-        id: "demo-buyer-a",
+        id: "corp-order-a",
         reference: "ABF-PO-2026-089",
         revision: 1,
         buyer: "For Al Barakah Foodstuff Trading LLC",
@@ -821,8 +820,12 @@ export function ApprovalsView({
         unit: "MT",
         incoterm: "FOB",
         offerValue: 84000,
+        costValue: 68880,
         currency: "USD",
         margin: 18,
+        discount: 0,
+        paymentTerms: "T/T 30% DP, 70% against B/L",
+        containerType: "20ft FCL",
         approvalStatus: "Menunggu review",
         tone: "amber",
         isCurrent: false,
@@ -849,7 +852,7 @@ export function ApprovalsView({
       });
 
       list.push({
-        id: "demo-buyer-b",
+        id: "corp-order-b",
         reference: "SNF-PO-2026-114",
         revision: 2,
         buyer: "Tokyo Global Foods Co., Ltd.",
@@ -861,8 +864,12 @@ export function ApprovalsView({
         unit: "MT",
         incoterm: "CIF",
         offerValue: 62500,
+        costValue: 48750,
         currency: "USD",
         margin: 22,
+        discount: 500,
+        paymentTerms: "Irrevocable At Sight L/C",
+        containerType: "40ft HC",
         approvalStatus: "Tercatat direview",
         tone: "green",
         isCurrent: false,
@@ -893,27 +900,60 @@ export function ApprovalsView({
   }, [
     shipment,
     pricing.active.offer,
+    pricing.active.cost,
     flow.effectiveApprovalStatus,
-    statusTone,
     shipmentsList,
     localList,
     activeShipmentId,
     user?.name,
   ]);
 
-  const handleSelectOrder = async (item: (typeof queueItems)[number]) => {
-    if (item.isCurrent) return;
-    if (item.isCloud && loadShipment) {
-      await loadShipment(item.id);
-      toast.success(`Order dimuat untuk ditinjau: ${item.reference}`, {
-        description: `Buyer: ${item.buyer} (${item.buyerCountry})`,
-      });
-    } else if (item.shipmentData && loadCustomShipment) {
-      loadCustomShipment(item.shipmentData, item.id);
-      toast.success(`Order dimuat untuk ditinjau: ${item.reference}`, {
-        description: `Buyer: ${item.buyer} (${item.buyerCountry})`,
-      });
+  // Filter pencarian dan tab status
+  const filteredQueue = useMemo(() => {
+    return queueItems.filter((item) => {
+      if (statusFilter === "PENDING" && item.approvalStatus === "Tercatat direview") return false;
+      if (statusFilter === "APPROVED" && item.approvalStatus !== "Tercatat direview") return false;
+
+      if (!searchQuery.trim()) return true;
+      const q = searchQuery.toLowerCase();
+      return (
+        item.reference.toLowerCase().includes(q) ||
+        item.buyer.toLowerCase().includes(q) ||
+        item.buyerCountry.toLowerCase().includes(q) ||
+        item.salesPic.toLowerCase().includes(q) ||
+        item.product.toLowerCase().includes(q)
+      );
+    });
+  }, [queueItems, statusFilter, searchQuery]);
+
+  const pendingCount = queueItems.filter((q) => q.approvalStatus !== "Tercatat direview").length;
+  const approvedCount = queueItems.filter((q) => q.approvalStatus === "Tercatat direview").length;
+  const totalOfferValue = queueItems.reduce((acc, curr) => acc + curr.offerValue, 0);
+
+  const handleOpenReviewModal = async (item: ApprovalQueueItem) => {
+    setReviewModalItem(item);
+    setComment(flow.approval.comment || "");
+
+    // Muat ke workspace aktif bila berbeda
+    if (!item.isCurrent) {
+      if (item.isCloud && loadShipment) {
+        await loadShipment(item.id);
+      } else if (item.shipmentData && loadCustomShipment) {
+        loadCustomShipment(item.shipmentData, item.id);
+      }
     }
+  };
+
+  const handleDecision = (next: "Revisi diminta" | "Tercatat direview") => {
+    if (next === "Revisi diminta" && !comment.trim()) {
+      toast.error("Catatan reviewer wajib diisi saat meminta revisi.");
+      return;
+    }
+    flow.recordApprovalDecision(next, comment.trim());
+    toast.success(`Keputusan Otorisasi Tercatat: ${next}`, {
+      description: `Status telah disinkronkan ke Dokumen Ekspor & Kalkulator Harga.`,
+    });
+    setReviewModalItem(null);
   };
 
   const handleAddTeamMember = (e: React.FormEvent) => {
@@ -988,13 +1028,72 @@ export function ApprovalsView({
     toast.success(`Akses tim untuk ${name} telah dinonaktifkan.`);
   };
 
-  const pendingReviewCount = queueItems.filter(
-    (q) => q.approvalStatus === "Menunggu review" || q.approvalStatus === "Perlu review ulang"
-  ).length;
-
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* 1. Header & Segmented Tabs Bar */}
+      {/* 1. ENTERPRISE TIER HEADER BANNER */}
+      <div
+        style={{
+          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+          borderRadius: 12,
+          padding: "20px 24px",
+          color: "#ffffff",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 16,
+          boxShadow: "0 4px 14px rgba(15, 23, 42, 0.12)",
+        }}
+      >
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <span
+              style={{
+                background: "#0284c7",
+                color: "#ffffff",
+                fontSize: 11,
+                fontWeight: 800,
+                letterSpacing: "0.06em",
+                padding: "2px 8px",
+                borderRadius: 4,
+                textTransform: "uppercase",
+              }}
+            >
+              💎 Paket Enterprise
+            </span>
+            <span style={{ fontSize: 12, color: "#94a3b8" }}>
+              Multi-User · Otorisasi Bertingkat · Segregation of Duties (SoD)
+            </span>
+          </div>
+          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "#f8fafc" }}>
+            Pusat Otorisasi &amp; Tata Kelola Kontrak Ekspor
+          </h2>
+          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8", maxWidth: 680 }}>
+            Sistem pengesahan penawaran ekspor, dispensasi margin kuartal, dan pembagian tugas antar divisi tim perusahaan sebelum dokumen resmi dikirim ke buyer internasional.
+          </p>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.08)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: 8,
+              padding: "8px 14px",
+              textAlign: "right",
+            }}
+          >
+            <div style={{ fontSize: 11, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>
+              Status Lisensi
+            </div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#38bdf8" }}>
+              Enterprise Plan Aktif
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 2. SEGMENTED TABS BAR */}
       <div
         style={{
           display: "flex",
@@ -1002,652 +1101,157 @@ export function ApprovalsView({
           alignItems: "center",
           flexWrap: "wrap",
           gap: 12,
-          padding: "16px 20px",
+          padding: "10px 14px",
           background: "#ffffff",
-          borderRadius: 12,
+          borderRadius: 10,
           border: "1px solid #e2e8f0",
-          boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+          boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
+        <div style={{ display: "inline-flex", background: "#f1f5f9", padding: 3, borderRadius: 8 }}>
+          <button
+            type="button"
+            onClick={() => setActiveTab("approvals")}
             style={{
+              padding: "7px 16px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
               display: "inline-flex",
-              background: "#f1f5f9",
-              padding: 3,
-              borderRadius: 8,
-              border: "1px solid #e2e8f0",
+              alignItems: "center",
+              gap: 6,
+              background: activeTab === "approvals" ? "#0284c7" : "transparent",
+              color: activeTab === "approvals" ? "#ffffff" : "#475569",
+              boxShadow: activeTab === "approvals" ? "0 1px 2px rgba(2,132,199,0.2)" : "none",
+              transition: "all 0.15s ease",
             }}
           >
-            <button
-              type="button"
-              onClick={() => setActiveTab("approvals")}
-              style={{
-                padding: "8px 18px",
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                background: activeTab === "approvals" ? "#0284c7" : "transparent",
-                color: activeTab === "approvals" ? "#ffffff" : "#475569",
-                boxShadow: activeTab === "approvals" ? "0 1px 3px rgba(2,132,199,0.25)" : "none",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <ClipboardCheck size={16} /> Antrian Otorisasi ({queueItems.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("team")}
-              style={{
-                padding: "8px 18px",
-                borderRadius: 6,
-                fontSize: 13,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                background: activeTab === "team" ? "#0284c7" : "transparent",
-                color: activeTab === "team" ? "#ffffff" : "#475569",
-                boxShadow: activeTab === "team" ? "0 1px 3px rgba(2,132,199,0.25)" : "none",
-                transition: "all 0.15s ease",
-              }}
-            >
-              <Users size={16} /> Kelola Tim &amp; Hak Akses ({teamMembers.length})
-            </button>
-          </div>
+            <ClipboardCheck size={15} /> Antrian Otorisasi ({queueItems.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("team")}
+            style={{
+              padding: "7px 16px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: activeTab === "team" ? "#0284c7" : "transparent",
+              color: activeTab === "team" ? "#ffffff" : "#475569",
+              boxShadow: activeTab === "team" ? "0 1px 2px rgba(2,132,199,0.2)" : "none",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <Users size={15} /> Kelola Tim &amp; Role RBAC ({teamMembers.length})
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("matrix")}
+            style={{
+              padding: "7px 16px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 600,
+              border: "none",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: activeTab === "matrix" ? "#0284c7" : "transparent",
+              color: activeTab === "matrix" ? "#ffffff" : "#475569",
+              boxShadow: activeTab === "matrix" ? "0 1px 2px rgba(2,132,199,0.2)" : "none",
+              transition: "all 0.15s ease",
+            }}
+          >
+            <ShieldCheck size={15} /> Matriks Batas Wewenang (SoD)
+          </button>
         </div>
 
-        {/* Mode Operasional: Korporasi vs Mandiri */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 13, color: "#64748b" }}>
-          <span style={{ fontWeight: 500 }}>Mode Alur Kerja:</span>
-          <select
-            value={workflowMode}
-            onChange={(e) => {
-              const next = e.target.value as "corporate" | "simple";
-              setWorkflowMode(next);
-              try {
-                localStorage.setItem("eksporflow_workflow_mode", next);
-              } catch {}
-              toast.info(
-                `Mode beralih ke: ${next === "corporate" ? "Enterprise Multi-Tim (ERP Approval)" : "Mandiri / UMKM (Fast-Track)"}`
-              );
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 6,
-              border: "1px solid #cbd5e1",
-              background: "#f8fafc",
-              fontSize: 12.5,
-              fontWeight: 600,
-              color: "#0f172a",
-              cursor: "pointer",
-            }}
-          >
-            <option value="corporate">🏢 Korporasi / Multi-Tim (ERP Approval)</option>
-            <option value="simple">🚀 Mandiri / UMKM (Fast-Track Otorisasi)</option>
-          </select>
+        <div style={{ fontSize: 12.5, color: "#64748b" }}>
+          Perusahaan: <b style={{ color: "#0f172a" }}>Indico Export Indonesia</b>
         </div>
       </div>
 
-      {/* 2. TAB 1: Antrian Otorisasi Penawaran (Modern Clean Master-Detail View) */}
+      {/* TAB 1: ANTRIAN PERSETUJUAN PENAWARAN (FULL-WIDTH CLEAN TABLE) */}
       {activeTab === "approvals" && (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "360px minmax(0, 1fr)",
-            gap: 20,
-            alignItems: "start",
-          }}
-        >
-          {/* Kolom Kiri: Antrian Card Feed (Tidak ada tabel yang tertekuk!) */}
-          <section
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* 3 Top KPI Metric Cards */}
+          <div
             style={{
-              background: "#ffffff",
-              borderRadius: 12,
-              border: "1px solid #e2e8f0",
-              padding: "16px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+              display: "grid",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+              gap: 14,
             }}
           >
             <div
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: 12,
-                paddingBottom: 10,
-                borderBottom: "1px solid #f1f5f9",
-              }}
-            >
-              <div>
-                <b style={{ fontSize: 14, color: "#0f172a" }}>Daftar Antrian Review</b>
-                <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
-                  Pilih penawaran untuk memeriksa rincian
-                </div>
-              </div>
-              <StatusPill tone={pendingReviewCount > 0 ? "amber" : "green"}>
-                {pendingReviewCount} Menunggu
-              </StatusPill>
-            </div>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {queueItems.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => handleSelectOrder(item)}
-                  style={{
-                    padding: "14px 15px",
-                    borderRadius: 10,
-                    border: item.isCurrent ? "2px solid #0284c7" : "1px solid #e2e8f0",
-                    background: item.isCurrent ? "#f0f9ff" : "#ffffff",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    boxShadow: item.isCurrent
-                      ? "0 2px 8px rgba(2, 132, 199, 0.12)"
-                      : "0 1px 2px rgba(0,0,0,0.03)",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!item.isCurrent) e.currentTarget.style.borderColor = "#94a3b8";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!item.isCurrent) e.currentTarget.style.borderColor = "#e2e8f0";
-                  }}
-                >
-                  {/* Top Bar: PO & Status */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      marginBottom: 6,
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <b style={{ fontSize: 13, color: "#0f172a" }}>{item.reference}</b>
-                      <span
-                        style={{
-                          fontSize: 10.5,
-                          color: "#64748b",
-                          background: "#f1f5f9",
-                          padding: "1px 6px",
-                          borderRadius: 4,
-                          fontWeight: 600,
-                        }}
-                      >
-                        Rev R{item.revision}
-                      </span>
-                    </div>
-                    <StatusPill tone={item.tone}>{item.approvalStatus}</StatusPill>
-                  </div>
-
-                  {/* Buyer & Negara */}
-                  <div
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: item.isCurrent ? "#0369a1" : "#1e293b",
-                      marginBottom: 3,
-                      lineHeight: 1.3,
-                    }}
-                  >
-                    {item.buyer}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11.5,
-                      color: "#64748b",
-                      marginBottom: 8,
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <span>🌍 {item.buyerCountry}</span>
-                    {item.destination && item.destination !== "-" && (
-                      <span>· {item.destination}</span>
-                    )}
-                  </div>
-
-                  {/* Komoditas */}
-                  <div style={{ fontSize: 12, color: "#475569", marginBottom: 10 }}>
-                    📦 {item.product} ({item.quantity} {item.unit})
-                  </div>
-
-                  {/* Footer Card: Nilai, Margin, Sales */}
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      paddingTop: 8,
-                      borderTop: "1px solid #f1f5f9",
-                      fontSize: 12,
-                    }}
-                  >
-                    <div>
-                      <b style={{ color: "#0284c7" }}>
-                        {formatMoney(item.offerValue, item.currency)}
-                      </b>
-                      <span style={{ color: "#64748b", marginLeft: 4 }}>({item.incoterm})</span>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span
-                        style={{
-                          padding: "2px 7px",
-                          borderRadius: 4,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          background: item.margin < 20 ? "#fef3c7" : "#dcfce7",
-                          color: item.margin < 20 ? "#b45309" : "#15803d",
-                        }}
-                      >
-                        Margin {item.margin}%
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Kolom Kanan: Canvas Detail Peninjauan Eksekutif (Luas & Lapang) */}
-          <section
-            style={{
-              background: "#ffffff",
-              borderRadius: 12,
-              border: "1px solid #e2e8f0",
-              padding: "24px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-            }}
-          >
-            {/* Header Detail */}
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                paddingBottom: 16,
-                borderBottom: "1px solid #f1f5f9",
-                marginBottom: 20,
-              }}
-            >
-              <div>
-                <span
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: "#0284c7",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                  }}
-                >
-                  PENINJAUAN OTORISASI PENAWARAN EKSPOR
-                </span>
-                <h2 style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", margin: "4px 0 2px" }}>
-                  {shipment.reference || "PO Baru"} · {shipment.buyer || "Buyer Belum Ditentukan"}
-                </h2>
-                <div style={{ fontSize: 13, color: "#64748b" }}>
-                  Tujuan: {shipment.buyerCountry || "-"} · Pelabuhan Bongkar: {shipment.destination || "-"}
-                </div>
-              </div>
-              <StatusPill tone={statusTone}>{flow.effectiveApprovalStatus}</StatusPill>
-            </div>
-
-            {/* Guardrail Info Banner */}
-            {workflowMode === "corporate" ? (
-              <div
-                style={{
-                  background: "#f0fdf4",
-                  border: "1px solid #bbf7d0",
-                  borderRadius: 8,
-                  padding: "10px 14px",
-                  fontSize: 12.5,
-                  color: "#166534",
-                  marginBottom: 20,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <ShieldCheck size={18} style={{ color: "#16a34a", flexShrink: 0 }} />
-                <div>
-                  <b>Tata Kelola Pemisahan Tugas (ERP SoD):</b> Persetujuan pimpinan (Approver) diperlukan sebelum Proforma Invoice resmi dikirim ke buyer untuk menjamin batas margin aman perusahaan.
-                </div>
-              </div>
-            ) : (
-              <div
-                style={{
-                  background: "#eff6ff",
-                  border: "1px solid #bfdbfe",
-                  borderRadius: 8,
-                  padding: "10px 14px",
-                  fontSize: 12.5,
-                  color: "#1e40af",
-                  marginBottom: 20,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <CheckCircle2 size={18} style={{ color: "#3b82f6", flexShrink: 0 }} />
-                <div>
-                  <b>Mode Mandiri / UMKM Aktif:</b> Anda dapat langsung mengesahkan penawaran tanpa proses birokrasi berjenjang.
-                </div>
-              </div>
-            )}
-
-            {/* 3 Metric Stat Cards di Atas */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 14,
-                marginBottom: 20,
-              }}
-            >
-              <div
-                style={{
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 8,
-                  padding: "14px 16px",
-                }}
-              >
-                <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
-                  Harga Penawaran Resmi
-                </span>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>
-                  {formatMoney(pricing.active.offer, shipment.currency)}
-                </div>
-                <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
-                  Incoterm: {shipment.incoterm} · {shipment.namedPlace || "-"}
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: "#f8fafc",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 8,
-                  padding: "14px 16px",
-                }}
-              >
-                <span style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
-                  Total Biaya (Cost to Serve)
-                </span>
-                <div style={{ fontSize: 20, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>
-                  {formatMoney(pricing.active.cost, shipment.currency)}
-                </div>
-                <div style={{ fontSize: 11.5, color: "#64748b", marginTop: 2 }}>
-                  HPP Produksi + Freight &amp; Kontingensi
-                </div>
-              </div>
-
-              <div
-                style={{
-                  background: shipment.margin < 20 ? "#fffbeb" : "#f0fdf4",
-                  border: shipment.margin < 20 ? "1px solid #fde68a" : "1px solid #bbf7d0",
-                  borderRadius: 8,
-                  padding: "14px 16px",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: shipment.margin < 20 ? "#92400e" : "#166534",
-                    fontWeight: 600,
-                  }}
-                >
-                  Estimasi Margin Bersih
-                </span>
-                <div
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 700,
-                    color: shipment.margin < 20 ? "#b45309" : "#15803d",
-                    marginTop: 4,
-                  }}
-                >
-                  {shipment.margin}%
-                </div>
-                <div
-                  style={{
-                    fontSize: 11.5,
-                    color: shipment.margin < 20 ? "#b45309" : "#166534",
-                    marginTop: 2,
-                    fontWeight: 500,
-                  }}
-                >
-                  {shipment.margin < 20 ? "⚠️ Di bawah target (min. 20%)" : "✓ Target 20% terpenuhi"}
-                </div>
-              </div>
-            </div>
-
-            {/* 2-Column Specification Grid */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: 16,
-                marginBottom: 20,
-              }}
-            >
-              {/* Kolom 1: Spesifikasi Kontrak & Buyer */}
-              <div
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 8,
-                  padding: "16px",
-                }}
-              >
-                <b style={{ fontSize: 13, color: "#0f172a", display: "block", marginBottom: 12 }}>
-                  📋 Spesifikasi Kontrak &amp; Buyer
-                </b>
-                <div className="clean-kv">
-                  <span>Nama Buyer</span>
-                  <b>{shipment.buyer || "Belum ditentukan (Draft)"}</b>
-                </div>
-                <div className="clean-kv">
-                  <span>Negara &amp; Pelabuhan</span>
-                  <b>
-                    {shipment.buyerCountry || "-"} · {shipment.destination || "-"}
-                  </b>
-                </div>
-                <div className="clean-kv">
-                  <span>Komoditas &amp; Tonase</span>
-                  <b>
-                    {shipment.product || "Komoditas Ekspor"} · {formatNumber(shipment.quantity)}{" "}
-                    {shipment.unit}
-                  </b>
-                </div>
-                <div className="clean-kv">
-                  <span>Syarat Pembayaran</span>
-                  <b>{shipment.paymentTerms || "T/T 30% DP, 70% Pelunasan"}</b>
-                </div>
-                <div className="clean-kv">
-                  <span>Diskon Diberikan</span>
-                  <b>{formatMoney(shipment.discount, shipment.currency)}</b>
-                </div>
-              </div>
-
-              {/* Kolom 2: Pemohon & Tata Kelola Otorisasi */}
-              <div
-                style={{
-                  background: "#ffffff",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 8,
-                  padding: "16px",
-                }}
-              >
-                <b style={{ fontSize: 13, color: "#0f172a", display: "block", marginBottom: 12 }}>
-                  🛡️ Pemohon &amp; Kepatuhan (SoD)
-                </b>
-                <div className="clean-kv">
-                  <span>Sales PIC (Pemohon)</span>
-                  <b>{user?.name || "Muhajirin Fatona"} (Sales Executive)</b>
-                </div>
-                <div className="clean-kv">
-                  <span>Divisi Pengaju</span>
-                  <b>Penjualan &amp; Pemasaran Ekspor</b>
-                </div>
-                <div className="clean-kv">
-                  <span>Dokumen Acuan</span>
-                  <b>Proforma Invoice (Rev R{shipment.documentRevision})</b>
-                </div>
-                <div className="clean-kv">
-                  <span>Screening Legal AI</span>
-                  <b style={{ color: "#16a34a" }}>✓ Legal Terverifikasi (Bebas Sanksi)</b>
-                </div>
-                <div className="clean-kv">
-                  <span>Pemicu Otorisasi</span>
-                  <b style={{ color: shipment.margin < 20 ? "#b45309" : "#0f172a" }}>
-                    {shipment.margin < 20 ? "Dispensasi margin < 20%" : "Tata kelola standar"}
-                  </b>
-                </div>
-              </div>
-            </div>
-
-            {/* Pemicu Review Alert */}
-            {shipment.margin < 20 && (
-              <div
-                style={{
-                  background: "#fffbeb",
-                  border: "1px solid #fde68a",
-                  borderRadius: 8,
-                  padding: "12px 16px",
-                  fontSize: 13,
-                  color: "#92400e",
-                  marginBottom: 20,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                }}
-              >
-                <AlertCircle size={18} style={{ color: "#d97706", flexShrink: 0 }} />
-                <div>
-                  <b>Catatan Kebijakan Perusahaan:</b> Penawaran ini memiliki estimasi margin {shipment.margin}%, yang berada di bawah target kuartal (20%). Persetujuan Direktur diperlukan untuk memberikan dispensasi harga ke buyer.
-                </div>
-              </div>
-            )}
-
-            {/* Seksi Catatan & Tindakan Pimpinan */}
-            <div
-              style={{
-                background: "#f8fafc",
+                background: "#ffffff",
                 border: "1px solid #e2e8f0",
-                borderRadius: 8,
-                padding: "16px",
+                borderRadius: 10,
+                padding: "16px 20px",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
               }}
             >
-              <Field
-                label="Catatan Reviewer / Pimpinan (wajib bila meminta revisi harga/syarat)"
-                value={comment}
-                onChange={setComment}
-                placeholder="Contoh: Disetujui dengan klausul DP minimal 30% atau target serah akhir bulan..."
-              />
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginTop: 16,
-                  paddingTop: 14,
-                  borderTop: "1px solid #e2e8f0",
-                  flexWrap: "wrap",
-                  gap: 12,
-                }}
-              >
-                <div style={{ display: "flex", gap: 12 }}>
-                  <button
-                    type="button"
-                    className="text-button"
-                    onClick={() => navigate("pricing")}
-                    style={{ fontSize: 13 }}
-                  >
-                    ← Buka Kalkulator Harga
-                  </button>
-                  <button
-                    type="button"
-                    className="text-button"
-                    onClick={() => navigate("documents")}
-                    style={{ fontSize: 13 }}
-                  >
-                    Buka Dokumen Proforma Invoice →
-                  </button>
-                </div>
-
-                <div style={{ display: "flex", gap: 10 }}>
-                  <button
-                    type="button"
-                    onClick={() => handleDecision("Revisi diminta")}
-                    style={{
-                      background: "#ffffff",
-                      border: "1.5px solid #ef4444",
-                      color: "#b91c1c",
-                      fontWeight: 600,
-                      padding: "9px 18px",
-                      borderRadius: 6,
-                      fontSize: 13,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#fef2f2";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#ffffff";
-                    }}
-                  >
-                    Minta Revisi ke Sales
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDecision("Tercatat direview")}
-                    style={{
-                      background: "#0284c7",
-                      border: "none",
-                      color: "#ffffff",
-                      fontWeight: 600,
-                      padding: "9px 22px",
-                      borderRadius: 6,
-                      fontSize: 13,
-                      cursor: "pointer",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      boxShadow: "0 1px 3px rgba(2, 132, 199, 0.3)",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background = "#0369a1";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = "#0284c7";
-                    }}
-                  >
-                    <ClipboardCheck size={16} /> Setujui &amp; Otorisasi Penawaran
-                  </button>
-                </div>
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
+                Menunggu Otorisasi Direksi
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>
+                {pendingCount} Penawaran
+              </div>
+              <div style={{ fontSize: 12, color: "#0284c7", marginTop: 2, fontWeight: 500 }}>
+                Nilai Akumulasi: {formatMoney(totalOfferValue, "USD")}
               </div>
             </div>
-          </section>
-        </div>
-      )}
 
-      {/* 3. TAB 2: Kelola Tim & Hak Akses (Enterprise ERP Roles & Member Roster) */}
-      {activeTab === "team" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Header Tab Tim & Tombol Tambah Tim */}
+            <div
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 10,
+                padding: "16px 20px",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+              }}
+            >
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
+                Rata-rata Margin Penawaran
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#15803d", marginTop: 4 }}>
+                18.3%
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                Target Ambang Standar: min. 20%
+              </div>
+            </div>
+
+            <div
+              style={{
+                background: "#ffffff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 10,
+                padding: "16px 20px",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+              }}
+            >
+              <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
+                Kepatuhan Sanksi Dagang
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "#0284c7", marginTop: 4 }}>
+                100% Lolos Skrining
+              </div>
+              <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
+                Terverifikasi AI Sanctions Screening
+              </div>
+            </div>
+          </div>
+
+          {/* Filter & Search Toolbar */}
           <div
             style={{
               display: "flex",
@@ -1656,18 +1260,262 @@ export function ApprovalsView({
               flexWrap: "wrap",
               gap: 12,
               background: "#ffffff",
-              padding: "20px 24px",
-              borderRadius: 12,
+              padding: "12px 16px",
+              borderRadius: 10,
               border: "1px solid #e2e8f0",
+            }}
+          >
+            {/* Filter Chips */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => setStatusFilter("ALL")}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: statusFilter === "ALL" ? "1.5px solid #0284c7" : "1px solid #e2e8f0",
+                  background: statusFilter === "ALL" ? "#f0f9ff" : "#ffffff",
+                  color: statusFilter === "ALL" ? "#0284c7" : "#64748b",
+                }}
+              >
+                Semua ({queueItems.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter("PENDING")}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: statusFilter === "PENDING" ? "1.5px solid #d97706" : "1px solid #e2e8f0",
+                  background: statusFilter === "PENDING" ? "#fffbeb" : "#ffffff",
+                  color: statusFilter === "PENDING" ? "#b45309" : "#64748b",
+                }}
+              >
+                Menunggu Otorisasi ({pendingCount})
+              </button>
+              <button
+                type="button"
+                onClick={() => setStatusFilter("APPROVED")}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 6,
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  border: statusFilter === "APPROVED" ? "1.5px solid #16a34a" : "1px solid #e2e8f0",
+                  background: statusFilter === "APPROVED" ? "#f0fdf4" : "#ffffff",
+                  color: statusFilter === "APPROVED" ? "#15803d" : "#64748b",
+                }}
+              >
+                Telah Disetujui ({approvedCount})
+              </button>
+            </div>
+
+            {/* Input Cari */}
+            <div style={{ position: "relative", width: 280 }}>
+              <Search
+                size={14}
+                style={{
+                  position: "absolute",
+                  left: 10,
+                  top: "50%",
+                  transform: "translateY(-50%)",
+                  color: "#94a3b8",
+                }}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari PO, buyer, negara..."
+                style={{
+                  width: "100%",
+                  padding: "6px 10px 6px 32px",
+                  borderRadius: 6,
+                  border: "1px solid #cbd5e1",
+                  fontSize: 12.5,
+                  color: "#0f172a",
+                  outline: "none",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Tabel Antrian Lengkap (Full-Width, Tanpa Teks Tertekuk) */}
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: 10,
+              border: "1px solid #e2e8f0",
+              overflow: "hidden",
               boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
             }}
           >
+            <div className="clean-table-wrap">
+              <table className="clean-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                    <th style={{ width: "17%", padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      NOMOR PO / REF
+                    </th>
+                    <th style={{ width: "24%", padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      NAMA BUYER &amp; NEGARA
+                    </th>
+                    <th style={{ width: "16%", padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      PEMOHON (SALES PIC)
+                    </th>
+                    <th style={{ width: "14%", padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      KOMODITAS
+                    </th>
+                    <th style={{ width: "12%", padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      PENAWARAN
+                    </th>
+                    <th style={{ width: "8%", padding: "12px 16px", textAlign: "left", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      MARGIN
+                    </th>
+                    <th style={{ width: "9%", padding: "12px 16px", textAlign: "center", fontSize: 12, fontWeight: 700, color: "#475569" }}>
+                      AKSI
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredQueue.map((item) => (
+                    <tr
+                      key={item.id}
+                      style={{
+                        borderBottom: "1px solid #f1f5f9",
+                        background: item.isCurrent ? "#f8fafc" : "#ffffff",
+                      }}
+                    >
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                          <b style={{ fontSize: 13, color: "#0f172a" }}>{item.reference}</b>
+                          <span
+                            style={{
+                              fontSize: 10.5,
+                              color: "#64748b",
+                              background: "#f1f5f9",
+                              padding: "1px 6px",
+                              borderRadius: 4,
+                              fontWeight: 600,
+                            }}
+                          >
+                            Rev R{item.revision}
+                          </span>
+                        </div>
+                        {item.isCurrent && (
+                          <div style={{ fontSize: 11, color: "#0284c7", fontWeight: 600, marginTop: 2 }}>
+                            ● Sedang Dibuka di Workspace
+                          </div>
+                        )}
+                      </td>
+
+                      <td style={{ padding: "14px 16px" }}>
+                        <b style={{ fontSize: 13, color: "#1e293b", display: "block" }}>
+                          {item.buyer}
+                        </b>
+                        <span style={{ fontSize: 11.5, color: "#64748b" }}>
+                          🌍 {item.buyerCountry} · {item.destination}
+                        </span>
+                      </td>
+
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#334155" }}>
+                          {item.salesPic}
+                        </div>
+                        <span style={{ fontSize: 11, color: "#64748b" }}>Sales Executive</span>
+                      </td>
+
+                      <td style={{ padding: "14px 16px" }}>
+                        <div style={{ fontSize: 13, color: "#0f172a", fontWeight: 500 }}>
+                          {item.product}
+                        </div>
+                        <span style={{ fontSize: 11.5, color: "#64748b" }}>
+                          {item.quantity} {item.unit}
+                        </span>
+                      </td>
+
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                        <b style={{ fontSize: 13, color: "#0284c7" }}>
+                          {formatMoney(item.offerValue, item.currency)}
+                        </b>
+                        <span style={{ fontSize: 11.5, color: "#64748b", marginLeft: 4 }}>
+                          ({item.incoterm})
+                        </span>
+                      </td>
+
+                      <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
+                        <span
+                          style={{
+                            padding: "3px 8px",
+                            borderRadius: 4,
+                            fontSize: 11.5,
+                            fontWeight: 700,
+                            background: item.margin < 20 ? "#fef3c7" : "#dcfce7",
+                            color: item.margin < 20 ? "#b45309" : "#15803d",
+                          }}
+                        >
+                          {item.margin}%
+                        </span>
+                      </td>
+
+                      <td style={{ padding: "14px 16px", textAlign: "center", whiteSpace: "nowrap" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenReviewModal(item)}
+                          style={{
+                            background: item.approvalStatus === "Tercatat direview" ? "#f8fafc" : "#0284c7",
+                            border: item.approvalStatus === "Tercatat direview" ? "1px solid #cbd5e1" : "none",
+                            color: item.approvalStatus === "Tercatat direview" ? "#475569" : "#ffffff",
+                            padding: "6px 14px",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          {item.approvalStatus === "Tercatat direview" ? "Lihat Detail" : "Tinjau & Otorisasi"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 2: KELOLA TIM & ROLE RBAC */}
+      {activeTab === "team" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* Header Bar Tim */}
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
+              background: "#ffffff",
+              padding: "16px 20px",
+              borderRadius: 10,
+              border: "1px solid #e2e8f0",
+            }}
+          >
             <div>
-              <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                Struktur Tim Ekspor &amp; Matriks Hak Akses (ERP)
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>
+                Matriks Divisi &amp; Peran Tim Ekspor
               </h3>
-              <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
-                Kelola 4 divisi utama operasional ekspor (Marketing, Akuntansi, Dokumen/Kepabeanan, dan Pimpinan) dengan pembagian tugas yang jelas.
+              <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#64748b" }}>
+                Pengaturan hak akses dan pembagian tugas operasional ekspor terstruktur layaknya ERP korporat.
               </p>
             </div>
 
@@ -1679,183 +1527,117 @@ export function ApprovalsView({
                 color: "#ffffff",
                 border: "none",
                 fontWeight: 600,
-                fontSize: 13,
-                padding: "9px 18px",
+                fontSize: 12.5,
+                padding: "8px 16px",
                 borderRadius: 6,
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 7,
-                boxShadow: "0 1px 3px rgba(2,132,199,0.25)",
+                gap: 6,
               }}
             >
-              <UserPlus size={16} /> + Tambah Anggota Tim Baru
+              <UserPlus size={15} /> + Tambah Anggota Tim
             </button>
           </div>
 
-          {/* 4 Kartu Peran Utama Perusahaan */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-              gap: 14,
-            }}
-          >
-            <div
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 10,
-                padding: "16px",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>👔</span>
-                <b style={{ fontSize: 13.5, color: "#0f172a" }}>Pimpinan / Direktur</b>
+          {/* 4 Kartu Divisi */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>👔</span>
+                <b style={{ fontSize: 13, color: "#0f172a" }}>Pimpinan / Direktur</b>
               </div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.4, marginBottom: 12 }}>
-                Otorisasi final penawaran harga, dispensasi margin kuartal, dan penandatanganan Sales Contract resmi.
+              <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
+                Otorisasi penawaran, dispensasi margin, &amp; penandatanganan kontrak ekspor.
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#0369a1",
-                  background: "#e0f2fe",
-                  padding: "3px 8px",
-                  borderRadius: 4,
-                }}
-              >
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: "#0369a1", background: "#e0f2fe", padding: "2px 6px", borderRadius: 4 }}>
                 Approver (Otoritas Penuh)
               </span>
             </div>
 
-            <div
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 10,
-                padding: "16px",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>💼</span>
-                <b style={{ fontSize: 13.5, color: "#0f172a" }}>Sales &amp; Marketing</b>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>💼</span>
+                <b style={{ fontSize: 13, color: "#0f172a" }}>Sales &amp; Marketing</b>
               </div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.4, marginBottom: 12 }}>
-                Mencari buyer luar negeri, input PO / LOI, kalkulasi biaya penawaran awal, dan mengajukan persetujuan ke pimpinan.
+              <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
+                Negosiasi buyer luar negeri, input PO/LOI, &amp; pengajuan kalkulasi penawaran.
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#166534",
-                  background: "#dcfce7",
-                  padding: "3px 8px",
-                  borderRadius: 4,
-                }}
-              >
-                Requester (Pemohon Penawaran)
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: "#166534", background: "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
+                Requester (Pemohon)
               </span>
             </div>
 
-            <div
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 10,
-                padding: "16px",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>📦</span>
-                <b style={{ fontSize: 13.5, color: "#0f172a" }}>Operasional &amp; Dokumen</b>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>📦</span>
+                <b style={{ fontSize: 13, color: "#0f172a" }}>Operasional &amp; Dokumen</b>
               </div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.4, marginBottom: 12 }}>
-                Mengurus PEB Bea Cukai, perizinan e-SKA/COO Kemendag, sertifikasi karantina mutu, dan booking kontainer kapal.
+              <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
+                Kelola PEB Bea Cukai, perizinan e-SKA/COO, karantina, &amp; booking kontainer.
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#854d0e",
-                  background: "#fef9c3",
-                  padding: "3px 8px",
-                  borderRadius: 4,
-                }}
-              >
-                Shipping &amp; Customs Officer
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: "#854d0e", background: "#fef9c3", padding: "2px 6px", borderRadius: 4 }}>
+                Customs &amp; Shipping
               </span>
             </div>
 
-            <div
-              style={{
-                background: "#ffffff",
-                border: "1px solid #e2e8f0",
-                borderRadius: 10,
-                padding: "16px",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <span style={{ fontSize: 20 }}>💳</span>
-                <b style={{ fontSize: 13.5, color: "#0f172a" }}>Keuangan &amp; Akuntansi</b>
+            <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                <span style={{ fontSize: 18 }}>💳</span>
+                <b style={{ fontSize: 13, color: "#0f172a" }}>Keuangan &amp; Akuntansi</b>
               </div>
-              <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.4, marginBottom: 12 }}>
-                Verifikasi mutasi rekening DP, validasi pencairan L/C bank, dan pelaporan Devisa Hasil Ekspor (DHE BI).
+              <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
+                Verifikasi mutasi DP bank, pencairan L/C, &amp; pelaporan devisa DHE BI.
               </div>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#6b21a8",
-                  background: "#f3e8ff",
-                  padding: "3px 8px",
-                  borderRadius: 4,
-                }}
-              >
-                Finance &amp; Banking
+              <span style={{ fontSize: 10.5, fontWeight: 700, color: "#6b21a8", background: "#f3e8ff", padding: "2px 6px", borderRadius: 4 }}>
+                Finance &amp; Treasury
               </span>
             </div>
           </div>
 
-          {/* Daftar Anggota Tim Aktif */}
+          {/* Tabel Roster Anggota Tim */}
           <div
             style={{
               background: "#ffffff",
-              borderRadius: 12,
+              borderRadius: 10,
               border: "1px solid #e2e8f0",
-              padding: "20px",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
+              padding: "16px 20px",
             }}
           >
-            <b style={{ fontSize: 15, color: "#0f172a", display: "block", marginBottom: 14 }}>
-              Daftar Anggota Tim Workspace ({teamMembers.length})
+            <b style={{ fontSize: 14, color: "#0f172a", display: "block", marginBottom: 12 }}>
+              Daftar Anggota Tim Terdaftar ({teamMembers.length})
             </b>
 
             <div className="clean-table-wrap">
-              <table className="clean-table">
+              <table className="clean-table" style={{ width: "100%", borderCollapse: "collapse" }}>
                 <thead>
-                  <tr>
-                    <th style={{ width: "24%" }}>Nama &amp; Kontak</th>
-                    <th style={{ width: "22%" }}>Peran &amp; Divisi</th>
-                    <th style={{ width: "36%" }}>Tanggung Jawab Otoritas</th>
-                    <th style={{ width: "10%" }}>Status</th>
-                    <th style={{ width: "8%" }}>Aksi</th>
+                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                    <th style={{ width: "26%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      ANGGOTA TIM
+                    </th>
+                    <th style={{ width: "22%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      PERAN &amp; DIVISI
+                    </th>
+                    <th style={{ width: "36%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      HAK AKSES SISTEM
+                    </th>
+                    <th style={{ width: "10%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      STATUS
+                    </th>
+                    <th style={{ width: "6%", padding: "10px 14px", textAlign: "center", fontSize: 12, color: "#475569" }}>
+                      AKSI
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
                   {teamMembers.map((member) => (
-                    <tr key={member.id}>
-                      <td>
+                    <tr key={member.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td style={{ padding: "12px 14px" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                           <div
                             style={{
-                              width: 34,
-                              height: 34,
+                              width: 32,
+                              height: 32,
                               borderRadius: "50%",
                               background: member.isOwner ? "#0284c7" : "#e2e8f0",
                               color: member.isOwner ? "#ffffff" : "#475569",
@@ -1863,8 +1645,7 @@ export function ApprovalsView({
                               alignItems: "center",
                               justifyContent: "center",
                               fontWeight: 700,
-                              fontSize: 13,
-                              flexShrink: 0,
+                              fontSize: 12,
                             }}
                           >
                             {member.name.slice(0, 2).toUpperCase()}
@@ -1874,7 +1655,7 @@ export function ApprovalsView({
                             {member.isOwner && (
                               <span
                                 style={{
-                                  fontSize: 10.5,
+                                  fontSize: 10,
                                   color: "#0284c7",
                                   background: "#e0f2fe",
                                   padding: "1px 5px",
@@ -1890,21 +1671,19 @@ export function ApprovalsView({
                           </div>
                         </div>
                       </td>
-                      <td>
-                        <b>{member.roleLabel}</b>
+                      <td style={{ padding: "12px 14px" }}>
+                        <b style={{ fontSize: 13, color: "#0f172a" }}>{member.roleLabel}</b>
                         <span className="row-sub">{member.department}</span>
                       </td>
-                      <td>
-                        <span style={{ fontSize: 12.5, color: "#475569" }}>
-                          {member.authority}
-                        </span>
+                      <td style={{ padding: "12px 14px" }}>
+                        <span style={{ fontSize: 12, color: "#475569" }}>{member.authority}</span>
                       </td>
-                      <td>
+                      <td style={{ padding: "12px 14px" }}>
                         <span
                           style={{
-                            padding: "3px 8px",
+                            padding: "2px 7px",
                             borderRadius: 4,
-                            fontSize: 11.5,
+                            fontSize: 11,
                             fontWeight: 600,
                             background: member.status === "Aktif" ? "#dcfce7" : "#fef3c7",
                             color: member.status === "Aktif" ? "#166534" : "#b45309",
@@ -1913,7 +1692,7 @@ export function ApprovalsView({
                           {member.status}
                         </span>
                       </td>
-                      <td>
+                      <td style={{ padding: "12px 14px", textAlign: "center" }}>
                         {!member.isOwner ? (
                           <button
                             type="button"
@@ -1924,16 +1703,14 @@ export function ApprovalsView({
                               color: "#dc2626",
                               cursor: "pointer",
                               padding: "4px 8px",
-                              borderRadius: 4,
                               fontSize: 12,
                               fontWeight: 600,
                             }}
-                            title="Hapus akses tim"
                           >
                             Hapus
                           </button>
                         ) : (
-                          <span style={{ fontSize: 11.5, color: "#94a3b8" }}>Utama</span>
+                          <span style={{ fontSize: 11, color: "#94a3b8" }}>Utama</span>
                         )}
                       </td>
                     </tr>
@@ -1942,172 +1719,548 @@ export function ApprovalsView({
               </table>
             </div>
           </div>
+        </div>
+      )}
 
-          {/* Modal / Dialog Tambah Anggota Tim */}
-          {isInviteModalOpen && (
+      {/* TAB 3: MATRIKS KEBIJAKAN OTORISASI (ENTERPRISE SOD RULES) */}
+      {activeTab === "matrix" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: 10,
+              border: "1px solid #e2e8f0",
+              padding: "20px",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <ShieldCheck size={20} style={{ color: "#0284c7" }} />
+              <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>
+                Matriks Batas Wewenang &amp; Kebijakan Otorisasi (Enterprise Governance)
+              </h3>
+            </div>
+            <p style={{ margin: "2px 0 16px", fontSize: 13, color: "#64748b" }}>
+              Parameter aturan otomatis untuk memisahkan wewenang staf penjualan dengan persetujuan pimpinan / direksi sebelum kontrak mengikat.
+            </p>
+
+            <div className="clean-table-wrap">
+              <table className="clean-table" style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr style={{ background: "#f8fafc", borderBottom: "1px solid #e2e8f0" }}>
+                    <th style={{ width: "28%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      KATEGORI TRANSAKSI
+                    </th>
+                    <th style={{ width: "24%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      AMBANG BATAS (THRESHOLD)
+                    </th>
+                    <th style={{ width: "24%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      TINGKAT PEJABAT APPROVER
+                    </th>
+                    <th style={{ width: "24%", padding: "10px 14px", textAlign: "left", fontSize: 12, color: "#475569" }}>
+                      STATUS GUARDRAIL
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b>Nilai Transaksi Material</b>
+                      <span className="row-sub">Total nilai FOB/CIF pesanan</span>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#0f172a" }}>&gt; $25,000 USD</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#0284c7" }}>Direktur Utama / Owner</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", background: "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
+                        Wajib Otorisasi Direksi
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b>Dispensasi Margin Bersih</b>
+                      <span className="row-sub">Margin penawaran di bawah target</span>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#b45309" }}>&lt; 20% Target Kuartal</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#0284c7" }}>Direktur Operasional / Pimpinan</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#b45309", background: "#fef3c7", padding: "2px 6px", borderRadius: 4 }}>
+                        Wajib Justifikasi Margin
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr style={{ borderBottom: "1px solid #f1f5f9" }}>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b>Pemberian Diskon Khusus</b>
+                      <span className="row-sub">Diskon harga yang diajukan sales</span>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#0f172a" }}>&gt; $1,000 USD</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#0284c7" }}>Manajer Penjualan Ekspor</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", background: "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
+                        Wajib Approval Manajer
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b>Syarat Pembayaran Berisiko</b>
+                      <span className="row-sub">Metode tanpa uang muka / Open Account</span>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#dc2626" }}>DP 0% / D/A / D/P</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <b style={{ color: "#0284c7" }}>Direktur Keuangan (CFO)</b>
+                    </td>
+                    <td style={{ padding: "12px 14px" }}>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: "#dc2626", background: "#fee2e2", padding: "2px 6px", borderRadius: 4 }}>
+                        Wajib Analisis Kredit
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. MODAL DIALOG PENINJAUAN & OTORISASI (FOCUS EXECUTIVE MODAL) */}
+      {reviewModalItem && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 20,
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: 12,
+              width: "100%",
+              maxWidth: 680,
+              maxHeight: "90vh",
+              overflowY: "auto",
+              padding: "24px 28px",
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            {/* Modal Header */}
             <div
               style={{
-                position: "fixed",
-                inset: 0,
-                background: "rgba(15, 23, 42, 0.6)",
                 display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                zIndex: 9999,
-                padding: 16,
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                paddingBottom: 14,
+                borderBottom: "1px solid #e2e8f0",
+                marginBottom: 16,
               }}
             >
-              <div
+              <div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase" }}>
+                  LEMBAR OTORISASI PENAWARAN EKSEKUTIF
+                </span>
+                <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "2px 0 0" }}>
+                  {reviewModalItem.reference} · {reviewModalItem.buyer}
+                </h3>
+                <div style={{ fontSize: 12, color: "#64748b" }}>
+                  Tujuan: {reviewModalItem.buyerCountry} · {reviewModalItem.destination}
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setReviewModalItem(null)}
                 style={{
-                  background: "#ffffff",
-                  borderRadius: 12,
-                  width: "100%",
-                  maxWidth: 520,
-                  padding: 24,
-                  boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#64748b",
+                  padding: 4,
                 }}
               >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginBottom: 16,
-                    paddingBottom: 12,
-                    borderBottom: "1px solid #e2e8f0",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <UserPlus size={18} style={{ color: "#0284c7" }} />
-                    <b style={{ fontSize: 16, color: "#0f172a" }}>Undang Anggota Tim Baru</b>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsInviteModalOpen(false)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      cursor: "pointer",
-                      color: "#64748b",
-                      padding: 4,
-                    }}
-                  >
-                    <X size={18} />
-                  </button>
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* 3 Metrics di Modal */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                gap: 12,
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px" }}>
+                <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>Harga Penawaran</span>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>
+                  {formatMoney(reviewModalItem.offerValue, reviewModalItem.currency)}
                 </div>
+                <div style={{ fontSize: 11, color: "#64748b" }}>{reviewModalItem.incoterm}</div>
+              </div>
 
-                <form onSubmit={handleAddTeamMember}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    <Field
-                      label="Nama Lengkap Anggota Tim"
-                      value={newMemberName}
-                      onChange={setNewMemberName}
-                      placeholder="Contoh: Raden Mas Danang"
-                    />
+              <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 8, padding: "10px 14px" }}>
+                <span style={{ fontSize: 11, color: "#64748b", fontWeight: 600 }}>HPP &amp; Logistik</span>
+                <div style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", marginTop: 2 }}>
+                  {formatMoney(reviewModalItem.costValue, reviewModalItem.currency)}
+                </div>
+                <div style={{ fontSize: 11, color: "#64748b" }}>Cost to serve</div>
+              </div>
 
-                    <Field
-                      label="Email Perusahaan"
-                      value={newMemberEmail}
-                      onChange={setNewMemberEmail}
-                      placeholder="Contoh: danang@indico-export.com"
-                    />
-
-                    <div>
-                      <label
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: "#334155",
-                          display: "block",
-                          marginBottom: 6,
-                        }}
-                      >
-                        Peran &amp; Tanggung Jawab Tim
-                      </label>
-                      <select
-                        value={newMemberRole}
-                        onChange={(e) =>
-                          setNewMemberRole(
-                            e.target.value as "pimpinan" | "sales" | "ops" | "finance"
-                          )
-                        }
-                        style={{
-                          width: "100%",
-                          padding: "9px 12px",
-                          borderRadius: 6,
-                          border: "1px solid #cbd5e1",
-                          background: "#ffffff",
-                          fontSize: 13,
-                          color: "#0f172a",
-                        }}
-                      >
-                        <option value="sales">💼 Sales &amp; Marketing Ekspor (Input &amp; Ajukan Penawaran)</option>
-                        <option value="ops">📦 Operasional &amp; Dokumen Ekspor (PEB, SKA, Kontainer)</option>
-                        <option value="finance">💳 Keuangan &amp; Akuntansi (Verifikasi DP, LC, &amp; Devisa)</option>
-                        <option value="pimpinan">👔 Pimpinan / Direktur (Otorisasi &amp; Dispensasi Margin)</option>
-                      </select>
-                    </div>
-
-                    <div
-                      style={{
-                        background: "#f8fafc",
-                        border: "1px solid #e2e8f0",
-                        borderRadius: 6,
-                        padding: "10px 12px",
-                        fontSize: 12,
-                        color: "#64748b",
-                      }}
-                    >
-                      💡 Sistem akan mengirimkan tautan akses ke email anggota dengan batasan hak akses sesuai peran divisi di atas.
-                    </div>
-                  </div>
-
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "flex-end",
-                      gap: 10,
-                      marginTop: 20,
-                      paddingTop: 14,
-                      borderTop: "1px solid #e2e8f0",
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => setIsInviteModalOpen(false)}
-                      style={{
-                        background: "#ffffff",
-                        border: "1px solid #cbd5e1",
-                        color: "#475569",
-                        fontWeight: 600,
-                        padding: "8px 16px",
-                        borderRadius: 6,
-                        fontSize: 13,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      style={{
-                        background: "#0284c7",
-                        border: "none",
-                        color: "#ffffff",
-                        fontWeight: 600,
-                        padding: "8px 20px",
-                        borderRadius: 6,
-                        fontSize: 13,
-                        cursor: "pointer",
-                      }}
-                    >
-                      Kirim Undangan Tim
-                    </button>
-                  </div>
-                </form>
+              <div
+                style={{
+                  background: reviewModalItem.margin < 20 ? "#fffbeb" : "#f0fdf4",
+                  border: reviewModalItem.margin < 20 ? "1px solid #fde68a" : "1px solid #bbf7d0",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                }}
+              >
+                <span style={{ fontSize: 11, color: reviewModalItem.margin < 20 ? "#92400e" : "#166534", fontWeight: 600 }}>
+                  Margin Keuntungan
+                </span>
+                <div style={{ fontSize: 18, fontWeight: 700, color: reviewModalItem.margin < 20 ? "#b45309" : "#15803d", marginTop: 2 }}>
+                  {reviewModalItem.margin}%
+                </div>
+                <div style={{ fontSize: 11, color: reviewModalItem.margin < 20 ? "#b45309" : "#166534" }}>
+                  {reviewModalItem.margin < 20 ? "⚠️ Butuh Dispensasi" : "✓ Memenuhi Target"}
+                </div>
               </div>
             </div>
-          )}
+
+            {/* Rincian Grid 2 Kolom */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 14,
+                marginBottom: 16,
+              }}
+            >
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
+                <b style={{ fontSize: 12, color: "#0f172a", display: "block", marginBottom: 8 }}>
+                  📋 Spesifikasi Kontrak
+                </b>
+                <div className="clean-kv">
+                  <span>Komoditas</span>
+                  <b>{reviewModalItem.product}</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Tonase &amp; Kontainer</span>
+                  <b>{reviewModalItem.quantity} {reviewModalItem.unit} ({reviewModalItem.containerType})</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Syarat Pembayaran</span>
+                  <b>{reviewModalItem.paymentTerms}</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Diskon Diberikan</span>
+                  <b>{formatMoney(reviewModalItem.discount, reviewModalItem.currency)}</b>
+                </div>
+              </div>
+
+              <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
+                <b style={{ fontSize: 12, color: "#0f172a", display: "block", marginBottom: 8 }}>
+                  🛡️ Pemohon &amp; Tata Kelola (SoD)
+                </b>
+                <div className="clean-kv">
+                  <span>Sales PIC (Pemohon)</span>
+                  <b>{reviewModalItem.salesPic}</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Dokumen Acuan</span>
+                  <b>Proforma Invoice (Rev R{reviewModalItem.revision})</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Screening Legal AI</span>
+                  <b style={{ color: "#16a34a" }}>✓ Lolos Bebas Sanksi Dagang</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Status Verifikasi</span>
+                  <b>{reviewModalItem.approvalStatus}</b>
+                </div>
+              </div>
+            </div>
+
+            {/* Warning Catatan Kebijakan */}
+            {reviewModalItem.margin < 20 && (
+              <div
+                style={{
+                  background: "#fffbeb",
+                  border: "1px solid #fde68a",
+                  borderRadius: 8,
+                  padding: "10px 14px",
+                  fontSize: 12.5,
+                  color: "#92400e",
+                  marginBottom: 16,
+                }}
+              >
+                <b>⚠️ Pemicu Otorisasi Direksi:</b> Estimasi margin bersih ({reviewModalItem.margin}%) berada di bawah target kuartal (20%). Otorisasi Direktur diperlukan untuk memberikan dispensasi harga kepada buyer.
+              </div>
+            )}
+
+            {/* Catatan Reviewer */}
+            <div style={{ marginBottom: 18 }}>
+              <Field
+                label="Catatan Direktur / Pimpinan (wajib bila meminta revisi)"
+                value={comment}
+                onChange={setComment}
+                placeholder="Contoh: Disetujui dengan klausul DP minimal 30% atau revisi target serah kontainer..."
+              />
+            </div>
+
+            {/* Tombol Keputusan di Modal */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                paddingTop: 14,
+                borderTop: "1px solid #e2e8f0",
+              }}
+            >
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => {
+                    setReviewModalItem(null);
+                    navigate("pricing");
+                  }}
+                  style={{ fontSize: 12.5 }}
+                >
+                  ← Buka Kalkulator
+                </button>
+                <button
+                  type="button"
+                  className="text-button"
+                  onClick={() => {
+                    setReviewModalItem(null);
+                    navigate("documents");
+                  }}
+                  style={{ fontSize: 12.5 }}
+                >
+                  Buka Proforma Invoice →
+                </button>
+              </div>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={() => handleDecision("Revisi diminta")}
+                  style={{
+                    background: "#ffffff",
+                    border: "1.5px solid #ef4444",
+                    color: "#b91c1c",
+                    fontWeight: 600,
+                    padding: "8px 16px",
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    cursor: "pointer",
+                  }}
+                >
+                  Minta Revisi ke Sales
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDecision("Tercatat direview")}
+                  style={{
+                    background: "#0284c7",
+                    border: "none",
+                    color: "#ffffff",
+                    fontWeight: 600,
+                    padding: "8px 18px",
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  <ClipboardCheck size={15} /> Setujui &amp; Otorisasi Penawaran
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 5. MODAL UNDANG ANGGOTA TIM BARU */}
+      {isInviteModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              background: "#ffffff",
+              borderRadius: 12,
+              width: "100%",
+              maxWidth: 480,
+              padding: 24,
+              boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.2)",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: 16,
+                paddingBottom: 10,
+                borderBottom: "1px solid #e2e8f0",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <UserPlus size={18} style={{ color: "#0284c7" }} />
+                <b style={{ fontSize: 16, color: "#0f172a" }}>Undang Anggota Tim Baru</b>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsInviteModalOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#64748b",
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <form onSubmit={handleAddTeamMember}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                <Field
+                  label="Nama Lengkap Anggota Tim"
+                  value={newMemberName}
+                  onChange={setNewMemberName}
+                  placeholder="Contoh: Raden Mas Danang"
+                />
+
+                <Field
+                  label="Email Perusahaan"
+                  value={newMemberEmail}
+                  onChange={setNewMemberEmail}
+                  placeholder="Contoh: danang@indico-export.com"
+                />
+
+                <div>
+                  <label style={{ fontSize: 12, fontWeight: 600, color: "#334155", display: "block", marginBottom: 6 }}>
+                    Divisi &amp; Peran Tanggung Jawab
+                  </label>
+                  <select
+                    value={newMemberRole}
+                    onChange={(e) =>
+                      setNewMemberRole(e.target.value as "pimpinan" | "sales" | "ops" | "finance")
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 12px",
+                      borderRadius: 6,
+                      border: "1px solid #cbd5e1",
+                      background: "#ffffff",
+                      fontSize: 13,
+                      color: "#0f172a",
+                    }}
+                  >
+                    <option value="sales">💼 Sales &amp; Marketing Ekspor (Input &amp; Ajukan Penawaran)</option>
+                    <option value="ops">📦 Operasional &amp; Dokumen Ekspor (PEB, SKA, Kontainer)</option>
+                    <option value="finance">💳 Keuangan &amp; Akuntansi (Verifikasi DP, LC, &amp; Devisa)</option>
+                    <option value="pimpinan">👔 Pimpinan / Direktur (Otorisasi &amp; Dispensasi Margin)</option>
+                  </select>
+                </div>
+
+                <div
+                  style={{
+                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: 6,
+                    padding: "10px 12px",
+                    fontSize: 12,
+                    color: "#64748b",
+                  }}
+                >
+                  💡 Sistem akan mengirimkan undangan ke email anggota dengan batasan hak akses sesuai peran di atas.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "flex-end",
+                  gap: 10,
+                  marginTop: 20,
+                  paddingTop: 12,
+                  borderTop: "1px solid #e2e8f0",
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsInviteModalOpen(false)}
+                  style={{
+                    background: "#ffffff",
+                    border: "1px solid #cbd5e1",
+                    color: "#475569",
+                    fontWeight: 600,
+                    padding: "7px 14px",
+                    borderRadius: 6,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    background: "#0284c7",
+                    border: "none",
+                    color: "#ffffff",
+                    fontWeight: 600,
+                    padding: "7px 18px",
+                    borderRadius: 6,
+                    fontSize: 13,
+                    cursor: "pointer",
+                  }}
+                >
+                  Kirim Undangan
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
     </div>
