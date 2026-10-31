@@ -63,13 +63,39 @@ export function DocumentsModule({
   const documents: {
     type: DocumentType;
     code: string;
+    desc: string;
     icon: React.ReactNode;
   }[] = [
-    { type: "Proforma Invoice", code: "PI", icon: <FileText size={15} /> },
-    { type: "Sales Contract", code: "SC", icon: <FileSignature size={15} /> },
-    { type: "Commercial Invoice", code: "CI", icon: <FileCheck2 size={15} /> },
-    { type: "Packing List", code: "PL", icon: <ClipboardList size={15} /> },
-    { type: "Shipping Instruction", code: "SI", icon: <Ship size={15} /> },
+    {
+      type: "Proforma Invoice",
+      code: "PI",
+      desc: "Penawaran awal komersial, spesifikasi & rekening tujuan",
+      icon: <FileText size={18} />,
+    },
+    {
+      type: "Sales Contract",
+      code: "SC",
+      desc: "Kontrak resmi jual-beli ekspor (Articles 1 s/d 6)",
+      icon: <FileSignature size={18} />,
+    },
+    {
+      type: "Commercial Invoice",
+      code: "CI",
+      desc: "Faktur komersial penetapan pabean & bea cukai pelabuhan",
+      icon: <FileCheck2 size={18} />,
+    },
+    {
+      type: "Packing List",
+      code: "PL",
+      desc: "Rincian spesifikasi koli, dimensi, net & gross weight",
+      icon: <ClipboardList size={18} />,
+    },
+    {
+      type: "Shipping Instruction",
+      code: "SI",
+      desc: "Instruksi pengapalan resmi ke forwarder / pelayaran untuk B/L",
+      icon: <Ship size={18} />,
+    },
   ];
 
   const handleLetterheadImage = (file?: File) => {
@@ -159,73 +185,97 @@ export function DocumentsModule({
 
   return (
     <div className="doc-center-root">
-      {/* 1. Sleek Segmented Switcher & Executive Actions */}
-      <div className="doc-stage-control-bar">
-        <div className="doc-segmented-tabs" role="tablist">
-          {documents.map((doc) => {
-            const isActive = selectedDocument === doc.type;
-            return (
-              <button
-                key={doc.type}
-                type="button"
-                role="tab"
-                aria-selected={isActive}
-                className={`doc-seg-tab ${isActive ? "active" : ""}`}
-                onClick={() => setSelectedDocument(doc.type)}
-              >
-                <span className="doc-seg-icon">{doc.icon}</span>
-                <span className="doc-seg-title">{doc.type}</span>
-                <span className="doc-seg-code">{doc.code}</span>
-              </button>
-            );
-          })}
+      {/* 1. 5 Document Selector Cards */}
+      <div className="doc-tabs-grid five-cols" role="tablist">
+        {documents.map((doc) => {
+          const isActive = selectedDocument === doc.type;
+          return (
+            <button
+              key={doc.type}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`doc-tab-card ${isActive ? "active" : ""}`}
+              onClick={() => setSelectedDocument(doc.type)}
+            >
+              {isActive && <div className="doc-tab-active-indicator" />}
+              <div className="doc-tab-top">
+                <div className="doc-tab-icon-box">{doc.icon}</div>
+                <div className="doc-tab-badges">
+                  <span className="doc-code-badge">{doc.code}</span>
+                  <span className="doc-ready-badge">● Siap Terbit</span>
+                </div>
+              </div>
+              <div className="doc-tab-body">
+                <h3 className="doc-tab-name">{doc.type}</h3>
+                <p className="doc-tab-desc">{doc.desc}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* 2. Document Action & Overview Bar */}
+      <div className="doc-action-bar">
+        <div className="doc-action-info">
+          <div className="doc-active-name-wrap">
+            <span className="doc-active-eyebrow">DOKUMEN DITINJAU:</span>
+            <h3 className="doc-active-title">{selectedDocument}</h3>
+            <span className="doc-active-ref font-mono">No: {docRefNumber}</span>
+          </div>
+          <div className="doc-active-specs">
+            <span className="spec-item">
+              Kertas: <b>{shipment.paperSize} ({shipment.documentOrientation})</b>
+            </span>
+            <span className="spec-dot">·</span>
+            <span className="spec-item">
+              Gaya Desain: <b>{shipment.documentTemplate}</b>
+            </span>
+            <span className="spec-dot">·</span>
+            <span className="spec-item">
+              Bahasa Output: <b>{shipment.previewLanguage}</b>
+            </span>
+            <span className="spec-dot">·</span>
+            <span className="spec-item">
+              Status:{" "}
+              <b className={shipment.documentReviewed ? "spec-reviewed" : "spec-draft"}>
+                {shipment.documentReviewed ? "✓ Selesai Diperiksa" : "Draft Transaksi"}
+              </b>
+            </span>
+          </div>
         </div>
 
-        <div className="doc-stage-actions">
-          <div className="doc-meta-chips">
-            <span className="doc-chip-ref font-mono">#{docRefNumber}</span>
-            <span className="doc-chip-spec">
-              {shipment.paperSize} · {shipment.documentOrientation} · {shipment.documentTemplate}
-            </span>
-            {shipment.documentReviewed ? (
-              <span className="doc-chip-status green">✓ Verified</span>
-            ) : (
-              <span className="doc-chip-status amber">Draft</span>
-            )}
-          </div>
+        <div className="doc-action-buttons">
+          <button
+            type="button"
+            className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
+            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+            title="Sesuaikan ukuran kertas, orientasi, logo, dan kop perusahaan"
+          >
+            <SlidersHorizontal size={14} />
+            <span>{isSettingsOpen ? "Tutup Setelan" : "Setelan Kop & Format"}</span>
+            {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+          </button>
 
-          <div className="doc-btn-group">
-            <button
-              type="button"
-              className={`doc-btn-tool ${isSettingsOpen ? "active" : ""}`}
-              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              title="Atur kop surat, pelabuhan, logo, dan gaya dokumen"
-            >
-              <SlidersHorizontal size={14} />
-              <span>{isSettingsOpen ? "Tutup Setelan" : "Setelan Kop"}</span>
-              {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
-            </button>
+          <button
+            type="button"
+            className="doc-btn-review"
+            onClick={finishReview}
+            title="Tandai dokumen sudah diperiksa & siap diterbitkan"
+          >
+            <CheckCircle2 size={14} />
+            <span>{shipment.documentReviewed ? "Terverifikasi" : "Selesai Diperiksa"}</span>
+          </button>
 
-            <button
-              type="button"
-              className="doc-btn-tool"
-              onClick={finishReview}
-              title="Tandai dokumen siap cetak"
-            >
-              <CheckCircle2 size={14} />
-              <span>Verifikasi</span>
-            </button>
-
-            <button
-              type="button"
-              className="doc-btn-primary"
-              onClick={printDocument}
-              title="Cetak atau unduh dokumen resmi dalam format PDF"
-            >
-              <Printer size={14} />
-              <span>Cetak / Unduh PDF</span>
-            </button>
-          </div>
+          <button
+            type="button"
+            className="doc-btn-print"
+            onClick={printDocument}
+            title="Cetak atau unduh dokumen resmi dalam format PDF"
+          >
+            <Printer size={15} />
+            <span>Cetak / Unduh PDF</span>
+          </button>
         </div>
       </div>
 
