@@ -538,7 +538,7 @@ function OfficialLetterhead({
             <h1 className="company-name">{exporterName}</h1>
             <p className="company-details">{exporterAddress}</p>
             <p className="company-contact">
-              Tel: +62 812 3456 7890 · Email: official@indicoexport.com
+              Telp: +62 812 3456 7890 · Email: official@indicoexport.com
             </p>
           </div>
         </div>
@@ -659,7 +659,7 @@ function ProformaInvoiceDoc({
           </span>
           <b className="doc-entity-name">{buyerName}</b>
           <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-          <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
           <p className="doc-entity-contact">
             {isId ? "Narahubung:" : "Contact Person:"}{" "}
             <b>
@@ -927,7 +927,7 @@ function SalesContractDoc({
           <b className="party-name">{exporterName}</b>
           <p className="party-address">{exporterAddress}</p>
           <p className="party-phone">
-            {isId ? "Telepon:" : "Phone:"} +62 812 3456 7890 | Email: official@indicoexport.com
+            Telp: +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
         </div>
 
@@ -938,7 +938,7 @@ function SalesContractDoc({
           <b className="party-name">{buyerName}</b>
           <p className="party-address">{buyerAddress}, {buyerCountry}</p>
           <p className="party-phone">
-            {isId ? "Telepon:" : "Phone:"} {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
+            Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
           </p>
           <p className="party-tax">
             {isId ? "Up:" : "Attn:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
@@ -1181,7 +1181,7 @@ function CommercialInvoiceDoc({
             </span>
             <b className="doc-entity-name">{buyerName}</b>
             <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+            <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
           </div>
 
           <div className="doc-box">
@@ -1270,29 +1270,29 @@ function CommercialInvoiceDoc({
             </td>
             <td>
               <b className="table-product-title">{productName.toUpperCase()}</b>
-              <p className="text-xs text-slate-600 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs font-semibold text-slate-800 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
+              <p className="text-xs text-slate-800">
                 {isId ? "Kemasan: Karung Kertas Kraft Multiwall 20 Kg Neto" : "Packing: 20 Kg Net / Multiwall Kraft Paper Bag"}
               </p>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-slate-800">
                 {isId ? `Total Kemasan: ${formatNumber(bagsCount)} Karung` : `Total Packages: ${formatNumber(bagsCount)} Bags`}
               </p>
-              <p className="text-xs font-semibold text-slate-800 mt-1">
+              <p className="text-xs font-bold text-slate-900 mt-1">
                 {isId
                   ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kg | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kg`
                   : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs`}
               </p>
-              <p className="text-xs text-slate-600">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
+              <p className="text-xs font-semibold text-slate-800">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
             </td>
             <td className="text-right font-bold">
               {formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}<br />
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-semibold text-slate-700">
                 ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : "Net"})
               </span>
             </td>
-            <td className="text-right">
+            <td className="text-right font-semibold">
               {currency} {formatNumber(unitPricePerMT, 2)}<br />
-              <span className="text-xs text-slate-500">/ MT</span>
+              <span className="text-xs text-slate-700">/ MT</span>
             </td>
             <td className="text-right font-bold text-slate-900 text-base">
               {currency} {formatNumber(totalAmount, 2)}
@@ -1413,7 +1413,7 @@ function PackingListDoc({
             </span>
             <b className="doc-entity-name">{buyerName}</b>
             <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+            <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
           </div>
 
           <div className="doc-box">
@@ -1502,8 +1502,8 @@ function PackingListDoc({
             </td>
             <td>
               <b className="table-product-title">{productName}</b>
-              <p className="text-xs text-slate-600 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
-              <div className="text-xs text-slate-700 mt-2">
+              <p className="text-xs font-semibold text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
+              <div className="text-xs text-slate-800 mt-2">
                 <b>{isId ? "Spesifikasi Kemasan:" : "Packing Specification:"}</b>
                 <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
                   <li>{isId ? "@ 20,00 Kg Berat Neto / Karung" : "@ 20.00 Kg Net Weight / Bag"}</li>
@@ -1517,13 +1517,13 @@ function PackingListDoc({
             <td className="text-right font-bold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
             <td className="text-right font-bold">
               {formatNumber(netWeightKgs, 2)} Kgs<br />
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-semibold text-slate-700">
                 ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : ""})
               </span>
             </td>
             <td className="text-right font-bold">
               {formatNumber(grossWeightKgs, 2)} Kgs<br />
-              <span className="text-xs font-normal text-slate-500">
+              <span className="text-xs font-semibold text-slate-700">
                 ({formatNumber(grossWeightMT, 3)} MT {isId ? "Bruto" : ""})
               </span>
             </td>
@@ -1650,7 +1650,7 @@ function ShippingInstructionDoc({
             {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
           </p>
           <p className="party-txt">
-            {isId ? "Telepon:" : "Tel:"} +62 812 3456 7890 | Email: official@indicoexport.com
+            Telp: +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
         </div>
 
@@ -1660,7 +1660,7 @@ function ShippingInstructionDoc({
           </div>
           <b className="party-title">{buyerName}</b>
           <p className="party-txt">{buyerAddress}</p>
-          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
+          <p className="party-txt">Telp: {buyerPhone || "+971 4 223 4567"}</p>
           <p className="party-txt">Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
         </div>
 
@@ -1673,7 +1673,7 @@ function ShippingInstructionDoc({
           <p className="party-txt">
             {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}
           </p>
-          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
+          <p className="party-txt">Telp: {buyerPhone || "+971 4 223 4567"}</p>
         </div>
       </div>
 
@@ -1720,29 +1720,29 @@ function ShippingInstructionDoc({
             </td>
             <td>
               <b>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</b><br />
-              <span className="text-xs text-slate-600">
+              <span className="text-xs font-semibold text-slate-800">
                 {isId ? "(Sembilan Ratus Karung Kertas Kraft Multiwall)" : "(Nine Hundred Multiwall Kraft Paper Bags)"}
               </span>
             </td>
             <td>
               <b className="table-product-title">{productName.toUpperCase()}</b>
-              <p className="text-xs text-slate-600 mt-1">
+              <p className="text-xs text-slate-800 mt-1">
                 {isId
                   ? "Dikemas dalam Karung Kertas Kraft Multiwall 20 Kg Neto dengan Lapisan Dalam Plastik PE Food-Grade."
                   : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
               </p>
-              <p className="text-xs font-mono text-slate-700 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
-              <p className="text-xs font-mono font-bold text-slate-800">
+              <p className="text-xs font-mono font-semibold text-slate-800 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
+              <p className="text-xs font-mono font-bold text-slate-900">
                 {isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
               </p>
-              <p className="text-xs font-bold text-slate-800">
+              <p className="text-xs font-bold text-slate-900">
                 {isId ? "NEGARA ASAL: INDONESIA" : "COUNTRY OF ORIGIN: INDONESIA"}
               </p>
             </td>
             <td className="text-right">
-              <div className="text-xs text-slate-500">{isId ? "NETO:" : "NET:"}</div>
+              <div className="text-xs font-bold text-slate-800">{isId ? "NETO:" : "NET:"}</div>
               <b className="text-sm">{formatNumber(netWeightKgs, 2)}</b> KGS
-              <div className="text-xs text-slate-500 mt-2">{isId ? "BRUTO:" : "GROSS:"}</div>
+              <div className="text-xs font-bold text-slate-800 mt-2">{isId ? "BRUTO:" : "GROSS:"}</div>
               <b className="text-sm">{formatNumber(grossWeightKgs, 2)}</b> KGS
             </td>
             <td className="text-right font-bold text-slate-900 text-sm">
