@@ -784,22 +784,23 @@ export function TransactionsModule({
             </div>
           </div>
 
-          {/* Tab Navigasi Segmented Control (Jelas Bisa Diklik & Berstatus Aktif) */}
-          <div className="orders-segmented-control" style={{ marginBottom: "18px" }}>
+          {/* Tab Navigasi Berbentuk Tombol (Primary & Outline Button Jelas Bisa Diklik) */}
+          <div className="orders-segmented-control" style={{ marginBottom: "20px" }}>
             <button
               type="button"
-              className={`orders-seg-btn ${activeTab === "list" ? "active" : ""}`}
+              className={`orders-seg-btn ${activeTab === "list" ? "active" : "inactive"}`}
               onClick={() => setActiveTab("list")}
             >
-              <Layers size={15} />
-              <span>Daftar Pesanan ({allTransactions.length})</span>
+              <Layers size={16} />
+              <span>Daftar Pesanan Ekspor</span>
+              <span className="tab-badge-pill">{allTransactions.length}</span>
             </button>
             <button
               type="button"
-              className={`orders-seg-btn ${activeTab === "workflow" ? "active" : ""}`}
+              className={`orders-seg-btn ${activeTab === "workflow" ? "active" : "inactive"}`}
               onClick={() => setActiveTab("workflow")}
             >
-              <Activity size={15} />
+              <Activity size={16} />
               <span>Alur Operasional: {displayReference || shipment.buyer || "Pesanan Aktif"}</span>
             </button>
           </div>
@@ -954,16 +955,41 @@ export function TransactionsModule({
                                 <div className="row-actions" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
                                   <button
                                     type="button"
-                                    className="save-button"
-                                    style={{ padding: "5px 12px", fontSize: "12px" }}
+                                    style={{
+                                      padding: "6px 12px",
+                                      fontSize: "12px",
+                                      fontWeight: 600,
+                                      borderRadius: "6px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "5px",
+                                      background: "#f0f9ff",
+                                      color: "#0284c7",
+                                      border: "1.5px solid #7dd3fc",
+                                      cursor: "pointer",
+                                      transition: "all 0.15s ease",
+                                    }}
                                     onClick={() => void handleSwitchTransaction(row)}
                                     title="Buka alur operasional 8 tahap transaksi ini"
                                   >
-                                    <Activity size={12} /> Buka Alur
+                                    <Activity size={13} /> Buka Alur
                                   </button>
                                   <button
                                     type="button"
-                                    className="tx-delete-btn"
+                                    style={{
+                                      padding: "6px 10px",
+                                      fontSize: "12px",
+                                      fontWeight: 500,
+                                      borderRadius: "6px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "4px",
+                                      background: "#fff1f2",
+                                      color: "#e11d48",
+                                      border: "1px solid #fecdd3",
+                                      cursor: "pointer",
+                                      transition: "all 0.15s ease",
+                                    }}
                                     onClick={() => void handleDeleteTransaction(row)}
                                     title={`Hapus transaksi ${row.reference} (${row.buyer})`}
                                   >
