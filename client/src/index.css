@@ -9351,48 +9351,48 @@ textarea:focus-visible {
     min-height: auto !important;
     background: #ffffff !important;
     overflow: visible !important;
-    font-size: 11.5px !important;
-    line-height: 1.4 !important;
+    font-size: 13.5px !important;
+    line-height: 1.45 !important;
     color: #0f172a !important;
   }
 
   /* Letterhead: standar ukuran formal resmi */
   .paper-letterhead-wrap {
-    margin-bottom: 12px !important;
-    padding-bottom: 8px !important;
+    margin-bottom: 14px !important;
+    padding-bottom: 10px !important;
     border-bottom: 2px solid #0f2942 !important;
   }
   .letterhead-brand {
     gap: 14px !important;
   }
   .letterhead-logo {
-    width: 44px !important;
-    height: 44px !important;
+    width: 48px !important;
+    height: 48px !important;
     border-radius: 4px !important;
   }
   .company-title {
-    font-size: 16px !important;
-    font-weight: 700 !important;
+    font-size: 20px !important;
+    font-weight: 800 !important;
     margin-bottom: 3px !important;
     color: #0f2942 !important;
   }
   .company-meta-line {
-    font-size: 11px !important;
-    line-height: 1.35 !important;
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
     color: #475569 !important;
   }
 
   /* Title bar print */
   .doc-title-bar {
-    margin-bottom: 12px !important;
-    padding: 6px 12px !important;
+    margin-bottom: 14px !important;
+    padding: 8px 14px !important;
     background: #0f2942 !important;
     color: #ffffff !important;
   }
   .doc-title-bar h2 {
-    font-size: 14px !important;
-    font-weight: 700 !important;
-    letter-spacing: 0.04em !important;
+    font-size: 16px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.05em !important;
     color: #ffffff !important;
   }
 
@@ -9402,66 +9402,70 @@ textarea:focus-visible {
     margin-bottom: 12px !important;
   }
   .doc-box {
-    padding: 8px 12px !important;
+    padding: 9px 12px !important;
     border: 1px solid #cbd5e1 !important;
   }
   .doc-box-tag {
-    font-size: 10px !important;
-    font-weight: 700 !important;
+    font-size: 11px !important;
+    font-weight: 800 !important;
     margin-bottom: 4px !important;
     color: #64748b !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
   }
   .doc-entity-name {
-    font-size: 12.5px !important;
-    font-weight: 700 !important;
-    margin-bottom: 3px !important;
+    font-size: 14px !important;
+    font-weight: 800 !important;
+    margin-bottom: 4px !important;
     color: #0f172a !important;
   }
   .doc-entity-address,
   .doc-entity-contact {
-    font-size: 11px !important;
-    line-height: 1.35 !important;
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
     margin-bottom: 2px !important;
     color: #334155 !important;
   }
   .meta-pair {
-    font-size: 11px !important;
-    padding: 2px 0 !important;
+    font-size: 12.5px !important;
+    padding: 2.5px 0 !important;
   }
   .meta-label {
-    font-size: 11px !important;
+    font-size: 12px !important;
     color: #64748b !important;
   }
   .meta-value {
-    font-size: 11px !important;
-    font-weight: 600 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
     color: #0f172a !important;
   }
 
   /* Panel syarat pengiriman & pembayaran */
   .doc-terms-panel {
     margin-bottom: 12px !important;
-    padding: 8px 12px !important;
+    padding: 9px 12px !important;
     border: 1px solid #cbd5e1 !important;
   }
   .doc-terms-header {
-    font-size: 10px !important;
-    font-weight: 700 !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
     padding-bottom: 4px !important;
     margin-bottom: 6px !important;
     border-bottom: 1px solid #e2e8f0 !important;
     color: #0f2942 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
   }
   .doc-terms-grid {
     gap: 6px 16px !important;
   }
   .terms-lbl {
-    font-size: 10px !important;
+    font-size: 11px !important;
     color: #64748b !important;
   }
   .terms-val {
-    font-size: 11px !important;
-    font-weight: 600 !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
     color: #0f172a !important;
   }
 
@@ -9472,70 +9476,75 @@ textarea:focus-visible {
     border-collapse: collapse !important;
   }
   .doc-table-pro th {
-    padding: 6px 8px !important;
-    font-size: 11px !important;
-    font-weight: 700 !important;
+    padding: 7px 10px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
     background: #0f2942 !important;
     color: #ffffff !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.03em !important;
   }
   .doc-table-pro td {
-    padding: 6px 8px !important;
-    font-size: 11px !important;
-    line-height: 1.35 !important;
+    padding: 7px 10px !important;
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
     border-bottom: 1px solid #e2e8f0 !important;
   }
   .table-product-title {
-    font-size: 12px !important;
-    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
     color: #0f172a !important;
   }
   .table-product-specs {
-    margin-top: 3px !important;
-    font-size: 10.5px !important;
-    line-height: 1.35 !important;
+    margin-top: 4px !important;
+    font-size: 12px !important;
+    line-height: 1.4 !important;
     color: #475569 !important;
   }
   .table-product-specs li {
     margin-bottom: 2px !important;
   }
   .doc-table-total-row td {
-    padding: 7px 10px !important;
-    font-size: 12px !important;
-    font-weight: 700 !important;
+    padding: 8px 12px !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
   }
 
   /* Terbilang banner */
   .doc-words-banner {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
+    padding: 7px 12px !important;
+    font-size: 12px !important;
     margin-bottom: 12px !important;
     background: #f8fafc !important;
     border: 1px solid #e2e8f0 !important;
+    line-height: 1.4 !important;
   }
 
   /* Rincian rekening bank eksportir */
   .doc-bank-card {
-    padding: 8px 12px !important;
+    padding: 9px 12px !important;
     margin-bottom: 12px !important;
     border: 1px solid #cbd5e1 !important;
   }
   .bank-card-title {
-    font-size: 10px !important;
-    font-weight: 700 !important;
+    font-size: 11.5px !important;
+    font-weight: 800 !important;
     margin-bottom: 5px !important;
     color: #0f2942 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.04em !important;
   }
   .bank-card-table td {
     padding: 2.5px 6px !important;
-    font-size: 11px !important;
-    line-height: 1.35 !important;
+    font-size: 12.5px !important;
+    line-height: 1.4 !important;
   }
   .bank-lbl {
-    font-size: 10px !important;
+    font-size: 11.5px !important;
     color: #64748b !important;
   }
   .bank-val {
-    font-size: 11px !important;
+    font-size: 12.5px !important;
     color: #0f172a !important;
   }
 
@@ -9546,75 +9555,80 @@ textarea:focus-visible {
     justify-content: flex-end !important;
   }
   .official-sig-block {
-    max-width: 270px !important;
+    max-width: 290px !important;
     text-align: center !important;
   }
   .sig-signed-for {
-    font-size: 10px !important;
+    font-size: 11.5px !important;
     color: #64748b !important;
   }
   .sig-company-name {
-    font-size: 12px !important;
-    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
     color: #0f172a !important;
   }
   .sig-canvas-zone {
-    min-height: 48px !important;
-    height: 50px !important;
+    min-height: 52px !important;
+    height: 54px !important;
     margin: 5px 0 !important;
   }
   .sig-line-mark {
-    font-size: 9.5px !important;
+    font-size: 10.5px !important;
     color: #94a3b8 !important;
     font-style: italic !important;
   }
   .sig-signatory-name {
-    font-size: 12px !important;
-    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
     color: #0f172a !important;
   }
   .sig-signatory-title {
-    font-size: 10.5px !important;
+    font-size: 11.5px !important;
+    font-weight: 600 !important;
     color: #475569 !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */
   .doc-si-header-grid {
-    padding: 8px 12px !important;
+    padding: 9px 12px !important;
     margin-bottom: 10px !important;
-    font-size: 11px !important;
+    font-size: 12.5px !important;
     gap: 4px 14px !important;
   }
   .si-lbl {
-    min-width: 110px !important;
-    font-size: 10.5px !important;
+    min-width: 115px !important;
+    font-size: 11.5px !important;
   }
   .doc-three-col-parties {
     gap: 10px !important;
     margin-bottom: 10px !important;
   }
   .si-party-card {
-    padding: 6px 10px !important;
-    font-size: 11px !important;
+    padding: 7px 10px !important;
+    font-size: 12px !important;
+  }
+  .party-title {
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
   }
   .doc-transport-row-strip {
-    padding: 6px 10px !important;
+    padding: 7px 10px !important;
     margin-bottom: 10px !important;
-    font-size: 11px !important;
+    font-size: 12.5px !important;
     gap: 8px !important;
   }
   .doc-instructions-box {
-    padding: 6px 10px !important;
+    padding: 7px 10px !important;
     margin-bottom: 10px !important;
-    font-size: 10.5px !important;
-    line-height: 1.35 !important;
+    font-size: 11.5px !important;
+    line-height: 1.4 !important;
   }
 
   /* Packing List (PL) specific print rules */
   .doc-cert-banner {
-    padding: 6px 10px !important;
+    padding: 7px 12px !important;
     margin-bottom: 10px !important;
-    font-size: 10.5px !important;
+    font-size: 12px !important;
   }
 
   /* Sales Contract (SC) multi-page rules: cleanly breaks across 2 pages */
@@ -9629,17 +9643,17 @@ textarea:focus-visible {
     page-break-inside: avoid !important;
   }
   .article-title {
-    font-size: 11.5px !important;
-    font-weight: 700 !important;
+    font-size: 13px !important;
+    font-weight: 800 !important;
     margin: 0 0 3px !important;
   }
   .contract-article-block p {
-    font-size: 11px !important;
-    line-height: 1.4 !important;
+    font-size: 12px !important;
+    line-height: 1.45 !important;
     margin: 0 0 3px !important;
   }
   .doc-witness-clause {
-    font-size: 11px !important;
+    font-size: 12px !important;
     margin: 12px 0 8px !important;
     break-inside: avoid !important;
   }
@@ -9649,23 +9663,23 @@ textarea:focus-visible {
     page-break-inside: avoid !important;
   }
   .sig-side {
-    max-width: 270px !important;
+    max-width: 290px !important;
     text-align: center !important;
   }
   .sig-box-space {
-    height: 50px !important;
-    min-height: 50px !important;
+    height: 52px !important;
+    min-height: 52px !important;
     margin: 5px 0 !important;
   }
   .sig-placeholder {
-    font-size: 9.5px !important;
+    font-size: 10.5px !important;
   }
   .sig-name {
-    font-size: 12px !important;
-    font-weight: 700 !important;
+    font-size: 13.5px !important;
+    font-weight: 800 !important;
   }
   .sig-sub {
-    font-size: 10.5px !important;
+    font-size: 11.5px !important;
   }
 
   /* Proteksi pemotongan halaman di tengah blok penting */
