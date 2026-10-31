@@ -9271,7 +9271,7 @@ textarea:focus-visible {
     print-color-adjust: exact !important;
   }
 
-  /* Sembunyikan seluruh elemen navigasi, tab selektor, action bar, drawer, AI advisor, modal, footer, dan toast */
+  /* Sembunyikan seluruh elemen navigasi, panel pengaturan, tab selektor, action bar, drawer, AI advisor, modal, footer, dan toast */
   .sidebar,
   .sidebar-backdrop,
   .topbar,
@@ -9282,7 +9282,13 @@ textarea:focus-visible {
   .page-heading,
   .document-sidebar,
   .document-settings,
+  .doc-settings-panel,
   .doc-settings-drawer,
+  .doc-settings-top,
+  .doc-settings-tabs-nav,
+  .doc-settings-columns,
+  .doc-settings-card,
+  [class*="doc-settings"],
   .preview-toolbar,
   .conflict-banner,
   .clean-notice,
@@ -9309,6 +9315,10 @@ textarea:focus-visible {
   header,
   nav,
   footer {
+    display: none !important;
+  }
+
+  .doc-center-root > *:not(.doc-paper-desk) {
     display: none !important;
   }
 

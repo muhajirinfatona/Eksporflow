@@ -124,6 +124,11 @@ export function DocumentsModule({
     }
   };
 
+  const handlePrint = () => {
+    setIsSettingsOpen(false);
+    printDocument();
+  };
+
   // Kalkulasi data turunan terpadu
   const exporterName = shipment.exporter || "PT. INDICO EXPORT INDONESIA";
   const defaultAddress =
@@ -292,7 +297,7 @@ export function DocumentsModule({
           <button
             type="button"
             className="doc-btn-print"
-            onClick={printDocument}
+            onClick={handlePrint}
             title="Cetak atau unduh dokumen resmi dalam format PDF"
           >
             <Printer size={15} />
