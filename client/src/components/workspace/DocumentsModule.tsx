@@ -530,17 +530,10 @@ function OfficialLetterhead({
             </div>
           )}
           <div className="letterhead-text">
-            <div className="letterhead-top-row">
-              <h1 className="company-name">{exporterName}</h1>
-              <span className="registered-badge">
-                {isId
-                  ? "EKSPORTIR TERDAFTAR · TERVALIDASI INSW"
-                  : "REGISTERED EXPORTER · INSW VALIDATED"}
-              </span>
-            </div>
+            <h1 className="company-name">{exporterName}</h1>
             <p className="company-details">{exporterAddress}</p>
             <p className="company-contact">
-              Tel: +62 812 3456 7890 · Email: official@indicoexport.com · NPWP: 01.234.567.8-801.000
+              Tel: +62 812 3456 7890 · Email: official@indicoexport.com
             </p>
           </div>
         </div>
@@ -937,7 +930,6 @@ function SalesContractDoc({
           <p className="party-phone">
             {isId ? "Telepon:" : "Phone:"} +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
-          <p className="party-tax">NPWP: 01.234.567.8-801.000</p>
         </div>
 
         <div className="contract-party-card">
@@ -1665,7 +1657,6 @@ function ShippingInstructionDoc({
           <p className="party-txt">
             {isId ? "Telepon:" : "Tel:"} +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
-          <p className="party-txt font-mono">NPWP: 01.234.567.8-801.000</p>
         </div>
 
         <div className="si-party-card">
