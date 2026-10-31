@@ -14,7 +14,6 @@ import type {
 import {
   ArrowLeft,
   ArrowRight,
-  Award,
   Box,
   Building2,
   CheckCircle2,
@@ -515,7 +514,6 @@ function OfficialLetterhead({
 function OfficialStampAndSignature({
   exporterName,
   role = "Export Director",
-  showStamp = true,
 }: {
   exporterName: string;
   role?: string;
@@ -526,19 +524,6 @@ function OfficialStampAndSignature({
       <span className="sig-signed-for">Signed for and on behalf of:</span>
       <b className="sig-company-name">{exporterName}</b>
       <div className="sig-canvas-zone">
-        {showStamp && (
-          <div className="official-stamp-seal">
-            <div className="stamp-seal-circle">
-              <span className="stamp-seal-text-top">{exporterName}</span>
-              <div className="stamp-seal-center">
-                <Award size={18} />
-                <span>EXPORT VERIFIED</span>
-                <small>LEGAL OPERATIONS</small>
-              </div>
-              <span className="stamp-seal-text-bottom">INDONESIA</span>
-            </div>
-          </div>
-        )}
         <div className="sig-line-mark">[Signature & Company Stamp]</div>
       </div>
       <b className="sig-signatory-name">{role}</b>
@@ -741,20 +726,7 @@ function ProformaInvoiceDoc({
           <span className="sig-header-txt">Issued by:</span>
           <b>{exporterName}</b>
           <div className="sig-box-space">
-            <div className="sig-canvas-zone">
-              <div className="official-stamp-seal">
-                <div className="stamp-seal-circle">
-                  <span className="stamp-seal-text-top">{exporterName}</span>
-                  <div className="stamp-seal-center">
-                    <Award size={18} />
-                    <span>EXPORT VERIFIED</span>
-                    <small>LEGAL OPERATIONS</small>
-                  </div>
-                  <span className="stamp-seal-text-bottom">INDONESIA</span>
-                </div>
-              </div>
-              <div className="sig-placeholder">[Signature & Stamp]</div>
-            </div>
+            <div className="sig-placeholder">[Signature & Stamp]</div>
           </div>
           <b className="sig-name">Export Director</b>
           <span className="sig-sub">Authorized Signatory</span>
@@ -1404,17 +1376,6 @@ function ShippingInstructionDoc({
           <span className="sig-signed-for">Issued by Shipper / Exporter:</span>
           <b className="sig-company-name">{exporterName}</b>
           <div className="sig-canvas-zone">
-            <div className="official-stamp-seal">
-              <div className="stamp-seal-circle">
-                <span className="stamp-seal-text-top">{exporterName}</span>
-                <div className="stamp-seal-center">
-                  <Award size={18} />
-                  <span>LOGISTICS DEPT</span>
-                  <small>SHIPPING ORDER</small>
-                </div>
-                <span className="stamp-seal-text-bottom">INDONESIA</span>
-              </div>
-            </div>
             <div className="sig-line-mark">[Signature & Company Stamp]</div>
           </div>
           <b className="sig-signatory-name">Logistics & Export Manager</b>
