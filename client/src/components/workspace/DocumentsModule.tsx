@@ -203,6 +203,15 @@ export function DocumentsModule({
 
   return (
     <div className="doc-center-root">
+      <style>{`
+        @media print {
+          @page {
+            size: ${shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4"} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
+            margin: 8mm 10mm 8mm 10mm;
+          }
+        }
+      `}</style>
+
       {/* 1. 5 Document Selector Cards */}
       <div className="doc-tabs-grid five-cols" role="tablist">
         {documents.map((doc) => {
@@ -263,6 +272,43 @@ export function DocumentsModule({
         </div>
 
         <div className="doc-action-buttons">
+          {/* Quick Paper Size Selector (pemilihan cepat ukuran kertas cetak & PDF) */}
+          <div className="doc-paper-quick-select" title="Sesuaikan ukuran kertas cetak & PDF">
+            <span className="quick-select-label">Kertas:</span>
+            <select
+              className="quick-select-input"
+              value={shipment.paperSize || "A4"}
+              onChange={(e) => update("paperSize", e.target.value as PaperSize)}
+              aria-label="Pilih Ukuran Kertas"
+            >
+              <option value="A4">A4 (210×297 mm)</option>
+              <option value="Letter">Letter (216×279 mm)</option>
+              <option value="Legal">Legal (216×356 mm)</option>
+            </select>
+          </div>
+
+          {/* Indikator Kepatutan Halaman (Page Fit Badge) */}
+          <span
+            className={`doc-page-fit-badge ${selectedDocument === "Sales Contract" ? "fit-badge-sc" : "fit-badge-single"}`}
+            title={
+              selectedDocument === "Sales Contract"
+                ? "Format kontrak dagang ekspor resmi (6 klausul hukum, terbagi rapi 2 halaman)"
+                : "Format operasional ekspor standar internasional (wajib 1 lembar utuh)"
+            }
+          >
+            {selectedDocument === "Sales Contract" ? (
+              <>
+                <FileText size={12} />
+                <span>2 Halaman (Kontrak Baku)</span>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 size={12} />
+                <span>✓ Pas 1 Halaman (Standar Ekspor)</span>
+              </>
+            )}
+          </span>
+
           <button
             type="button"
             className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}

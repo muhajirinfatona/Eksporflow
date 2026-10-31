@@ -102,12 +102,29 @@ export default function Home() {
   }, [screen, user]);
 
   const printDocument = useCallback(() => {
+    const existing = document.getElementById("eksporflow-print-page");
+    if (existing) {
+      existing.remove();
+    }
     const style = document.createElement("style");
     style.id = "eksporflow-print-page";
-    style.textContent = `@media print { @page { size: ${shipment.paperSize} ${shipment.documentOrientation.toLowerCase()}; margin: 12mm; } }`;
+    const paperSizeVal = shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4";
+    const orientationVal = shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait";
+    style.textContent = `@media print { @page { size: ${paperSizeVal} ${orientationVal}; margin: 8mm 10mm 8mm 10mm; } }`;
     document.head.appendChild(style);
+
+    const handleAfterPrint = () => {
+      style.remove();
+      window.removeEventListener("afterprint", handleAfterPrint);
+    };
+    window.addEventListener("afterprint", handleAfterPrint);
+
     window.print();
-    style.remove();
+
+    setTimeout(() => {
+      const el = document.getElementById("eksporflow-print-page");
+      if (el) el.remove();
+    }, 10000);
   }, [shipment.paperSize, shipment.documentOrientation]);
 
   if (isAuthLoading) {
