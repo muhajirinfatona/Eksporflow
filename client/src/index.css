@@ -9195,12 +9195,19 @@ textarea:focus-visible {
    karena gerakannya lembut dan merupakan bagian identitas visual halaman masuk. */
 
 /* ==========================================================================
-   12. Print / PDF Styles (Clean English A4/Letter Export Documents)
+   12. Print / PDF Styles (Clean Export Documents Only)
    ========================================================================== */
 @media print {
+  html,
   body {
-    background: #ffffff;
+    background: #ffffff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
+
+  /* Sembunyikan seluruh elemen navigasi, panel selektor tab, action bar, drawer, footer, dan toast */
   .sidebar,
   .sidebar-backdrop,
   .topbar,
@@ -9211,30 +9218,76 @@ textarea:focus-visible {
   .page-heading,
   .document-sidebar,
   .document-settings,
+  .doc-settings-drawer,
   .preview-toolbar,
   .conflict-banner,
-  .clean-notice {
+  .clean-notice,
+  .doc-tabs-grid,
+  .doc-action-bar,
+  .doc-desk-header,
+  .doc-workflow-footer,
+  .floating-advisor-trigger,
+  .sonner-toast,
+  [data-sonner-toaster],
+  .toast,
+  header,
+  nav,
+  footer {
     display: none !important;
   }
-  .main-content {
-    width: 100%;
+
+  .app-shell,
+  .main-content,
+  .page-wrap,
+  .doc-center-root,
+  .doc-paper-desk {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
   }
-  .page-wrap {
-    max-width: none;
-    padding: 0;
-  }
-  .documents-layout {
-    display: block;
-  }
+
+  /* Kanvas dokumen kertas putih resmi */
   .paper-document {
-    box-shadow: none;
-    border: 0;
-    padding: 24px !important;
-    min-height: auto;
+    display: block !important;
+    box-shadow: none !important;
+    border: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    background: #ffffff !important;
     overflow: visible !important;
   }
-  .draft-warning {
-    break-inside: avoid;
+
+  /* Proteksi pemotongan halaman di tengah blok penting */
+  .paper-letterhead-wrap,
+  .doc-title-bar,
+  .doc-two-col-grid,
+  .doc-terms-panel,
+  .doc-bank-card,
+  .contract-article-block,
+  .doc-single-signature-wrap,
+  .doc-dual-signatures,
+  .official-sig-block,
+  .doc-cert-banner,
+  .doc-instructions-box,
+  .doc-three-col-parties,
+  .doc-transport-row-strip,
+  .doc-table-pro tr {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  .doc-table-pro thead {
+    display: table-header-group !important;
   }
 }
 

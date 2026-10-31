@@ -25,7 +25,6 @@ import { AuthFlow } from "@/pages/AuthFlow";
 import type { ScreenId } from "@shared/risk";
 import type { DocumentType } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
-import { flushSync } from "react-dom";
 
 function readScreenFromUrl(): ScreenId {
   try {
@@ -102,22 +101,14 @@ export default function Home() {
     document.title = `EksporFlow · ${meta.label}`;
   }, [screen, user]);
 
-  // PRD v1.8: Dokumen cetak / PDF wajib berbahasa Inggris meskipun pratinjau memakai Bahasa Indonesia.
   const printDocument = useCallback(() => {
-    const previousLanguage = shipment.previewLanguage;
-    if (previousLanguage !== "English") {
-      flushSync(() => update("previewLanguage", "English"));
-    }
     const style = document.createElement("style");
     style.id = "eksporflow-print-page";
     style.textContent = `@media print { @page { size: ${shipment.paperSize} ${shipment.documentOrientation.toLowerCase()}; margin: 12mm; } }`;
     document.head.appendChild(style);
     window.print();
     style.remove();
-    if (previousLanguage !== "English") {
-      update("previewLanguage", previousLanguage);
-    }
-  }, [shipment.previewLanguage, shipment.paperSize, shipment.documentOrientation, update]);
+  }, [shipment.paperSize, shipment.documentOrientation]);
 
   if (isAuthLoading) {
     return (
