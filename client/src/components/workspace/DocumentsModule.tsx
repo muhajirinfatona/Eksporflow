@@ -12,9 +12,6 @@ import type {
   Shipment,
 } from "@shared/shipment";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Box,
   Building2,
   CheckCircle2,
   ChevronDown,
@@ -25,7 +22,6 @@ import {
   FileText,
   Landmark,
   Printer,
-  ShieldAlert,
   ShieldCheck,
   Ship,
   SlidersHorizontal,
@@ -406,53 +402,6 @@ export function DocumentsModule({
             />
           )}
         </div>
-      </div>
-
-      {/* 4. Operational Workflow Footer */}
-      <div className="doc-workflow-footer">
-        <button
-          type="button"
-          className="workflow-link-btn"
-          onClick={() => navigate("pricing")}
-        >
-          <ArrowLeft size={15} />
-          <div className="workflow-link-text">
-            <span className="workflow-sub">Tahap Sebelumnya</span>
-            <span className="workflow-main">Harga & Otorisasi Pesanan</span>
-          </div>
-        </button>
-
-        <div className="workflow-center-pills">
-          <span className="workflow-pills-label">Alur Operasional Terkait:</span>
-          <button
-            type="button"
-            className="workflow-pill-btn"
-            onClick={() => navigate("cargo")}
-          >
-            <Box size={14} />
-            <span>Rencana Muatan (3D)</span>
-          </button>
-          <button
-            type="button"
-            className="workflow-pill-btn"
-            onClick={() => navigate("risk")}
-          >
-            <ShieldAlert size={14} />
-            <span>Risk & Compliance Center</span>
-          </button>
-        </div>
-
-        <button
-          type="button"
-          className="workflow-link-btn primary"
-          onClick={() => navigate("shipment")}
-        >
-          <div className="workflow-link-text text-right">
-            <span className="workflow-sub">Tahap Berikutnya</span>
-            <span className="workflow-main">Logistik & Pengiriman Ekspor</span>
-          </div>
-          <ArrowRight size={15} />
-        </button>
       </div>
     </div>
   );
