@@ -1030,70 +1030,7 @@ export function ApprovalsView({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* 1. ENTERPRISE TIER HEADER BANNER */}
-      <div
-        style={{
-          background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
-          borderRadius: 12,
-          padding: "20px 24px",
-          color: "#ffffff",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: 16,
-          boxShadow: "0 4px 14px rgba(15, 23, 42, 0.12)",
-        }}
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-            <span
-              style={{
-                background: "#0284c7",
-                color: "#ffffff",
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: "0.06em",
-                padding: "2px 8px",
-                borderRadius: 4,
-                textTransform: "uppercase",
-              }}
-            >
-              💎 Paket Enterprise
-            </span>
-            <span style={{ fontSize: 12, color: "#94a3b8" }}>
-              Multi-User · Otorisasi Bertingkat · Segregation of Duties (SoD)
-            </span>
-          </div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "#f8fafc" }}>
-            Pusat Otorisasi &amp; Tata Kelola Kontrak Ekspor
-          </h2>
-          <p style={{ margin: "4px 0 0", fontSize: 13, color: "#94a3b8", maxWidth: 680 }}>
-            Sistem pengesahan penawaran ekspor, dispensasi margin kuartal, dan pembagian tugas antar divisi tim perusahaan sebelum dokumen resmi dikirim ke buyer internasional.
-          </p>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div
-            style={{
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              borderRadius: 8,
-              padding: "8px 14px",
-              textAlign: "right",
-            }}
-          >
-            <div style={{ fontSize: 11, color: "#94a3b8", textTransform: "uppercase", fontWeight: 700 }}>
-              Status Lisensi
-            </div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#38bdf8" }}>
-              Enterprise Plan Aktif
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. SEGMENTED TABS BAR */}
+      {/* 1. SEGMENTED TABS BAR */}
       <div
         style={{
           display: "flex",
