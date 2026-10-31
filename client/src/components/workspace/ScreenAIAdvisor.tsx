@@ -6,7 +6,6 @@ import type { ContainerCalc, Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import {
   AlertTriangle,
-  Bot,
   CheckCircle2,
   ChevronRight,
   ExternalLink,
@@ -16,6 +15,7 @@ import {
   Send,
   ShieldAlert,
   Sparkles,
+  User,
   X,
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -48,9 +48,10 @@ export function getScreenAdvisorInsight(
           title: `Margin Bersih Rendah (${shipment.margin}%) Menghadapi Fluktuasi Biaya Freight`,
           mitigationText: `Margin di bawah 10% rentan tergerus fluktuasi ocean freight atau demurrage pelabuhan. Pertimbangkan menaikkan buffer contingency atau tawarkan opsi FOB ke buyer.`,
           suggestedQuestions: [
-            `Bagaimana cara mengamankan margin bersih ${shipment.margin}% dari fluktuasi biaya?`,
+            `Bagaimana cara mengamankan margin bersih ${shipment.margin}% dari kenaikan biaya tak terduga?`,
             "Klausul apa yang bisa melindungi eksportir jika biaya freight tiba-tiba naik?",
-            "Apakah lebih aman beralih ke term FOB untuk transaksi ini?",
+            "Kapan batas waktu aman konfirmasi booking kapal ke freight forwarder?",
+            "Apa saja dokumen wajib yang harus siap sebelum kontainer masuk pelabuhan?",
           ],
           initialPrompt: `Analisis risiko margin tipis ${shipment.margin}% pada transaksi ${shipment.reference} dan berikan rekomendasi mitigasinya.`,
         };
@@ -58,20 +59,71 @@ export function getScreenAdvisorInsight(
       return {
         screenId: screen,
         riskLevel: "info",
-        badgeText: "Kesiapan Operasional Terpantau",
+        badgeText: "Monitoring Operasional Aktif",
         title:
           shipment.reference && !shipment.reference.startsWith("EXP-")
-            ? `Transaksi Aktif (${shipment.reference}): ${shipment.incoterm} · ${formatMoney(pricing.active.offer, shipment.currency)}`
-            : `Transaksi Aktif: ${shipment.incoterm} · ${formatMoney(pricing.active.offer, shipment.currency)}`,
-        mitigationText: `Seluruh parameter inti terhubung dengan modul kalkulator harga, kargo 3D, dan dokumen ekspor. Verifikasi klausul pembayaran dan izin ekspor sebelum jadwal closing kapal.`,
+            ? `Ringkasan Ekspor (${shipment.reference}): ${shipment.incoterm || "FOB"} · ${formatMoney(pricing.active.offer, shipment.currency)}`
+            : `Ringkasan Ekspor: ${shipment.incoterm || "FOB"} · ${formatMoney(pricing.active.offer, shipment.currency)}`,
+        mitigationText: `Seluruh parameter inti tersinkronisasi dengan kalkulator 7 Incoterms, muatan 3D, dan dokumen ekspor. Verifikasi klausul pembayaran dan jadwal closing kapal.`,
         suggestedQuestions: [
           shipment.reference && !shipment.reference.startsWith("EXP-")
-            ? `Ringkas risiko terbesar pada transaksi ${shipment.reference} saat ini`
+            ? `Ringkas evaluasi risiko menyeluruh transaksi ${shipment.reference}`
             : "Ringkas risiko terbesar pada transaksi ekspor ini saat ini",
           "Kapan batas waktu aman konfirmasi booking kapal ke forwarder?",
           "Apa saja dokumen yang wajib siap sebelum kontainer masuk pelabuhan?",
+          "Bagaimana ringkasan alur pemenuhan ekspor dari penawaran hingga rilis B/L?",
         ],
         initialPrompt: `Bantu tinjau kesiapan menyeluruh transaksi ekspor ke ${shipment.destination || "pelabuhan tujuan"} dan mitigasi risiko operasionalnya.`,
+      };
+
+    case "readiness":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Audit Legalitas & Mutu Komoditas",
+        title: `Asesmen Kesiapan Ekspor: ${shipment.product || "Komoditas Ekspor"}`,
+        mitigationText: `Evaluasi izin berusaha (NIB, standardisasi), kesiapan sertifikat karantina/analisis mutu, serta kelayakan kemasan untuk pasar ${shipment.buyerCountry || "internasional"}.`,
+        suggestedQuestions: [
+          "Dokumen perizinan dasar apa saja yang wajib aktif untuk legalitas ekspor perusahaan?",
+          `Sertifikasi mutu atau karantina apa yang disyaratkan untuk ${shipment.product || "komoditas ini"}?`,
+          "Bagaimana cara melakukan audit kesiapan kapasitas suplai agar terhindar dari wanprestasi?",
+          "Apa standar packaging & labeling yang wajib dipenuhi untuk pasar tujuan ekspor?",
+        ],
+        initialPrompt: `Jelaskan persyaratan izin ekspor, sertifikasi karantina, dan uji laboratorium untuk produk ${shipment.product || "komoditas kami"}.`,
+      };
+
+    case "transactions":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Siklus Pemenuhan Pesanan",
+        title: "Workspace Pesanan Ekspor & Pemantauan Status Kontrak",
+        mitigationText: "Pantau siklus pemenuhan dari Draft, Confirmed, In Transit, hingga Completed. Pastikan setiap amandemen PO dicatat dalam versi dokumen resmi.",
+        suggestedQuestions: [
+          "Bagaimana alur perubahan status pesanan dari Draft hingga pesanan selesai?",
+          "Kapan saat yang tepat mengunci (lock) pesanan agar tidak terjadi perubahan spesifikasi?",
+          "Bagaimana cara menangani amandemen kontrak jika buyer meminta penundaan jadwal kirim?",
+          "Apa indikator utama bahwa suatu pesanan telah siap dilanjutkan ke proses booking kargo?",
+        ],
+        initialPrompt: "Bantu tinjau alur pemenuhan pesanan ekspor dan langkah validasi sebelum beralih ke tahap logistik.",
+      };
+
+    case "po_intake":
+      return {
+        screenId: screen,
+        riskLevel: shipment.buyer ? "info" : "warning",
+        badgeText: "Skrining Buyer & Kontrak",
+        title: shipment.buyer
+          ? `Verifikasi Purchase Order Buyer: ${shipment.buyer}`
+          : "Verifikasi Dokumen Purchase Order / LOI Buyer",
+        mitigationText: "Validasi keabsahan entitas legal pembeli luar negeri, riwayat dagang, sanksi internasional, dan kejelasan syarat pembayaran sebelum penawaran dikunci.",
+        suggestedQuestions: [
+          "Bagaimana cara memverifikasi keabsahan legalitas dan alamat entitas buyer luar negeri?",
+          "Klausul pembayaran apa yang paling aman dicantumkan saat merespons LOI / PO buyer baru?",
+          "Apa saja tanda bahaya (red flags) indikasi penipuan dalam dokumen pesanan internasional?",
+          "Poin apa saja yang wajib dicocokkan antara PO dari buyer dengan Proforma Invoice kita?",
+        ],
+        initialPrompt: `Bantu tinjau keabsahan dokumen PO/LOI dari ${shipment.buyer || "buyer"} dan rekomendasi klausul proteksi pembayarannya.`,
       };
 
     case "pricing":
@@ -86,6 +138,7 @@ export function getScreenAdvisorInsight(
             "Kenapa validasi harga mendeteksi error ini?",
             "Bagaimana cara menghitung komponen biaya yang benar?",
             "Apa dampak salah hitung freight terhadap tagihan buyer?",
+            "Bagaimana menetapkan formula margin aman dari modal kerja?",
           ],
           initialPrompt: `Ada error pada kalkulasi harga transaksi ${shipment.reference}: ${pricing.validationErrors[0]}. Tolong jelaskan solusinya.`,
         };
@@ -101,6 +154,7 @@ export function getScreenAdvisorInsight(
             `Apa saja risiko tersembunyi menggunakan term DDP ke ${shipment.buyerCountry}?`,
             "Bagaimana perbandingan tanggung jawab DDP vs DAP vs CIF?",
             "Apakah eksportir Indonesia bisa mengurus clearance di negara tujuan tanpa entitas lokal?",
+            "Bagaimana cara membebankan potensi demurrage di pelabuhan tujuan jika pakai term DDP?",
           ],
           initialPrompt: `Saya menggunakan Incoterms DDP untuk pengiriman ke ${shipment.buyerCountry || "negara tujuan"}. Apa saja risiko pajak impor dan clearance yang wajib diwaspadai?`,
         };
@@ -116,6 +170,7 @@ export function getScreenAdvisorInsight(
             `Klausul asuransi apa yang wajib dipenuhi dalam skenario CIF?`,
             "Bagaimana jika tarif freight kapal naik setelah quotation disetujui buyer?",
             "Kapan titik peralihan risiko (risk transfer) terjadi pada Incoterm CIF?",
+            "Bagaimana cara menambahkan buffer contingency freight dalam penawaran resmi?",
           ],
           initialPrompt: `Jelaskan titik peralihan risiko dan klausul asuransi laut yang wajib dicantumkan pada penawaran ${shipment.incoterm} untuk ${shipment.product}.`,
         };
@@ -124,59 +179,31 @@ export function getScreenAdvisorInsight(
         screenId: screen,
         riskLevel: "info",
         badgeText: "Struktur Biaya 7 Incoterms",
-        title: `Penawaran Aktif ${shipment.incoterm} dengan Margin Bersih ${shipment.margin}%`,
-        mitigationText: `Periksa selisih biaya dari basis EXW hingga ${shipment.incoterm}. Pastikan biaya penanganan lokal (trucking pelabuhan & THC) telah menyertakan buffer contingency minimal 3-5%.`,
+        title: `Kalkulasi 7 Incoterms®: Penawaran ${shipment.incoterm} (Margin ${shipment.margin}%)`,
+        mitigationText: `Penawaran resmi ${formatMoney(pricing.active.offer, shipment.currency)}. Periksa biaya penanganan lokal (trucking pelabuhan & THC) dan pastikan menyertakan buffer contingency minimal 3-5%.`,
         suggestedQuestions: [
-          `Apakah margin ${shipment.margin}% sudah ideal untuk produk ${shipment.product}?`,
-          "Berapa rata-rata contingency cost yang lazim untuk ekspor kontainer?",
-          "Bagaimana cara memproteksi harga dari fluktuasi kurs mata uang asing?",
+          `Apakah estimasi margin ${shipment.margin}% aman terhadap lonjakan freight & demurrage?`,
+          "Berapa persentase buffer kontinjensi biaya lokal yang disarankan untuk pengiriman ini?",
+          `Apa titik kritis peralihan biaya & risiko pada Incoterm ${shipment.incoterm}?`,
+          "Bagaimana cara melindungi margin dari risiko fluktuasi kurs mata uang asing (forex)?",
         ],
         initialPrompt: `Evaluasi struktur harga penawaran ${formatMoney(pricing.active.offer, shipment.currency)} (${shipment.incoterm}) untuk ${shipment.quantity} ${shipment.unit} ${shipment.product}.`,
       };
 
-    case "cargo":
-      if (container.volumeUtilization > 100 || container.weightUtilization > 100) {
-        return {
-          screenId: screen,
-          riskLevel: "danger",
-          badgeText: "Kapasitas Kontainer Overload",
-          title: `Muatan Melebihi Batas Maksimal Kontainer (${container.volumeUtilization.toFixed(0)}% Vol / ${container.weightUtilization.toFixed(0)}% Berat)`,
-          mitigationText: `Kargo melebihi batas standar kontainer ${shipment.containerType}. Shipping line akan menolak stuffing atau mengenakan denda overload pada timbangan pelabuhan (VGM). Solusi: Tambah jumlah kontainer atau sesuaikan volume muat.`,
-          suggestedQuestions: [
-            "Berapa kontainer yang dibutuhkan untuk menampung seluruh kargo ini?",
-            "Apa sanksi pelabuhan jika berat muatan melebihi batas deklarasi VGM?",
-            "Bagaimana cara menyusun packing agar muatan muat dalam 1 kontainer?",
-          ],
-          initialPrompt: `Kargo saya overload (${container.volumeUtilization.toFixed(0)}% volume, ${container.weightUtilization.toFixed(0)}% berat). Berikan rekomendasi penataan atau jumlah kontainer yang tepat.`,
-        };
-      }
-      if (container.volumeUtilization < 60) {
-        return {
-          screenId: screen,
-          riskLevel: "warning",
-          badgeText: "Kapasitas Kontainer Rendah",
-          title: `Utilisasi Ruang Rendah (${container.volumeUtilization.toFixed(0)}% CBM Terpakai)`,
-          mitigationText: `Anda membayar freight penuh 1 kontainer FCL (${shipment.containerType}) namun hanya ${container.volumeUtilization.toFixed(0)}% terisi. Pertimbangkan opsi konsolidasi LCL atau tawarkan buyer menambah kuantiti pesanan untuk efisiensi ongkos kirim per unit.`,
-          suggestedQuestions: [
-            "Apakah pengiriman ini lebih hemat menggunakan LCL dibanding FCL?",
-            "Berapa tambahan kuantiti barang agar kontainer terisi optimal di atas 85%?",
-            "Bagaimana cara menahan barang (lashing & dunnage) agar tidak bergeser saat kontainer tidak penuh?",
-          ],
-          initialPrompt: `Utilisasi kontainer baru ${container.volumeUtilization.toFixed(0)}%. Apakah lebih efisien pakai FCL atau LCL untuk rute ke ${shipment.destination}?`,
-        };
-      }
+    case "approvals":
       return {
         screenId: screen,
-        riskLevel: "info",
-        badgeText: "Standar Kemasan & ISPM-15",
-        title: `Utilisasi Muatan Optimal: ${container.volumeUtilization.toFixed(0)}% Vol · ${container.containers} × ${shipment.containerType}`,
-        mitigationText: `Pastikan pallet kayu memiliki sertifikat fumigasi/heat-treatment standar ISPM-15 dengan stempel IPPC resmi untuk mencegah penolakan karantina di pelabuhan tujuan (${shipment.destination || "tujuan"}).`,
+        riskLevel: flow.effectiveApprovalStatus === "Tercatat direview" ? "success" : "warning",
+        badgeText: "Tata Kelola & Segregation of Duties (SoD)",
+        title: `Otorisasi Penawaran & Kontrak: ${flow.effectiveApprovalStatus}`,
+        mitigationText: `Pimpinan memvalidasi kelayakan margin (${shipment.margin}%), kepatuhan regulasi ekspor, dan toleransi risiko buyer sebelum Sales Contract resmi ditandatangani.`,
         suggestedQuestions: [
-          "Apa standar ISPM-15 yang wajib ada pada pallet kayu ekspor?",
-          "Bagaimana cara mendeklarasikan Verified Gross Mass (VGM) ke shipping line?",
-          "Alat pengikat kargo (lashing/strapping) apa yang disyaratkan untuk kargo ini?",
+          "Apa dasar evaluasi pimpinan sebelum memberikan dispensasi harga atau margin di bawah target?",
+          "Bagaimana pembagian kewenangan (SoD) antara Sales PIC dan Approver Pimpinan?",
+          "Klausul proteksi apa saja yang wajib dipastikan ada sebelum kontrak disetujui direksi?",
+          "Bagaimana mekanisme pencatatan revisi (Minta Revisi) kepada tim sales secara terstruktur?",
         ],
-        initialPrompt: `Jelaskan checklist verifikasi kemasan ekspor, fumigasi pallet kayu ISPM-15, dan penimbangan berat kotor VGM untuk kontainer ini.`,
+        initialPrompt: `Bantu tinjau klausul kunci dalam Sales Contract ekspor untuk mencegah sengketa kualitas atau wanprestasi pembayaran.`,
       };
 
     case "documents":
@@ -189,7 +216,8 @@ export function getScreenAdvisorInsight(
           mitigationText: `Commercial Invoice, Packing List, dan draft B/L belum direview. Perbedaan 1 karakter nama buyer atau selisih 1 kg berat kotor dapat menyebabkan penahanan pabean (Customs Hold) di pelabuhan tujuan.`,
           suggestedQuestions: [
             "Apa saja poin kritis yang harus dicocokkan antara Invoice, Packing List, dan B/L?",
-            "Bagaimana jika nama consignee di invoice berbeda dengan di B/L?",
+            `Bagaimana prosedur pengajuan Certificate of Origin (COO / Form AK / Form D) untuk ${shipment.buyerCountry || "negara tujuan"}?`,
+            "Apa konsekuensi jika terjadi perbedaan deskripsi barang di dokumen ekspor vs data PEB?",
             "Kapan Commercial Invoice dan Packing List harus diserahkan ke broker bea cukai?",
           ],
           initialPrompt: `Tolong jelaskan langkah verifikasi 3-way match antara Commercial Invoice, Packing List, dan B/L untuk transaksi ${shipment.reference}.`,
@@ -205,8 +233,57 @@ export function getScreenAdvisorInsight(
           `Dokumen tambahan apa (seperti COO / Form AK, Phytosanitary, atau Halal) yang wajib untuk ${shipment.buyerCountry}?`,
           "Bagaimana prosedur legalisasi dokumen jika diminta oleh buyer luar negeri?",
           "Berapa rangkap dokumen asli (Original) dan salinan (Copy) yang lazim disiapkan?",
+          "Kapan dokumen asli (Original Documents) wajib dikirim via kurir vs cukup Telex Release?",
         ],
         initialPrompt: `Dokumen ekspor ${shipment.reference} sudah valid. Apa saja dokumen kepabeanan tambahan yang mungkin diminta negara ${shipment.buyerCountry}?`,
+      };
+
+    case "cargo":
+      if (container.volumeUtilization > 100 || container.weightUtilization > 100) {
+        return {
+          screenId: screen,
+          riskLevel: "danger",
+          badgeText: "Kapasitas Kontainer Overload",
+          title: `Muatan Melebihi Batas Maksimal Kontainer (${container.volumeUtilization.toFixed(0)}% Vol / ${container.weightUtilization.toFixed(0)}% Berat)`,
+          mitigationText: `Kargo melebihi batas standar kontainer ${shipment.containerType}. Shipping line akan menolak stuffing atau mengenakan denda overload pada timbangan pelabuhan (VGM). Solusi: Tambah jumlah kontainer atau sesuaikan volume muat.`,
+          suggestedQuestions: [
+            "Berapa kontainer yang dibutuhkan untuk menampung seluruh kargo ini?",
+            "Apa sanksi pelabuhan jika berat muatan melebihi batas deklarasi VGM?",
+            "Bagaimana cara menyusun packing agar muatan muat dalam 1 kontainer?",
+            "Bagaimana cara menghitung CBM muatan curah dibanding kargo dalam pallet?",
+          ],
+          initialPrompt: `Kargo saya overload (${container.volumeUtilization.toFixed(0)}% volume, ${container.weightUtilization.toFixed(0)}% berat). Berikan rekomendasi penataan atau jumlah kontainer yang tepat.`,
+        };
+      }
+      if (container.volumeUtilization < 60) {
+        return {
+          screenId: screen,
+          riskLevel: "warning",
+          badgeText: "Kapasitas Kontainer Rendah",
+          title: `Utilisasi Ruang Rendah (${container.volumeUtilization.toFixed(0)}% CBM Terpakai)`,
+          mitigationText: `Anda membayar freight penuh 1 kontainer FCL (${shipment.containerType}) namun hanya ${container.volumeUtilization.toFixed(0)}% terisi. Pertimbangkan opsi konsolidasi LCL atau tawarkan buyer menambah kuantiti pesanan untuk efisiensi ongkos kirim per unit.`,
+          suggestedQuestions: [
+            "Apakah pengiriman ini lebih hemat menggunakan LCL dibanding FCL?",
+            "Berapa tambahan kuantiti barang agar kontainer terisi optimal di atas 85%?",
+            "Bagaimana cara menahan barang (lashing & dunnage) agar tidak bergeser saat kontainer tidak penuh?",
+            "Berapa batas berat per axle yang diizinkan untuk truk angkut kontainer pelabuhan?",
+          ],
+          initialPrompt: `Utilisasi kontainer baru ${container.volumeUtilization.toFixed(0)}%. Apakah lebih efisien pakai FCL atau LCL untuk rute ke ${shipment.destination}?`,
+        };
+      }
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Standar Kemasan & ISPM-15",
+        title: `Utilisasi Muatan Optimal: ${container.volumeUtilization.toFixed(0)}% Vol · ${container.containers} × ${shipment.containerType}`,
+        mitigationText: `Pastikan pallet kayu memiliki sertifikat fumigasi/heat-treatment standar ISPM-15 dengan stempel IPPC resmi untuk mencegah penolakan karantina di pelabuhan tujuan (${shipment.destination || "tujuan"}).`,
+        suggestedQuestions: [
+          `Bagaimana cara mengoptimalkan penataan muatan agar utilisasi kontainer ${shipment.containerType} > 85%?`,
+          "Apa standar fumigasi dan sertifikat ISPM-15 untuk pallet kayu ekspor?",
+          "Bagaimana tata cara penimbangan dan pelaporan Verified Gross Mass (VGM) ke terminal pelabuhan?",
+          "Alat pengikat kargo (lashing/strapping) apa yang disyaratkan untuk pengapalan ini?",
+        ],
+        initialPrompt: `Jelaskan checklist verifikasi kemasan ekspor, fumigasi pallet kayu ISPM-15, dan penimbangan berat kotor VGM untuk kontainer ini.`,
       };
 
     case "shipment":
@@ -218,9 +295,10 @@ export function getScreenAdvisorInsight(
           title: "Nomor Booking & Jadwal Closing Time Belum Dikonfirmasi",
           mitigationText: `Segera konfirmasi Shipping Instruction (SI) ke freight forwarder untuk mengamankan slot kontainer sebelum masa peak season atau risiko penundaan jadwal kapal (blank sailing).`,
           suggestedQuestions: [
-            "Data apa saja yang wajib dicantumkan dalam Shipping Instruction (SI)?",
-            "Apa yang terjadi jika kargo terlambat masuk sebelum closing time pelabuhan?",
-            "Bagaimana cara memitigasi risiko blank sailing atau keterlambatan kapal?",
+            "Informasi apa saja yang wajib dicantumkan dalam Shipping Instruction (SI)?",
+            "Kapan batas waktu aman memasukkan kontainer ke pelabuhan (closing time)?",
+            "Bagaimana cara memitigasi risiko demurrage dan detention di pelabuhan?",
+            "Apa yang harus dilakukan jika terjadi blank sailing atau keterlambatan kapal?",
           ],
           initialPrompt: `Bantu susun prosedur pengajuan Shipping Instruction (SI) yang aman ke forwarder untuk rute ke ${shipment.destination}.`,
         };
@@ -234,26 +312,25 @@ export function getScreenAdvisorInsight(
         suggestedQuestions: [
           "Kapan aman menggunakan Telex Release dibanding Original Bill of Lading?",
           "Bagaimana cara mengurus B/L jika menggunakan pembayaran Letter of Credit (LC)?",
-          "Apa yang harus dilakukan jika kontainer tertahan demurrage di pelabuhan tujuan?",
+          "Apa risiko menerbitkan Telex Release jika pelunasan pembayaran belum 100% diterima?",
+          "Apa langkah darurat jika kontainer mengalami penundaan jadwal kapal (delay)?",
         ],
         initialPrompt: `Jelaskan risiko penggunaan Telex Release vs Original B/L jika pembayaran buyer belum 100% lunas.`,
       };
 
     case "finance":
-    case "bank":
-    case "journals":
-    case "reports":
       if (flow.remainingReceivable > 0 && !flow.finance.dpConfirmed) {
         return {
           screenId: screen,
           riskLevel: "warning",
           badgeText: "Risiko Piutang Dagang (Credit Risk)",
           title: `Piutang ${formatMoney(flow.remainingReceivable, shipment.currency)} Tanpa Konfirmasi Uang Muka (DP)`,
-          mitigationText: `Memulai produksi atau memuat kargo tanpa DP minimal 30% atau L/C berisiko tinggi terhadap pembatalan pesanan sepihak oleh buyer asing. Pastikan dana efektif masuk rekening giro devisa sebelum stuffing.`,
+          mitigationText: `Memulai produksi atau memuat kargo tanpa DP minimal 30% atau L/C berisiko tinggi terhadap pembatalan sepihak oleh buyer asing. Pastikan dana efektif masuk rekening giro devisa sebelum stuffing.`,
           suggestedQuestions: [
-            `Bagaimana cara menegosiasikan uang muka (DP) minimal 30% ke buyer baru?`,
-            "Apa instrumen pembayaran ekspor yang paling aman selain T/T Cash in Advance?",
-            "Bagaimana cara memproteksi transaksi dari risiko gagal bayar buyer internasional?",
+            `Bagaimana strategi mengamankan sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)} dari buyer?`,
+            "Apa kelebihan dan risiko metode pembayaran T/T 30% DP vs Irrevocable L/C at Sight?",
+            "Bagaimana cara membuat jadwal penagihan (payment milestones) yang aman bagi cash flow?",
+            "Kapan eksportir berhak menahan rilis dokumen kargo jika pelunasan tertunda?",
           ],
           initialPrompt: `Saya memiliki sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)} belum terkonfirmasi DP. Bagaimana strategi mitigasi risiko pembayarannya?`,
         };
@@ -261,15 +338,64 @@ export function getScreenAdvisorInsight(
       return {
         screenId: screen,
         riskLevel: "success",
-        badgeText: "Kepatuhan Devisa & AR",
+        badgeText: "Arus Kas & Piutang Dagang",
         title: `Status Keuangan: ${flow.finance.arStatus} (Kas Masuk: ${formatMoney(flow.paidAmount, shipment.currency)})`,
-        mitigationText: `Penerimaan devisa hasil ekspor wajib dicocokkan dengan nomor PEB pada sistem Devisa Hasil Ekspor (DHE) Bank Indonesia untuk mematuhi regulasi penempatan devisa SDA.`,
+        mitigationText: `Penerimaan kas berjalan lancar. Rekonsiliasi nomor PEB dengan rekening giro devisa untuk memastikan kepatuhan pelaporan devisa ekspor nasional.`,
         suggestedQuestions: [
-          "Apa kewajiban pelaporan Devisa Hasil Ekspor (DHE) ke Bank Indonesia?",
-          "Berapa lama devisa hasil ekspor wajib ditempatkan di perbankan nasional?",
-          "Bagaimana pencatatan jurnal akuntansi selisih kurs saat pembayaran diterima?",
+          "Bagaimana cara memproteksi transaksi dari risiko gagal bayar buyer internasional?",
+          "Apa instrumen pembayaran ekspor yang paling aman selain T/T Cash in Advance?",
+          "Bagaimana cara menghitung DSO (Days Sales Outstanding) untuk transaksi ekspor?",
+          "Kapan saat yang tepat menerbitkan commercial invoice final untuk pelunasan?",
         ],
-        initialPrompt: `Jelaskan regulasi Devisa Hasil Ekspor (DHE) Bank Indonesia dan pencatatan akuntansi penerimaan valuta asing untuk transaksi ini.`,
+        initialPrompt: `Jelaskan strategi manajemen piutang dagang ekspor dan kepatuhan penerimaan kas valas untuk transaksi ini.`,
+      };
+
+    case "bank":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Perbankan Devisa & Valas",
+        title: "Rekonsiliasi Bank Devisa & Penerimaan Valuta Asing",
+        mitigationText: "Verifikasi penerimaan dana valas melalui rekening Giro Devisa perbankan nasional. Tinjau potongan biaya koresponden bank internasional dan kurs realisasi sebelum posting buku besar.",
+        suggestedQuestions: [
+          "Bagaimana cara memverifikasi keabsahan bukti transfer SWIFT MT103 dari buyer?",
+          "Kapan eksportir perlu melakukan lindung nilai (hedging) valuta asing?",
+          "Berapa lama estimasi transfer valas lintas negara tiba di rekening giro devisa?",
+          "Bagaimana cara meminimalkan potongan biaya koresponden bank (intermediary charges)?",
+        ],
+        initialPrompt: "Jelaskan langkah verifikasi transfer valas SWIFT MT103 dan mitigasi selisih kurs perbankan.",
+      };
+
+    case "journals":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Akuntansi & Pembukuan Ekspor",
+        title: "Pencatatan Jurnal Akuntansi & Selisih Kurs (Forex Gain/Loss)",
+        mitigationText: "Pastikan jurnal pembukuan double-entry mencatat pengakuan piutang, kas masuk valas, serta selisih kurs yang terealisasi (Realized Forex Gain/Loss) sesuai standar PSAK.",
+        suggestedQuestions: [
+          "Kapan titik pengakuan pendapatan (revenue recognition) ekspor dicatat menurut PSAK?",
+          "Bagaimana jurnal akuntansi penerimaan uang muka (DP) valas dan saat pelunasan akhir?",
+          "Bagaimana perlakuan akuntansi untuk selisih kurs yang belum terealisasi (unrealized forex)?",
+          "Bagaimana pencatatan biaya logistik lokal (THC, freight, fumigasi) yang ditalangi perusahaan?",
+        ],
+        initialPrompt: "Jelaskan standar jurnal akuntansi ekspor untuk pengakuan pendapatan dan pencatatan selisih kurs valuta asing.",
+      };
+
+    case "reports":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Kepatuhan Regulasi DHE BI",
+        title: "Laporan Ekspor & Kepatuhan Devisa Hasil Ekspor (DHE BI)",
+        mitigationText: "Sesuai PP No. 36/2023, eksportir komoditas sumber daya alam dengan nilai PEB >= USD 250,000 wajib menempatkan DHE minimal 30% dalam rekening khusus perbankan nasional selama 3 bulan.",
+        suggestedQuestions: [
+          "Apa kewajiban dan kriteria pelaporan Devisa Hasil Ekspor (DHE) ke Bank Indonesia?",
+          "Berapa ambang batas nilai ekspor yang terkena kewajiban penempatan DHE 30%?",
+          "Bagaimana cara melakukan rekonsiliasi data PEB bea cukai dengan pelaporan devisa di SiMoDIS BI?",
+          "Apa sanksi administratif dan denda jika pelaporan devisa ekspor terlambat dilakukan?",
+        ],
+        initialPrompt: "Jelaskan regulasi Devisa Hasil Ekspor (DHE) Bank Indonesia dan prosedur rekonsiliasi PEB bea cukai.",
       };
 
     case "risk":
@@ -277,59 +403,28 @@ export function getScreenAdvisorInsight(
         screenId: screen,
         riskLevel: flow.riskEvaluation.readinessPercent >= 80 ? "success" : "warning",
         badgeText: `Kesiapan Regulasi: ${flow.riskEvaluation.readinessPercent}%`,
-        title: `Tingkat Risiko Transaksi: ${flow.riskEvaluation.riskLevel.toUpperCase()}`,
+        title: `Evaluasi Risk Center: Tingkat Risiko ${flow.riskEvaluation.riskLevel.toUpperCase()}`,
         mitigationText: `Evaluasi kesiapan mencakup kepatuhan regulasi larangan terbatas (Lartas), sanksi embargo negara tujuan (${shipment.buyerCountry || "tujuan"}), dan kelengkapan izin eksportir (NIB/Eksportir Terdaftar).`,
         suggestedQuestions: [
           `Apa saja lartas ekspor yang berlaku untuk produk ${shipment.product}?`,
           `Apakah ada sanksi perdagangan atau embargo yang berlaku di negara ${shipment.buyerCountry}?`,
           "Bagaimana menaikkan skor kesiapan transaksi agar menjadi 100% aman?",
+          "Bagaimana cara memproteksi kargo dari risiko politis dan gagal transfer devisa?",
         ],
         initialPrompt: `Bantu evaluasi seluruh poin risiko pada Risk Center transaksi ${shipment.reference} dan berikan panduan mitigasi kepatuhannya.`,
-      };
-
-    case "transactions":
-    case "po_intake":
-      return {
-        screenId: screen,
-        riskLevel: "info",
-        badgeText: "Sinkron Otomatis",
-        title: screen === "po_intake" ? "Verifikasi Dokumen PO / LOI Buyer" : "Data Transaksi Terhubung",
-        mitigationText:
-          screen === "po_intake"
-            ? "AI Advisor memvalidasi 4 pilar kredibilitas buyer dan menganalisis kepatuhan regulasi negara tujuan sebelum kargo diproses."
-            : "Data buyer, tujuan, dan HS Code otomatis tersinkron ke kalkulator harga, rencana muatan, dan dokumen legal.",
-        suggestedQuestions: [
-          "Bagaimana cara memverifikasi legalitas buyer baru?",
-          "Apa dampak perubahan HS Code terhadap dokumen ekspor?",
-        ],
-        initialPrompt: "Bantu tinjau data transaksi ekspor ini agar sesuai dengan regulasi negara tujuan.",
-      };
-
-    case "approvals":
-      return {
-        screenId: screen,
-        riskLevel: flow.effectiveApprovalStatus === "Tercatat direview" ? "success" : "warning",
-        badgeText: "Audit Kontrol Penjualan",
-        title: `Status Persetujuan Kontrak: ${flow.effectiveApprovalStatus}`,
-        mitigationText: `Tinjau setiap deviasi margin, klausul tanggung jawab kerusakan kargo, dan batas toleransi selisih kuantiti muatan (+/- 5%) sebelum penandatanganan Sales Contract resmi.`,
-        suggestedQuestions: [
-          "Klausul proteksi apa saja yang wajib ada di Sales Contract ekspor?",
-          "Bagaimana menetapkan klausul force majeure yang aman untuk eksportir?",
-          "Siapa saja pihak internal yang wajib memberikan persetujuan sebelum kontrak diteken?",
-        ],
-        initialPrompt: `Bantu tinjau klausul kunci dalam Sales Contract ekspor untuk mencegah klaim sepihak dari buyer saat kargo tiba.`,
       };
 
     case "partners":
       return {
         screenId: screen,
         riskLevel: "info",
-        badgeText: "Verifikasi Rekanan Dagang",
-        title: "Due Diligence Mitra Buyer & Freight Forwarder",
-        mitigationText: `Lakukan trade credit check dan minta referensi perbankan sebelum memberikan fasilitas pembayaran berjangka (Open Account) kepada buyer internasional baru.`,
+        badgeText: "Verifikasi Rekanan & Vendor",
+        title: "Direktori Rekanan & Due Diligence Mitra Dagang Internasional",
+        mitigationText: `Lakukan verifikasi legalitas, referensi perbankan, dan trade credit check sebelum memberikan fasilitas pembayaran berjangka (Open Account) kepada buyer baru.`,
         suggestedQuestions: [
-          "Bagaimana cara memverifikasi kredibilitas dan reputasi buyer luar negeri?",
-          "Kriteria apa yang harus diperhatikan dalam memilih freight forwarder terpercaya?",
+          "Bagaimana cara memverifikasi kredibilitas dan reputasi buyer luar negeri baru?",
+          "Kriteria apa yang harus diperhatikan dalam memilih freight forwarder terpercaya untuk rute ini?",
+          "Kapan perusahaan perlu menyewa jasa independent pre-shipment surveyor (SGS/Sucofindo)?",
           "Apa tanda-tanda indikasi penipuan (scam) dalam perdagangan ekspor internasional?",
         ],
         initialPrompt: `Berikan checklist due diligence untuk memverifikasi reputasi buyer internasional baru sebelum kontrak disepakati.`,
@@ -340,44 +435,63 @@ export function getScreenAdvisorInsight(
         screenId: screen,
         riskLevel: "info",
         badgeText: "Harmonized System (HS)",
-        title: "Ketepatan HS Code & Skema Tarif Preferensial (FTA)",
+        title: `Katalog Produk & Klasifikasi HS Code (${shipment.product || "Komoditas Ekspor"})`,
         mitigationText: `Penetapan HS Code 8-10 digit yang akurat menentukan ada/tidaknya bea keluar Indonesia serta eligibilitas tarif preferensial Certificate of Origin (COO / Form AK / Form D) di negara tujuan.`,
         suggestedQuestions: [
-          `Bagaimana cara memastikan HS Code untuk produk ${shipment.product} sudah benar?`,
+          `Bagaimana cara memastikan HS Code untuk produk ${shipment.product || "ini"} sudah benar?`,
           "Skema FTA apa yang memberikan fasilitas bea masuk 0% di negara tujuan?",
-          "Dokumen uji laboratorium apa yang lazim disyaratkan untuk produk ini?",
+          "Dokumen uji laboratorium atau COA apa yang lazim disyaratkan untuk produk ini?",
+          "Apakah komoditas ini dikenakan Bea Keluar (export duty) oleh pemerintah Indonesia?",
         ],
-        initialPrompt: `Bantu verifikasi klasifikasi HS Code produk ${shipment.product} dan potensi pemanfaatan fasilitas Free Trade Agreement (FTA).`,
-      };
-
-    case "readiness":
-      return {
-        screenId: screen,
-        riskLevel: "info",
-        badgeText: "Kesiapan Sertifikasi Teknis",
-        title: "Peta Kesiapan Komoditas & Dokumen Karantina",
-        mitigationText: `Komoditas hasil pertanian, pangan, dan mineral memerlukan sertifikat khusus (Phytosanitary, Certificate of Analysis, Sertifikat Halal/HACCP) dari instansi berwenang sebelum pengajuan PEB.`,
-        suggestedQuestions: [
-          `Sertifikat karantina dan mutu apa saja yang diwajibkan untuk ${shipment.product}?`,
-          "Berapa lama masa berlaku Phytosanitary Certificate atau Certificate of Analysis?",
-          "Kapan permohonan pemeriksaan karantina harus diajukan ke instansi terkait?",
-        ],
-        initialPrompt: `Jelaskan persyaratan izin ekspor, sertifikasi karantina, dan uji laboratorium untuk produk ${shipment.product}.`,
+        initialPrompt: `Bantu verifikasi klasifikasi HS Code produk ${shipment.product || "ini"} dan potensi pemanfaatan fasilitas Free Trade Agreement (FTA).`,
       };
 
     case "knowledge":
       return {
         screenId: screen,
         riskLevel: "info",
-        badgeText: "Standard Operating Procedure",
-        title: "Basis Pengetahuan SOP & Regulasi Internal Tim",
+        badgeText: "SOP & Regulasi Tim",
+        title: "Basis Pengetahuan SOP & Panduan Operasional Ekspor",
         mitigationText: `Gunakan basis pengetahuan tim untuk menyeragamkan penanganan kargo, standar kemasan, dan toleransi risiko ekspor antar seluruh anggota operasional perusahaan.`,
         suggestedQuestions: [
           "Bagaimana cara menyusun SOP penanganan kargo ekspor yang efektif?",
           "Materi kepatuhan apa yang wajib dipahami tim operasional ekspor baru?",
-          "Bagaimana cara mengarsipkan audit log transaksi ekspor sesuai standar audit?",
+          "Bagaimana tata cara pengarsipan audit log transaksi ekspor sesuai standar audit?",
+          "Apa referensi regulasi ekspor terkini yang relevan untuk operasional perusahaan?",
         ],
         initialPrompt: `Berikan rekomendasi penyusunan SOP mitigasi risiko operasional ekspor untuk tim internal perusahaan.`,
+      };
+
+    case "settings":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Profil & Keamanan Organisasi",
+        title: "Pengaturan Profil Perusahaan & Tata Kelola Workspace",
+        mitigationText: "Pastikan data legalitas eksportir, kop surat resmi, stempel digital, dan hak akses pengguna terkonfigurasi dengan aman untuk mendukung kolaborasi tim.",
+        suggestedQuestions: [
+          "Data profil legalitas apa saja yang wajib dilengkapi untuk penerbitan dokumen ekspor resmi?",
+          "Bagaimana cara mengatur hak akses (Role-Based Access) tim internal (Sales, Approver, Finance)?",
+          "Bagaimana cara menghubungkan penyimpanan cloud dan sinkronisasi database perusahaan?",
+          "Bagaimana memastikan keamanan data transaksi dan kontrak ekspor perusahaan tersimpan aman?",
+        ],
+        initialPrompt: "Jelaskan langkah pengaturan profil perusahaan dan tata kelola hak akses tim pada sistem EksporFlow.",
+      };
+
+    case "advisor":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "AI Export Advisor Workspace",
+        title: "Konsultasi Strategis Ekspor Komprehensif",
+        mitigationText: `AI Advisor membaca parameter aktif transaksi ${shipment.reference || "EksporFlow"} untuk membantu negosiasi kontrak, kepatuhan pabean, dan efisiensi biaya.`,
+        suggestedQuestions: [
+          `Ringkas evaluasi risiko menyeluruh untuk transaksi ${shipment.reference}`,
+          "Bagaimana strategi negosiasi term pembayaran yang aman bagi eksportir dan buyer?",
+          "Jelaskan langkah mitigasi risiko klaim kualitas (quality dispute) dari buyer asing",
+          "Apa rekomendasi terbaik untuk mengamankan margin bersih transaksi ini?",
+        ],
+        initialPrompt: `Saya membutuhkan panduan operasional dan mitigasi risiko untuk transaksi ekspor ${shipment.reference}.`,
       };
 
     default:
@@ -386,13 +500,14 @@ export function getScreenAdvisorInsight(
         riskLevel: "info",
         badgeText: "AI Advisor EksporFlow",
         title: "Konsultasi Cerdas Berbasis Transaksi Aktif",
-        mitigationText: `AI Advisor membaca parameter transaksi ${shipment.reference} secara langsung untuk membantu memitigasi potensi risiko operasional, kepabeanan, dan keuangan.`,
+        mitigationText: `AI Advisor membaca parameter transaksi ${shipment.reference || "EksporFlow"} secara langsung untuk membantu memitigasi potensi risiko operasional, kepabeanan, dan keuangan.`,
         suggestedQuestions: [
-          `Tanyakan apa saja tentang transaksi ${shipment.reference}`,
+          `Tanyakan apa saja tentang transaksi ${shipment.reference || "ekspor ini"}`,
           "Apa risiko terbesar yang perlu saya selesaikan hari ini?",
           "Jelaskan alur ekspor dari proforma invoice hingga pencairan kas",
+          "Bagaimana cara memvalidasi kelengkapan dokumen kepabeanan?",
         ],
-        initialPrompt: `Saya membutuhkan panduan operasional dan mitigasi risiko untuk transaksi ekspor ${shipment.reference}.`,
+        initialPrompt: `Saya membutuhkan panduan operasional dan mitigasi risiko untuk transaksi ekspor ${shipment.reference || "ini"}.`,
       };
   }
 }
@@ -456,7 +571,7 @@ export function ScreenAIAdvisorBanner({
           onClick={() => onOpenConsultation(insight.initialPrompt)}
           title="Buka konsultasi mendalam dengan AI Advisor"
         >
-          <Bot size={15} />
+          <Sparkles size={14} />
           <span>Tanya AI Advisor</span>
           <ChevronRight size={13} />
         </button>
@@ -616,7 +731,7 @@ export function ScreenAIAdvisorDrawer({
         <header className="ai-drawer-header">
           <div className="ai-drawer-header-brand">
             <div className="ai-drawer-icon-wrap">
-              <Bot size={18} />
+              <Sparkles size={18} />
             </div>
             <div>
               <h3>Konsultasi AI Advisor</h3>
@@ -668,7 +783,7 @@ export function ScreenAIAdvisorDrawer({
           {messages.map((m, index) => (
             <div key={index} className={`ai-drawer-bubble ${m.role}`}>
               <div className="bubble-avatar">
-                {m.role === "assistant" ? <Bot size={13} /> : "Anda"}
+                {m.role === "assistant" ? <Sparkles size={12} strokeWidth={2.4} /> : <User size={12} strokeWidth={2.4} />}
               </div>
               <div className="bubble-text">
                 {m.content.split("\n\n").map((para, pIdx) => (
@@ -681,7 +796,7 @@ export function ScreenAIAdvisorDrawer({
           {assistantMutation.isPending && (
             <div className="ai-drawer-bubble assistant loading">
               <div className="bubble-avatar">
-                <Bot size={13} />
+                <Sparkles size={12} strokeWidth={2.4} />
               </div>
               <div className="bubble-text">
                 <span className="ai-typing-indicator">
@@ -781,6 +896,7 @@ export function ScreenAIFloatingWidget({
   const [inputQuestion, setInputQuestion] = useState("");
   const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const prevScreenRef = useRef<ScreenId>(screen);
 
   const assistantMutation = trpc.assistant.ask.useMutation();
 
@@ -819,16 +935,39 @@ export function ScreenAIFloatingWidget({
   // Muat pesan awal saat popup dibuka
   useEffect(() => {
     if (isOpen) {
-      const buyerInfo = shipment.buyer ? ` untuk **${shipment.buyer}**` : "";
+      if (messages.length === 0 || prevScreenRef.current !== screen) {
+        prevScreenRef.current = screen;
+        const buyerInfo = shipment.buyer ? ` untuk **${shipment.buyer}**` : "";
+        const refInfo = shipment.reference ? ` (${shipment.reference})` : "";
+        setMessages([
+          {
+            role: "assistant",
+            content: `Halo! Saya memantau menu **${screenTitle}**${refInfo}${buyerInfo}.\n\n💡 **Fokus Analisis & Mitigasi:**\n> **${insight.title}**\n${insight.mitigationText}`,
+          },
+        ]);
+      }
+    }
+  }, [isOpen, screen, screenTitle, shipment.reference, shipment.buyer, insight.title, insight.mitigationText, messages.length]);
+
+  // Pantau perpindahan layar saat popup sedang terbuka
+  useEffect(() => {
+    if (!isOpen) {
+      prevScreenRef.current = screen;
+      return;
+    }
+
+    if (prevScreenRef.current !== screen && messages.length > 0) {
+      prevScreenRef.current = screen;
       const refInfo = shipment.reference ? ` (${shipment.reference})` : "";
-      setMessages([
+      setMessages((prev) => [
+        ...prev,
         {
           role: "assistant",
-          content: `Halo! Ada yang bisa kami bantu?\n\nSaya memantau menu **${screenTitle}**${refInfo}${buyerInfo}.\n\n💡 **Fokus & Mitigasi Risiko:**\n> **${insight.title}**\n${insight.mitigationText}`,
+          content: `📍 **Beralih ke Menu ${screenTitle}**${refInfo}\n\n💡 **Fokus Analisis & Mitigasi:**\n> **${insight.title}**\n${insight.mitigationText}\n\n*Silakan pilih opsi pertanyaan rekomendasi di atas atau ajukan pertanyaan spesifik terkait layar ini.*`,
         },
       ]);
     }
-  }, [isOpen, screen, screenTitle, shipment.reference, shipment.buyer, insight.title, insight.mitigationText]);
+  }, [isOpen, screen, screenTitle, shipment.reference, insight.title, insight.mitigationText, messages.length]);
 
   useEffect(() => {
     if (isOpen) {
@@ -891,32 +1030,28 @@ export function ScreenAIFloatingWidget({
 
   return (
     <>
-      {/* Floating Action Button (Sleek Enterprise AI Advisor) */}
-      <button
-        type="button"
-        className={`ai-float-trigger-btn ${isOpen ? "open" : ""}`}
-        onClick={onToggle}
-        aria-label={isOpen ? "Tutup AI Advisor" : "Buka AI Advisor"}
-        title={isOpen ? "Tutup AI Advisor" : "Buka AI Export Advisor"}
-      >
-        {isOpen ? (
-          <X size={20} strokeWidth={2.4} />
-        ) : (
-          <>
-            <Sparkles size={18} />
-            <span className="ai-float-trigger-label">AI Advisor</span>
-            <span
-              className={`ai-float-trigger-badge ${
-                insight.riskLevel === "danger"
-                  ? "risk-danger"
-                  : insight.riskLevel === "warning"
-                  ? "risk-warning"
-                  : ""
-              }`}
-            />
-          </>
-        )}
-      </button>
+      {/* Floating Action Button (Sleek Enterprise AI Advisor) - Hanya tampil saat popup tertutup */}
+      {!isOpen && (
+        <button
+          type="button"
+          className="ai-float-trigger-btn"
+          onClick={onToggle}
+          aria-label="Buka AI Advisor"
+          title="Buka AI Export Advisor"
+        >
+          <Sparkles size={16} />
+          <span className="ai-float-trigger-label">AI Advisor</span>
+          <span
+            className={`ai-float-trigger-badge ${
+              insight.riskLevel === "danger"
+                ? "risk-danger"
+                : insight.riskLevel === "warning"
+                ? "risk-warning"
+                : ""
+            }`}
+          />
+        </button>
+      )}
 
       {/* Floating Chat Popup (Sleek Enterprise Panel) */}
       {isOpen && (
@@ -925,7 +1060,7 @@ export function ScreenAIFloatingWidget({
             <div className="ai-float-header-top">
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span className="ai-float-pill-btn">
-                  <Sparkles size={13} /> AI Advisor
+                  <Sparkles size={12} strokeWidth={2.4} /> AI Advisor
                 </span>
                 <span className="ai-float-screen-tag">{screenTitle}</span>
               </div>
@@ -978,7 +1113,7 @@ export function ScreenAIFloatingWidget({
             {messages.map((m, index) => (
               <div key={index} className={`ai-drawer-bubble ${m.role}`}>
                 <div className="bubble-avatar">
-                  {m.role === "assistant" ? <Bot size={13} /> : "Anda"}
+                  {m.role === "assistant" ? <Sparkles size={12} strokeWidth={2.4} /> : <User size={12} strokeWidth={2.4} />}
                 </div>
                 <div className="bubble-text">
                   {m.content.split("\n\n").map((para, pIdx) => (
@@ -991,12 +1126,12 @@ export function ScreenAIFloatingWidget({
             {assistantMutation.isPending && (
               <div className="ai-drawer-bubble assistant loading">
                 <div className="bubble-avatar">
-                  <Bot size={13} />
+                  <Sparkles size={12} strokeWidth={2.4} />
                 </div>
                 <div className="bubble-text">
                   <span className="ai-typing-indicator">
                     <Loader2 size={13} className="spin" />
-                    AI Advisor sedang menganalisis risiko...
+                    AI Advisor sedang menganalisis regulasi &amp; risiko...
                   </span>
                 </div>
               </div>
@@ -1026,7 +1161,7 @@ export function ScreenAIFloatingWidget({
                 type="text"
                 value={inputQuestion}
                 onChange={(e) => setInputQuestion(e.target.value)}
-                placeholder="Tulis pesan ....."
+                placeholder="Tulis pesan atau pilih pertanyaan di atas..."
                 disabled={assistantMutation.isPending}
               />
               <button
