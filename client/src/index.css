@@ -5796,10 +5796,13 @@ textarea:focus-visible {
 /* Words Banner & Cert Banner */
 .doc-words-banner {
   background: #f8fafc;
-  border: 1px solid #cbd5e1;
+  border-left: 3px solid #0f2942;
+  border-top: 1px solid #e2e8f0;
+  border-right: 1px solid #e2e8f0;
+  border-bottom: 1px solid #e2e8f0;
   border-radius: 4px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
+  padding: 8px 14px;
+  margin: 10px 0 16px;
   font-size: 11.5px;
   color: #0f172a;
 }
@@ -5807,7 +5810,12 @@ textarea:focus-visible {
 .doc-words-banner span {
   font-weight: 700;
   margin-right: 6px;
-  color: #475569;
+  color: #0f2942;
+}
+
+.doc-words-banner i {
+  font-style: italic;
+  font-weight: 500;
 }
 
 .doc-cert-banner {
@@ -5834,35 +5842,68 @@ textarea:focus-visible {
   border: 1px solid #cbd5e1;
   border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
+  background: #ffffff;
 }
 
 .bank-card-title {
   display: flex;
   align-items: center;
-  gap: 6px;
   background: #f1f5f9;
   border-bottom: 1px solid #cbd5e1;
-  padding: 6px 12px;
+  padding: 7px 14px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.08em;
   color: #0f2942;
+  text-transform: uppercase;
 }
 
-.bank-card-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px 16px;
-  padding: 10px 12px;
-  font-size: 11.5px;
+.bank-card-table {
+  width: 100%;
+  border-collapse: collapse;
 }
 
-.b-lbl {
-  color: #64748b;
-  display: inline-block;
-  min-width: 100px;
+.bank-card-table tr {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.bank-card-table tr:last-child {
+  border-bottom: none;
+}
+
+.bank-card-table tr:hover {
+  background: #fafbfc;
+}
+
+.bank-lbl {
+  width: 145px;
+  min-width: 140px;
+  max-width: 155px;
+  padding: 6.5px 14px;
   font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  white-space: nowrap;
+  vertical-align: middle;
+  background: #f8fafc;
+  border-right: 1px solid #eef2f6;
+}
+
+.bank-val {
+  padding: 6.5px 14px;
+  font-size: 11.5px;
+  color: #0f172a;
+  vertical-align: middle;
+  line-height: 1.4;
+}
+
+.bank-val.font-semibold {
+  font-weight: 600;
+}
+
+.bank-val.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
 /* Signatures & Stamp */

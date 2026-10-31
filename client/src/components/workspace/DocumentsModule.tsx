@@ -694,17 +694,36 @@ function ProformaInvoiceDoc({
 
       <div className="doc-bank-card">
         <div className="bank-card-title">
-          <Landmark size={14} />
           <span>BANK DETAILS FOR BENEFICIARY</span>
         </div>
-        <div className="bank-card-grid">
-          <div><span className="b-lbl">Bank Name:</span> <b>PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang</b></div>
-          <div><span className="b-lbl">Account Name:</span> <b>{exporterName}</b></div>
-          <div><span className="b-lbl">Bank Address:</span> <span>Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia</span></div>
-          <div><span className="b-lbl">Account Number:</span> <b className="font-mono text-blue-700">152-00-9876543-2 (USD Account)</b></div>
-          <div><span className="b-lbl">SWIFT Code:</span> <b className="font-mono">BMRIIDJA</b></div>
-          <div><span className="b-lbl">Currency:</span> <b>USD (United States Dollar)</b></div>
-        </div>
+        <table className="bank-card-table">
+          <tbody>
+            <tr>
+              <td className="bank-lbl">Bank Name:</td>
+              <td className="bank-val font-semibold">PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang</td>
+            </tr>
+            <tr>
+              <td className="bank-lbl">Bank Address:</td>
+              <td className="bank-val">Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia</td>
+            </tr>
+            <tr>
+              <td className="bank-lbl">Account Name:</td>
+              <td className="bank-val font-semibold">{exporterName}</td>
+            </tr>
+            <tr>
+              <td className="bank-lbl">Account Number:</td>
+              <td className="bank-val font-mono font-bold">152-00-9876543-2 (USD Account)</td>
+            </tr>
+            <tr>
+              <td className="bank-lbl">SWIFT Code:</td>
+              <td className="bank-val font-mono font-bold">BMRIIDJA</td>
+            </tr>
+            <tr>
+              <td className="bank-lbl">Currency:</td>
+              <td className="bank-val">{currency} (United States Dollar)</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
 
       <div className="doc-dual-signatures">
@@ -722,8 +741,23 @@ function ProformaInvoiceDoc({
           <span className="sig-header-txt">Issued by:</span>
           <b>{exporterName}</b>
           <div className="sig-box-space">
-            <OfficialStampAndSignature exporterName={exporterName} role="Export Director" />
+            <div className="sig-canvas-zone">
+              <div className="official-stamp-seal">
+                <div className="stamp-seal-circle">
+                  <span className="stamp-seal-text-top">{exporterName}</span>
+                  <div className="stamp-seal-center">
+                    <Award size={18} />
+                    <span>EXPORT VERIFIED</span>
+                    <small>LEGAL OPERATIONS</small>
+                  </div>
+                  <span className="stamp-seal-text-bottom">INDONESIA</span>
+                </div>
+              </div>
+              <div className="sig-placeholder">[Signature & Stamp]</div>
+            </div>
           </div>
+          <b className="sig-name">Export Director</b>
+          <span className="sig-sub">Authorized Signatory</span>
         </div>
       </div>
     </div>
