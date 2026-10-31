@@ -3025,6 +3025,179 @@ textarea:focus-visible {
   color: #0284c7;
 }
 
+/* Operational Mode Navigation (Pemisahan Penambahan PO Baru vs Pengelolaan Berjalan) */
+.tx-mode-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  border: 1px solid #e2e8f0;
+}
+
+.tx-mode-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tx-mode-tab:hover {
+  color: #0f172a;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.tx-mode-tab.active {
+  background: #ffffff;
+  color: #0284c7;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.tx-mode-badge {
+  padding: 2px 7px;
+  border-radius: 10px;
+  font-size: 11px;
+  background: #e2e8f0;
+  color: #334155;
+  font-weight: 700;
+}
+
+.tx-mode-tab.active .tx-mode-badge {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.tx-mode-badge-hint {
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tx-mode-tab.active .tx-mode-badge-hint {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+/* Penambahan PO Baru Action Footer */
+.intake-action-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.intake-activate-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  background: #0284c7;
+  color: #ffffff;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.intake-activate-btn:hover {
+  background: #0369a1;
+}
+
+/* Active Order Hero Card for Ongoing Management */
+.active-order-summary-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 18px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.active-order-summary-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.active-order-ref-pill {
+  font-size: 14px;
+  font-weight: 700;
+  color: #0f172a;
+  background: #e0f2fe;
+  color: #0369a1;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.active-order-buyer-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.active-order-buyer-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.active-order-buyer-meta {
+  font-size: 12px;
+  color: #64748b;
+}
+
+.active-order-summary-stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.active-order-stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.active-order-stat-label {
+  font-size: 11px;
+  color: #64748b;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.active-order-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
 @media (max-width: 640px) {
   .pillars-grid,
   .po-summary-strip {
