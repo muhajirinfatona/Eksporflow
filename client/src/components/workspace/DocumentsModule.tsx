@@ -1,5 +1,5 @@
 import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
-import { formatMoney, formatNumber, getDocumentNumber, numberToWords } from "@shared/format";
+import { formatMoney, formatNumber, numberToWords } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
 import type {
@@ -183,10 +183,6 @@ export function DocumentsModule({
 
   const isId = shipment.previewLanguage === "Bahasa Indonesia";
   const amountInWords = numberToWords(totalAmount, currency, isId ? "id" : "en");
-  const docRefNumber = getDocumentNumber(
-    selectedDocument,
-    shipment.reference || "IEI-DXB/XI/2026/001",
-  );
 
   return (
     <div className="doc-center-root">
@@ -223,11 +219,6 @@ export function DocumentsModule({
       {/* 2. Document Action & Overview Bar */}
       <div className="doc-action-bar">
         <div className="doc-action-info">
-          <div className="doc-active-name-wrap">
-            <span className="doc-active-eyebrow">DOKUMEN DITINJAU:</span>
-            <h3 className="doc-active-title">{selectedDocument}</h3>
-            <span className="doc-active-ref font-mono">No: {docRefNumber}</span>
-          </div>
           <div className="doc-active-specs">
             <span className="spec-item">
               Kertas: <b>{shipment.paperSize} ({shipment.documentOrientation})</b>
