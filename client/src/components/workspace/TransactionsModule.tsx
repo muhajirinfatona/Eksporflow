@@ -4,7 +4,7 @@ import { formatMoney } from "@shared/format";
 import type { PoScreeningResult } from "@shared/poScreening";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
-import type { ContainerCalc, Shipment } from "@shared/shipment";
+import type { ContainerCalc, Shipment, ShipmentStatus } from "@shared/shipment";
 import {
   Activity,
   ArrowLeft,
@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PoIngestionModal } from "./PoIngestionModal";
-import { Field, StatusPill } from "./Primitives";
+import { Field, SelectField, StatusPill } from "./Primitives";
 import { toast } from "sonner";
 import { getAiRecommendedRegulations } from "@shared/costFactors";
 
@@ -390,12 +390,13 @@ export function TransactionsModule({
     return getAiRecommendedRegulations(shipment.buyerCountry, shipment.product);
   }, [shipment.buyerCountry, shipment.product]);
 
-  const saveToLocalList = (targetShipment: Shipment, status = "Draft") => {
+  const saveToLocalList = (targetShipment: Shipment, statusOverride?: string) => {
     const ref = targetShipment.reference?.trim() || targetShipment.poNumber?.trim() || "";
     const buyer = targetShipment.buyer?.trim() || "";
     if (!ref && !buyer) return;
 
     const id = ref ? `local-${ref.replace(/[^a-zA-Z0-9_-]/g, "_")}` : `local-${Date.now()}`;
+    const status = statusOverride || targetShipment.shipmentStatus || "Draft";
     setLocalList((prev) => {
       const existingIdx = prev.findIndex(
         (p) => p.id === id || (ref && p.reference.toLowerCase() === ref.toLowerCase())
@@ -429,10 +430,10 @@ export function TransactionsModule({
 
   const handleSaveDraft = () => {
     try {
-      saveToLocalList(shipment, "Draft");
+      saveToLocalList(shipment);
       localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
       toast.success("Draft Transaksi Disimpan", {
-        description: "Data tersimpan di penyimpanan draft perangkat Anda.",
+        description: `Status: ${shipment.shipmentStatus || "Draft"} tersimpan di penyimpanan perangkat.`,
       });
     } catch {
       toast.info("Draft transaksi tersimpan secara lokal");
@@ -440,7 +441,7 @@ export function TransactionsModule({
   };
 
   const handleSaveShipmentWithLocal = async () => {
-    saveToLocalList(shipment, "Confirmed");
+    saveToLocalList(shipment);
     await saveShipment();
   };
 
@@ -626,7 +627,7 @@ export function TransactionsModule({
         incoterm: incoterm,
         quantity: quantity,
         unit: unit,
-        status: s.status,
+        status: isCurrentActive ? (shipment.shipmentStatus || s.status) : s.status,
         version: s.version,
         updatedAt: s.updatedAt,
         isCloud: true,
@@ -649,7 +650,7 @@ export function TransactionsModule({
           incoterm: loc.incoterm || "FOB",
           quantity: loc.quantity || 20,
           unit: loc.unit || "MT",
-          status: loc.status,
+          status: (loc.reference === displayReference || loc.id === activeShipmentId) ? (shipment.shipmentStatus || loc.status) : loc.status,
           updatedAt: loc.updatedAt,
           isCloud: false,
           shipment: loc.shipment,
@@ -676,7 +677,7 @@ export function TransactionsModule({
           incoterm: shipment.incoterm || "FOB",
           quantity: shipment.quantity || 20,
           unit: shipment.unit || "MT",
-          status: "Draft",
+          status: shipment.shipmentStatus || "Draft",
           updatedAt: new Date(),
           isCloud: Boolean(activeShipmentId),
           shipment,
@@ -917,6 +918,9 @@ export function TransactionsModule({
                 </span>
               </div>
               <span className="tab-badge">{shipment.incoterm || "FOB"}</span>
+              <StatusPill tone={statusTone(shipment.shipmentStatus)}>
+                {shipment.shipmentStatus}
+              </StatusPill>
             </div>
 
             <div className="active-order-summary-stats">
@@ -1030,6 +1034,26 @@ export function TransactionsModule({
                   placeholder="Contoh: 0901.11"
                   onChange={(value) => update("hsCode", value)}
                 />
+
+                <SelectField
+                  label="Status Siklus Transaksi"
+                  value={shipment.shipmentStatus}
+                  onChange={(val) => {
+                    const nextStatus = val as ShipmentStatus;
+                    update("shipmentStatus", nextStatus);
+                    saveToLocalList({ ...shipment, shipmentStatus: nextStatus }, nextStatus);
+                  }}
+                >
+                  <option value="Draft">Draft (Tahap Perencanaan / Draf Awal)</option>
+                  <option value="Quotation">Quotation (Fase Penawaran Resmi ke Buyer)</option>
+                  <option value="Confirmed">Confirmed (PO / Kontrak Disepakati)</option>
+                  <option value="Ready to Ship">Ready to Ship (Kargo Siap di Gudang)</option>
+                  <option value="Booked">Booked (Booking Kapal / Pelayaran Terbit)</option>
+                  <option value="Stuffing">Stuffing (Pemuatan Kargo ke Kontainer)</option>
+                  <option value="Departed">Departed (Kapal Berangkat dari Pelabuhan)</option>
+                  <option value="In Transit">In Transit (Dalam Pelayaran ke Negara Tujuan)</option>
+                  <option value="Completed">Completed (Tiba di Buyer & Transaksi Selesai)</option>
+                </SelectField>
               </div>
             </section>
           )}
@@ -1328,6 +1352,17 @@ export function TransactionsModule({
               placeholder="Contoh: 0901.11"
               onChange={(value) => update("hsCode", value)}
             />
+
+            <SelectField
+              label="Status Transaksi Awal"
+              value={shipment.shipmentStatus}
+              onChange={(val) => update("shipmentStatus", val as ShipmentStatus)}
+            >
+              <option value="Draft">Draft (Tahap Perencanaan / Penjajakan)</option>
+              <option value="Quotation">Quotation (Fase Penawaran Harga)</option>
+              <option value="Confirmed">Confirmed (PO Resmi Diterima dari Buyer)</option>
+              <option value="Booked">Booked (Booking Kapal Sudah Didapat)</option>
+            </SelectField>
           </div>
 
           {/* Rekomendasi Dokumen: Hanya Ditampilkan Setelah Ada PO/LOI dari Buyer */}
