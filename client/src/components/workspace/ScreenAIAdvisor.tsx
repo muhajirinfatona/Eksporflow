@@ -12,6 +12,7 @@ import {
   ExternalLink,
   Info,
   Loader2,
+  MessageSquare,
   Send,
   ShieldAlert,
   Sparkles,
@@ -736,6 +737,326 @@ export function ScreenAIAdvisorDrawer({
           </div>
         </footer>
       </aside>
+    </>
+  );
+}
+
+export function ScreenAIFloatingWidget({
+  isOpen,
+  onToggle,
+  onClose,
+  initialPrompt,
+  screen,
+  screenTitle,
+  shipment,
+  pricing,
+  container,
+  flow,
+  isAuthenticated,
+  onLogin,
+  onNavigateFullAdvisor,
+}: {
+  isOpen: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+  initialPrompt: string;
+  screen: ScreenId;
+  screenTitle: string;
+  shipment: Shipment;
+  pricing: Pricing;
+  container: ContainerCalc;
+  flow: WorkspaceFlow;
+  isAuthenticated: boolean;
+  onLogin: () => void;
+  onNavigateFullAdvisor: () => void;
+}) {
+  const insight = useMemo(() => {
+    return getScreenAdvisorInsight(screen, shipment, pricing, container, flow);
+  }, [screen, shipment, pricing, container, flow]);
+
+  const [inputQuestion, setInputQuestion] = useState("");
+  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const assistantMutation = trpc.assistant.ask.useMutation();
+
+  const snapshot = useMemo(() => {
+    return JSON.stringify({
+      activeScreen: screen,
+      screenTitle,
+      reference: shipment.reference,
+      buyer: shipment.buyer,
+      country: shipment.buyerCountry,
+      destination: shipment.destination,
+      incoterm: shipment.incoterm,
+      currency: shipment.currency,
+      product: shipment.product,
+      hsCode: shipment.hsCode,
+      quantity: shipment.quantity,
+      unit: shipment.unit,
+      offer: pricing.active.offer,
+      cost: pricing.active.cost,
+      profit: pricing.active.profit,
+      margin: shipment.margin,
+      containerType: shipment.containerType,
+      containersCount: container.containers,
+      volumeUtilization: container.volumeUtilization,
+      weightUtilization: container.weightUtilization,
+      documentReviewed: shipment.documentReviewed,
+      remainingReceivable: flow.remainingReceivable,
+      paidAmount: flow.paidAmount,
+      riskLevel: flow.riskEvaluation.riskLevel,
+      readinessPercent: flow.riskEvaluation.readinessPercent,
+      activeInsightTitle: insight.title,
+      activeMitigationText: insight.mitigationText,
+    }).slice(0, 8000);
+  }, [screen, screenTitle, shipment, pricing, container, flow, insight]);
+
+  // Muat pesan awal saat popup dibuka
+  useEffect(() => {
+    if (isOpen) {
+      const buyerInfo = shipment.buyer ? ` untuk **${shipment.buyer}**` : "";
+      const refInfo = shipment.reference ? ` (${shipment.reference})` : "";
+      setMessages([
+        {
+          role: "assistant",
+          content: `Halo! Ada yang bisa kami bantu?\n\nSaya memantau menu **${screenTitle}**${refInfo}${buyerInfo}.\n\n💡 **Fokus & Mitigasi Risiko:**\n> **${insight.title}**\n${insight.mitigationText}`,
+        },
+      ]);
+    }
+  }, [isOpen, screen, screenTitle, shipment.reference, shipment.buyer, insight.title, insight.mitigationText]);
+
+  useEffect(() => {
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [messages, isOpen]);
+
+  // Tutup dengan Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isOpen) {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  const handleSend = (textToSend?: string) => {
+    const q = (textToSend || inputQuestion).trim();
+    if (!q) return;
+
+    if (!isAuthenticated) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: q },
+        {
+          role: "assistant",
+          content: "Silakan **masuk akun terlebih dahulu** agar AI Advisor dapat memproses pertanyaan Anda secara aman.",
+        },
+      ]);
+      setInputQuestion("");
+      return;
+    }
+
+    setMessages((prev) => [...prev, { role: "user", content: q }]);
+    setInputQuestion("");
+
+    assistantMutation.mutate(
+      {
+        question: q,
+        snapshot,
+      },
+      {
+        onSuccess: (data) => {
+          setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
+        },
+        onError: (err) => {
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `Maaf, terjadi kendala saat memproses jawaban: ${err.message || "Periksa koneksi jaringan atau kuota AI."}`,
+            },
+          ]);
+        },
+      },
+    );
+  };
+
+  return (
+    <>
+      {/* Floating Action Button (Selalu Tampil di Pojok Kanan Bawah Semua Menu) */}
+      <button
+        type="button"
+        className={`ai-float-trigger-btn ${isOpen ? "open" : ""}`}
+        onClick={onToggle}
+        aria-label={isOpen ? "Tutup Tanya AI Advisor" : "Buka Tanya AI Advisor"}
+        title={isOpen ? "Tutup Tanya AI Advisor" : "Tanya AI Advisor Ekspor"}
+      >
+        {isOpen ? (
+          <X size={26} strokeWidth={2.4} />
+        ) : (
+          <>
+            <Bot size={26} />
+            <span
+              className={`ai-float-trigger-badge ${
+                insight.riskLevel === "danger"
+                  ? "risk-danger"
+                  : insight.riskLevel === "warning"
+                  ? "risk-warning"
+                  : ""
+              }`}
+            />
+          </>
+        )}
+      </button>
+
+      {/* Floating Chat Popup (Didesain Sesuai Gambar 1: Bersih, Rapi, Buka-Tutup) */}
+      {isOpen && (
+        <div className="ai-float-popup" role="dialog" aria-label="Tanya AI Advisor Ekspor">
+          {/* Header Warm Orange Gradient Matching Gambar 1 */}
+          <div className="ai-float-header">
+            <div className="ai-float-header-top">
+              <span className="ai-float-pill-btn">
+                <MessageSquare size={12} /> Messages
+              </span>
+              <span className="ai-float-screen-tag">{screenTitle}</span>
+              <button
+                type="button"
+                className="ai-float-header-close"
+                onClick={onClose}
+                aria-label="Tutup"
+              >
+                <X size={15} />
+              </button>
+            </div>
+
+            {/* 3 Icons Visual Row Matching Gambar 1 */}
+            <div className="ai-float-icons-row">
+              <div className="ai-float-icon-bubble" title="Kesiapan Ekspor">
+                <Bot size={18} />
+              </div>
+              <div className="ai-float-icon-bubble" title="Mitigasi Risiko">
+                <ShieldAlert size={18} />
+              </div>
+              <div className="ai-float-icon-bubble" title="Kepatuhan Global">
+                <Sparkles size={18} />
+              </div>
+            </div>
+
+            <h4>Ada Pertanyaan? Hubungi Kami.</h4>
+            <p>
+              <span className="ai-float-dot" /> membalas secara instan · {shipment.reference || "EksporFlow"}
+            </p>
+          </div>
+
+          {/* Isi Pesan Konsultasi */}
+          <div className="ai-float-body">
+            {/* Kartu Insight Temuan Risiko Menu Saat Ini */}
+            <div className={`ai-float-insight ${insight.riskLevel}`}>
+              <div className="ai-float-insight-head">
+                <span>{insight.badgeText}</span>
+              </div>
+              <h5>{insight.title}</h5>
+              <p>{insight.mitigationText}</p>
+            </div>
+
+            {/* Pilihan Tanya Cepat */}
+            <div className="ai-float-chips-wrap">
+              <span className="ai-float-chips-title">PILIHAN TANYA CEPAT:</span>
+              {insight.suggestedQuestions.map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend(q)}
+                  disabled={assistantMutation.isPending}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
+
+            {/* Chat Messages */}
+            {messages.map((m, index) => (
+              <div key={index} className={`ai-drawer-bubble ${m.role}`}>
+                <div className="bubble-avatar">
+                  {m.role === "assistant" ? <Bot size={13} /> : "Anda"}
+                </div>
+                <div className="bubble-text">
+                  {m.content.split("\n\n").map((para, pIdx) => (
+                    <p key={pIdx}>{para}</p>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {assistantMutation.isPending && (
+              <div className="ai-drawer-bubble assistant loading">
+                <div className="bubble-avatar">
+                  <Bot size={13} />
+                </div>
+                <div className="bubble-text">
+                  <span className="ai-typing-indicator">
+                    <Loader2 size={13} className="spin" />
+                    AI Advisor sedang menganalisis risiko...
+                  </span>
+                </div>
+              </div>
+            )}
+            <div ref={messagesEndRef} />
+          </div>
+
+          {/* Footer Input Area Matching Gambar 1 */}
+          <div className="ai-float-footer">
+            {!isAuthenticated && (
+              <div className="ai-drawer-auth-warning" style={{ marginBottom: "6px" }}>
+                <span>Masuk akun untuk konsultasi AI live.</span>
+                <button type="button" onClick={onLogin}>
+                  Masuk Sekarang
+                </button>
+              </div>
+            )}
+
+            <form
+              className="ai-float-input-box"
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSend();
+              }}
+            >
+              <input
+                type="text"
+                value={inputQuestion}
+                onChange={(e) => setInputQuestion(e.target.value)}
+                placeholder="Tulis pesan ....."
+                disabled={assistantMutation.isPending}
+              />
+              <button
+                type="submit"
+                className="ai-float-send-btn"
+                disabled={!inputQuestion.trim() || assistantMutation.isPending}
+                aria-label="Kirim pesan"
+              >
+                <Send size={14} />
+              </button>
+            </form>
+
+            <button
+              type="button"
+              className="ai-float-fullscreen-link"
+              onClick={() => {
+                onClose();
+                onNavigateFullAdvisor();
+              }}
+            >
+              Buka Layar Penuh AI Advisor →
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
