@@ -212,7 +212,7 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4"} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 8mm 10mm 8mm 10mm;
+            margin: 6mm 10mm 6mm 10mm;
           }
         }
       `}</style>
