@@ -722,7 +722,7 @@ function ProformaInvoiceDoc({
           <span className="sig-sub">Procurement Director</span>
         </div>
 
-        <div className="sig-side">
+        <div className="sig-side sig-side-right">
           <span className="sig-header-txt">Issued by:</span>
           <b>{exporterName}</b>
           <div className="sig-box-space">
@@ -893,12 +893,14 @@ function SalesContractDoc({
           <span className="sig-sub">Procurement Director</span>
         </div>
 
-        <div className="sig-side">
+        <div className="sig-side sig-side-right">
           <span className="sig-header-txt">THE SELLER</span>
           <b>For {exporterName}</b>
           <div className="sig-box-space">
-            <OfficialStampAndSignature exporterName={exporterName} role="Export Director" />
+            <div className="sig-placeholder">[Signature & Stamp]</div>
           </div>
+          <b className="sig-name">Export Director</b>
+          <span className="sig-sub">Authorized Signatory</span>
         </div>
       </div>
     </div>
