@@ -9259,7 +9259,7 @@ textarea:focus-visible {
 @media print {
   @page {
     size: A4 portrait;
-    margin: 8mm 10mm 8mm 10mm;
+    margin: 10mm 12mm 10mm 12mm;
   }
 
   html,
@@ -9341,253 +9341,321 @@ textarea:focus-visible {
     min-height: auto !important;
     background: #ffffff !important;
     overflow: visible !important;
-    font-size: 10px !important;
-    line-height: 1.32 !important;
+    font-size: 11.5px !important;
+    line-height: 1.4 !important;
     color: #0f172a !important;
   }
 
-  /* Letterhead compact print */
+  /* Letterhead: standar ukuran formal resmi */
   .paper-letterhead-wrap {
-    margin-bottom: 7px !important;
-    padding-bottom: 5px !important;
+    margin-bottom: 12px !important;
+    padding-bottom: 8px !important;
+    border-bottom: 2px solid #0f2942 !important;
   }
   .letterhead-brand {
-    gap: 10px !important;
+    gap: 14px !important;
   }
   .letterhead-logo {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 3px !important;
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 4px !important;
   }
   .company-title {
-    font-size: 13.5px !important;
-    margin-bottom: 2px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    margin-bottom: 3px !important;
+    color: #0f2942 !important;
   }
   .company-meta-line {
-    font-size: 9px !important;
-    line-height: 1.25 !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    color: #475569 !important;
   }
 
   /* Title bar print */
   .doc-title-bar {
-    margin-bottom: 7px !important;
-    padding: 4px 8px !important;
+    margin-bottom: 12px !important;
+    padding: 6px 12px !important;
+    background: #0f2942 !important;
+    color: #ffffff !important;
   }
   .doc-title-bar h2 {
-    font-size: 12.5px !important;
-    letter-spacing: 0.5px !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.04em !important;
+    color: #ffffff !important;
   }
 
   /* Grid 2 kolom entitas & faktur */
   .doc-two-col-grid {
-    gap: 8px !important;
-    margin-bottom: 7px !important;
+    gap: 12px !important;
+    margin-bottom: 12px !important;
   }
   .doc-box {
-    padding: 5px 8px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #cbd5e1 !important;
   }
   .doc-box-tag {
-    font-size: 8px !important;
-    margin-bottom: 2px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    margin-bottom: 4px !important;
+    color: #64748b !important;
   }
   .doc-entity-name {
-    font-size: 10.5px !important;
-    margin-bottom: 2px !important;
+    font-size: 12.5px !important;
+    font-weight: 700 !important;
+    margin-bottom: 3px !important;
+    color: #0f172a !important;
   }
   .doc-entity-address,
   .doc-entity-contact {
-    font-size: 9px !important;
-    line-height: 1.22 !important;
-    margin-bottom: 1.5px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    margin-bottom: 2px !important;
+    color: #334155 !important;
   }
   .meta-pair {
-    font-size: 9px !important;
-    padding: 1px 0 !important;
+    font-size: 11px !important;
+    padding: 2px 0 !important;
+  }
+  .meta-label {
+    font-size: 11px !important;
+    color: #64748b !important;
+  }
+  .meta-value {
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
   }
 
   /* Panel syarat pengiriman & pembayaran */
   .doc-terms-panel {
-    margin-bottom: 7px !important;
-    padding: 5px 8px !important;
+    margin-bottom: 12px !important;
+    padding: 8px 12px !important;
+    border: 1px solid #cbd5e1 !important;
   }
   .doc-terms-header {
-    font-size: 8px !important;
-    padding-bottom: 2px !important;
-    margin-bottom: 3px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    padding-bottom: 4px !important;
+    margin-bottom: 6px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    color: #0f2942 !important;
   }
   .doc-terms-grid {
-    gap: 3px 10px !important;
+    gap: 6px 16px !important;
   }
   .terms-lbl {
-    font-size: 8px !important;
+    font-size: 10px !important;
+    color: #64748b !important;
   }
   .terms-val {
-    font-size: 9px !important;
+    font-size: 11px !important;
+    font-weight: 600 !important;
+    color: #0f172a !important;
   }
 
   /* Tabel rincian barang ekspor */
   .doc-table-pro {
-    margin-bottom: 5px !important;
+    margin-bottom: 10px !important;
+    width: 100% !important;
+    border-collapse: collapse !important;
   }
   .doc-table-pro th {
-    padding: 3.5px 5px !important;
-    font-size: 8.5px !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    background: #0f2942 !important;
+    color: #ffffff !important;
   }
   .doc-table-pro td {
-    padding: 3.5px 5px !important;
-    font-size: 9px !important;
-    line-height: 1.22 !important;
+    padding: 6px 8px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
   }
   .table-product-title {
-    font-size: 9.5px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
   }
   .table-product-specs {
-    margin-top: 2px !important;
-    font-size: 8.5px !important;
-    line-height: 1.2 !important;
+    margin-top: 3px !important;
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
+    color: #475569 !important;
   }
   .table-product-specs li {
-    margin-bottom: 1px !important;
+    margin-bottom: 2px !important;
   }
   .doc-table-total-row td {
-    padding: 4px 6px !important;
-    font-size: 9.5px !important;
+    padding: 7px 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
   }
 
   /* Terbilang banner */
   .doc-words-banner {
-    padding: 3px 6px !important;
-    font-size: 8.5px !important;
-    margin-bottom: 7px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    margin-bottom: 12px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
   }
 
   /* Rincian rekening bank eksportir */
   .doc-bank-card {
-    padding: 5px 8px !important;
-    margin-bottom: 7px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 12px !important;
+    border: 1px solid #cbd5e1 !important;
   }
   .bank-card-title {
-    font-size: 8px !important;
-    margin-bottom: 2px !important;
+    font-size: 10px !important;
+    font-weight: 700 !important;
+    margin-bottom: 5px !important;
+    color: #0f2942 !important;
   }
   .bank-card-table td {
-    padding: 1px 4px !important;
-    font-size: 8.5px !important;
-    line-height: 1.22 !important;
+    padding: 2.5px 6px !important;
+    font-size: 11px !important;
+    line-height: 1.35 !important;
+  }
+  .bank-lbl {
+    font-size: 10px !important;
+    color: #64748b !important;
+  }
+  .bank-val {
+    font-size: 11px !important;
+    color: #0f172a !important;
   }
 
   /* Blok tanda tangan & stempel eksportir */
   .doc-single-signature-wrap {
-    margin-top: 5px !important;
+    margin-top: 10px !important;
+    display: flex !important;
+    justify-content: flex-end !important;
   }
   .official-sig-block {
-    max-width: 250px !important;
+    max-width: 270px !important;
+    text-align: center !important;
   }
   .sig-signed-for {
-    font-size: 8px !important;
+    font-size: 10px !important;
+    color: #64748b !important;
   }
   .sig-company-name {
-    font-size: 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
   }
   .sig-canvas-zone {
-    min-height: 36px !important;
-    height: 38px !important;
-    margin: 3px 0 !important;
+    min-height: 48px !important;
+    height: 50px !important;
+    margin: 5px 0 !important;
   }
   .sig-line-mark {
-    font-size: 7.5px !important;
+    font-size: 9.5px !important;
+    color: #94a3b8 !important;
+    font-style: italic !important;
   }
   .sig-signatory-name {
-    font-size: 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
   }
   .sig-signatory-title {
-    font-size: 8px !important;
+    font-size: 10.5px !important;
+    color: #475569 !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */
   .doc-si-header-grid {
-    padding: 5px 8px !important;
-    margin-bottom: 6px !important;
-    font-size: 8.5px !important;
-    gap: 2px 10px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 10px !important;
+    font-size: 11px !important;
+    gap: 4px 14px !important;
   }
   .si-lbl {
-    min-width: 95px !important;
-    font-size: 8px !important;
+    min-width: 110px !important;
+    font-size: 10.5px !important;
   }
   .doc-three-col-parties {
-    gap: 6px !important;
-    margin-bottom: 6px !important;
+    gap: 10px !important;
+    margin-bottom: 10px !important;
   }
   .si-party-card {
-    padding: 4px 6px !important;
+    padding: 6px 10px !important;
+    font-size: 11px !important;
   }
   .doc-transport-row-strip {
-    padding: 4px 6px !important;
-    margin-bottom: 6px !important;
-    font-size: 8.5px !important;
-    gap: 4px !important;
+    padding: 6px 10px !important;
+    margin-bottom: 10px !important;
+    font-size: 11px !important;
+    gap: 8px !important;
   }
   .doc-instructions-box {
-    padding: 4px 6px !important;
-    margin-bottom: 6px !important;
-    font-size: 8px !important;
-    line-height: 1.22 !important;
+    padding: 6px 10px !important;
+    margin-bottom: 10px !important;
+    font-size: 10.5px !important;
+    line-height: 1.35 !important;
   }
 
   /* Packing List (PL) specific print rules */
   .doc-cert-banner {
-    padding: 3px 6px !important;
-    margin-bottom: 6px !important;
-    font-size: 8px !important;
+    padding: 6px 10px !important;
+    margin-bottom: 10px !important;
+    font-size: 10.5px !important;
   }
 
   /* Sales Contract (SC) multi-page rules: cleanly breaks across 2 pages */
   .contract-articles-wrapper {
-    gap: 6px !important;
-    margin: 8px 0 !important;
+    gap: 10px !important;
+    margin: 12px 0 !important;
   }
   .contract-article-block {
-    padding-bottom: 5px !important;
-    margin-bottom: 5px !important;
+    padding-bottom: 8px !important;
+    margin-bottom: 8px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
   .article-title {
-    font-size: 9.5px !important;
-    margin: 0 0 2px !important;
+    font-size: 11.5px !important;
+    font-weight: 700 !important;
+    margin: 0 0 3px !important;
   }
   .contract-article-block p {
-    font-size: 9px !important;
-    line-height: 1.25 !important;
-    margin: 0 0 2px !important;
+    font-size: 11px !important;
+    line-height: 1.4 !important;
+    margin: 0 0 3px !important;
   }
   .doc-witness-clause {
-    font-size: 9px !important;
-    margin: 8px 0 4px !important;
+    font-size: 11px !important;
+    margin: 12px 0 8px !important;
     break-inside: avoid !important;
   }
   .doc-dual-signatures {
-    margin-top: 6px !important;
+    margin-top: 10px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
   .sig-side {
-    max-width: 250px !important;
+    max-width: 270px !important;
+    text-align: center !important;
   }
   .sig-box-space {
-    height: 38px !important;
-    min-height: 38px !important;
-    margin: 3px 0 !important;
+    height: 50px !important;
+    min-height: 50px !important;
+    margin: 5px 0 !important;
   }
   .sig-placeholder {
-    font-size: 7.5px !important;
+    font-size: 9.5px !important;
   }
   .sig-name {
-    font-size: 10px !important;
+    font-size: 12px !important;
+    font-weight: 700 !important;
   }
   .sig-sub {
-    font-size: 8px !important;
+    font-size: 10.5px !important;
   }
 
   /* Proteksi pemotongan halaman di tengah blok penting */

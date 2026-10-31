@@ -110,7 +110,7 @@ export default function Home() {
     style.id = "eksporflow-print-page";
     const paperSizeVal = shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4";
     const orientationVal = shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait";
-    style.textContent = `@media print { @page { size: ${paperSizeVal} ${orientationVal}; margin: 8mm 10mm 8mm 10mm; } }`;
+    style.textContent = `@media print { @page { size: ${paperSizeVal} ${orientationVal}; margin: 10mm 12mm 10mm 12mm; } }`;
     document.head.appendChild(style);
 
     const handleAfterPrint = () => {
