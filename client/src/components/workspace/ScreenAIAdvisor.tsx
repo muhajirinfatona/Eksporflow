@@ -288,12 +288,16 @@ export function getScreenAdvisorInsight(
       };
 
     case "transactions":
+    case "po_intake":
       return {
         screenId: screen,
         riskLevel: "info",
         badgeText: "Sinkron Otomatis",
-        title: "Data Transaksi Terhubung",
-        mitigationText: "Data buyer, tujuan, dan HS Code otomatis tersinkron ke kalkulator harga, rencana muatan, dan dokumen legal.",
+        title: screen === "po_intake" ? "Verifikasi Dokumen PO / LOI Buyer" : "Data Transaksi Terhubung",
+        mitigationText:
+          screen === "po_intake"
+            ? "AI Advisor memvalidasi 4 pilar kredibilitas buyer dan menganalisis kepatuhan regulasi negara tujuan sebelum kargo diproses."
+            : "Data buyer, tujuan, dan HS Code otomatis tersinkron ke kalkulator harga, rencana muatan, dan dokumen legal.",
         suggestedQuestions: [
           "Bagaimana cara memverifikasi legalitas buyer baru?",
           "Apa dampak perubahan HS Code terhadap dokumen ekspor?",

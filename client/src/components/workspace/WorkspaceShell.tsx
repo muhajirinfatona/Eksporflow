@@ -15,6 +15,7 @@ import {
   FileSpreadsheet,
   FileText,
   Landmark,
+  Layers,
   LayoutGrid,
   ListChecks,
   LogIn,
@@ -23,6 +24,7 @@ import {
   Package,
   PanelLeftClose,
   PanelLeftOpen,
+  PlusCircle,
   RefreshCcw,
   Save,
   Search,
@@ -82,13 +84,23 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
     items: [
       {
         id: "transactions",
-        label: "Transaksi Ekspor",
+        label: "Pengelolaan Ekspor Berjalan",
         group: "Penjualan",
-        phase: "SALES · ORDER WORKSPACE",
-        title: "Transaksi Ekspor",
+        phase: "SALES · WORKSPACE PERUSAHAAN",
+        title: "Pengelolaan Ekspor Berjalan",
         description:
-          "Kelola daftar transaksi workspace di database cloud, pantau nomor versi, dan buka kembali shipment kapan saja.",
-        icon: <ListChecks size={16} />,
+          "Pantau dan kelola seluruh PO dari buyer yang sedang berjalan beserta alur operasional 8 tahap ekspor.",
+        icon: <Layers size={16} />,
+      },
+      {
+        id: "po_intake",
+        label: "Penambahan PO Baru",
+        group: "Penjualan",
+        phase: "SALES · INTAKE ORDER",
+        title: "Penambahan PO Baru",
+        description:
+          "Input atau pindai dokumen PO/LOI dari buyer baru untuk memvalidasi kredibilitas perusahaan dan mendaftarkannya ke sistem.",
+        icon: <PlusCircle size={16} />,
       },
       {
         id: "pricing",

@@ -5,6 +5,7 @@ export type ScreenId =
   | "dashboard"
   | "readiness"
   | "transactions"
+  | "po_intake"
   | "pricing"
   | "approvals"
   | "documents"

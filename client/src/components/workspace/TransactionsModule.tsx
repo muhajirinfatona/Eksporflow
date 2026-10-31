@@ -333,6 +333,7 @@ export function TransactionsModule({
   createNewDraft,
   login,
   navigate,
+  mode = "active_management",
 }: {
   user: { name?: string | null; email?: string | null } | null;
   shipment: Shipment;
@@ -352,11 +353,12 @@ export function TransactionsModule({
   createNewDraft: (customRef?: string) => void;
   login: () => Promise<void>;
   navigate: (screen: ScreenId) => void;
+  mode?: "active_management" | "new_po_intake";
 }) {
+  const isIntakeMode = mode === "new_po_intake";
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<"active_management" | "new_po_intake">("active_management");
   const [isEditingActiveOrder, setIsEditingActiveOrder] = useState(false);
   const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(() => {
     try {
@@ -451,8 +453,7 @@ export function TransactionsModule({
     }
     setLastScreening(null);
     createNewDraft();
-    setViewMode("new_po_intake");
-    setIsEditingActiveOrder(false);
+    navigate("po_intake");
   };
 
   const handleActivateNewPo = async () => {
@@ -467,10 +468,10 @@ export function TransactionsModule({
     if (user) {
       await saveShipment();
     }
-    setViewMode("active_management");
     toast.success("PO Berhasil Didaftarkan ke Ekspor Berjalan", {
       description: `Transaksi ${ref || "PO Baru"} (${shipment.buyer || "Buyer"}) kini aktif di alur ekspor perusahaan.`,
     });
+    navigate("transactions");
   };
 
   const handleSwitchTransaction = async (item: UnifiedTransactionItem) => {
@@ -483,7 +484,6 @@ export function TransactionsModule({
     } else if (item.shipment && loadCustomShipment) {
       loadCustomShipment(item.shipment, item.id);
     }
-    setViewMode("active_management");
     setIsEditingActiveOrder(false);
   };
 
@@ -716,36 +716,8 @@ export function TransactionsModule({
         </div>
       )}
 
-      {/* 2. OPERATIONAL MODE NAVIGATION (2 Mode Jelas: Pengelolaan Ekspor Berjalan | Tambah PO Baru) */}
-      <div className="tx-mode-nav">
-        <button
-          type="button"
-          className={`tx-mode-tab ${viewMode === "active_management" ? "active" : ""}`}
-          onClick={() => {
-            setViewMode("active_management");
-            setIsEditingActiveOrder(false);
-          }}
-          title="Kelola daftar pesanan PO ekspor perusahaan dan alur operasional 8 tahap"
-        >
-          <Layers size={15} />
-          <span>Pengelolaan Ekspor Berjalan</span>
-          <span className="tx-mode-badge">{allTransactions.length} PO</span>
-        </button>
-
-        <button
-          type="button"
-          className={`tx-mode-tab ${viewMode === "new_po_intake" ? "active" : ""}`}
-          onClick={handleNewTransactionClick}
-          title="Input atau pindai dokumen PO/LOI dari buyer baru"
-        >
-          <Plus size={15} />
-          <span>+ Tambah PO Baru</span>
-          <span className="tx-mode-badge-hint">Intake</span>
-        </button>
-      </div>
-
-      {/* MODE 1: PENGELOLAAN EKSPOR BERJALAN (TABEL PO PERUSAHAAN + ALUR 8 TAHAP AKTIF) */}
-      {viewMode === "active_management" && (
+      {/* 1. Pengelolaan Ekspor Berjalan (Tabel PO Perusahaan & Alur 8 Tahap) */}
+      {!isIntakeMode && (
         <>
           <section className="panel panel-padding">
             <div className="panel-head">
@@ -772,7 +744,7 @@ export function TransactionsModule({
                   onClick={handleNewTransactionClick}
                   style={{ padding: "6px 14px", fontSize: "12.5px" }}
                 >
-                  <Plus size={14} /> + Tambah PO Baru
+                  <Plus size={14} /> Tambah PO Baru
                 </button>
               </div>
             </div>
@@ -792,7 +764,7 @@ export function TransactionsModule({
                   className="save-button"
                   onClick={handleNewTransactionClick}
                 >
-                  <Plus size={14} /> + Input / Scan PO Baru
+                  <Plus size={14} /> Input / Scan PO Baru
                 </button>
               </div>
             ) : (
@@ -1248,13 +1220,13 @@ export function TransactionsModule({
         </>
       )}
 
-      {/* MODE 2: PENAMBAHAN PO BARU (INTAKE DOKUMEN PO / LOI BUYER) */}
-      {viewMode === "new_po_intake" && (
+      {/* Penambahan PO Baru (Intake Dokumen PO / LOI Buyer) */}
+      {isIntakeMode && (
         <section className="panel panel-padding active-order-card">
           <button
             type="button"
             className="tx-back-btn"
-            onClick={() => setViewMode("active_management")}
+            onClick={() => navigate("transactions")}
           >
             <ArrowLeft size={14} /> ← Kembali ke Pengelolaan Ekspor
           </button>
@@ -1458,9 +1430,9 @@ export function TransactionsModule({
               <button
                 type="button"
                 className="ghost-button"
-                onClick={() => setViewMode("active_management")}
+                onClick={() => navigate("transactions")}
               >
-                Batal / Kembali
+                Batal / Kembali ke Pengelolaan Ekspor
               </button>
               <button
                 type="button"

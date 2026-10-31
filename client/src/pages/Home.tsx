@@ -193,6 +193,30 @@ export default function Home() {
           createNewDraft={createNewDraft}
           login={refreshAuth}
           navigate={navigate}
+          mode="active_management"
+        />
+      )}
+      {screen === "po_intake" && (
+        <TransactionsModule
+          user={user}
+          shipment={shipment}
+          update={update}
+          activeShipmentId={activeShipmentId}
+          version={version}
+          saveState={saveState}
+          shipmentsList={shipmentsList}
+          isLoadingList={isLoadingList}
+          pricing={pricing}
+          container={container}
+          flow={flow}
+          loadShipment={loadShipment}
+          loadCustomShipment={loadCustomShipment}
+          saveShipment={saveShipment}
+          deleteShipment={deleteShipment}
+          createNewDraft={createNewDraft}
+          login={refreshAuth}
+          navigate={navigate}
+          mode="new_po_intake"
         />
       )}
       {screen === "pricing" && (
