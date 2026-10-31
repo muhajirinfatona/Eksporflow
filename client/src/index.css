@@ -9382,13 +9382,13 @@ textarea:focus-visible {
     border-bottom: none !important;
   }
   .letterhead-brand {
-    gap: 14px !important;
+    gap: 16px !important;
     align-items: center !important;
   }
   .letterhead-logo {
-    height: 52px !important;
-    max-height: 56px !important;
-    max-width: 170px !important;
+    height: 70px !important;
+    max-height: 74px !important;
+    max-width: 200px !important;
     width: auto !important;
     object-fit: contain !important;
     border-radius: 4px !important;
@@ -9557,7 +9557,7 @@ textarea:focus-visible {
   /* Rincian rekening bank eksportir */
   .doc-bank-card {
     padding: 4px 8px !important;
-    margin-bottom: 4px !important;
+    margin-bottom: 14px !important;
     border: 1px solid #cbd5e1 !important;
   }
   .bank-card-title {
@@ -9586,43 +9586,44 @@ textarea:focus-visible {
 
   /* Blok tanda tangan & stempel eksportir - tetap pas di Halaman 1 */
   .doc-single-signature-wrap {
-    margin-top: 3px !important;
-    padding-top: 3px !important;
+    margin-top: 14px !important;
+    padding-top: 10px !important;
     display: flex !important;
     justify-content: flex-end !important;
-    border-top: 1px solid #e2e8f0 !important;
+    border-top: 1px solid #cbd5e1 !important;
   }
   .official-sig-block {
     max-width: 260px !important;
     text-align: center !important;
   }
   .sig-signed-for {
-    font-size: 10px !important;
-    line-height: 1.2 !important;
+    font-size: 10.5px !important;
+    line-height: 1.25 !important;
     font-weight: 600 !important;
     color: #1e293b !important;
   }
   .sig-company-name {
-    font-size: 12px !important;
-    font-weight: 800 !important;
-    line-height: 1.2 !important;
-    color: #0f172a !important;
-  }
-  .sig-canvas-zone {
-    min-height: 30px !important;
-    height: 32px !important;
-    margin: 1px 0 !important;
-  }
-  .sig-signatory-name {
     font-size: 12.5px !important;
     font-weight: 800 !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
+    color: #0f172a !important;
+    margin-top: 2px !important;
+  }
+  .sig-canvas-zone {
+    min-height: 44px !important;
+    height: 46px !important;
+    margin: 4px 0 !important;
+  }
+  .sig-signatory-name {
+    font-size: 13px !important;
+    font-weight: 800 !important;
+    line-height: 1.25 !important;
     color: #0f172a !important;
   }
   .sig-signatory-title {
-    font-size: 10.5px !important;
+    font-size: 11px !important;
     font-weight: 700 !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
     color: #0f172a !important;
   }
 
@@ -9678,9 +9679,20 @@ textarea:focus-visible {
   .paper-letter {
     font-size: 11.5px !important;
   }
+  .paper-letter .letterhead-logo {
+    height: 64px !important;
+    max-height: 68px !important;
+  }
+  .paper-letter .doc-bank-card {
+    margin-bottom: 10px !important;
+  }
+  .paper-letter .doc-single-signature-wrap {
+    margin-top: 10px !important;
+    padding-top: 8px !important;
+  }
   .paper-letter .sig-canvas-zone {
-    height: 28px !important;
-    min-height: 28px !important;
+    height: 38px !important;
+    min-height: 38px !important;
   }
 
   /* Sales Contract (SC) multi-page rules: cleanly breaks across 2 pages */
