@@ -762,15 +762,7 @@ function ProformaInvoiceDoc({
       </div>
 
       <div className="doc-single-signature-wrap">
-        <div className="sig-side sig-side-right">
-          <span className="sig-header-txt">{isId ? "Diterbitkan oleh:" : "Issued by:"}</span>
-          <b className="sig-name">{exporterName}</b>
-          <div className="sig-box-space">
-            <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
-          </div>
-          <b className="sig-name">{isId ? "Direktur Ekspor" : "Export Director"}</b>
-          <span className="sig-sub">{isId ? "Penandatangan Berwenang" : "Authorized Signatory"}</span>
-        </div>
+        <OfficialStampAndSignature exporterName={exporterName} role="Export Director" isId={isId} />
       </div>
     </div>
   );

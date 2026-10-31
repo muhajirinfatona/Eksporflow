@@ -5925,6 +5925,12 @@ textarea:focus-visible {
 
 .sig-side.sig-side-right {
   margin-left: auto;
+  align-items: flex-end;
+  text-align: right;
+}
+
+.sig-side.sig-side-right .sig-box-space {
+  justify-content: flex-end;
 }
 
 .sig-header-txt {
