@@ -212,7 +212,7 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4"} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 6mm 10mm 6mm 10mm;
+            margin: ${shipment.paperSize === "Letter" ? "4mm 8mm 4mm 8mm" : "5mm 8mm 4mm 8mm"};
           }
         }
       `}</style>
@@ -319,7 +319,7 @@ export function DocumentsModule({
       {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
         <div
-          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")}`}
+          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")}`}
         >
           {/* Official Letterhead Header */}
           <OfficialLetterhead
