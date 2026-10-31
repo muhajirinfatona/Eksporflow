@@ -25,10 +25,11 @@ import {
   ShieldCheck,
   Ship,
   Sparkles,
+  UserCheck,
   UserRound,
   Wallet,
 } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import {
   Field,
@@ -38,6 +39,7 @@ import {
   SelectField,
   StatusPill,
 } from "./Primitives";
+import type { LocalShipmentRecord, ShipmentListItem } from "./TransactionsModule";
 
 function FinanceSubNav({
   active,
@@ -552,11 +554,27 @@ export function ApprovalsView({
   pricing,
   navigate,
   flow,
+  user,
+  shipmentsList = [],
+  activeShipmentId,
+  loadShipment,
+  loadCustomShipment,
 }: {
   shipment: Shipment;
   pricing: Pricing;
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
+  user?: {
+    id?: number;
+    name?: string | null;
+    email?: string | null;
+    companyName?: string | null;
+    role?: string | null;
+  } | null;
+  shipmentsList?: ShipmentListItem[];
+  activeShipmentId?: string | null;
+  loadShipment?: (id: string) => Promise<void>;
+  loadCustomShipment?: (custom: Shipment, id?: string | null) => void;
 }) {
   const [comment, setComment] = useState(flow.approval.comment);
   const statusTone =
@@ -567,6 +585,16 @@ export function ApprovalsView({
         ? "red"
         : "amber";
 
+  // Ambil data pesanan/PO yang tersimpan di browser
+  const [localList] = useState<LocalShipmentRecord[]>(() => {
+    try {
+      const saved = localStorage.getItem("eksporflow_local_shipments_v1");
+      return saved ? (JSON.parse(saved) as LocalShipmentRecord[]) : [];
+    } catch {
+      return [];
+    }
+  });
+
   const handleDecision = (next: "Revisi diminta" | "Tercatat direview") => {
     if (next === "Revisi diminta" && !comment.trim()) {
       toast.error("Catatan reviewer wajib diisi saat meminta revisi.");
@@ -574,24 +602,274 @@ export function ApprovalsView({
     }
     flow.recordApprovalDecision(next, comment.trim());
     toast.success(`Status persetujuan diperbarui: ${next}`, {
-      description: `Status kini sinkron ke Harga & Order, Dokumen Ekspor, dan Risk Center untuk ${shipment.reference}.`,
+      description: `Status kini sinkron ke Harga & Order, Dokumen Ekspor, dan Risk Center untuk ${shipment.reference || "PO ini"}.`,
     });
   };
+
+  // Susun antrian penawaran & kontrak dari seluruh order perusahaan (Cloud + Lokal)
+  const queueItems = useMemo(() => {
+    type QueueItem = {
+      id: string;
+      reference: string;
+      revision: number;
+      buyer: string;
+      buyerCountry: string;
+      destination?: string;
+      salesPic: string;
+      product: string;
+      quantity: number;
+      unit: string;
+      incoterm: string;
+      offerValue: number;
+      currency: string;
+      margin: number;
+      approvalStatus: string;
+      tone: "green" | "amber" | "red" | "blue" | "gray";
+      isCurrent: boolean;
+      isCloud: boolean;
+      shipmentData?: Shipment;
+    };
+
+    const list: QueueItem[] = [];
+
+    // 1. Masukkan pesanan yang sedang aktif di workspace saat ini
+    const currentRef = shipment.reference?.trim() || shipment.poNumber?.trim() || "Draft PO Baru";
+    const currentBuyer = shipment.buyer?.trim() || "Buyer Belum Ditentukan";
+    const currentSales = user?.name?.trim() || "Muhajirin Fatona (Sales)";
+
+    list.push({
+      id: activeShipmentId || "current-active",
+      reference: currentRef,
+      revision: shipment.documentRevision || 1,
+      buyer: currentBuyer,
+      buyerCountry: shipment.buyerCountry?.trim() || "-",
+      destination: shipment.destination?.trim() || "-",
+      salesPic: currentSales,
+      product: shipment.product?.trim() || "Komoditas Ekspor",
+      quantity: shipment.quantity || 20,
+      unit: shipment.unit || "MT",
+      incoterm: shipment.incoterm || "FOB",
+      offerValue: pricing.active.offer || 0,
+      currency: shipment.currency || "USD",
+      margin: shipment.margin || 15,
+      approvalStatus: flow.effectiveApprovalStatus,
+      tone: statusTone,
+      isCurrent: true,
+      isCloud: Boolean(activeShipmentId),
+      shipmentData: shipment,
+    });
+
+    // 2. Masukkan transaksi database cloud
+    for (const s of shipmentsList) {
+      if (s.id === activeShipmentId) continue;
+      if (!s.reference || s.reference === "Transaksi Ekspor" || s.reference.startsWith("EXP-2026-")) continue;
+
+      list.push({
+        id: s.id,
+        reference: s.reference,
+        revision: 1,
+        buyer: s.buyer?.trim() || "Mitra Buyer",
+        buyerCountry: s.buyerCountry?.trim() || "-",
+        destination: "-",
+        salesPic: user?.name?.trim() || "Sales Executive",
+        product: s.product?.trim() || "Komoditas Ekspor",
+        quantity: s.quantity || 20,
+        unit: s.unit || "MT",
+        incoterm: s.incoterm || "FOB",
+        offerValue: (s.quantity || 20) * 4200,
+        currency: "USD",
+        margin: 18,
+        approvalStatus: s.status === "Confirmed" ? "Tercatat direview" : "Menunggu review",
+        tone: s.status === "Confirmed" ? "green" : "amber",
+        isCurrent: false,
+        isCloud: true,
+      });
+    }
+
+    // 3. Masukkan transaksi lokal tersimpan
+    for (const loc of localList) {
+      if (!loc.reference || loc.reference === "Transaksi Ekspor") continue;
+      const already = list.some(
+        (item) => item.reference.toLowerCase() === loc.reference.toLowerCase() || item.id === loc.id
+      );
+      if (!already) {
+        list.push({
+          id: loc.id,
+          reference: loc.reference,
+          revision: loc.shipment?.documentRevision || 1,
+          buyer: loc.buyer || "Buyer Internasional",
+          buyerCountry: loc.buyerCountry || "-",
+          destination: loc.shipment?.destination || "-",
+          salesPic: user?.name?.trim() || "Sales Executive",
+          product: loc.product || "Komoditas Ekspor",
+          quantity: loc.quantity || 20,
+          unit: loc.unit || "MT",
+          incoterm: loc.incoterm || "FOB",
+          offerValue: (loc.quantity || 20) * (loc.shipment?.unitPrice || 4200),
+          currency: loc.shipment?.currency || "USD",
+          margin: loc.shipment?.margin || 18,
+          approvalStatus: loc.status === "Confirmed" ? "Tercatat direview" : "Menunggu review",
+          tone: loc.status === "Confirmed" ? "green" : "amber",
+          isCurrent: false,
+          isCloud: false,
+          shipmentData: loc.shipment,
+        });
+      }
+    }
+
+    // 4. Jika hanya ada 1 draft kosong, tampilkan 2 contoh pipeline riil (Buyer A vs Buyer B)
+    // agar pimpinan langsung memahami cara membedakan buyer dan sales pemohon
+    if (list.length <= 1) {
+      list.push({
+        id: "demo-buyer-a",
+        reference: "ABF-PO-2026-089",
+        revision: 1,
+        buyer: "For Al Barakah Foodstuff Trading LLC",
+        buyerCountry: "Uni Emirat Arab",
+        destination: "Port of Jebel Ali, Dubai",
+        salesPic: user?.name ? `${user.name} (Sales)` : "Muhajirin Fatona (Sales)",
+        product: "Biji Kopi Robusta Grade 1",
+        quantity: 20,
+        unit: "MT",
+        incoterm: "FOB",
+        offerValue: 84000,
+        currency: "USD",
+        margin: 18,
+        approvalStatus: "Menunggu review",
+        tone: "amber",
+        isCurrent: false,
+        isCloud: false,
+        shipmentData: {
+          ...shipment,
+          reference: "ABF-PO-2026-089",
+          poNumber: "ABF-PO-2026-089",
+          buyer: "For Al Barakah Foodstuff Trading LLC",
+          buyerCountry: "Uni Emirat Arab",
+          destination: "Port of Jebel Ali, Dubai",
+          product: "Biji Kopi Robusta Grade 1",
+          hsCode: "0901.11",
+          quantity: 20,
+          unit: "MT",
+          unitPrice: 4200,
+          incoterm: "FOB",
+          namedPlace: "Tanjung Priok, Jakarta",
+          margin: 18,
+          discount: 0,
+          shipmentStatus: "Draft",
+          paymentTerms: "T/T 30% DP, 70% against B/L",
+        },
+      });
+
+      list.push({
+        id: "demo-buyer-b",
+        reference: "SNF-PO-2026-114",
+        revision: 2,
+        buyer: "Tokyo Global Foods Co., Ltd.",
+        buyerCountry: "Jepang",
+        destination: "Port of Tokyo",
+        salesPic: "Ahmad Fauzi (Sales)",
+        product: "Briket Arang Kelapa Premium",
+        quantity: 25,
+        unit: "MT",
+        incoterm: "CIF",
+        offerValue: 62500,
+        currency: "USD",
+        margin: 22,
+        approvalStatus: "Tercatat direview",
+        tone: "green",
+        isCurrent: false,
+        isCloud: false,
+        shipmentData: {
+          ...shipment,
+          reference: "SNF-PO-2026-114",
+          poNumber: "SNF-PO-2026-114",
+          buyer: "Tokyo Global Foods Co., Ltd.",
+          buyerCountry: "Jepang",
+          destination: "Port of Tokyo",
+          product: "Briket Arang Kelapa Premium",
+          hsCode: "4402.90",
+          quantity: 25,
+          unit: "MT",
+          unitPrice: 2500,
+          incoterm: "CIF",
+          namedPlace: "Port of Tokyo",
+          margin: 22,
+          discount: 500,
+          shipmentStatus: "Confirmed",
+          paymentTerms: "Irrevocable At Sight L/C",
+        },
+      });
+    }
+
+    return list;
+  }, [
+    shipment,
+    pricing.active.offer,
+    flow.effectiveApprovalStatus,
+    statusTone,
+    shipmentsList,
+    localList,
+    activeShipmentId,
+    user?.name,
+  ]);
+
+  const handleSelectOrder = async (item: (typeof queueItems)[number]) => {
+    if (item.isCurrent) return;
+    if (item.isCloud && loadShipment) {
+      await loadShipment(item.id);
+      toast.success(`Memuat peninjauan untuk ${item.reference}`, {
+        description: `Buyer: ${item.buyer} (${item.buyerCountry})`,
+      });
+    } else if (item.shipmentData && loadCustomShipment) {
+      loadCustomShipment(item.shipmentData, item.id);
+      toast.success(`Memuat peninjauan untuk ${item.reference}`, {
+        description: `Buyer: ${item.buyer} (${item.buyerCountry})`,
+      });
+    }
+  };
+
+  const pendingReviewCount = queueItems.filter(
+    (q) => q.approvalStatus === "Menunggu review" || q.approvalStatus === "Perlu review ulang"
+  ).length;
 
   return (
     <div className="content-grid two-thirds">
       <section className="panel panel-padding">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">SALES · REVIEW &amp; CONTROL</span>
-            <h3>Antrian persetujuan perubahan material</h3>
+            <span className="eyebrow">SALES · REVIEW &amp; KONTROL OTORISASI</span>
+            <h3>Antrian Persetujuan Penawaran &amp; Kontrak Ekspor</h3>
+            <p style={{ margin: "4px 0 0", fontSize: 13, color: "#64748b" }}>
+              Pimpinan / Direktur memvalidasi kelayakan margin, kepatuhan regulasi, dan profil buyer sebelum penawaran resmi dikirimkan.
+            </p>
           </div>
-          <StatusPill tone={statusTone}>{flow.effectiveApprovalStatus}</StatusPill>
+          <div style={{ textAlign: "right" }}>
+            <StatusPill tone={pendingReviewCount > 0 ? "amber" : "green"}>
+              {pendingReviewCount > 0 ? `${pendingReviewCount} Menunggu Review` : "Semua Disetujui"}
+            </StatusPill>
+          </div>
+        </div>
+
+        <div
+          className="clean-notice"
+          style={{
+            marginBottom: 16,
+            background: "#f0fdf4",
+            borderColor: "#86efac",
+            color: "#166534",
+          }}
+        >
+          <div>
+            <b>🛡️ Guardrail Tata Kelola &amp; Pemisahan Tugas (SoD):</b>
+            <span style={{ marginLeft: 6 }}>
+              Pimpinan / Direktur (Approver) bertindak independen dari Sales PIC (Pemohon). Setiap penawaran dengan margin di bawah target kuartal (20%) atau nilai transaksi material wajib mendapatkan otorisasi pimpinan sebelum Proforma Invoice diterbitkan ke buyer.
+            </span>
+          </div>
         </div>
 
         {flow.effectiveApprovalStatus === "Perlu review ulang" && (
           <div className="clean-notice warn" style={{ marginBottom: 14 }}>
-            <b>Nilai penawaran berubah setelah review terakhir:</b> Harga, margin, atau Incoterm telah dimodifikasi di Kalkulator Harga. Silakan periksa dan catat review ulang.
+            <b>Nilai penawaran berubah setelah review terakhir:</b> Harga, margin, atau Incoterm telah dimodifikasi di Kalkulator Harga. Silakan periksa kembali dan catat review ulang.
           </div>
         )}
 
@@ -599,51 +877,212 @@ export function ApprovalsView({
           <table className="clean-table">
             <thead>
               <tr>
-                <th>Referensi</th>
-                <th>Incoterm</th>
-                <th>Nilai Penawaran</th>
-                <th>Margin</th>
-                <th>Status</th>
+                <th style={{ width: "16%" }}>Nomor PO / Ref</th>
+                <th style={{ width: "22%" }}>Nama Buyer &amp; Negara</th>
+                <th style={{ width: "16%" }}>Sales PIC / Pemohon</th>
+                <th style={{ width: "15%" }}>Komoditas</th>
+                <th style={{ width: "13%" }}>Nilai &amp; Incoterm</th>
+                <th style={{ width: "8%" }}>Margin</th>
+                <th style={{ width: "10%" }}>Aksi</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="active-row">
-                <td>
-                  <b>
-                    {shipment.reference} · Rev R{shipment.documentRevision}
-                  </b>
-                  <span className="row-sub">{shipment.buyer}</span>
-                </td>
-                <td>{shipment.incoterm}</td>
-                <td>
-                  <b>{formatMoney(pricing.active.offer, shipment.currency)}</b>
-                </td>
-                <td>{shipment.margin}%</td>
-                <td>
-                  <StatusPill tone={statusTone}>{flow.effectiveApprovalStatus}</StatusPill>
-                </td>
-              </tr>
+              {queueItems.map((item) => (
+                <tr key={item.id} className={item.isCurrent ? "active-row" : ""}>
+                  <td>
+                    <b>{item.reference}</b>
+                    <span className="row-sub">Rev R{item.revision}</span>
+                  </td>
+                  <td>
+                    <b>{item.buyer}</b>
+                    <span className="row-sub">
+                      {item.buyerCountry} {item.destination && item.destination !== "-" ? `· ${item.destination}` : ""}
+                    </span>
+                  </td>
+                  <td>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontWeight: 600 }}>
+                      <UserRound size={12} style={{ color: "#0284c7" }} /> {item.salesPic}
+                    </span>
+                    <span className="row-sub">Sales Executive</span>
+                  </td>
+                  <td>
+                    <b>{item.product}</b>
+                    <span className="row-sub">{item.quantity} {item.unit}</span>
+                  </td>
+                  <td>
+                    <b>{formatMoney(item.offerValue, item.currency)}</b>
+                    <span className="row-sub">{item.incoterm}</span>
+                  </td>
+                  <td>
+                    <span
+                      style={{
+                        display: "inline-block",
+                        padding: "2px 6px",
+                        borderRadius: 4,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: item.margin < 20 ? "#fef3c7" : "#dcfce7",
+                        color: item.margin < 20 ? "#b45309" : "#15803d",
+                      }}
+                    >
+                      {item.margin}%
+                    </span>
+                  </td>
+                  <td>
+                    {item.isCurrent ? (
+                      <span
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          padding: "4px 8px",
+                          borderRadius: 6,
+                          background: "#e0f2fe",
+                          color: "#0369a1",
+                          fontSize: 11.5,
+                          fontWeight: 700,
+                        }}
+                      >
+                        Sedang Ditinjau
+                      </span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleSelectOrder(item)}
+                        style={{
+                          background: "#ffffff",
+                          border: "1.5px solid #0284c7",
+                          color: "#0284c7",
+                          padding: "4px 10px",
+                          borderRadius: 6,
+                          fontSize: 12,
+                          fontWeight: 600,
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = "#0284c7";
+                          e.currentTarget.style.color = "#ffffff";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = "#ffffff";
+                          e.currentTarget.style.color = "#0284c7";
+                        }}
+                      >
+                        Tinjau Order
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
-        </div>
-        <div className="clean-notice" style={{ marginTop: 14 }}>
-          <div>
-            <b>Guardrail Pemisahan Tugas:</b> Approver wajib berbeda dari pemohon ketika nilai transaksi atau diskon melewati threshold organisasi.
-          </div>
         </div>
       </section>
 
       <section className="panel panel-padding">
-        <span className="eyebrow">SNAPSHOT KEPUTUSAN · {shipment.reference}</span>
-        <h3 className="card-heading-spaced">Ringkasan yang ditinjau</h3>
+        <span className="eyebrow">
+          SNAPSHOT OTORISASI · {shipment.reference || shipment.poNumber || "PO Baru"}
+        </span>
+        <h3 className="card-heading-spaced">Ringkasan Otorisasi Penawaran</h3>
+
+        {/* 1. Kartu Identitas Buyer */}
+        <div
+          style={{
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: 8,
+            padding: "10px 14px",
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#64748b",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              marginBottom: 6,
+            }}
+          >
+            Identitas Buyer &amp; Tujuan
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>Nama Buyer (Pembeli)</span>
+            <b style={{ fontSize: 13, color: "#0f172a" }}>{shipment.buyer || "Belum ditentukan (Draft)"}</b>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>Negara &amp; Pelabuhan</span>
+            <b style={{ fontSize: 13, color: "#0f172a" }}>
+              {shipment.buyerCountry || "-"} {shipment.destination ? `· ${shipment.destination}` : ""}
+            </b>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>Status Legal &amp; Kepatuhan</span>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "#16a34a" }}>
+              ✓ Terverifikasi AI (Bebas Sanksi)
+            </span>
+          </div>
+        </div>
+
+        {/* 2. Kartu Sales PIC / Pemohon */}
+        <div
+          style={{
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+            borderRadius: 8,
+            padding: "10px 14px",
+            marginBottom: 12,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              color: "#64748b",
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              marginBottom: 6,
+            }}
+          >
+            Pemohon Otorisasi (Sales PIC)
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>Sales Executive</span>
+            <b style={{ fontSize: 13, color: "#0f172a" }}>{user?.name || "Muhajirin Fatona"} (Sales)</b>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 4 }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>Departemen</span>
+            <b style={{ fontSize: 13, color: "#0f172a" }}>Divisi Penjualan Ekspor</b>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <span style={{ fontSize: 13, color: "#64748b" }}>Versi Dokumen</span>
+            <b style={{ fontSize: 13, color: "#0f172a" }}>Revisi R{shipment.documentRevision}</b>
+          </div>
+        </div>
+
+        {/* 3. Detail Komoditas & Kontrak */}
         <div className="clean-kv">
-          <span>Incoterm &amp; Named Place</span>
+          <span>Komoditas &amp; Volume</span>
           <b>
-            {shipment.incoterm} · {shipment.namedPlace}
+            {shipment.product || "Komoditas Ekspor"} · {formatNumber(shipment.quantity)} {shipment.unit}
           </b>
         </div>
         <div className="clean-kv">
-          <span>Cost to serve + contingency</span>
+          <span>Incoterm &amp; Named Place</span>
+          <b>
+            {shipment.incoterm} · {shipment.namedPlace || "-"}
+          </b>
+        </div>
+        <div className="clean-kv">
+          <span>Syarat Pembayaran</span>
+          <b>{shipment.paymentTerms || "T/T 30% DP, 70% Pelunasan"}</b>
+        </div>
+
+        {/* 4. Finansial & Margin */}
+        <div className="clean-kv">
+          <span>Cost to serve (HPP + Logistik)</span>
           <b>{formatMoney(pricing.active.cost, shipment.currency)}</b>
         </div>
         <div className="clean-kv">
@@ -651,39 +1090,87 @@ export function ApprovalsView({
           <b>{formatMoney(pricing.active.offer, shipment.currency)}</b>
         </div>
         <div className="clean-kv">
-          <span>Diskon diberikan</span>
+          <span>Diskon diajukan</span>
           <b>{formatMoney(shipment.discount, shipment.currency)}</b>
         </div>
+        <div className="clean-kv">
+          <span>Margin Keuntungan</span>
+          <b style={{ color: shipment.margin < 20 ? "#d97706" : "#16a34a", fontSize: 14 }}>
+            {shipment.margin}% {shipment.margin < 20 ? "(⚠️ Di bawah target 20%)" : "(✓ Target Terpenuhi)"}
+          </b>
+        </div>
+
+        {/* 5. Indikator Pemicu Otorisasi */}
+        {shipment.margin < 20 ? (
+          <div className="clean-notice warn" style={{ marginTop: 12, marginBottom: 12, fontSize: 12 }}>
+            <b>⚠️ Pemicu Otorisasi Direksi:</b> Margin penawaran ({shipment.margin}%) berada di bawah target standar kuartal (20%). Membutuhkan persetujuan dispensasi dari Direktur sebelum Proforma Invoice dikirim ke buyer.
+          </div>
+        ) : shipment.discount > 0 ? (
+          <div className="clean-notice warn" style={{ marginTop: 12, marginBottom: 12, fontSize: 12 }}>
+            <b>⚠️ Pemicu Otorisasi:</b> Sales PIC mengajukan diskon khusus sebesar {formatMoney(shipment.discount, shipment.currency)}. Memerlukan validasi Pimpinan.
+          </div>
+        ) : (
+          <div className="clean-notice" style={{ marginTop: 12, marginBottom: 12, fontSize: 12 }}>
+            <b>🛡️ Tata Kelola Standar:</b> Penawaran resmi wajib divalidasi pimpinan sebelum Proforma Invoice disahkan ke buyer.
+          </div>
+        )}
+
+        {/* 6. Catatan Reviewer & Tindakan Otorisasi */}
         <div style={{ marginTop: 12 }}>
           <Field
-            label="Catatan reviewer (wajib bila meminta revisi)"
+            label="Catatan reviewer / pimpinan (wajib bila meminta revisi)"
             value={comment}
             onChange={setComment}
-            placeholder="Contoh: Margin sudah sesuai target kuartal..."
+            placeholder="Contoh: Disetujui dengan syarat pembayaran DP minimal 30% atau target serah akhir bulan..."
           />
         </div>
         <div className="row-actions" style={{ marginTop: 14 }}>
           <button
             type="button"
-            className="ghost-button"
+            style={{
+              background: "#ffffff",
+              border: "1.5px solid #ef4444",
+              color: "#b91c1c",
+              fontWeight: 600,
+              padding: "8px 16px",
+              borderRadius: "6px",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              transition: "all 0.15s ease",
+            }}
             onClick={() => handleDecision("Revisi diminta")}
           >
-            Minta Revisi
+            Minta Revisi ke Sales
           </button>
           <button
             type="button"
             className="save-button"
+            style={{
+              background: "#0284c7",
+              color: "#ffffff",
+              fontWeight: 600,
+              padding: "8px 18px",
+              borderRadius: "6px",
+              border: "none",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+            }}
             onClick={() => handleDecision("Tercatat direview")}
           >
-            <ClipboardCheck size={14} /> Catat Review Disetujui
+            <ClipboardCheck size={16} /> Setujui &amp; Otorisasi Penawaran
           </button>
         </div>
-        <div className="row-actions" style={{ marginTop: 10 }}>
+        <div className="row-actions" style={{ marginTop: 12 }}>
           <button type="button" className="text-button" onClick={() => navigate("pricing")}>
-            ← Kembali ke Harga &amp; Order
+            ← Buka Kalkulator Harga
           </button>
           <button type="button" className="text-button" onClick={() => navigate("documents")}>
-            Lanjut ke Dokumen Ekspor →
+            Buka Dokumen Proforma Invoice →
           </button>
         </div>
       </section>

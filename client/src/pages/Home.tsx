@@ -233,7 +233,17 @@ export default function Home() {
         />
       )}
       {screen === "approvals" && (
-        <ApprovalsView shipment={shipment} pricing={pricing} navigate={navigate} flow={flow} />
+        <ApprovalsView
+          shipment={shipment}
+          pricing={pricing}
+          navigate={navigate}
+          flow={flow}
+          user={user}
+          shipmentsList={shipmentsList}
+          activeShipmentId={activeShipmentId}
+          loadShipment={loadShipment}
+          loadCustomShipment={loadCustomShipment}
+        />
       )}
       {screen === "documents" && (
         <DocumentsModule
