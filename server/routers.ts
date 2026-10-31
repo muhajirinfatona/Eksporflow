@@ -15,7 +15,7 @@ import {
   resendVerificationChallenge,
   verifyEmailCodeAndSignIn,
 } from "./authService";
-import { createShipment, getShipment, listShipments, ShipmentPersistenceError, updateShipment } from "./shipmentDb";
+import { createShipment, deleteShipment, getShipment, listShipments, ShipmentPersistenceError, updateShipment } from "./shipmentDb";
 
 import { createRateLimiter } from "./rateLimit";
 
@@ -187,6 +187,15 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         try {
           return await updateShipment(ctx.user.id, input);
+        } catch (error) {
+          return persistenceError(error);
+        }
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await deleteShipment(ctx.user.id, input.id);
         } catch (error) {
           return persistenceError(error);
         }

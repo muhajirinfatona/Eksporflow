@@ -73,6 +73,7 @@ export function useActiveShipment() {
 
   const createMutation = trpc.shipments.create.useMutation();
   const updateMutation = trpc.shipments.update.useMutation();
+  const deleteMutation = trpc.shipments.delete.useMutation();
   const logoutMutation = trpc.auth.logout.useMutation();
 
   const loadShipment = useCallback(
@@ -258,20 +259,6 @@ export function useActiveShipment() {
     [shipment.exporter, user?.companyName],
   );
 
-  const loadCustomShipment = useCallback((next: Shipment, customId?: string | null) => {
-    setShipment(next);
-    setActiveShipmentId(customId ?? null);
-    setVersion(1);
-    setSaveState("unsaved");
-    setStatusNote(null);
-    toast.success(
-      next.reference ? `Transaksi ${next.reference} dibuka` : "Transaksi dibuka",
-      {
-        description: next.buyer ? `Buyer: ${next.buyer} (${next.buyerCountry || "-"})` : "Data transaksi siap dikelola.",
-      },
-    );
-  }, []);
-
   const resetTransaction = useCallback(() => {
     const clean = createEmptyShipment({
       exporter: user?.companyName || "",
@@ -289,8 +276,39 @@ export function useActiveShipment() {
         // Abaikan
       }
     }
-    toast("Formulir transaksi dikosongkan untuk input baru");
-  }, [shipment.reference, user]);
+  }, [user]);
+
+  const deleteShipment = useCallback(
+    async (id: string) => {
+      try {
+        await deleteMutation.mutateAsync({ id });
+        await utils.shipments.list.invalidate();
+        if (activeShipmentId === id) {
+          resetTransaction();
+        }
+        return true;
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Gagal menghapus transaksi.";
+        toast.error("Gagal menghapus transaksi", { description: message });
+        return false;
+      }
+    },
+    [deleteMutation, utils.shipments.list, activeShipmentId, resetTransaction],
+  );
+
+  const loadCustomShipment = useCallback((next: Shipment, customId?: string | null) => {
+    setShipment(next);
+    setActiveShipmentId(customId ?? null);
+    setVersion(1);
+    setSaveState("unsaved");
+    setStatusNote(null);
+    toast.success(
+      next.reference ? `Transaksi ${next.reference} dibuka` : "Transaksi dibuka",
+      {
+        description: next.buyer ? `Buyer: ${next.buyer} (${next.buyerCountry || "-"})` : "Data transaksi siap dikelola.",
+      },
+    );
+  }, []);
 
   const refreshAuth = useCallback(async () => {
     loadedForUserIdRef.current = null;
@@ -336,6 +354,7 @@ export function useActiveShipment() {
     loadCustomShipment,
     reloadLatest,
     createNewDraft,
+    deleteShipment,
     resetTransaction,
     refreshAuth,
     logout,

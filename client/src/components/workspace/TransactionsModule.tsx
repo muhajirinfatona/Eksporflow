@@ -255,6 +255,12 @@ export type ShipmentListItem = {
   reference: string;
   status: string;
   version: number;
+  buyer?: string;
+  buyerCountry?: string;
+  product?: string;
+  incoterm?: string;
+  quantity?: number;
+  unit?: string;
   createdAt: Date | string;
   updatedAt: Date | string;
 };
@@ -323,6 +329,7 @@ export function TransactionsModule({
   loadShipment,
   loadCustomShipment,
   saveShipment,
+  deleteShipment,
   createNewDraft,
   login,
   navigate,
@@ -341,6 +348,7 @@ export function TransactionsModule({
   loadShipment: (id: string) => Promise<void>;
   loadCustomShipment?: (shipment: Shipment, id?: string | null) => void;
   saveShipment: () => Promise<void>;
+  deleteShipment?: (id: string) => Promise<boolean>;
   createNewDraft: (customRef?: string) => void;
   login: () => Promise<void>;
   navigate: (screen: ScreenId) => void;
@@ -348,7 +356,7 @@ export function TransactionsModule({
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
-  const [viewTab, setViewTab] = useState<"orders_list" | "workflow_detail" | "new_po_intake">("orders_list");
+  const [viewMode, setViewMode] = useState<"active_management" | "new_po_intake">("active_management");
   const [isEditingActiveOrder, setIsEditingActiveOrder] = useState(false);
   const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(() => {
     try {
@@ -442,7 +450,7 @@ export function TransactionsModule({
     }
     setLastScreening(null);
     createNewDraft();
-    setViewTab("new_po_intake");
+    setViewMode("new_po_intake");
     setIsEditingActiveOrder(false);
   };
 
@@ -458,7 +466,7 @@ export function TransactionsModule({
     if (user) {
       await saveShipment();
     }
-    setViewTab("workflow_detail");
+    setViewMode("active_management");
     toast.success("PO Berhasil Didaftarkan ke Ekspor Berjalan", {
       description: `Transaksi ${ref || "PO Baru"} (${shipment.buyer || "Buyer"}) kini aktif di alur ekspor perusahaan.`,
     });
@@ -474,22 +482,53 @@ export function TransactionsModule({
     } else if (item.shipment && loadCustomShipment) {
       loadCustomShipment(item.shipment, item.id);
     }
-    setViewTab("workflow_detail");
+    setViewMode("active_management");
     setIsEditingActiveOrder(false);
   };
 
-  const handleDeleteLocalTx = (id: string, ref: string) => {
-    if (confirm(`Hapus arsip transaksi ${ref || "ini"} dari daftar?`)) {
-      setLocalList((prev) => {
-        const next = prev.filter((p) => p.id !== id);
-        try {
-          localStorage.setItem("eksporflow_local_shipments_v1", JSON.stringify(next));
-        } catch {
-          // ignore
+  const handleDeleteTransaction = async (row: UnifiedTransactionItem) => {
+    const label = row.reference || "PO ini";
+    const buyerDesc = row.buyer && row.buyer !== "-" ? ` (${row.buyer})` : "";
+    const confirmed = window.confirm(
+      `Apakah Anda yakin ingin menghapus transaksi "${label}"${buyerDesc}?\n\nData transaksi ini akan dihapus secara permanen dari sistem.`
+    );
+    if (!confirmed) return;
+
+    try {
+      if (row.isCloud) {
+        if (deleteShipment) {
+          const success = await deleteShipment(row.id);
+          if (!success) {
+            toast.error("Gagal menghapus transaksi dari database cloud");
+            return;
+          }
         }
-        return next;
+      } else {
+        setLocalList((prev) => {
+          const next = prev.filter((p) => p.id !== row.id);
+          try {
+            localStorage.setItem("eksporflow_local_shipments_v1", JSON.stringify(next));
+          } catch {
+            // ignore
+          }
+          return next;
+        });
+      }
+
+      // Jika transaksi yang dihapus sedang dibuka sebagai activeShipment, buat draft baru
+      const isCurrentlyActive =
+        row.id === activeShipmentId ||
+        (displayReference && row.reference === displayReference);
+      if (isCurrentlyActive) {
+        createNewDraft();
+      }
+
+      toast.success("Transaksi Berhasil Dihapus", {
+        description: `Transaksi "${label}" telah dihapus dari sistem.`,
       });
-      toast.success("Transaksi dihapus dari daftar");
+    } catch (err) {
+      console.error("Delete transaction error:", err);
+      toast.error("Terjadi kesalahan saat menghapus transaksi");
     }
   };
 
@@ -542,40 +581,51 @@ export function TransactionsModule({
     toast.info("Dokumen PO/LOI direset. Silakan scan dokumen baru.");
   };
 
+  // Clean value for reference: don't show dummy codes or placeholder words
+  const isDefaultOrPlaceholderRef =
+    !shipment.reference ||
+    shipment.reference === "Transaksi Ekspor" ||
+    shipment.reference === "EXP-2026-001" ||
+    shipment.reference === "EXP-2026-084" ||
+    shipment.reference.startsWith("EXP-2026-");
+
+  const displayReference = isDefaultOrPlaceholderRef ? "" : shipment.reference;
+
   // Filter out any default dummy auto-seeded transactions (e.g. EXP-2026-001)
   const genuineShipments = useMemo(() => {
     return shipmentsList.filter(
       (s) =>
         s.reference &&
+        s.reference !== "Transaksi Ekspor" &&
         s.reference !== "EXP-2026-001" &&
         s.reference !== "EXP-2026-084" &&
         !s.reference.startsWith("EXP-2026-"),
     );
   }, [shipmentsList]);
 
-  // Clean value for reference: don't show dummy codes
-  const displayReference =
-    shipment.reference === "EXP-2026-001" ||
-    shipment.reference === "EXP-2026-084" ||
-    shipment.reference.startsWith("EXP-2026-")
-      ? ""
-      : shipment.reference;
-
   // Menggabungkan transaksi cloud dan draft lokal ke satu daftar bersih
   const allTransactions = useMemo(() => {
     const list: UnifiedTransactionItem[] = [];
 
-    // 1. Masukkan transaksi cloud user jika ada
+    // 1. Masukkan transaksi cloud user dengan data lengkap
     for (const s of genuineShipments) {
+      const isCurrentActive = s.id === activeShipmentId;
+      const buyerName = (isCurrentActive && shipment.buyer) ? shipment.buyer : (s.buyer || "-");
+      const buyerCountry = (isCurrentActive && shipment.buyerCountry) ? shipment.buyerCountry : (s.buyerCountry || "-");
+      const product = (isCurrentActive && shipment.product) ? shipment.product : (s.product || "-");
+      const incoterm = (isCurrentActive && shipment.incoterm) ? shipment.incoterm : (s.incoterm || "FOB");
+      const quantity = (isCurrentActive && shipment.quantity) ? shipment.quantity : (s.quantity ?? 20);
+      const unit = (isCurrentActive && shipment.unit) ? shipment.unit : (s.unit || "MT");
+
       list.push({
         id: s.id,
         reference: s.reference,
-        buyer: s.reference === shipment.reference ? shipment.buyer : "Mitra Cloud",
-        buyerCountry: s.reference === shipment.reference ? shipment.buyerCountry : "-",
-        product: s.reference === shipment.reference ? shipment.product : "-",
-        incoterm: s.reference === shipment.reference ? shipment.incoterm : "FOB",
-        quantity: s.reference === shipment.reference ? shipment.quantity : 20,
-        unit: s.reference === shipment.reference ? shipment.unit : "MT",
+        buyer: buyerName,
+        buyerCountry: buyerCountry,
+        product: product,
+        incoterm: incoterm,
+        quantity: quantity,
+        unit: unit,
         status: s.status,
         version: s.version,
         updatedAt: s.updatedAt,
@@ -585,6 +635,7 @@ export function TransactionsModule({
 
     // 2. Masukkan transaksi lokal jika belum ada di list cloud
     for (const loc of localList) {
+      if (!loc.reference || loc.reference === "Transaksi Ekspor") continue;
       const already = list.some(
         (item) => item.reference && item.reference.toLowerCase() === loc.reference.toLowerCase(),
       );
@@ -592,12 +643,12 @@ export function TransactionsModule({
         list.push({
           id: loc.id,
           reference: loc.reference,
-          buyer: loc.buyer,
-          buyerCountry: loc.buyerCountry,
-          product: loc.product,
-          incoterm: loc.incoterm,
-          quantity: loc.quantity,
-          unit: loc.unit,
+          buyer: loc.buyer || "-",
+          buyerCountry: loc.buyerCountry || "-",
+          product: loc.product || "-",
+          incoterm: loc.incoterm || "FOB",
+          quantity: loc.quantity || 20,
+          unit: loc.unit || "MT",
           status: loc.status,
           updatedAt: loc.updatedAt,
           isCloud: false,
@@ -606,17 +657,20 @@ export function TransactionsModule({
       }
     }
 
-    // 3. Pastikan transaksi yang sedang diedit saat ini muncul di switcher
-    const currentRef = displayReference || shipment.poNumber?.trim();
-    if (currentRef || shipment.buyer) {
-      const exists = list.some(
-        (item) => currentRef && item.reference.toLowerCase() === currentRef.toLowerCase(),
+    // 3. Masukkan draft saat ini HANYA jika memiliki nomor PO atau nama buyer yang valid
+    const validCurrentRef = displayReference.trim() || (shipment.poNumber && shipment.poNumber.trim() !== "Transaksi Ekspor" ? shipment.poNumber.trim() : "");
+    const validCurrentBuyer = shipment.buyer?.trim();
+    if (validCurrentRef || validCurrentBuyer) {
+      const alreadyInList = list.some(
+        (item) =>
+          item.id === activeShipmentId ||
+          (validCurrentRef && item.reference && item.reference.toLowerCase() === validCurrentRef.toLowerCase())
       );
-      if (!exists) {
+      if (!alreadyInList) {
         list.unshift({
           id: activeShipmentId || "current-active",
-          reference: currentRef || "Draft PO Baru",
-          buyer: shipment.buyer || "Buyer Baru",
+          reference: validCurrentRef || "Draft PO Baru",
+          buyer: validCurrentBuyer || "Buyer Baru",
           buyerCountry: shipment.buyerCountry || "-",
           product: shipment.product || "Komoditas Ekspor",
           incoterm: shipment.incoterm || "FOB",
@@ -661,38 +715,25 @@ export function TransactionsModule({
         </div>
       )}
 
-      {/* 2. OPERATIONAL MODE NAVIGATION (3 Tab Jelas: Daftar Pesanan | Alur Ekspor | Tambah PO) */}
+      {/* 2. OPERATIONAL MODE NAVIGATION (2 Mode Jelas: Pengelolaan Ekspor Berjalan | Tambah PO Baru) */}
       <div className="tx-mode-nav">
         <button
           type="button"
-          className={`tx-mode-tab ${viewTab === "orders_list" ? "active" : ""}`}
+          className={`tx-mode-tab ${viewMode === "active_management" ? "active" : ""}`}
           onClick={() => {
-            setViewTab("orders_list");
+            setViewMode("active_management");
             setIsEditingActiveOrder(false);
           }}
-          title="Lihat semua transaksi dan pesanan PO ekspor yang tercatat"
+          title="Kelola daftar pesanan PO ekspor perusahaan dan alur operasional 8 tahap"
         >
           <Layers size={15} />
-          <span>Daftar Transaksi Ekspor</span>
+          <span>Pengelolaan Ekspor Berjalan</span>
           <span className="tx-mode-badge">{allTransactions.length} PO</span>
         </button>
 
         <button
           type="button"
-          className={`tx-mode-tab ${viewTab === "workflow_detail" ? "active" : ""}`}
-          onClick={() => {
-            setViewTab("workflow_detail");
-            setIsEditingActiveOrder(false);
-          }}
-          title="Kelola alur 8 tahap ekspor untuk pesanan yang sedang dibuka"
-        >
-          <Activity size={15} />
-          <span>Alur Ekspor: {displayReference || "Pesanan Aktif"}</span>
-        </button>
-
-        <button
-          type="button"
-          className={`tx-mode-tab ${viewTab === "new_po_intake" ? "active" : ""}`}
+          className={`tx-mode-tab ${viewMode === "new_po_intake" ? "active" : ""}`}
           onClick={handleNewTransactionClick}
           title="Input atau pindai dokumen PO/LOI dari buyer baru"
         >
@@ -702,8 +743,8 @@ export function TransactionsModule({
         </button>
       </div>
 
-      {/* VIEW 1: DAFTAR TRANSAKSI & PO EKSPOR (BERSIH & TERORGANISIR) */}
-      {viewTab === "orders_list" && (
+      {/* MODE 1: PENGELOLAAN EKSPOR BERJALAN (TABEL PO PERUSAHAAN + ALUR 8 TAHAP AKTIF) */}
+      {viewMode === "active_management" && (
         <>
           <section className="panel panel-padding">
             <div className="panel-head">
@@ -711,7 +752,7 @@ export function TransactionsModule({
                 <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
                 <h3>Daftar Permintaan &amp; Transaksi Ekspor ({allTransactions.length})</h3>
                 <p className="profile-description">
-                  Kelola banyak PO dari berbagai buyer secara terpisah tanpa tumpang tindih. Klik &quot;Buka Alur Ekspor&quot; untuk memantau 8 tahapan pengiriman, kalkulasi harga, dan dokumen legal buyer terkait.
+                  Kelola banyak PO dari berbagai buyer secara terpisah tanpa tumpang tindih. Klik &quot;Buka Alur&quot; pada baris untuk menampilkan dan memproses 8 tahapan pengiriman PO tersebut di bawah.
                 </p>
               </div>
 
@@ -822,27 +863,34 @@ export function TransactionsModule({
                               <StatusPill tone={statusTone(row.status)}>{row.status}</StatusPill>
                             </td>
                             <td>
-                              <div className="row-actions" style={{ display: "flex", gap: "6px" }}>
-                                <button
-                                  type="button"
-                                  className="save-button"
-                                  style={{ padding: "5px 10px", fontSize: "12px" }}
-                                  onClick={() => void handleSwitchTransaction(row)}
-                                  title="Buka alur 8 tahap ekspor untuk transaksi ini"
-                                >
-                                  <FolderOpen size={13} /> {isCurrent ? "Buka Alur" : "Pilih & Buka Alur"}
-                                </button>
-                                {!row.isCloud && !isCurrent && (
+                              <div className="row-actions" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                {isCurrent ? (
                                   <button
                                     type="button"
-                                    className="ghost-button"
-                                    style={{ color: "#ef4444", padding: "5px 8px" }}
-                                    onClick={() => handleDeleteLocalTx(row.id, row.reference)}
-                                    title="Hapus transaksi lokal ini"
+                                    className="tx-active-btn"
+                                    title="Transaksi ini sedang aktif di alur ekspor bawah"
                                   >
-                                    <Trash2 size={13} />
+                                    <Check size={12} strokeWidth={3} /> Alur Aktif
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    className="save-button"
+                                    style={{ padding: "5px 10px", fontSize: "12px" }}
+                                    onClick={() => void handleSwitchTransaction(row)}
+                                    title="Buka alur 8 tahap ekspor untuk transaksi ini"
+                                  >
+                                    <FolderOpen size={13} /> Buka Alur
                                   </button>
                                 )}
+                                <button
+                                  type="button"
+                                  className="tx-delete-btn"
+                                  onClick={() => void handleDeleteTransaction(row)}
+                                  title={`Hapus transaksi ${row.reference} (${row.buyer})`}
+                                >
+                                  <Trash2 size={12} /> Hapus
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -854,43 +902,11 @@ export function TransactionsModule({
             )}
           </section>
 
-          {/* Ringkasan Statistik Eksekutif */}
-          <div className="clean-grid-3">
-            <section className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">TOTAL TRANSAKSI TERSIMPAN</span>
-              <strong>{user ? genuineShipments.length : allTransactions.length}</strong>
-              <small>{user ? "Tercatat di database workspace" : "Tersimpan di perangkat lokal"}</small>
-            </section>
-            <section className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">FASE PENAWARAN (DRAFT / QUOTE)</span>
-              <strong>{draftCount}</strong>
-              <small>Negosiasi harga atau menunggu konfirmasi buyer</small>
-            </section>
-            <section className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">EKSEKUSI BERJALAN</span>
-              <strong>{activeExecutionCount}</strong>
-              <small>Confirmed, Booked, Stuffing, hingga Pelayaran</small>
-            </section>
-          </div>
-        </>
-      )}
-
-      {/* VIEW 2: ALUR EKSPOR BERJALAN (FOKUS EKSEKUSI 8 TAHAP TRANSAKSI TERPILIH) */}
-      {viewTab === "workflow_detail" && (
-        <>
-          <button
-            type="button"
-            className="tx-back-btn"
-            onClick={() => setViewTab("orders_list")}
-          >
-            <ArrowLeft size={14} /> ← Kembali ke Daftar Transaksi
-          </button>
-
           {/* Kartu Ringkasan Hero Pesanan Aktif */}
           <div className="active-order-summary-card">
             <div className="active-order-summary-main">
               <span className="active-order-ref-pill">
-                {displayReference || "Draft PO"}
+                {displayReference || shipment.poNumber || "Pesanan Aktif"}
               </span>
               <div className="active-order-buyer-info">
                 <span className="active-order-buyer-name">
@@ -1062,7 +1078,7 @@ export function TransactionsModule({
             <span className="rail-status">Sinkron otomatis</span>
           </div>
 
-          {/* 3. ALUR OPERASIONAL EKSPOR TERINTEGRASI */}
+          {/* ALUR OPERASIONAL EKSPOR TERINTEGRASI (8 TAHAP) */}
           <section className="panel panel-padding clean-workflow-card">
             <div className="clean-workflow-head">
               <div>
@@ -1186,18 +1202,37 @@ export function TransactionsModule({
               )}
             </div>
           )}
+
+          {/* Ringkasan Statistik Eksekutif */}
+          <div className="clean-grid-3" style={{ marginTop: "14px" }}>
+            <section className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">TOTAL TRANSAKSI TERSIMPAN</span>
+              <strong>{user ? genuineShipments.length : allTransactions.length}</strong>
+              <small>{user ? "Tercatat di database workspace" : "Tersimpan di perangkat lokal"}</small>
+            </section>
+            <section className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">FASE PENAWARAN (DRAFT / QUOTE)</span>
+              <strong>{draftCount}</strong>
+              <small>Negosiasi harga atau menunggu konfirmasi buyer</small>
+            </section>
+            <section className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">EKSEKUSI BERJALAN</span>
+              <strong>{activeExecutionCount}</strong>
+              <small>Confirmed, Booked, Stuffing, hingga Pelayaran</small>
+            </section>
+          </div>
         </>
       )}
 
-      {/* VIEW 3: INTAKE ORDER & PO BARU */}
-      {viewTab === "new_po_intake" && (
+      {/* MODE 2: PENAMBAHAN PO BARU (INTAKE DOKUMEN PO / LOI BUYER) */}
+      {viewMode === "new_po_intake" && (
         <section className="panel panel-padding active-order-card">
           <button
             type="button"
             className="tx-back-btn"
-            onClick={() => setViewTab("orders_list")}
+            onClick={() => setViewMode("active_management")}
           >
-            <ArrowLeft size={14} /> ← Kembali ke Daftar Transaksi
+            <ArrowLeft size={14} /> ← Kembali ke Pengelolaan Ekspor
           </button>
 
           <div className="panel-head">
@@ -1388,7 +1423,7 @@ export function TransactionsModule({
               <button
                 type="button"
                 className="ghost-button"
-                onClick={() => setViewTab("orders_list")}
+                onClick={() => setViewMode("active_management")}
               >
                 Batal / Kembali
               </button>

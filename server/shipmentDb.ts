@@ -101,11 +101,12 @@ export async function listShipments(userId: number, input: { limit: number; offs
   const db = requireDatabase(await getDb());
   const workspace = await resolveWorkspace(db, userId);
   await assertWorkspaceAccess(db, workspace.id, userId);
-  return db.select({
+  const rows = await db.select({
     id: shipments.id,
     reference: shipments.reference,
     status: shipments.status,
     version: shipments.version,
+    snapshotJson: shipments.snapshotJson,
     createdAt: shipments.createdAt,
     updatedAt: shipments.updatedAt,
   })
@@ -114,6 +115,38 @@ export async function listShipments(userId: number, input: { limit: number; offs
     .orderBy(desc(shipments.updatedAt))
     .limit(input.limit)
     .offset(input.offset);
+
+  return rows.map((r) => {
+    const snap = parseJson(r.snapshotJson);
+    return {
+      id: r.id,
+      reference: r.reference,
+      status: r.status,
+      version: r.version,
+      buyer: typeof snap.buyer === "string" ? snap.buyer : "",
+      buyerCountry: typeof snap.buyerCountry === "string" ? snap.buyerCountry : "",
+      product: typeof snap.product === "string" ? snap.product : "",
+      incoterm: typeof snap.incoterm === "string" ? snap.incoterm : "FOB",
+      quantity: typeof snap.quantity === "number" ? snap.quantity : 20,
+      unit: typeof snap.unit === "string" ? snap.unit : "MT",
+      createdAt: r.createdAt,
+      updatedAt: r.updatedAt,
+    };
+  });
+}
+
+export async function deleteShipment(userId: number, shipmentId: string) {
+  const db = requireDatabase(await getDb());
+  const rows = await db.select().from(shipments).where(eq(shipments.id, shipmentId)).limit(1);
+  const current = rows[0];
+  if (!current) throw new ShipmentPersistenceError("NOT_FOUND", "Transaksi tidak ditemukan.");
+  await assertWorkspaceAccess(db, current.workspaceId, userId, "editor");
+  await db.transaction(async (tx) => {
+    await tx.delete(shipmentLineItems).where(eq(shipmentLineItems.shipmentId, shipmentId));
+    await tx.delete(shipmentAuditLogs).where(eq(shipmentAuditLogs.shipmentId, shipmentId));
+    await tx.delete(shipments).where(eq(shipments.id, shipmentId));
+  });
+  return { success: true };
 }
 
 export async function getShipment(userId: number, shipmentId: string) {

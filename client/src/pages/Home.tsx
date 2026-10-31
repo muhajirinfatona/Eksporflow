@@ -63,6 +63,7 @@ export default function Home() {
     loadCustomShipment,
     reloadLatest,
     createNewDraft,
+    deleteShipment,
     resetTransaction,
     refreshAuth,
     logout,
@@ -188,6 +189,7 @@ export default function Home() {
           loadShipment={loadShipment}
           loadCustomShipment={loadCustomShipment}
           saveShipment={saveShipment}
+          deleteShipment={deleteShipment}
           createNewDraft={createNewDraft}
           login={refreshAuth}
           navigate={navigate}
