@@ -5999,10 +5999,11 @@ textarea:focus-visible {
 }
 
 .sig-box-space {
-  min-height: 80px;
+  min-height: 52px;
+  height: 52px;
   display: flex;
   align-items: flex-end;
-  margin: 6px 0;
+  margin: 4px 0;
   position: relative;
 }
 
@@ -6051,7 +6052,8 @@ textarea:focus-visible {
 }
 
 .sig-canvas-zone {
-  min-height: 75px;
+  min-height: 52px;
+  height: 52px;
   width: 220px;
   position: relative;
   display: flex;

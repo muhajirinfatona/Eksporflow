@@ -577,15 +577,9 @@ function OfficialStampAndSignature({
         {isId ? "Ditandatangani untuk dan atas nama:" : "Signed for and on behalf of:"}
       </span>
       <b className="sig-company-name">{exporterName}</b>
-      <div className="sig-canvas-zone">
-        <div className="sig-line-mark">
-          {isId ? "[Tanda Tangan & Stempel Perusahaan]" : "[Signature & Company Stamp]"}
-        </div>
-      </div>
+      <div className="sig-canvas-zone" />
       <b className="sig-signatory-name">{signatoryName}</b>
-      <span className="sig-signatory-title">
-        {displayRole} {isId ? "(Penandatangan Berwenang)" : "· Authorized Signatory"}
-      </span>
+      <span className="sig-signatory-title">{displayRole}</span>
     </div>
   );
 }
@@ -1081,9 +1075,7 @@ function SalesContractDoc({
             {isId ? "PIHAK PEMBELI (THE BUYER)" : "THE BUYER"}
           </span>
           <b>{isId ? `Untuk ${buyerName}` : `For ${buyerName}`}</b>
-          <div className="sig-box-space">
-            <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
-          </div>
+          <div className="sig-box-space" />
           <b className="sig-name">{buyerPicName || "Tariq Al-Mansoor"}</b>
           <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
         </div>
@@ -1093,12 +1085,10 @@ function SalesContractDoc({
             {isId ? "PIHAK PENJUAL (THE SELLER)" : "THE SELLER"}
           </span>
           <b>{isId ? `Untuk ${exporterName}` : `For ${exporterName}`}</b>
-          <div className="sig-box-space">
-            <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
-          </div>
+          <div className="sig-box-space" />
           <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
           <span className="sig-sub">
-            {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")} {isId ? "· Penandatangan Berwenang" : "· Authorized Signatory"}
+            {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")}
           </span>
         </div>
       </div>
