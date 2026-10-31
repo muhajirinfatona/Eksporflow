@@ -267,10 +267,10 @@ export function DocumentsModule({
             type="button"
             className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            title="Ubah data surat, permintaan buyer, kop, dan penandatangan"
+            title="Atur kop surat, logo, format kertas, bahasa, dan penandatangan"
           >
             <SlidersHorizontal size={14} />
-            <span>{isSettingsOpen ? "Tutup Pengaturan" : "Edit Dokumen & Setelan Kop"}</span>
+            <span>{isSettingsOpen ? "Tutup Pengaturan" : "Setelan Kop & Format"}</span>
             {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
 
@@ -308,6 +308,17 @@ export function DocumentsModule({
 
       {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
+        {/* Direct Document Inline Edit Notice */}
+        <div className="doc-inline-edit-notice">
+          <div className="inline-notice-left">
+            <span className="inline-edit-badge">✏️ Edit Langsung di Surat: Aktif</span>
+            <span className="inline-notice-text">
+              Klik langsung pada teks di dalam surat (nama buyer, alamat, nomor PO, kapal, kontainer, syarat bayar, tanda tangan) untuk mengubahnya.
+            </span>
+          </div>
+          <span className="inline-notice-badge-info">Otomatis Tersinkron</span>
+        </div>
+
         <div
           className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")}`}
         >
@@ -324,6 +335,7 @@ export function DocumentsModule({
           {selectedDocument === "Proforma Invoice" && (
             <ProformaInvoiceDoc
               shipment={shipment}
+              update={update}
               exporterName={exporterName}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
@@ -357,6 +369,7 @@ export function DocumentsModule({
           {selectedDocument === "Sales Contract" && (
             <SalesContractDoc
               shipment={shipment}
+              update={update}
               exporterName={exporterName}
               exporterAddress={exporterAddress}
               buyerName={buyerName}
@@ -391,6 +404,7 @@ export function DocumentsModule({
           {selectedDocument === "Commercial Invoice" && (
             <CommercialInvoiceDoc
               shipment={shipment}
+              update={update}
               exporterName={exporterName}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
@@ -424,6 +438,7 @@ export function DocumentsModule({
           {selectedDocument === "Packing List" && (
             <PackingListDoc
               shipment={shipment}
+              update={update}
               exporterName={exporterName}
               buyerName={buyerName}
               buyerAddress={buyerAddress}
@@ -454,6 +469,7 @@ export function DocumentsModule({
             selectedDocument === "Bill of Lading") && (
             <ShippingInstructionDoc
               shipment={shipment}
+              update={update}
               exporterName={exporterName}
               exporterAddress={exporterAddress}
               buyerName={buyerName}
@@ -483,6 +499,52 @@ export function DocumentsModule({
         </div>
       </div>
     </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Direct Inline Editor Helper for Document Paper
+// --------------------------------------------------------------------------
+function DocInlineEdit({
+  value,
+  onChange,
+  className = "",
+  placeholder = "",
+  title = "Klik untuk mengedit langsung di surat",
+  as = "input",
+  style,
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  className?: string;
+  placeholder?: string;
+  title?: string;
+  as?: "input" | "textarea";
+  style?: React.CSSProperties;
+}) {
+  if (as === "textarea") {
+    return (
+      <textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        title={title}
+        className={`doc-inline-edit doc-inline-textarea ${className}`}
+        style={style}
+        rows={Math.max(2, (value || "").split("\n").length)}
+      />
+    );
+  }
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={placeholder}
+      title={title}
+      className={`doc-inline-edit ${className}`}
+      style={style}
+    />
   );
 }
 
@@ -553,12 +615,16 @@ function OfficialStampAndSignature({
   signatoryName = "Muhajirin Fatona",
   role = "Export Director",
   isId = false,
+  onUpdateSignatoryName,
+  onUpdateSignatoryRole,
 }: {
   exporterName: string;
   signatoryName?: string;
   role?: string;
   showStamp?: boolean;
   isId?: boolean;
+  onUpdateSignatoryName?: (val: string) => void;
+  onUpdateSignatoryRole?: (val: string) => void;
 }) {
   const displayRole = isId
     ? role === "Export Director"
@@ -579,10 +645,30 @@ function OfficialStampAndSignature({
           {isId ? "[Tanda Tangan & Stempel Perusahaan]" : "[Signature & Company Stamp]"}
         </div>
       </div>
-      <b className="sig-signatory-name">{signatoryName}</b>
-      <span className="sig-signatory-title">
-        {displayRole} {isId ? "(Penandatangan Berwenang)" : "· Authorized Signatory"}
-      </span>
+      {onUpdateSignatoryName ? (
+        <DocInlineEdit
+          value={signatoryName}
+          onChange={onUpdateSignatoryName}
+          placeholder={isId ? "Nama Penandatangan" : "Signatory Name"}
+          className="sig-signatory-name font-bold text-right"
+          title={isId ? "Klik untuk mengedit nama penandatangan eksportir" : "Click to edit exporter signatory name"}
+        />
+      ) : (
+        <b className="sig-signatory-name">{signatoryName}</b>
+      )}
+      {onUpdateSignatoryRole ? (
+        <DocInlineEdit
+          value={displayRole}
+          onChange={onUpdateSignatoryRole}
+          placeholder={isId ? "Jabatan Penandatangan" : "Signatory Role"}
+          className="sig-signatory-title text-right"
+          title={isId ? "Klik untuk mengedit jabatan penandatangan eksportir" : "Click to edit exporter signatory role"}
+        />
+      ) : (
+        <span className="sig-signatory-title">
+          {displayRole} {isId ? "(Penandatangan Berwenang)" : "· Authorized Signatory"}
+        </span>
+      )}
     </div>
   );
 }
@@ -592,6 +678,7 @@ function OfficialStampAndSignature({
 // --------------------------------------------------------------------------
 function ProformaInvoiceDoc({
   shipment,
+  update,
   exporterName,
   buyerName,
   buyerAddress,
@@ -621,6 +708,7 @@ function ProformaInvoiceDoc({
   isId = false,
 }: {
   shipment: Shipment;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   exporterName: string;
   buyerName: string;
   buyerAddress: string;
@@ -660,16 +748,85 @@ function ProformaInvoiceDoc({
           <span className="doc-box-tag">
             {isId ? "PEMBELI / PENERIMA (BUYER / CONSIGNEE):" : "BUYER / CONSIGNEE:"}
           </span>
-          <b className="doc-entity-name">{buyerName}</b>
-          <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-          <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
-          <p className="doc-entity-contact">
-            {isId ? "Narahubung:" : "Contact Person:"}{" "}
-            <b>
-              {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
-              {isId ? `(${buyerPicRole || "Direktur Pengadaan"})` : `(${buyerPicRole || "Procurement Director"})`}
-            </b>
-          </p>
+          {update ? (
+            <DocInlineEdit
+              value={buyerName}
+              onChange={(val) => update("buyer", val)}
+              placeholder="Nama Perusahaan Buyer"
+              className="doc-entity-name"
+              title="Klik untuk mengedit nama perusahaan buyer"
+            />
+          ) : (
+            <b className="doc-entity-name">{buyerName}</b>
+          )}
+          {update ? (
+            <div className="flex gap-1 items-center mt-1">
+              <DocInlineEdit
+                value={buyerAddress}
+                onChange={(val) => update("buyerAddress", val)}
+                placeholder="Alamat Kantor Buyer"
+                className="doc-entity-address"
+                title="Klik untuk mengedit alamat buyer"
+              />
+              <span>,</span>
+              <DocInlineEdit
+                value={buyerCountry}
+                onChange={(val) => update("buyerCountry", val)}
+                placeholder="Negara Buyer"
+                className="doc-entity-address inline-compact"
+                title="Klik untuk mengedit negara buyer"
+              />
+            </div>
+          ) : (
+            <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
+          )}
+          {update ? (
+            <div className="doc-entity-contact flex items-center gap-1 mt-1">
+              <span>Tel:</span>
+              <DocInlineEdit
+                value={buyerPhone || "+971 4 223 4567"}
+                onChange={(val) => update("buyerPhone", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit nomor telepon buyer"
+              />
+              <span>| Email:</span>
+              <DocInlineEdit
+                value={buyerEmail || "procurement@albarakahfoods.ae"}
+                onChange={(val) => update("buyerEmail", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit email buyer"
+              />
+            </div>
+          ) : (
+            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          )}
+          {update ? (
+            <div className="doc-entity-contact flex items-center gap-1 mt-1">
+              <span>{isId ? "Narahubung:" : "Contact Person:"}</span>
+              <DocInlineEdit
+                value={buyerPicName || "Mr. Tariq Al-Mansoor"}
+                onChange={(val) => update("buyerPicName", val)}
+                className="inline-compact font-bold"
+                title="Klik untuk mengedit nama narahubung buyer"
+              />
+              <span>(</span>
+              <DocInlineEdit
+                value={buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}
+                onChange={(val) => update("buyerPicRole", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit jabatan narahubung buyer"
+              />
+              <span>)</span>
+            </div>
+          ) : (
+            <p className="doc-entity-contact">
+              {isId ? "Narahubung:" : "Contact Person:"}{" "}
+              <b>
+                {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
+                {isId ? `(${buyerPicRole || "Direktur Pengadaan"})` : `(${buyerPicRole || "Procurement Director"})`}
+              </b>
+            </p>
+          )}
         </div>
 
         <div className="doc-box">
@@ -687,7 +844,16 @@ function ProformaInvoiceDoc({
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Ref. Pembeli:" : "Buyer Ref:"}</span>
-            <span className="meta-value font-mono">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</span>
+            {update ? (
+              <DocInlineEdit
+                value={poNumber || shipment.poNumber || "ABF/LOI/2026/108"}
+                onChange={(val) => update("poNumber", val)}
+                className="meta-value font-mono font-bold"
+                title="Klik untuk mengedit nomor PO / referensi pembeli"
+              />
+            ) : (
+              <span className="meta-value font-mono">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</span>
+            )}
           </div>
         </div>
       </div>
@@ -699,7 +865,16 @@ function ProformaInvoiceDoc({
         <div className="doc-terms-grid">
           <div>
             <span className="terms-lbl">{isId ? "Pelabuhan Muat (POL):" : "Port of Loading:"}</span>
-            <b className="terms-val">{pol}</b>
+            {update ? (
+              <DocInlineEdit
+                value={pol}
+                onChange={(val) => update("namedPlace", val)}
+                className="terms-val font-bold"
+                title="Klik untuk mengedit pelabuhan muat (POL)"
+              />
+            ) : (
+              <b className="terms-val">{pol}</b>
+            )}
           </div>
           <div>
             <span className="terms-lbl">{isId ? "Ketentuan Penyerahan:" : "Incoterm:"}</span>
@@ -707,7 +882,16 @@ function ProformaInvoiceDoc({
           </div>
           <div>
             <span className="terms-lbl">{isId ? "Pelabuhan Bongkar (POD):" : "Port of Discharge:"}</span>
-            <b className="terms-val">{pod}</b>
+            {update ? (
+              <DocInlineEdit
+                value={pod}
+                onChange={(val) => update("destination", val)}
+                className="terms-val font-bold"
+                title="Klik untuk mengedit pelabuhan bongkar (POD)"
+              />
+            ) : (
+              <b className="terms-val">{pod}</b>
+            )}
           </div>
           <div>
             <span className="terms-lbl">{isId ? "Estimasi Pengapalan:" : "Est. Shipment:"}</span>
@@ -717,12 +901,24 @@ function ProformaInvoiceDoc({
           </div>
           <div className="col-span-full">
             <span className="terms-lbl">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>
-            <b className="terms-val">
-              {paymentTerms ||
-                (isId
-                  ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
-                  : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
-            </b>
+            {update ? (
+              <DocInlineEdit
+                value={paymentTerms ||
+                  (isId
+                    ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+                    : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
+                onChange={(val) => update("paymentTerms", val)}
+                className="terms-val font-bold"
+                title="Klik untuk mengedit syarat pembayaran"
+              />
+            ) : (
+              <b className="terms-val">
+                {paymentTerms ||
+                  (isId
+                    ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+                    : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
+              </b>
+            )}
           </div>
         </div>
       </div>
@@ -791,7 +987,18 @@ function ProformaInvoiceDoc({
           <tbody>
             <tr>
               <td className="bank-lbl">{isId ? "Nama Bank:" : "Bank Name:"}</td>
-              <td className="bank-val font-semibold">{bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"}</td>
+              <td className="bank-val font-semibold">
+                {update ? (
+                  <DocInlineEdit
+                    value={bankName || "PT. Bank Mandiri (Persero) Tbk"}
+                    onChange={(val) => update("bankName", val)}
+                    className="font-semibold"
+                    title="Klik untuk mengedit nama bank eksportir"
+                  />
+                ) : (
+                  bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"
+                )}
+              </td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Alamat Bank:" : "Bank Address:"}</td>
@@ -803,11 +1010,34 @@ function ProformaInvoiceDoc({
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Nomor Rekening:" : "Account Number:"}</td>
-              <td className="bank-val font-mono font-bold">{bankAccountNo || "152-00-9876543-2"} {isId ? "(Rekening Valas USD)" : "(USD Account)"}</td>
+              <td className="bank-val font-mono font-bold">
+                {update ? (
+                  <DocInlineEdit
+                    value={bankAccountNo || "152-00-9876543-2"}
+                    onChange={(val) => update("bankAccountNo", val)}
+                    className="font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit nomor rekening"
+                  />
+                ) : (
+                  bankAccountNo || "152-00-9876543-2"
+                )}{" "}
+                {isId ? "(Rekening Valas USD)" : "(USD Account)"}
+              </td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Kode SWIFT / BIC:" : "SWIFT Code:"}</td>
-              <td className="bank-val font-mono font-bold">{bankSwift || "BMRIIDJA"}</td>
+              <td className="bank-val font-mono font-bold">
+                {update ? (
+                  <DocInlineEdit
+                    value={bankSwift || "BMRIIDJA"}
+                    onChange={(val) => update("bankSwift", val)}
+                    className="font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit kode SWIFT bank"
+                  />
+                ) : (
+                  bankSwift || "BMRIIDJA"
+                )}
+              </td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Mata Uang:" : "Currency:"}</td>
@@ -823,6 +1053,8 @@ function ProformaInvoiceDoc({
           signatoryName={signatoryName}
           role={signatoryRole}
           isId={isId}
+          onUpdateSignatoryName={update ? (val) => update("signatoryName", val) : undefined}
+          onUpdateSignatoryRole={update ? (val) => update("signatoryRole", val) : undefined}
         />
       </div>
     </div>
@@ -833,6 +1065,8 @@ function ProformaInvoiceDoc({
 // 2. SALES CONTRACT (SC) COMPONENT
 // --------------------------------------------------------------------------
 function SalesContractDoc({
+  shipment,
+  update,
   exporterName,
   exporterAddress,
   buyerName,
@@ -863,6 +1097,7 @@ function SalesContractDoc({
   isId = false,
 }: {
   shipment?: Shipment;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   exporterName: string;
   exporterAddress: string;
   buyerName: string;
@@ -906,14 +1141,20 @@ function SalesContractDoc({
         <span>
           {isId ? "Tanggal:" : "Date:"} <b>{isId ? "2 November 2026" : "November 2, 2026"}</b>
         </span>
-        {poNumber && (
-          <>
-            <span>|</span>
-            <span>
-              {isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"} <b>{poNumber}</b>
-            </span>
-          </>
-        )}
+        <span>|</span>
+        <span>
+          {isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}{" "}
+          {update ? (
+            <DocInlineEdit
+              value={poNumber || "ABF/LOI/2026/108"}
+              onChange={(val) => update("poNumber", val)}
+              className="font-mono font-bold inline-compact"
+              title="Klik untuk mengedit nomor PO pembeli"
+            />
+          ) : (
+            <b>{poNumber || "ABF/LOI/2026/108"}</b>
+          )}
+        </span>
       </div>
 
       <p className="doc-preamble-text">
@@ -927,8 +1168,26 @@ function SalesContractDoc({
           <div className="contract-party-header">
             {isId ? "PIHAK PENJUAL (THE SELLER)" : "THE SELLER"}
           </div>
-          <b className="party-name">{exporterName}</b>
-          <p className="party-address">{exporterAddress}</p>
+          {update ? (
+            <DocInlineEdit
+              value={exporterName}
+              onChange={(val) => update("exporter", val)}
+              className="party-name font-bold"
+              title="Klik untuk mengedit nama eksportir"
+            />
+          ) : (
+            <b className="party-name">{exporterName}</b>
+          )}
+          {update ? (
+            <DocInlineEdit
+              value={exporterAddress}
+              onChange={(val) => update("letterheadText", val)}
+              className="party-address"
+              title="Klik untuk mengedit alamat eksportir"
+            />
+          ) : (
+            <p className="party-address">{exporterAddress}</p>
+          )}
           <p className="party-phone">
             {isId ? "Telepon:" : "Phone:"} +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
@@ -939,15 +1198,81 @@ function SalesContractDoc({
           <div className="contract-party-header">
             {isId ? "PIHAK PEMBELI (THE BUYER)" : "THE BUYER"}
           </div>
-          <b className="party-name">{buyerName}</b>
-          <p className="party-address">{buyerAddress}, {buyerCountry}</p>
-          <p className="party-phone">
-            {isId ? "Telepon:" : "Phone:"} {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
-          </p>
-          <p className="party-tax">
-            {isId ? "Up:" : "Attn:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
-            ({isId ? buyerPicRole || "Direktur Pengadaan" : buyerPicRole || "Procurement Director"})
-          </p>
+          {update ? (
+            <DocInlineEdit
+              value={buyerName}
+              onChange={(val) => update("buyer", val)}
+              className="party-name font-bold"
+              title="Klik untuk mengedit nama pembeli"
+            />
+          ) : (
+            <b className="party-name">{buyerName}</b>
+          )}
+          {update ? (
+            <div className="flex gap-1 items-center mt-1">
+              <DocInlineEdit
+                value={buyerAddress}
+                onChange={(val) => update("buyerAddress", val)}
+                className="party-address"
+                title="Klik untuk mengedit alamat pembeli"
+              />
+              <span>,</span>
+              <DocInlineEdit
+                value={buyerCountry}
+                onChange={(val) => update("buyerCountry", val)}
+                className="party-address inline-compact"
+                title="Klik untuk mengedit negara pembeli"
+              />
+            </div>
+          ) : (
+            <p className="party-address">{buyerAddress}, {buyerCountry}</p>
+          )}
+          {update ? (
+            <div className="party-phone flex items-center gap-1 mt-1">
+              <span>{isId ? "Telepon:" : "Phone:"}</span>
+              <DocInlineEdit
+                value={buyerPhone || "+971 4 223 4567"}
+                onChange={(val) => update("buyerPhone", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit nomor telepon buyer"
+              />
+              <span>| Email:</span>
+              <DocInlineEdit
+                value={buyerEmail || "procurement@albarakahfoods.ae"}
+                onChange={(val) => update("buyerEmail", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit email buyer"
+              />
+            </div>
+          ) : (
+            <p className="party-phone">
+              {isId ? "Telepon:" : "Phone:"} {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
+            </p>
+          )}
+          {update ? (
+            <div className="party-tax flex items-center gap-1 mt-1">
+              <span>{isId ? "Up:" : "Attn:"}</span>
+              <DocInlineEdit
+                value={buyerPicName || "Mr. Tariq Al-Mansoor"}
+                onChange={(val) => update("buyerPicName", val)}
+                className="inline-compact font-bold"
+                title="Klik untuk mengedit nama narahubung buyer"
+              />
+              <span>(</span>
+              <DocInlineEdit
+                value={buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}
+                onChange={(val) => update("buyerPicRole", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit jabatan narahubung buyer"
+              />
+              <span>)</span>
+            </div>
+          ) : (
+            <p className="party-tax">
+              {isId ? "Up:" : "Attn:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
+              ({isId ? buyerPicRole || "Direktur Pengadaan" : buyerPicRole || "Procurement Director"})
+            </p>
+          )}
         </div>
       </div>
 
@@ -1008,10 +1333,20 @@ function SalesContractDoc({
               <b>
                 {isId ? "Ketentuan:" : "Terms:"}
               </b>{" "}
-              {paymentTerms ||
-                (isId
+              {update ? (
+                <DocInlineEdit
+                  value={paymentTerms || (isId
+                    ? `50% Uang Muka (DP) (${currency} ${formatNumber(totalAmount * 0.5, 2)}) dibayarkan dalam waktu 3 hari kerja.`
+                    : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)}) payable within 3 working days.`)}
+                  onChange={(val) => update("paymentTerms", val)}
+                  className="inline-compact font-bold"
+                  title="Klik untuk mengedit syarat pembayaran"
+                />
+              ) : (
+                paymentTerms || (isId
                   ? `50% Uang Muka (DP) (${currency} ${formatNumber(totalAmount * 0.5, 2)}) dibayarkan dalam waktu 3 hari kerja.`
-                  : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)}) payable within 3 working days.`)}
+                  : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)}) payable within 3 working days.`)
+              )}
             </li>
             <li>
               <b>
@@ -1031,8 +1366,28 @@ function SalesContractDoc({
             {isId ? "PASAL 4: KETENTUAN PENGAPALAN" : "ARTICLE 4: SHIPMENT TERMS"}
           </h4>
           <p>
-            <b>{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</b> {pol} |{" "}
-            <b>{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</b> {pod}
+            <b>{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</b>{" "}
+            {update ? (
+              <DocInlineEdit
+                value={pol}
+                onChange={(val) => update("namedPlace", val)}
+                className="font-bold inline-compact"
+                title="Klik untuk mengedit pelabuhan muat (POL)"
+              />
+            ) : (
+              pol
+            )}{" "}
+            | <b>{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</b>{" "}
+            {update ? (
+              <DocInlineEdit
+                value={pod}
+                onChange={(val) => update("destination", val)}
+                className="font-bold inline-compact"
+                title="Klik untuk mengedit pelabuhan bongkar (POD)"
+              />
+            ) : (
+              pod
+            )}
           </p>
           <p>
             <b>{isId ? "Batas Akhir Pengapalan:" : "Latest Shipment:"}</b>{" "}
@@ -1082,8 +1437,26 @@ function SalesContractDoc({
           <div className="sig-box-space">
             <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
           </div>
-          <b className="sig-name">{buyerPicName || "Tariq Al-Mansoor"}</b>
-          <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
+          {update ? (
+            <DocInlineEdit
+              value={buyerPicName || "Tariq Al-Mansoor"}
+              onChange={(val) => update("buyerPicName", val)}
+              className="sig-name font-bold"
+              title="Klik untuk mengedit nama penandatangan buyer"
+            />
+          ) : (
+            <b className="sig-name">{buyerPicName || "Tariq Al-Mansoor"}</b>
+          )}
+          {update ? (
+            <DocInlineEdit
+              value={buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}
+              onChange={(val) => update("buyerPicRole", val)}
+              className="sig-sub"
+              title="Klik untuk mengedit jabatan penandatangan buyer"
+            />
+          ) : (
+            <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
+          )}
         </div>
 
         <div className="sig-side sig-side-right">
@@ -1094,10 +1467,28 @@ function SalesContractDoc({
           <div className="sig-box-space">
             <div className="sig-placeholder">{isId ? "[Tanda Tangan & Stempel]" : "[Signature & Stamp]"}</div>
           </div>
-          <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
-          <span className="sig-sub">
-            {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")} {isId ? "· Penandatangan Berwenang" : "· Authorized Signatory"}
-          </span>
+          {update ? (
+            <DocInlineEdit
+              value={signatoryName || "Muhajirin Fatona"}
+              onChange={(val) => update("signatoryName", val)}
+              className="sig-name font-bold text-right"
+              title="Klik untuk mengedit nama penandatangan eksportir"
+            />
+          ) : (
+            <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
+          )}
+          {update ? (
+            <DocInlineEdit
+              value={signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")}
+              onChange={(val) => update("signatoryRole", val)}
+              className="sig-sub text-right"
+              title="Klik untuk mengedit jabatan penandatangan eksportir"
+            />
+          ) : (
+            <span className="sig-sub">
+              {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")} {isId ? "· Penandatangan Berwenang" : "· Authorized Signatory"}
+            </span>
+          )}
         </div>
       </div>
     </div>
@@ -1108,6 +1499,8 @@ function SalesContractDoc({
 // 3. COMMERCIAL INVOICE (CI) COMPONENT
 // --------------------------------------------------------------------------
 function CommercialInvoiceDoc({
+  shipment,
+  update,
   exporterName,
   buyerName,
   buyerAddress,
@@ -1137,6 +1530,7 @@ function CommercialInvoiceDoc({
   isId = false,
 }: {
   shipment?: Shipment;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   exporterName: string;
   buyerName: string;
   buyerAddress: string;
@@ -1187,9 +1581,55 @@ function CommercialInvoiceDoc({
             <span className="doc-box-tag">
               {isId ? "PENERIMA / PEMBELI (CONSIGNEE / BUYER):" : "CONSIGNEE / BUYER:"}
             </span>
-            <b className="doc-entity-name">{buyerName}</b>
-            <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+            {update ? (
+              <DocInlineEdit
+                value={buyerName}
+                onChange={(val) => update("buyer", val)}
+                className="doc-entity-name font-bold"
+                title="Klik untuk mengedit nama penerima (consignee)"
+              />
+            ) : (
+              <b className="doc-entity-name">{buyerName}</b>
+            )}
+            {update ? (
+              <div className="flex gap-1 items-center mt-1">
+                <DocInlineEdit
+                  value={buyerAddress}
+                  onChange={(val) => update("buyerAddress", val)}
+                  className="doc-entity-address"
+                  title="Klik untuk mengedit alamat pembeli"
+                />
+                <span>,</span>
+                <DocInlineEdit
+                  value={buyerCountry}
+                  onChange={(val) => update("buyerCountry", val)}
+                  className="doc-entity-address inline-compact"
+                  title="Klik untuk mengedit negara pembeli"
+                />
+              </div>
+            ) : (
+              <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
+            )}
+            {update ? (
+              <div className="doc-entity-contact flex items-center gap-1 mt-1">
+                <span>Tel:</span>
+                <DocInlineEdit
+                  value={buyerPhone || "+971 4 223 4567"}
+                  onChange={(val) => update("buyerPhone", val)}
+                  className="inline-compact"
+                  title="Klik untuk mengedit nomor telepon buyer"
+                />
+                <span>| Email:</span>
+                <DocInlineEdit
+                  value={buyerEmail || "procurement@albarakahfoods.ae"}
+                  onChange={(val) => update("buyerEmail", val)}
+                  className="inline-compact"
+                  title="Klik untuk mengedit email buyer"
+                />
+              </div>
+            ) : (
+              <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+            )}
           </div>
 
           <div className="doc-box">
@@ -1216,15 +1656,31 @@ function CommercialInvoiceDoc({
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
               <b className="meta-value font-mono">SC/IEI-ABF/XI/2026/001</b>
             </div>
-            {poNumber && (
-              <div className="meta-pair">
-                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
-                <b className="meta-value font-mono">{poNumber}</b>
-              </div>
-            )}
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
+              {update ? (
+                <DocInlineEdit
+                  value={poNumber || "ABF/LOI/2026/108"}
+                  onChange={(val) => update("poNumber", val)}
+                  className="meta-value font-mono font-bold inline-compact"
+                  title="Klik untuk mengedit nomor PO pembeli"
+                />
+              ) : (
+                <b className="meta-value font-mono">{poNumber || "ABF/LOI/2026/108"}</b>
+              )}
+            </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>{" "}
-              <span className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</span>
+              {update ? (
+                <DocInlineEdit
+                  value={paymentTerms || "Telegraphic Transfer (T/T)"}
+                  onChange={(val) => update("paymentTerms", val)}
+                  className="meta-value font-semibold"
+                  title="Klik untuk mengedit syarat pembayaran"
+                />
+              ) : (
+                <span className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</span>
+              )}
             </div>
           </div>
 
@@ -1234,19 +1690,68 @@ function CommercialInvoiceDoc({
             </span>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
-              <b className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
+              {update ? (
+                <DocInlineEdit
+                  value={vesselName || "KMTC SHIMIZU V.2611N"}
+                  onChange={(val) => {
+                    update("vesselName", val);
+                    update("bookingNumber", val);
+                  }}
+                  className="meta-value font-bold"
+                  title="Klik untuk mengedit nama kapal & voyage"
+                />
+              ) : (
+                <b className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
-              <span className="meta-value">{pol}</span>
+              {update ? (
+                <DocInlineEdit
+                  value={pol}
+                  onChange={(val) => update("namedPlace", val)}
+                  className="meta-value font-semibold"
+                  title="Klik untuk mengedit pelabuhan muat (POL)"
+                />
+              ) : (
+                <span className="meta-value">{pol}</span>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
-              <span className="meta-value">{pod}</span>
+              {update ? (
+                <DocInlineEdit
+                  value={pod}
+                  onChange={(val) => update("destination", val)}
+                  className="meta-value font-semibold"
+                  title="Klik untuk mengedit pelabuhan bongkar (POD)"
+                />
+              ) : (
+                <span className="meta-value">{pod}</span>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
+              {update ? (
+                <div className="flex items-center gap-1">
+                  <DocInlineEdit
+                    value={containerNumber || "TGHU 2468135"}
+                    onChange={(val) => update("containerNumber", val)}
+                    className="meta-value font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit nomor kontainer"
+                  />
+                  <span>/</span>
+                  <DocInlineEdit
+                    value={sealNumber || "IDMKS998877"}
+                    onChange={(val) => update("sealNumber", val)}
+                    className="meta-value font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit nomor segel"
+                  />
+                  <span>(1x20&apos; FCL)</span>
+                </div>
+              ) : (
+                <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
@@ -1338,6 +1843,8 @@ function CommercialInvoiceDoc({
           signatoryName={signatoryName}
           role={signatoryRole}
           isId={isId}
+          onUpdateSignatoryName={update ? (val) => update("signatoryName", val) : undefined}
+          onUpdateSignatoryRole={update ? (val) => update("signatoryRole", val) : undefined}
         />
       </div>
     </div>
@@ -1348,6 +1855,8 @@ function CommercialInvoiceDoc({
 // 4. PACKING LIST (PL) COMPONENT
 // --------------------------------------------------------------------------
 function PackingListDoc({
+  shipment,
+  update,
   exporterName,
   buyerName,
   buyerAddress,
@@ -1373,6 +1882,7 @@ function PackingListDoc({
   isId = false,
 }: {
   shipment?: Shipment;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   exporterName: string;
   buyerName: string;
   buyerAddress: string;
@@ -1419,9 +1929,55 @@ function PackingListDoc({
             <span className="doc-box-tag">
               {isId ? "PENERIMA (CONSIGNEE):" : "CONSIGNEE:"}
             </span>
-            <b className="doc-entity-name">{buyerName}</b>
-            <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
-            <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+            {update ? (
+              <DocInlineEdit
+                value={buyerName}
+                onChange={(val) => update("buyer", val)}
+                className="doc-entity-name font-bold"
+                title="Klik untuk mengedit nama penerima (consignee)"
+              />
+            ) : (
+              <b className="doc-entity-name">{buyerName}</b>
+            )}
+            {update ? (
+              <div className="flex gap-1 items-center mt-1">
+                <DocInlineEdit
+                  value={buyerAddress}
+                  onChange={(val) => update("buyerAddress", val)}
+                  className="doc-entity-address"
+                  title="Klik untuk mengedit alamat penerima"
+                />
+                <span>,</span>
+                <DocInlineEdit
+                  value={buyerCountry}
+                  onChange={(val) => update("buyerCountry", val)}
+                  className="doc-entity-address inline-compact"
+                  title="Klik untuk mengedit negara penerima"
+                />
+              </div>
+            ) : (
+              <p className="doc-entity-address">{buyerAddress}, {buyerCountry}</p>
+            )}
+            {update ? (
+              <div className="doc-entity-contact flex items-center gap-1 mt-1">
+                <span>Tel:</span>
+                <DocInlineEdit
+                  value={buyerPhone || "+971 4 223 4567"}
+                  onChange={(val) => update("buyerPhone", val)}
+                  className="inline-compact"
+                  title="Klik untuk mengedit nomor telepon buyer"
+                />
+                <span>| Email:</span>
+                <DocInlineEdit
+                  value={buyerEmail || "procurement@albarakahfoods.ae"}
+                  onChange={(val) => update("buyerEmail", val)}
+                  className="inline-compact"
+                  title="Klik untuk mengedit email buyer"
+                />
+              </div>
+            ) : (
+              <p className="doc-entity-contact">Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+            )}
           </div>
 
           <div className="doc-box">
@@ -1455,7 +2011,16 @@ function PackingListDoc({
             {poNumber && (
               <div className="meta-pair">
                 <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
-                <b className="meta-value font-mono">{poNumber}</b>
+                {update ? (
+                  <DocInlineEdit
+                    value={poNumber}
+                    onChange={(val) => update("poNumber", val)}
+                    className="meta-value font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit nomor PO pembeli"
+                  />
+                ) : (
+                  <b className="meta-value font-mono">{poNumber}</b>
+                )}
               </div>
             )}
           </div>
@@ -1466,19 +2031,68 @@ function PackingListDoc({
             </span>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
-              <b className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
+              {update ? (
+                <DocInlineEdit
+                  value={vesselName || "KMTC SHIMIZU V.2611N"}
+                  onChange={(val) => {
+                    update("vesselName", val);
+                    update("bookingNumber", val);
+                  }}
+                  className="meta-value font-bold"
+                  title="Klik untuk mengedit nama kapal & voyage"
+                />
+              ) : (
+                <b className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
-              <span className="meta-value">{pol}</span>
+              {update ? (
+                <DocInlineEdit
+                  value={pol}
+                  onChange={(val) => update("namedPlace", val)}
+                  className="meta-value font-semibold"
+                  title="Klik untuk mengedit pelabuhan muat (POL)"
+                />
+              ) : (
+                <span className="meta-value">{pol}</span>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
-              <span className="meta-value">{pod}</span>
+              {update ? (
+                <DocInlineEdit
+                  value={pod}
+                  onChange={(val) => update("destination", val)}
+                  className="meta-value font-semibold"
+                  title="Klik untuk mengedit pelabuhan bongkar (POD)"
+                />
+              ) : (
+                <span className="meta-value">{pod}</span>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
+              {update ? (
+                <div className="flex items-center gap-1">
+                  <DocInlineEdit
+                    value={containerNumber || "TGHU 2468135"}
+                    onChange={(val) => update("containerNumber", val)}
+                    className="meta-value font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit nomor kontainer"
+                  />
+                  <span>/</span>
+                  <DocInlineEdit
+                    value={sealNumber || "IDMKS998877"}
+                    onChange={(val) => update("sealNumber", val)}
+                    className="meta-value font-mono font-bold inline-compact"
+                    title="Klik untuk mengedit nomor segel"
+                  />
+                  <span>(1x20&apos; FCL)</span>
+                </div>
+              ) : (
+                <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
+              )}
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
@@ -1555,6 +2169,8 @@ function PackingListDoc({
           signatoryName={signatoryName}
           role={signatoryRole}
           isId={isId}
+          onUpdateSignatoryName={update ? (val) => update("signatoryName", val) : undefined}
+          onUpdateSignatoryRole={update ? (val) => update("signatoryRole", val) : undefined}
         />
       </div>
     </div>
@@ -1565,6 +2181,8 @@ function PackingListDoc({
 // 5. SHIPPING INSTRUCTION (SI) COMPONENT
 // --------------------------------------------------------------------------
 function ShippingInstructionDoc({
+  shipment,
+  update,
   exporterName,
   exporterAddress,
   buyerName,
@@ -1590,6 +2208,7 @@ function ShippingInstructionDoc({
   isId = false,
 }: {
   shipment?: Shipment;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   exporterName: string;
   exporterAddress?: string;
   buyerName: string;
@@ -1654,9 +2273,18 @@ function ShippingInstructionDoc({
             {isId ? "SHIPPER / PENGIRIM (Dicantumkan pada B/L)" : "SHIPPER (To appear on B/L)"}
           </div>
           <b className="party-title">{exporterName}</b>
-          <p className="party-txt">
-            {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
-          </p>
+          {update ? (
+            <DocInlineEdit
+              value={exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
+              onChange={(val) => update("letterheadText", val)}
+              className="party-txt"
+              title="Klik untuk mengedit alamat shipper"
+            />
+          ) : (
+            <p className="party-txt">
+              {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
+            </p>
+          )}
           <p className="party-txt">
             {isId ? "Telepon:" : "Tel:"} +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
@@ -1667,10 +2295,52 @@ function ShippingInstructionDoc({
           <div className="si-party-tag">
             {isId ? "CONSIGNEE / PENERIMA (Dicantumkan pada B/L)" : "CONSIGNEE (To appear on B/L)"}
           </div>
-          <b className="party-title">{buyerName}</b>
-          <p className="party-txt">{buyerAddress}</p>
-          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
-          <p className="party-txt">Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          {update ? (
+            <DocInlineEdit
+              value={buyerName}
+              onChange={(val) => update("buyer", val)}
+              className="party-title font-bold"
+              title="Klik untuk mengedit nama consignee"
+            />
+          ) : (
+            <b className="party-title">{buyerName}</b>
+          )}
+          {update ? (
+            <DocInlineEdit
+              value={buyerAddress}
+              onChange={(val) => update("buyerAddress", val)}
+              className="party-txt"
+              title="Klik untuk mengedit alamat consignee"
+            />
+          ) : (
+            <p className="party-txt">{buyerAddress}</p>
+          )}
+          {update ? (
+            <div className="party-txt flex items-center gap-1 mt-1">
+              <span>{isId ? "Telepon:" : "Tel:"}</span>
+              <DocInlineEdit
+                value={buyerPhone || "+971 4 223 4567"}
+                onChange={(val) => update("buyerPhone", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit nomor telepon buyer"
+              />
+            </div>
+          ) : (
+            <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
+          )}
+          {update ? (
+            <div className="party-txt flex items-center gap-1 mt-1">
+              <span>Email:</span>
+              <DocInlineEdit
+                value={buyerEmail || "procurement@albarakahfoods.ae"}
+                onChange={(val) => update("buyerEmail", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit email buyer"
+              />
+            </div>
+          ) : (
+            <p className="party-txt">Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          )}
         </div>
 
         <div className="si-party-card">
@@ -1679,26 +2349,80 @@ function ShippingInstructionDoc({
           </div>
           <b className="party-title">{isId ? "SAMA DENGAN PENERIMA" : "SAME AS CONSIGNEE"}</b>
           <p className="party-txt mt-2">{buyerName}</p>
-          <p className="party-txt">
-            {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}
-          </p>
-          <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
+          {update ? (
+            <div className="party-txt flex items-center gap-1 mt-1">
+              <span>{isId ? "Narahubung:" : "Contact:"}</span>
+              <DocInlineEdit
+                value={buyerPicName || "Mr. Tariq Al-Mansoor"}
+                onChange={(val) => update("buyerPicName", val)}
+                className="inline-compact font-bold"
+                title="Klik untuk mengedit kontak notify party"
+              />
+            </div>
+          ) : (
+            <p className="party-txt">
+              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}
+            </p>
+          )}
+          {update ? (
+            <div className="party-txt flex items-center gap-1 mt-1">
+              <span>{isId ? "Telepon:" : "Tel:"}</span>
+              <DocInlineEdit
+                value={buyerPhone || "+971 4 223 4567"}
+                onChange={(val) => update("buyerPhone", val)}
+                className="inline-compact"
+                title="Klik untuk mengedit telepon notify party"
+              />
+            </div>
+          ) : (
+            <p className="party-txt">{isId ? "Telepon:" : "Tel:"} {buyerPhone || "+971 4 223 4567"}</p>
+          )}
         </div>
       </div>
 
       <div className="doc-transport-row-strip">
         <div className="strip-item">
           <span className="strip-lbl">{isId ? "Kapal / Pelayaran" : "Vessel / Voyage"}</span>
-          <b className="strip-val">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
+          {update ? (
+            <DocInlineEdit
+              value={vesselName || "KMTC SHIMIZU V.2611N"}
+              onChange={(val) => {
+                update("vesselName", val);
+                update("bookingNumber", val);
+              }}
+              className="strip-val font-bold"
+              title="Klik untuk mengedit kapal / pelayaran"
+            />
+          ) : (
+            <b className="strip-val">{vesselName || "KMTC SHIMIZU V.2611N"}</b>
+          )}
           <small className="strip-sub">ETD: Nov 21, 2026</small>
         </div>
         <div className="strip-item">
           <span className="strip-lbl">{isId ? "Pelabuhan Muat (POL)" : "Port of Loading (POL)"}</span>
-          <b className="strip-val">{pol}</b>
+          {update ? (
+            <DocInlineEdit
+              value={pol}
+              onChange={(val) => update("namedPlace", val)}
+              className="strip-val font-bold"
+              title="Klik untuk mengedit pelabuhan muat (POL)"
+            />
+          ) : (
+            <b className="strip-val">{pol}</b>
+          )}
         </div>
         <div className="strip-item">
           <span className="strip-lbl">{isId ? "Pelabuhan Bongkar (POD)" : "Port of Discharge (POD)"}</span>
-          <b className="strip-val">{pod}</b>
+          {update ? (
+            <DocInlineEdit
+              value={pod}
+              onChange={(val) => update("destination", val)}
+              className="strip-val font-bold"
+              title="Klik untuk mengedit pelabuhan bongkar (POD)"
+            />
+          ) : (
+            <b className="strip-val">{pod}</b>
+          )}
         </div>
         <div className="strip-item">
           <span className="strip-lbl">{isId ? "Kontainer & Muat" : "Container & Stuffing"}</span>
@@ -1741,9 +2465,28 @@ function ShippingInstructionDoc({
                   : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
               </p>
               <p className="text-xs font-mono text-slate-700 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
-              <p className="text-xs font-mono font-bold text-slate-800">
-                {isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
-              </p>
+              {update ? (
+                <div className="flex items-center gap-1 font-mono text-xs mt-1">
+                  <span className="font-bold text-slate-800">{isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"}</span>
+                  <DocInlineEdit
+                    value={containerNumber || "TGHU 2468135"}
+                    onChange={(val) => update("containerNumber", val)}
+                    className="inline-compact font-bold"
+                    title="Klik untuk mengedit nomor kontainer"
+                  />
+                  <span>/</span>
+                  <DocInlineEdit
+                    value={sealNumber || "IDMKS998877"}
+                    onChange={(val) => update("sealNumber", val)}
+                    className="inline-compact font-bold"
+                    title="Klik untuk mengedit nomor segel"
+                  />
+                </div>
+              ) : (
+                <p className="text-xs font-mono font-bold text-slate-800">
+                  {isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
+                </p>
+              )}
               <p className="text-xs font-bold text-slate-800">
                 {isId ? "NEGARA ASAL: INDONESIA" : "COUNTRY OF ORIGIN: INDONESIA"}
               </p>
@@ -1792,7 +2535,7 @@ function ShippingInstructionDoc({
           <li>
             <b>{isId ? "Verifikasi Dokumen:" : "Verification:"}</b>{" "}
             {isId
-              ? "Mohon kirimkan Draft B/L dan Draft Pemberitahuan Ekspor Barang (PEB) kepada kami untuk diverifikasi sebelum penerbitan final."
+              ? "Mohon kirimkan Draft B/L dan Draft PEB (Pemberitahuan Ekspor Barang) kepada kami untuk diverifikasi sebelum penerbitan final."
               : "Please send us the Draft B/L and Draft PEB (Pemberitahuan Ekspor Barang) for our verification and approval prior to final issuance."}
           </li>
           <li>
@@ -1810,6 +2553,8 @@ function ShippingInstructionDoc({
           signatoryName={signatoryName}
           role={signatoryRole || (isId ? "Manajer Logistik & Ekspor" : "Logistics & Export Manager")}
           isId={isId}
+          onUpdateSignatoryName={update ? (val) => update("signatoryName", val) : undefined}
+          onUpdateSignatoryRole={update ? (val) => update("signatoryRole", val) : undefined}
         />
       </div>
     </div>
@@ -1830,7 +2575,6 @@ function DocumentSettings({
   onLetterheadImage: (file?: File) => void;
   onClose: () => void;
 }) {
-  const [settingsTab, setSettingsTab] = useState<"kop" | "content">("kop");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const isId = shipment.previewLanguage === "Bahasa Indonesia";
 
@@ -1863,11 +2607,11 @@ function DocumentSettings({
         <div>
           <div className="doc-settings-eyebrow">
             <SlidersHorizontal size={13} />
-            <span>PENGATURAN KOP SURAT & EDIT ISI DOKUMEN EKSPOR</span>
+            <span>PENGATURAN KOP SURAT & FORMAT DOKUMEN EKSPOR</span>
           </div>
-          <h3 className="doc-settings-heading">Konfigurasi Identitas Resmi, Penandatangan & Data Dokumen</h3>
+          <h3 className="doc-settings-heading">Konfigurasi Identitas Resmi & Parameter Ekspor</h3>
           <p className="doc-settings-sub">
-            Atur nama & jabatan penandatangan eksportir, kop surat & logo, ukuran kertas, serta sesuaikan data buyer, kontainer, dan pengapalan sesuai request transaksi.
+            Atur nama perusahaan eksportir, pejabat penandatangan resmi, logo resmi, format kertas, bahasa, dan gaya estetika template dokumen.
           </p>
         </div>
         <button
@@ -1880,339 +2624,175 @@ function DocumentSettings({
         </button>
       </div>
 
-      {/* Tab Switcher */}
-      <div className="doc-settings-tabs-nav">
-        <button
-          type="button"
-          className={`doc-settings-nav-tab ${settingsTab === "kop" ? "active" : ""}`}
-          onClick={() => setSettingsTab("kop")}
-        >
-          <SlidersHorizontal size={14} />
-          <span>1. Setelan Kop, Format Kertas & Penandatangan</span>
-        </button>
-        <button
-          type="button"
-          className={`doc-settings-nav-tab ${settingsTab === "content" ? "active" : ""}`}
-          onClick={() => setSettingsTab("content")}
-        >
-          <FileText size={14} />
-          <span>2. Edit Isi Dokumen & Permintaan Buyer</span>
-          <span className="doc-settings-tab-badge">Permintaan Buyer / Transaksi</span>
-        </button>
+      <div className="doc-settings-columns">
+        {/* Kolom 1: Format Kertas & Bahasa */}
+        <div className="doc-settings-card">
+          <div className="doc-settings-card-header">
+            <h4>1. Format Kertas & Output</h4>
+            <p>Spesifikasi cetak fisik dan bahasa tampilan dokumen.</p>
+          </div>
+          <div className="doc-settings-card-fields">
+            <SelectField
+              label="Ukuran Kertas Dokumen"
+              value={shipment.paperSize}
+              onChange={(value) => update("paperSize", value as PaperSize)}
+            >
+              <option value="A4">A4 · 210 × 297 mm (Standar Internasional ISO)</option>
+              <option value="Letter">US Letter · 8.5 × 11 in (Standar Amerika)</option>
+              <option value="Legal">US Legal · 8.5 × 14 in (Panjang)</option>
+            </SelectField>
+
+            <SelectField
+              label="Orientasi Kertas"
+              value={shipment.documentOrientation}
+              onChange={(value) => update("documentOrientation", value as DocumentOrientation)}
+            >
+              <option value="Portrait">Portrait · Default (Standar Invoice & PL)</option>
+              <option value="Landscape">Landscape · Horizontal (Untuk tabel lebar)</option>
+            </SelectField>
+
+            <SelectField
+              label="Bahasa Dokumen"
+              value={shipment.previewLanguage}
+              onChange={changeLanguage}
+            >
+              <option value="English">English · Standar Resmi Ekspor Global</option>
+              <option value="Bahasa Indonesia">Bahasa Indonesia · Pratinjau Internal</option>
+            </SelectField>
+
+            <div className="doc-settings-note">
+              Dokumen ekspor (PI, SC, CI, PL, SI) dicetak dalam <b>English</b> sesuai ketentuan perdagangan internasional (ICC Incoterms & Kepabeanan).
+            </div>
+          </div>
+        </div>
+
+        {/* Kolom 2: Identitas Eksportir & Penandatangan */}
+        <div className="doc-settings-card">
+          <div className="doc-settings-card-header">
+            <h4>2. Identitas Eksportir & Penandatangan</h4>
+            <p>Nama legal perusahaan, pejabat penandatangan resmi, dan pelabuhan muat.</p>
+          </div>
+          <div className="doc-settings-card-fields">
+            <Field
+              label="Nama Perusahaan Eksportir"
+              value={shipment.exporter}
+              placeholder="Contoh: PT. INDICO EXPORT INDONESIA"
+              onChange={(value) => update("exporter", value)}
+            />
+
+            <Field
+              label="Nama Penandatangan Eksportir"
+              value={shipment.signatoryName ?? "Muhajirin Fatona"}
+              placeholder="Contoh: Muhajirin Fatona"
+              onChange={(value) => update("signatoryName", value)}
+            />
+
+            <Field
+              label="Jabatan Penandatangan"
+              value={shipment.signatoryRole ?? (isId ? "Direktur Ekspor" : "Export Director")}
+              placeholder="Contoh: Export Director / Direktur Ekspor"
+              onChange={(value) => update("signatoryRole", value)}
+            />
+
+            <Field
+              label="Pelabuhan Muat / Port of Loading (POL)"
+              value={shipment.namedPlace}
+              placeholder="Contoh: Makassar New Port, South Sulawesi, Indonesia"
+              onChange={(value) => update("namedPlace", value)}
+            />
+
+            <Field
+              label="Alamat & Kontak Kop Surat"
+              value={shipment.letterheadText}
+              placeholder="Jl. Adiyaksa Baru No. 1B, Makassar..."
+              onChange={(value) => update("letterheadText", value)}
+            />
+
+            {/* Custom Logo Upload Dropzone */}
+            <div className="doc-logo-field">
+              <label className="field-label">Logo Resmi Perusahaan Eksportir</label>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                style={{ display: "none" }}
+                onChange={(e) => onLetterheadImage(e.target.files?.[0])}
+              />
+              {shipment.letterheadImage ? (
+                <div className="doc-logo-active-card">
+                  <div className="doc-logo-preview-thumb">
+                    <img src={shipment.letterheadImage} alt="Logo Perusahaan Aktif" />
+                  </div>
+                  <div className="doc-logo-meta">
+                    <b>Logo Resmi Terpasang</b>
+                    <small>Disematkan otomatis pada kop surat dokumen</small>
+                    <div className="doc-logo-btn-row">
+                      <button
+                        type="button"
+                        className="doc-logo-change-btn"
+                        onClick={() => fileInputRef.current?.click()}
+                      >
+                        Ganti File
+                      </button>
+                      <button
+                        type="button"
+                        className="doc-logo-delete-btn"
+                        onClick={() => update("letterheadImage", "")}
+                      >
+                        <Trash2 size={13} /> Hapus
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className="doc-logo-dropzone"
+                  onClick={() => fileInputRef.current?.click()}
+                  role="button"
+                  tabIndex={0}
+                >
+                  <div className="dropzone-icon-circle">
+                    <UploadCloud size={20} />
+                  </div>
+                  <div className="dropzone-text-group">
+                    <span className="dropzone-title">Klik untuk unggah logo resmi perusahaan</span>
+                    <span className="dropzone-hint">Format PNG, JPG, atau WEBP · Maksimal 2 MB</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Kolom 3: Template Gallery */}
+        <div className="doc-settings-card">
+          <div className="doc-settings-card-header">
+            <h4>3. Gaya Desain Template Eksekutif</h4>
+            <p>Pilih gaya estetika dokumen yang sesuai dengan profil perusahaan.</p>
+          </div>
+          <div className="doc-template-list">
+            {templates.map((tpl) => {
+              const isSelected = shipment.documentTemplate === tpl.name;
+              return (
+                <button
+                  key={tpl.name}
+                  type="button"
+                  className={`doc-template-option-card ${isSelected ? "selected" : ""}`}
+                  onClick={() => update("documentTemplate", tpl.name)}
+                >
+                  <div className="tpl-option-header">
+                    <span className="tpl-name">{tpl.name}</span>
+                    <span className={`tpl-badge ${isSelected ? "active" : ""}`}>
+                      {tpl.badge}
+                    </span>
+                  </div>
+                  <p className="tpl-detail">{tpl.detail}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       </div>
-
-      {settingsTab === "kop" ? (
-        <div className="doc-settings-columns">
-          {/* Kolom 1: Format Kertas & Bahasa */}
-          <div className="doc-settings-card">
-            <div className="doc-settings-card-header">
-              <h4>1. Format Kertas & Output</h4>
-              <p>Spesifikasi cetak fisik dan bahasa tampilan dokumen.</p>
-            </div>
-            <div className="doc-settings-card-fields">
-              <SelectField
-                label="Ukuran Kertas Dokumen"
-                value={shipment.paperSize}
-                onChange={(value) => update("paperSize", value as PaperSize)}
-              >
-                <option value="A4">A4 · 210 × 297 mm (Standar Internasional ISO)</option>
-                <option value="Letter">US Letter · 8.5 × 11 in (Standar Amerika)</option>
-                <option value="Legal">US Legal · 8.5 × 14 in (Panjang)</option>
-              </SelectField>
-
-              <SelectField
-                label="Orientasi Kertas"
-                value={shipment.documentOrientation}
-                onChange={(value) => update("documentOrientation", value as DocumentOrientation)}
-              >
-                <option value="Portrait">Portrait · Default (Standar Invoice & PL)</option>
-                <option value="Landscape">Landscape · Horizontal (Untuk tabel lebar)</option>
-              </SelectField>
-
-              <SelectField
-                label="Bahasa Dokumen"
-                value={shipment.previewLanguage}
-                onChange={changeLanguage}
-              >
-                <option value="English">English · Standar Resmi Ekspor Global</option>
-                <option value="Bahasa Indonesia">Bahasa Indonesia · Pratinjau Internal</option>
-              </SelectField>
-
-              <div className="doc-settings-note">
-                Dokumen ekspor (PI, SC, CI, PL, SI) dicetak dalam <b>English</b> sesuai ketentuan perdagangan internasional (ICC Incoterms & Kepabeanan).
-              </div>
-            </div>
-          </div>
-
-          {/* Kolom 2: Identitas Eksportir & Penandatangan */}
-          <div className="doc-settings-card">
-            <div className="doc-settings-card-header">
-              <h4>2. Identitas Eksportir & Penandatangan</h4>
-              <p>Nama legal perusahaan, pejabat penandatangan resmi, dan pelabuhan muat.</p>
-            </div>
-            <div className="doc-settings-card-fields">
-              <Field
-                label="Nama Perusahaan Eksportir"
-                value={shipment.exporter}
-                placeholder="Contoh: PT. INDICO EXPORT INDONESIA"
-                onChange={(value) => update("exporter", value)}
-              />
-
-              <Field
-                label="Nama Penandatangan Eksportir"
-                value={shipment.signatoryName ?? "Muhajirin Fatona"}
-                placeholder="Contoh: Muhajirin Fatona"
-                onChange={(value) => update("signatoryName", value)}
-              />
-
-              <Field
-                label="Jabatan Penandatangan"
-                value={shipment.signatoryRole ?? (isId ? "Direktur Ekspor" : "Export Director")}
-                placeholder="Contoh: Export Director / Direktur Ekspor"
-                onChange={(value) => update("signatoryRole", value)}
-              />
-
-              <Field
-                label="Pelabuhan Muat / Port of Loading (POL)"
-                value={shipment.namedPlace}
-                placeholder="Contoh: Makassar New Port, South Sulawesi, Indonesia"
-                onChange={(value) => update("namedPlace", value)}
-              />
-
-              <Field
-                label="Alamat & Kontak Kop Surat"
-                value={shipment.letterheadText}
-                placeholder="Jl. Adiyaksa Baru No. 1B, Makassar..."
-                onChange={(value) => update("letterheadText", value)}
-              />
-
-              {/* Custom Logo Upload Dropzone */}
-              <div className="doc-logo-field">
-                <label className="field-label">Logo Resmi Perusahaan Eksportir</label>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/png,image/jpeg,image/webp"
-                  style={{ display: "none" }}
-                  onChange={(e) => onLetterheadImage(e.target.files?.[0])}
-                />
-                {shipment.letterheadImage ? (
-                  <div className="doc-logo-active-card">
-                    <div className="doc-logo-preview-thumb">
-                      <img src={shipment.letterheadImage} alt="Logo Perusahaan Aktif" />
-                    </div>
-                    <div className="doc-logo-meta">
-                      <b>Logo Resmi Terpasang</b>
-                      <small>Disematkan otomatis pada kop surat dokumen</small>
-                      <div className="doc-logo-btn-row">
-                        <button
-                          type="button"
-                          className="doc-logo-change-btn"
-                          onClick={() => fileInputRef.current?.click()}
-                        >
-                          Ganti File
-                        </button>
-                        <button
-                          type="button"
-                          className="doc-logo-delete-btn"
-                          onClick={() => update("letterheadImage", "")}
-                        >
-                          <Trash2 size={13} /> Hapus
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div
-                    className="doc-logo-dropzone"
-                    onClick={() => fileInputRef.current?.click()}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <div className="dropzone-icon-circle">
-                      <UploadCloud size={20} />
-                    </div>
-                    <div className="dropzone-text-group">
-                      <span className="dropzone-title">Klik untuk unggah logo resmi perusahaan</span>
-                      <span className="dropzone-hint">Format PNG, JPG, atau WEBP · Maksimal 2 MB</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {/* Kolom 3: Template Gallery */}
-          <div className="doc-settings-card">
-            <div className="doc-settings-card-header">
-              <h4>3. Gaya Desain Template Eksekutif</h4>
-              <p>Pilih gaya estetika dokumen yang sesuai dengan profil perusahaan.</p>
-            </div>
-            <div className="doc-template-list">
-              {templates.map((tpl) => {
-                const isSelected = shipment.documentTemplate === tpl.name;
-                return (
-                  <button
-                    key={tpl.name}
-                    type="button"
-                    className={`doc-template-option-card ${isSelected ? "selected" : ""}`}
-                    onClick={() => update("documentTemplate", tpl.name)}
-                  >
-                    <div className="tpl-option-header">
-                      <span className="tpl-name">{tpl.name}</span>
-                      <span className={`tpl-badge ${isSelected ? "active" : ""}`}>
-                        {tpl.badge}
-                      </span>
-                    </div>
-                    <p className="tpl-detail">{tpl.detail}</p>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : (
-        /* Tab 2: Edit Isi Dokumen & Permintaan Buyer */
-        <div className="doc-settings-columns">
-          {/* Kolom 1: Data Pembeli / Buyer */}
-          <div className="doc-settings-card">
-            <div className="doc-settings-card-header">
-              <h4>1. Permintaan & Data Buyer (Penerima)</h4>
-              <p>Identitas importir, alamat kantor, dan narahubung pemesan.</p>
-            </div>
-            <div className="doc-settings-card-fields">
-              <Field
-                label="Nama Perusahaan Buyer"
-                value={shipment.buyer}
-                placeholder="Contoh: AL BARAKAH FOODSTUFF TRADING LLC"
-                onChange={(value) => update("buyer", value)}
-              />
-              <Field
-                label="Alamat Lengkap Buyer / Consignee"
-                value={shipment.buyerAddress || shipment.destination}
-                placeholder="P.O. Box 112233, Al Ras Area, Deira, Dubai"
-                onChange={(value) => update("buyerAddress", value)}
-              />
-              <Field
-                label="Negara Buyer"
-                value={shipment.buyerCountry}
-                placeholder="Contoh: United Arab Emirates"
-                onChange={(value) => update("buyerCountry", value)}
-              />
-              <Field
-                label="Nama Narahubung / PIC Buyer"
-                value={shipment.buyerPicName || "Tariq Al-Mansoor"}
-                placeholder="Contoh: Mr. Tariq Al-Mansoor"
-                onChange={(value) => update("buyerPicName", value)}
-              />
-              <Field
-                label="Jabatan Narahubung Buyer"
-                value={shipment.buyerPicRole || "Procurement Director"}
-                placeholder="Contoh: Procurement Director"
-                onChange={(value) => update("buyerPicRole", value)}
-              />
-              <Field
-                label="No. Telepon Buyer"
-                value={shipment.buyerPhone || "+971 4 223 4567"}
-                placeholder="+971 4 223 4567"
-                onChange={(value) => update("buyerPhone", value)}
-              />
-              <Field
-                label="Email Buyer"
-                value={shipment.buyerEmail || "procurement@albarakahfoods.ae"}
-                placeholder="buyer@domain.com"
-                onChange={(value) => update("buyerEmail", value)}
-              />
-            </div>
-          </div>
-
-          {/* Kolom 2: Nomor Transaksi & Syarat Pembayaran */}
-          <div className="doc-settings-card">
-            <div className="doc-settings-card-header">
-              <h4>2. Referensi PO & Syarat Pembayaran</h4>
-              <p>Nomor PO pesanan buyer, termin pembayaran, dan rekening eksportir.</p>
-            </div>
-            <div className="doc-settings-card-fields">
-              <Field
-                label="No. PO / Referensi Buyer (Buyer Ref)"
-                value={shipment.poNumber || "ABF/LOI/2026/108"}
-                placeholder="Contoh: ABF/LOI/2026/108"
-                onChange={(value) => update("poNumber", value)}
-              />
-              <Field
-                label="Syarat Pembayaran (Payment Terms)"
-                value={shipment.paymentTerms || "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L"}
-                placeholder="Contoh: 50% DP / 50% against Copy of B/L"
-                onChange={(value) => update("paymentTerms", value)}
-              />
-              <Field
-                label="Nama Bank Eksportir"
-                value={shipment.bankName || "PT. Bank Mandiri (Persero) Tbk"}
-                placeholder="Contoh: PT. Bank Mandiri (Persero) Tbk"
-                onChange={(value) => update("bankName", value)}
-              />
-              <Field
-                label="Nomor Rekening Bank"
-                value={shipment.bankAccountNo || "152-00-9876543-2"}
-                placeholder="Contoh: 152-00-9876543-2"
-                onChange={(value) => update("bankAccountNo", value)}
-              />
-              <Field
-                label="Kode SWIFT Bank"
-                value={shipment.bankSwift || "BMRIIDJA"}
-                placeholder="Contoh: BMRIIDJA"
-                onChange={(value) => update("bankSwift", value)}
-              />
-            </div>
-          </div>
-
-          {/* Kolom 3: Logistik Pengapalan & Kontainer */}
-          <div className="doc-settings-card">
-            <div className="doc-settings-card-header">
-              <h4>3. Logistik Pengapalan & Kontainer</h4>
-              <p>Rute pelabuhan, nama kapal pengangkut, nomor kontainer dan segel.</p>
-            </div>
-            <div className="doc-settings-card-fields">
-              <Field
-                label="Nama Kapal & Voyage (Vessel / Voyage)"
-                value={shipment.vesselName || shipment.bookingNumber || "KMTC SHIMIZU V.2611N"}
-                placeholder="Contoh: KMTC SHIMIZU V.2611N"
-                onChange={(value) => {
-                  update("vesselName", value);
-                  update("bookingNumber", value);
-                }}
-              />
-              <Field
-                label="Nomor Kontainer"
-                value={shipment.containerNumber || "TGHU 2468135"}
-                placeholder="Contoh: TGHU 2468135"
-                onChange={(value) => update("containerNumber", value)}
-              />
-              <Field
-                label="Nomor Segel (Seal No.)"
-                value={shipment.sealNumber || "IDMKS998877"}
-                placeholder="Contoh: IDMKS998877"
-                onChange={(value) => update("sealNumber", value)}
-              />
-              <Field
-                label="Pelabuhan Bongkar / Port of Discharge (POD)"
-                value={shipment.destination || "Jebel Ali Port, Dubai, UAE"}
-                placeholder="Contoh: Jebel Ali Port, Dubai, UAE"
-                onChange={(value) => update("destination", value)}
-              />
-              <Field
-                label="Pelabuhan Muat / Port of Loading (POL)"
-                value={shipment.namedPlace || "Makassar New Port, South Sulawesi, Indonesia"}
-                placeholder="Contoh: Makassar New Port, South Sulawesi, Indonesia"
-                onChange={(value) => update("namedPlace", value)}
-              />
-              <div className="doc-settings-note">
-                💡 <b>Sinkronisasi Otomatis:</b> Setiap penyesuaian data buyer, PO, syarat pembayaran, kapal, dan kontainer langsung terhubung dan terbit di ke-5 dokumen ekspor secara serempak.
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
     </section>
   );
 }
