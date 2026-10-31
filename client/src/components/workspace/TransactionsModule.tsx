@@ -807,7 +807,7 @@ export function TransactionsModule({
           {/* TAB KONTEN 1: TABEL DAFTAR PESANAN */}
           {activeTab === "list" && (
             <section className="panel panel-padding">
-              <div className="panel-head" style={{ marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <div className="panel-head" style={{ marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
                 <div>
                   <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
                   <h3 style={{ margin: "2px 0 0", fontSize: "17px", color: "var(--navy)" }}>
@@ -815,51 +815,52 @@ export function TransactionsModule({
                   </h3>
                 </div>
 
-                <button
-                  type="button"
-                  className="save-button"
-                  onClick={handleNewTransactionClick}
-                  style={{ padding: "8px 16px", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "6px" }}
-                >
-                  <Plus size={15} /> Input PO Baru
-                </button>
+                {/* Kolom Pencarian & Tombol Input PO Berdampingan Sejajar (Satu Baris, Tidak Ditumpuk) */}
+                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "10px", flexWrap: "nowrap" }}>
+                  <div className="orders-search-input-wrap" style={{ width: "260px" }}>
+                    <Search size={14} className="orders-search-icon" />
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder="Cari PO, buyer, komoditas..."
+                      className="orders-search-input"
+                    />
+                    {query && (
+                      <button
+                        type="button"
+                        onClick={() => setQuery("")}
+                        className="orders-search-clear"
+                        title="Hapus pencarian"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  <button
+                    type="button"
+                    className="save-button"
+                    onClick={handleNewTransactionClick}
+                    style={{ padding: "0 16px", height: "36px", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap", flexShrink: 0 }}
+                  >
+                    <Plus size={15} /> Input PO Baru
+                  </button>
+                </div>
               </div>
 
-              {/* Toolbar Pencarian & Filter Status Rapi Sejajar */}
-              <div className="orders-table-toolbar">
-                <div className="orders-filter-chips">
-                  {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
-                    <button
-                      key={st}
-                      type="button"
-                      className={`orders-filter-chip ${statusFilter === st ? "active" : ""}`}
-                      onClick={() => setStatusFilter(st)}
-                    >
-                      {st === "ALL" ? "Semua" : st}
-                    </button>
-                  ))}
-                </div>
-
-                <div className="orders-search-input-wrap">
-                  <Search size={14} className="orders-search-icon" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Cari PO, buyer, komoditas..."
-                    className="orders-search-input"
-                  />
-                  {query && (
-                    <button
-                      type="button"
-                      onClick={() => setQuery("")}
-                      className="orders-search-clear"
-                      title="Hapus pencarian"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
+              {/* Status Filter Chips (Satu Baris Bersih Tepat di Bawah Header) */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px", flexWrap: "wrap" }}>
+                {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    className={`orders-filter-chip ${statusFilter === st ? "active" : ""}`}
+                    onClick={() => setStatusFilter(st)}
+                  >
+                    {st === "ALL" ? "Semua" : st}
+                  </button>
+                ))}
               </div>
 
               {/* Isi Tabel Riwayat Transaksi */}
