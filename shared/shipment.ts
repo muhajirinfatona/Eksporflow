@@ -1,7 +1,13 @@
 // Tipe domain dan data awal transaksi EksporFlow. Dipisahkan dari Home.tsx agar dapat dipakai bersama oleh client, server, dan test.
 
 export type Incoterm = "EXW" | "FCA" | "FOB" | "CFR" | "CIF" | "DAP" | "DDP";
-export type DocumentType = "Proforma Invoice" | "Commercial Invoice" | "Packing List" | "Bill of Lading";
+export type DocumentType =
+  | "Proforma Invoice"
+  | "Sales Contract"
+  | "Commercial Invoice"
+  | "Packing List"
+  | "Shipping Instruction"
+  | "Bill of Lading";
 export type PaperSize = "A4" | "Letter" | "Legal";
 export type DocumentOrientation = "Portrait" | "Landscape";
 export type DocumentTemplate = "Classic Trade" | "Corporate Clean" | "Minimal";

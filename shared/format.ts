@@ -34,10 +34,77 @@ export function getDocumentNumber(type: DocumentType, reference: string): string
   const prefix =
     type === "Proforma Invoice"
       ? "PI"
-      : type === "Commercial Invoice"
-        ? "CI"
-        : type === "Packing List"
-          ? "PL"
-          : "BL";
+      : type === "Sales Contract"
+        ? "SC"
+        : type === "Commercial Invoice"
+          ? "CI"
+          : type === "Packing List"
+            ? "PL"
+            : type === "Shipping Instruction"
+              ? "SI"
+              : "BL";
   return `${prefix}-${reference}`;
+}
+
+export function numberToWords(amount: number, currency = "USD"): string {
+  const integerPart = Math.floor(Math.abs(amount));
+  const decimalPart = Math.round((Math.abs(amount) - integerPart) * 100);
+
+  const units = [
+    "", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine",
+    "Ten", "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen", "Sixteen",
+    "Seventeen", "Eighteen", "Nineteen",
+  ];
+  const tens = [
+    "", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety",
+  ];
+  const scales = ["", "Thousand", "Million", "Billion", "Trillion"];
+
+  function convertGroup(n: number): string {
+    let out = "";
+    if (n >= 100) {
+      out += units[Math.floor(n / 100)] + " Hundred ";
+      n %= 100;
+    }
+    if (n >= 20) {
+      out += tens[Math.floor(n / 10)] + (n % 10 > 0 ? "-" + units[n % 10] : "") + " ";
+    } else if (n > 0) {
+      out += units[n] + " ";
+    }
+    return out.trim();
+  }
+
+  if (integerPart === 0) {
+    return `Zero ${currency} Only`.toUpperCase();
+  }
+
+  let words = "";
+  let scaleIndex = 0;
+  let remaining = integerPart;
+
+  while (remaining > 0) {
+    const chunk = remaining % 1000;
+    if (chunk !== 0) {
+      const chunkWords = convertGroup(chunk);
+      words = chunkWords + (scales[scaleIndex] ? " " + scales[scaleIndex] : "") + (words ? " " + words : "");
+    }
+    remaining = Math.floor(remaining / 1000);
+    scaleIndex++;
+  }
+
+  const currencyUpper = currency.toUpperCase();
+  const currencyName =
+    currencyUpper === "USD"
+      ? "United States Dollars"
+      : currencyUpper === "EUR"
+        ? "Euros"
+        : currencyUpper === "IDR"
+          ? "Indonesian Rupiah"
+          : currencyUpper;
+
+  let result = `${currencyName} ${words.trim()}`;
+  if (decimalPart > 0) {
+    result += ` and ${decimalPart}/100 Cents`;
+  }
+  return (result + " Only").toUpperCase();
 }
