@@ -249,6 +249,11 @@ export function useActiveShipment() {
       setVersion(1);
       setSaveState("unsaved");
       setStatusNote(null);
+      try {
+        localStorage.removeItem("eksporflow_last_po_screening");
+      } catch {
+        // Abaikan
+      }
       toast.success(
         nextRef ? `Transaksi baru ${nextRef} siap diisi` : "Formulir transaksi baru siap diisi",
         {
@@ -269,6 +274,11 @@ export function useActiveShipment() {
     setVersion(1);
     setSaveState("unsaved");
     setStatusNote(null);
+    try {
+      localStorage.removeItem("eksporflow_last_po_screening");
+    } catch {
+      // Abaikan
+    }
     if (user) {
       try {
         localStorage.removeItem(getDraftStorageKey(user.id));

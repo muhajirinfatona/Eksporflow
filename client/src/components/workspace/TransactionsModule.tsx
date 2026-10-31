@@ -360,14 +360,55 @@ export function TransactionsModule({
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
   const [isEditingActiveOrder, setIsEditingActiveOrder] = useState(false);
+
+  // Clean value for reference: don't show dummy codes or placeholder words
+  const isDefaultOrPlaceholderRef =
+    !shipment.reference ||
+    shipment.reference === "Transaksi Ekspor" ||
+    shipment.reference === "EXP-2026-001" ||
+    shipment.reference === "EXP-2026-084" ||
+    shipment.reference.startsWith("EXP-2026-");
+
+  const displayReference = isDefaultOrPlaceholderRef ? "" : shipment.reference;
+
   const [lastScreening, setLastScreening] = useState<PoScreeningResult | null>(() => {
     try {
       const saved = localStorage.getItem("eksporflow_last_po_screening");
-      return saved ? (JSON.parse(saved) as PoScreeningResult) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved) as PoScreeningResult;
+      // Jangan pernah memuat screening jika form PO saat ini masih kosong
+      const currentRef = (shipment.reference || shipment.poNumber || "").trim();
+      const currentBuyer = (shipment.buyer || "").trim();
+      if (!currentRef && !currentBuyer) {
+        return null;
+      }
+      return parsed;
     } catch {
       return null;
     }
   });
+
+  // Screening AI hanya aktif jika form TIDAK KOSONG dan data transaksi saat ini cocok dengan dokumen yang discan
+  const activeScreening = useMemo(() => {
+    if (!lastScreening) return null;
+    const currentRef = (displayReference || shipment.poNumber || "").trim().toLowerCase();
+    const currentBuyer = (shipment.buyer || "").trim().toLowerCase();
+
+    // Jika form masih kosong, JANGAN tampilkan saran/screening AI sama sekali
+    if (!currentRef && !currentBuyer) return null;
+
+    const screeningRef = (lastScreening.reference || "").trim().toLowerCase();
+    const screeningBuyer = (lastScreening.buyer || "").trim().toLowerCase();
+
+    // Hanya tampil jika nomor PO atau nama buyer cocok
+    const refMatch = Boolean(currentRef && screeningRef && (currentRef === screeningRef || currentRef.includes(screeningRef) || screeningRef.includes(currentRef)));
+    const buyerMatch = Boolean(currentBuyer && screeningBuyer && (currentBuyer.includes(screeningBuyer) || screeningBuyer.includes(currentBuyer)));
+
+    if (refMatch || buyerMatch) {
+      return lastScreening;
+    }
+    return null;
+  }, [lastScreening, displayReference, shipment.poNumber, shipment.buyer]);
 
   const [localList, setLocalList] = useState<LocalShipmentRecord[]>(() => {
     try {
@@ -582,16 +623,6 @@ export function TransactionsModule({
     toast.info("Dokumen PO/LOI direset. Silakan scan dokumen baru.");
   };
 
-  // Clean value for reference: don't show dummy codes or placeholder words
-  const isDefaultOrPlaceholderRef =
-    !shipment.reference ||
-    shipment.reference === "Transaksi Ekspor" ||
-    shipment.reference === "EXP-2026-001" ||
-    shipment.reference === "EXP-2026-084" ||
-    shipment.reference.startsWith("EXP-2026-");
-
-  const displayReference = isDefaultOrPlaceholderRef ? "" : shipment.reference;
-
   // Filter out any default dummy auto-seeded transactions (e.g. EXP-2026-001)
   const genuineShipments = useMemo(() => {
     return shipmentsList.filter(
@@ -696,10 +727,10 @@ export function TransactionsModule({
     (r) => !["Draft", "Quotation", "Completed"].includes(r.status),
   ).length;
 
-  // Apakah dokumen PO atau LOI sudah discan atau sudah ada dokumen resmi buyer
+  // Apakah dokumen PO atau LOI sudah discan dan cocok dengan transaksi saat ini
   const hasScannedPo = Boolean(
-    lastScreening ||
-    (displayReference && shipment.buyer && shipment.buyerCountry)
+    activeScreening ||
+    (displayReference && shipment.buyer && shipment.buyerCountry && shipment.buyerCountry !== "-")
   );
 
   return (
@@ -1028,14 +1059,14 @@ export function TransactionsModule({
           )}
 
           {/* Banner Hasil Screening AI Advisor Buyer Jika Ada */}
-          {lastScreening && (
+          {activeScreening && (
             <div className="po-screening-banner" style={{ marginBottom: "14px" }}>
               <div className="po-screening-banner-left">
                 <span className="po-screening-badge">
-                  <CheckCircle2 size={15} /> AI Advisor: Buyer {lastScreening.buyer} Terverifikasi ({lastScreening.validation.score}%)
+                  <CheckCircle2 size={15} /> AI Advisor: Buyer {activeScreening.buyer} Terverifikasi ({activeScreening.validation.score}%)
                 </span>
                 <p>
-                  {lastScreening.validation.legalEntityStatus} · {lastScreening.validation.sanctionCheck} · {lastScreening.validation.paymentTermRisk}
+                  {activeScreening.validation.legalEntityStatus} · {activeScreening.validation.sanctionCheck} · {activeScreening.validation.paymentTermRisk}
                 </p>
               </div>
               <button
@@ -1246,25 +1277,36 @@ export function TransactionsModule({
             </div>
           </div>
 
-          {/* Banner Ringkas Hasil Verifikasi AI Advisor Jika Ada */}
-          {lastScreening && (
+          {/* Banner Ringkas Hasil Verifikasi AI Advisor Hanya Tampil Jika Form Cocok dengan PO yang Discan */}
+          {activeScreening && (
             <div className="po-screening-banner" style={{ padding: "10px 14px", marginBottom: "16px", borderRadius: "6px" }}>
               <div className="po-screening-banner-left" style={{ gap: "4px" }}>
                 <span className="po-screening-badge" style={{ fontSize: "12.5px" }}>
-                  <CheckCircle2 size={14} /> Buyer Terverifikasi AI ({lastScreening.validation.score}%) · {lastScreening.buyer}
+                  <CheckCircle2 size={14} /> Buyer Terverifikasi AI ({activeScreening.validation.score}%) · {activeScreening.buyer}
                 </span>
                 <p style={{ fontSize: "12px", margin: 0 }}>
-                  {lastScreening.validation.legalEntityStatus} · {lastScreening.validation.sanctionCheck}
+                  {activeScreening.validation.legalEntityStatus} · {activeScreening.validation.sanctionCheck}
                 </p>
               </div>
-              <button
-                type="button"
-                className="compact-btn"
-                onClick={() => setPoModalOpen(true)}
-                style={{ fontSize: "11.5px", padding: "4px 10px" }}
-              >
-                Detail Analisis
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <button
+                  type="button"
+                  className="compact-btn"
+                  onClick={() => setPoModalOpen(true)}
+                  style={{ fontSize: "11.5px", padding: "4px 10px" }}
+                >
+                  Detail Analisis
+                </button>
+                <button
+                  type="button"
+                  className="ghost-button"
+                  onClick={handleResetPo}
+                  title="Tutup & reset hasil screening"
+                  style={{ padding: "4px 8px", fontSize: "11px", color: "#64748b" }}
+                >
+                  ✕
+                </button>
+              </div>
             </div>
           )}
 
