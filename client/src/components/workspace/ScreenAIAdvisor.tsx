@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { Streamdown } from "streamdown";
 
 export interface ScreenAdvisorInsight {
   screenId: ScreenId;
@@ -29,6 +30,7 @@ export interface ScreenAdvisorInsight {
   mitigationText: string;
   suggestedQuestions: string[];
   initialPrompt: string;
+  welcomeGreeting: string;
 }
 
 export function getScreenAdvisorInsight(
@@ -54,6 +56,7 @@ export function getScreenAdvisorInsight(
             "Apa saja dokumen wajib yang harus siap sebelum kontainer masuk pelabuhan?",
           ],
           initialPrompt: `Analisis risiko margin tipis ${shipment.margin}% pada transaksi ${shipment.reference} dan berikan rekomendasi mitigasinya.`,
+          welcomeGreeting: `Halo! Saya memantau margin bersih transaksi saat ini (${shipment.margin}%) yang berada di bawah target aman.\n\nAda yang ingin Anda konsultasikan untuk mengamankan margin dari lonjakan biaya freight atau klausul perlindungan penawaran?`,
         };
       }
       return {
@@ -74,6 +77,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana ringkasan alur pemenuhan ekspor dari penawaran hingga rilis B/L?",
         ],
         initialPrompt: `Bantu tinjau kesiapan menyeluruh transaksi ekspor ke ${shipment.destination || "pelabuhan tujuan"} dan mitigasi risiko operasionalnya.`,
+        welcomeGreeting: "Halo! Saya siap membantu memantau operasional ekspor Anda hari ini.\n\nSilakan pilih topik konsultasi di atas atau tanyakan kesiapan transaksi, jadwal kapal, maupun mitigasi dokumen.",
       };
 
     case "readiness":
@@ -90,6 +94,7 @@ export function getScreenAdvisorInsight(
           "Apa standar packaging & labeling yang wajib dipenuhi untuk pasar tujuan ekspor?",
         ],
         initialPrompt: `Jelaskan persyaratan izin ekspor, sertifikasi karantina, dan uji laboratorium untuk produk ${shipment.product || "komoditas kami"}.`,
+        welcomeGreeting: `Halo! Saya siap mendampingi asesmen kesiapan komoditas **${shipment.product || "ekspor"}** Anda.\n\nAda aspek legalitas, sertifikasi karantina/mutu, atau standar kemasan yang ingin Anda konsultasikan?`,
       };
 
     case "transactions":
@@ -106,6 +111,7 @@ export function getScreenAdvisorInsight(
           "Apa indikator utama bahwa suatu pesanan telah siap dilanjutkan ke proses booking kargo?",
         ],
         initialPrompt: "Bantu tinjau alur pemenuhan pesanan ekspor dan langkah validasi sebelum beralih ke tahap logistik.",
+        welcomeGreeting: "Halo! Saya siap membantu mengawal alur pesanan dan siklus kontrak ekspor Anda.\n\nApakah ada kendala status pesanan, jadwal pemenuhan kargo, atau amandemen PO yang perlu dibahas?",
       };
 
     case "po_intake":
@@ -124,6 +130,9 @@ export function getScreenAdvisorInsight(
           "Poin apa saja yang wajib dicocokkan antara PO dari buyer dengan Proforma Invoice kita?",
         ],
         initialPrompt: `Bantu tinjau keabsahan dokumen PO/LOI dari ${shipment.buyer || "buyer"} dan rekomendasi klausul proteksi pembayarannya.`,
+        welcomeGreeting: shipment.buyer
+          ? `Halo! Saya siap membantu validasi Purchase Order dari **${shipment.buyer}**.\n\nAda klausul pembayaran, kelayakan legalitas entitas, atau syarat dokumen yang ingin ditinjau?`
+          : "Halo! Saya siap membantu verifikasi dokumen Purchase Order (PO) / LOI buyer.\n\nSilakan pilih topik pertanyaan di atas atau tanyakan hal spesifik terkait validasi pesanan.",
       };
 
     case "pricing":
@@ -141,6 +150,7 @@ export function getScreenAdvisorInsight(
             "Bagaimana menetapkan formula margin aman dari modal kerja?",
           ],
           initialPrompt: `Ada error pada kalkulasi harga transaksi ${shipment.reference}: ${pricing.validationErrors[0]}. Tolong jelaskan solusinya.`,
+          welcomeGreeting: "Halo! Terdeteksi ketidaksesuaian pada komponen kalkulasi biaya harga jual Anda.\n\nSilakan pilih pertanyaan di atas agar kita bisa memperbaiki komponen biaya sebelum quotation dikirim ke buyer.",
         };
       }
       if (shipment.incoterm === "DDP") {
@@ -157,6 +167,7 @@ export function getScreenAdvisorInsight(
             "Bagaimana cara membebankan potensi demurrage di pelabuhan tujuan jika pakai term DDP?",
           ],
           initialPrompt: `Saya menggunakan Incoterms DDP untuk pengiriman ke ${shipment.buyerCountry || "negara tujuan"}. Apa saja risiko pajak impor dan clearance yang wajib diwaspadai?`,
+          welcomeGreeting: `Halo! Penawaran menggunakan Incoterms DDP ke **${shipment.buyerCountry || "negara tujuan"}**.\n\nAda yang ingin dikonsultasikan mengenai tanggung jawab bea masuk, pajak impor, atau perizinan clearance di negara tujuan?`,
         };
       }
       if (shipment.incoterm === "CIF" || shipment.incoterm === "CFR") {
@@ -173,6 +184,7 @@ export function getScreenAdvisorInsight(
             "Bagaimana cara menambahkan buffer contingency freight dalam penawaran resmi?",
           ],
           initialPrompt: `Jelaskan titik peralihan risiko dan klausul asuransi laut yang wajib dicantumkan pada penawaran ${shipment.incoterm} untuk ${shipment.product}.`,
+          welcomeGreeting: `Halo! Penawaran menggunakan skenario Incoterms ${shipment.incoterm}.\n\nAda yang ingin dipastikan mengenai masa berlaku tarif ocean freight atau klausul polis asuransi laut (Institute Cargo Clauses)?`,
         };
       }
       return {
@@ -188,6 +200,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana cara melindungi margin dari risiko fluktuasi kurs mata uang asing (forex)?",
         ],
         initialPrompt: `Evaluasi struktur harga penawaran ${formatMoney(pricing.active.offer, shipment.currency)} (${shipment.incoterm}) untuk ${shipment.quantity} ${shipment.unit} ${shipment.product}.`,
+        welcomeGreeting: `Halo! Saya siap membantu kalkulasi penawaran resmi (${shipment.incoterm || "FOB"}) dan simulasi 7 Incoterms®.\n\nIngin mengevaluasi ketahanan margin ${shipment.margin}%, buffer kontinjensi freight, atau perlindungan kurs valas?`,
       };
 
     case "approvals":
@@ -204,6 +217,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana mekanisme pencatatan revisi (Minta Revisi) kepada tim sales secara terstruktur?",
         ],
         initialPrompt: `Bantu tinjau klausul kunci dalam Sales Contract ekspor untuk mencegah sengketa kualitas atau wanprestasi pembayaran.`,
+        welcomeGreeting: `Halo! Saya siap mendampingi proses peninjauan dan otorisasi kontrak ekspor (${shipment.reference || "Transaksi Ekspor"}).\n\nAda yang ingin dikonsultasikan mengenai kelayakan margin (${shipment.margin}%), klausul proteksi wanprestasi, atau pembagian wewenang persetujuan (SoD)?`,
       };
 
     case "documents":
@@ -221,6 +235,7 @@ export function getScreenAdvisorInsight(
             "Kapan Commercial Invoice dan Packing List harus diserahkan ke broker bea cukai?",
           ],
           initialPrompt: `Tolong jelaskan langkah verifikasi 3-way match antara Commercial Invoice, Packing List, dan B/L untuk transaksi ${shipment.reference}.`,
+          welcomeGreeting: "Halo! Dokumen ekspor transaksi ini masih berstatus draft dan belum diverifikasi.\n\nAda yang ingin ditanyakan seputar checklist 3-way match antara Commercial Invoice, Packing List, dan Bill of Lading?",
         };
       }
       return {
@@ -236,6 +251,7 @@ export function getScreenAdvisorInsight(
           "Kapan dokumen asli (Original Documents) wajib dikirim via kurir vs cukup Telex Release?",
         ],
         initialPrompt: `Dokumen ekspor ${shipment.reference} sudah valid. Apa saja dokumen kepabeanan tambahan yang mungkin diminta negara ${shipment.buyerCountry}?`,
+        welcomeGreeting: `Halo! 4 dokumen ekspor utama transaksi ini telah tervalidasi legal (R${shipment.documentRevision}).\n\nAda dokumen tambahan seperti COO e-SKA, sertifikat mutu, atau legalisasi yang ingin Anda pastikan?`,
       };
 
     case "cargo":
@@ -253,6 +269,7 @@ export function getScreenAdvisorInsight(
             "Bagaimana cara menghitung CBM muatan curah dibanding kargo dalam pallet?",
           ],
           initialPrompt: `Kargo saya overload (${container.volumeUtilization.toFixed(0)}% volume, ${container.weightUtilization.toFixed(0)}% berat). Berikan rekomendasi penataan atau jumlah kontainer yang tepat.`,
+          welcomeGreeting: `Halo! Muatan kontainer saat ini terdeteksi melebihi batas kapasitas (${container.volumeUtilization.toFixed(0)}% Vol / ${container.weightUtilization.toFixed(0)}% Berat).\n\nIngin membahas solusi penataan ulang muatan, estimasi jumlah kontainer, atau deklarasi berat VGM?`,
         };
       }
       if (container.volumeUtilization < 60) {
@@ -269,6 +286,7 @@ export function getScreenAdvisorInsight(
             "Berapa batas berat per axle yang diizinkan untuk truk angkut kontainer pelabuhan?",
           ],
           initialPrompt: `Utilisasi kontainer baru ${container.volumeUtilization.toFixed(0)}%. Apakah lebih efisien pakai FCL atau LCL untuk rute ke ${shipment.destination}?`,
+          welcomeGreeting: `Halo! Utilisasi muatan kontainer ${shipment.containerType} saat ini masih rendah (${container.volumeUtilization.toFixed(0)}% CBM).\n\nIngin mengevaluasi perbandingan efisiensi FCL vs LCL, atau strategi penambahan kuantiti pesanan buyer?`,
         };
       }
       return {
@@ -284,6 +302,7 @@ export function getScreenAdvisorInsight(
           "Alat pengikat kargo (lashing/strapping) apa yang disyaratkan untuk pengapalan ini?",
         ],
         initialPrompt: `Jelaskan checklist verifikasi kemasan ekspor, fumigasi pallet kayu ISPM-15, dan penimbangan berat kotor VGM untuk kontainer ini.`,
+        welcomeGreeting: `Halo! Muatan kontainer ${shipment.containerType} terpantau optimal (${container.volumeUtilization.toFixed(0)}% CBM).\n\nAda yang ingin dikonsultasikan mengenai sertifikasi fumigasi pallet kayu ISPM-15 atau prosedur deklarasi VGM?`,
       };
 
     case "shipment":
@@ -301,6 +320,7 @@ export function getScreenAdvisorInsight(
             "Apa yang harus dilakukan jika terjadi blank sailing atau keterlambatan kapal?",
           ],
           initialPrompt: `Bantu susun prosedur pengajuan Shipping Instruction (SI) yang aman ke forwarder untuk rute ke ${shipment.destination}.`,
+          welcomeGreeting: "Halo! Nomor booking kapal belum tercatat pada pengiriman ini.\n\nAda yang ingin Anda konsultasikan terkait pengajuan Shipping Instruction (SI) ke forwarder atau mengamankan jadwal closing time pelabuhan?",
         };
       }
       return {
@@ -316,6 +336,7 @@ export function getScreenAdvisorInsight(
           "Apa langkah darurat jika kontainer mengalami penundaan jadwal kapal (delay)?",
         ],
         initialPrompt: `Jelaskan risiko penggunaan Telex Release vs Original B/L jika pembayaran buyer belum 100% lunas.`,
+        welcomeGreeting: `Halo! Booking kapal (${shipment.bookingNumber}) telah terdaftar dengan rute tujuan ${shipment.destination || "pelabuhan"}.\n\nAda pertanyaan seputar pengamanan Bill of Lading (Original vs Telex Release) atau mitigasi keterlambatan kapal?`,
       };
 
     case "finance":
@@ -333,6 +354,7 @@ export function getScreenAdvisorInsight(
             "Kapan eksportir berhak menahan rilis dokumen kargo jika pelunasan tertunda?",
           ],
           initialPrompt: `Saya memiliki sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)} belum terkonfirmasi DP. Bagaimana strategi mitigasi risiko pembayarannya?`,
+          welcomeGreeting: `Halo! Terpantau sisa piutang dagang sebesar ${formatMoney(flow.remainingReceivable, shipment.currency)} yang belum terkonfirmasi uang muka (DP).\n\nIngin mendiskusikan klausul pembayaran yang lebih aman, mitigasi risiko wanprestasi, atau jadwal penagihan?`,
         };
       }
       return {
@@ -348,6 +370,7 @@ export function getScreenAdvisorInsight(
           "Kapan saat yang tepat menerbitkan commercial invoice final untuk pelunasan?",
         ],
         initialPrompt: `Jelaskan strategi manajemen piutang dagang ekspor dan kepatuhan penerimaan kas valas untuk transaksi ini.`,
+        welcomeGreeting: `Halo! Saya siap mendampingi pengelolaan kas dan piutang ekspor Anda (${flow.finance.arStatus}).\n\nAda yang ingin dikonsultasikan terkait pelunasan piutang atau rekonsiliasi penerimaan kas masuk?`,
       };
 
     case "bank":
@@ -364,6 +387,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana cara meminimalkan potongan biaya koresponden bank (intermediary charges)?",
         ],
         initialPrompt: "Jelaskan langkah verifikasi transfer valas SWIFT MT103 dan mitigasi selisih kurs perbankan.",
+        welcomeGreeting: "Halo! Saya siap membantu rekonsiliasi penerimaan devisa valas dan perbankan.\n\nIngin memverifikasi bukti transfer SWIFT MT103, lindung nilai valas (*hedging*), atau potongan biaya bank?",
       };
 
     case "journals":
@@ -380,6 +404,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana pencatatan biaya logistik lokal (THC, freight, fumigasi) yang ditalangi perusahaan?",
         ],
         initialPrompt: "Jelaskan standar jurnal akuntansi ekspor untuk pengakuan pendapatan dan pencatatan selisih kurs valuta asing.",
+        welcomeGreeting: "Halo! Saya siap membantu standardisasi jurnal akuntansi ekspor dan selisih kurs.\n\nAda pertanyaan mengenai pengakuan pendapatan (PSAK), jurnal penerimaan valas, atau pencatatan biaya talangan?",
       };
 
     case "reports":
@@ -396,6 +421,7 @@ export function getScreenAdvisorInsight(
           "Apa sanksi administratif dan denda jika pelaporan devisa ekspor terlambat dilakukan?",
         ],
         initialPrompt: "Jelaskan regulasi Devisa Hasil Ekspor (DHE) Bank Indonesia dan prosedur rekonsiliasi PEB bea cukai.",
+        welcomeGreeting: "Halo! Saya siap mendampingi kepatuhan laporan devisa ekspor dan regulasi DHE BI.\n\nIngin meninjau kewajiban penempatan DHE SDA (PP 36/2023) atau rekonsiliasi data PEB di SiMoDIS?",
       };
 
     case "risk":
@@ -412,6 +438,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana cara memproteksi kargo dari risiko politis dan gagal transfer devisa?",
         ],
         initialPrompt: `Bantu evaluasi seluruh poin risiko pada Risk Center transaksi ${shipment.reference} dan berikan panduan mitigasi kepatuhannya.`,
+        welcomeGreeting: "Halo! Saya siap membantu evaluasi kepatuhan dan mitigasi risiko transaksi ekspor Anda.\n\nIngin meninjau kepatuhan Lartas komoditas, pengecekan sanksi negara tujuan, atau proteksi gagal bayar?",
       };
 
     case "partners":
@@ -428,6 +455,7 @@ export function getScreenAdvisorInsight(
           "Apa tanda-tanda indikasi penipuan (scam) dalam perdagangan ekspor internasional?",
         ],
         initialPrompt: `Berikan checklist due diligence untuk memverifikasi reputasi buyer internasional baru sebelum kontrak disepakati.`,
+        welcomeGreeting: "Halo! Saya siap membantu *due diligence* mitra buyer dan rekanan logistik internasional.\n\nAda hal yang ingin diperiksa mengenai reputasi dagang buyer baru atau evaluasi vendor forwarder?",
       };
 
     case "products":
@@ -444,6 +472,7 @@ export function getScreenAdvisorInsight(
           "Apakah komoditas ini dikenakan Bea Keluar (export duty) oleh pemerintah Indonesia?",
         ],
         initialPrompt: `Bantu verifikasi klasifikasi HS Code produk ${shipment.product || "ini"} dan potensi pemanfaatan fasilitas Free Trade Agreement (FTA).`,
+        welcomeGreeting: `Halo! Saya siap membantu klasifikasi HS Code dan verifikasi tarif preferensi FTA untuk komoditas **${shipment.product || "ekspor"}**.\n\nAda ketentuan izin ekspor, sertifikat mutu, atau fasilitas tarif yang ingin ditanyakan?`,
       };
 
     case "knowledge":
@@ -460,6 +489,7 @@ export function getScreenAdvisorInsight(
           "Apa referensi regulasi ekspor terkini yang relevan untuk operasional perusahaan?",
         ],
         initialPrompt: `Berikan rekomendasi penyusunan SOP mitigasi risiko operasional ekspor untuk tim internal perusahaan.`,
+        welcomeGreeting: "Halo! Saya siap membantu penelusuran SOP dan regulasi operasional ekspor tim Anda.\n\nSilakan pilih panduan yang ingin dipelajari atau tanyakan materi kepatuhan ekspor tertentu.",
       };
 
     case "settings":
@@ -476,6 +506,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana memastikan keamanan data transaksi dan kontrak ekspor perusahaan tersimpan aman?",
         ],
         initialPrompt: "Jelaskan langkah pengaturan profil perusahaan dan tata kelola hak akses tim pada sistem EksporFlow.",
+        welcomeGreeting: "Halo! Saya siap membantu konfigurasi profil perusahaan dan tata kelola akun Anda.\n\nAda pengaturan legalitas eksportir, hak akses tim, atau sinkronisasi database yang ingin dikonsultasikan?",
       };
 
     case "advisor":
@@ -492,6 +523,7 @@ export function getScreenAdvisorInsight(
           "Apa rekomendasi terbaik untuk mengamankan margin bersih transaksi ini?",
         ],
         initialPrompt: `Saya membutuhkan panduan operasional dan mitigasi risiko untuk transaksi ekspor ${shipment.reference}.`,
+        welcomeGreeting: "Halo! Saya siap membantu konsultasi strategis ekspor komprehensif untuk transaksi Anda.\n\nSilakan ajukan pertanyaan seputar negosiasi kontrak, mitigasi risiko, atau efisiensi biaya.",
       };
 
     default:
@@ -508,6 +540,7 @@ export function getScreenAdvisorInsight(
           "Bagaimana cara memvalidasi kelengkapan dokumen kepabeanan?",
         ],
         initialPrompt: `Saya membutuhkan panduan operasional dan mitigasi risiko untuk transaksi ekspor ${shipment.reference || "ini"}.`,
+        welcomeGreeting: "Halo! Saya siap mendampingi operasional ekspor Anda.\n\nSilakan pilih pertanyaan rekomendasi di atas atau ajukan pertanyaan spesifik terkait transaksi ini.",
       };
   }
 }
@@ -786,9 +819,11 @@ export function ScreenAIAdvisorDrawer({
                 {m.role === "assistant" ? <Sparkles size={12} strokeWidth={2.4} /> : <User size={12} strokeWidth={2.4} />}
               </div>
               <div className="bubble-text">
-                {m.content.split("\n\n").map((para, pIdx) => (
-                  <p key={pIdx}>{para}</p>
-                ))}
+                {m.role === "assistant" ? (
+                  <Streamdown>{m.content}</Streamdown>
+                ) : (
+                  <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{m.content}</p>
+                )}
               </div>
             </div>
           ))}
@@ -937,17 +972,15 @@ export function ScreenAIFloatingWidget({
     if (isOpen) {
       if (messages.length === 0 || prevScreenRef.current !== screen) {
         prevScreenRef.current = screen;
-        const buyerInfo = shipment.buyer ? ` untuk **${shipment.buyer}**` : "";
-        const refInfo = shipment.reference ? ` (${shipment.reference})` : "";
         setMessages([
           {
             role: "assistant",
-            content: `Halo! Saya memantau menu **${screenTitle}**${refInfo}${buyerInfo}.\n\n💡 **Fokus Analisis & Mitigasi:**\n> **${insight.title}**\n${insight.mitigationText}`,
+            content: insight.welcomeGreeting,
           },
         ]);
       }
     }
-  }, [isOpen, screen, screenTitle, shipment.reference, shipment.buyer, insight.title, insight.mitigationText, messages.length]);
+  }, [isOpen, screen, insight.welcomeGreeting, messages.length]);
 
   // Pantau perpindahan layar saat popup sedang terbuka
   useEffect(() => {
@@ -958,16 +991,15 @@ export function ScreenAIFloatingWidget({
 
     if (prevScreenRef.current !== screen && messages.length > 0) {
       prevScreenRef.current = screen;
-      const refInfo = shipment.reference ? ` (${shipment.reference})` : "";
       setMessages((prev) => [
         ...prev,
         {
           role: "assistant",
-          content: `📍 **Beralih ke Menu ${screenTitle}**${refInfo}\n\n💡 **Fokus Analisis & Mitigasi:**\n> **${insight.title}**\n${insight.mitigationText}\n\n*Silakan pilih opsi pertanyaan rekomendasi di atas atau ajukan pertanyaan spesifik terkait layar ini.*`,
+          content: `📍 **Beralih ke Layar ${screenTitle}**\n\n${insight.welcomeGreeting}`,
         },
       ]);
     }
-  }, [isOpen, screen, screenTitle, shipment.reference, insight.title, insight.mitigationText, messages.length]);
+  }, [isOpen, screen, screenTitle, insight.welcomeGreeting, messages.length]);
 
   useEffect(() => {
     if (isOpen) {
@@ -1116,9 +1148,11 @@ export function ScreenAIFloatingWidget({
                   {m.role === "assistant" ? <Sparkles size={12} strokeWidth={2.4} /> : <User size={12} strokeWidth={2.4} />}
                 </div>
                 <div className="bubble-text">
-                  {m.content.split("\n\n").map((para, pIdx) => (
-                    <p key={pIdx}>{para}</p>
-                  ))}
+                  {m.role === "assistant" ? (
+                    <Streamdown>{m.content}</Streamdown>
+                  ) : (
+                    <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{m.content}</p>
+                  )}
                 </div>
               </div>
             ))}

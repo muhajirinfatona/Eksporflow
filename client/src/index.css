@@ -2072,6 +2072,25 @@ textarea:focus-visible {
   margin-bottom: 0;
 }
 
+.bubble-text strong {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.ai-drawer-bubble.user .bubble-text strong {
+  color: #ffffff;
+}
+
+.bubble-text ul,
+.bubble-text ol {
+  margin: 4px 0 6px 18px;
+  padding: 0;
+}
+
+.bubble-text li {
+  margin-bottom: 2px;
+}
+
 .bubble-text blockquote {
   margin: 6px 0;
   padding-left: 9px;
