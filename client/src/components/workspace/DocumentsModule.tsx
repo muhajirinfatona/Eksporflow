@@ -259,10 +259,6 @@ export function DocumentsModule({
             </span>
             <span className="spec-dot">·</span>
             <span className="spec-item">
-              Penandatangan: <b>{signatoryName}</b> ({signatoryRole})
-            </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
               Status:{" "}
               <b className={shipment.documentReviewed ? "spec-reviewed" : "spec-draft"}>
                 {shipment.documentReviewed ? "✓ Selesai Diperiksa" : "Draft Transaksi"}
@@ -272,51 +268,14 @@ export function DocumentsModule({
         </div>
 
         <div className="doc-action-buttons">
-          {/* Quick Paper Size Selector (pemilihan cepat ukuran kertas cetak & PDF) */}
-          <div className="doc-paper-quick-select" title="Sesuaikan ukuran kertas cetak & PDF">
-            <span className="quick-select-label">Kertas:</span>
-            <select
-              className="quick-select-input"
-              value={shipment.paperSize || "A4"}
-              onChange={(e) => update("paperSize", e.target.value as PaperSize)}
-              aria-label="Pilih Ukuran Kertas"
-            >
-              <option value="A4">A4 (210×297 mm)</option>
-              <option value="Letter">Letter (216×279 mm)</option>
-              <option value="Legal">Legal (216×356 mm)</option>
-            </select>
-          </div>
-
-          {/* Indikator Kepatutan Halaman (Page Fit Badge) */}
-          <span
-            className={`doc-page-fit-badge ${selectedDocument === "Sales Contract" ? "fit-badge-sc" : "fit-badge-single"}`}
-            title={
-              selectedDocument === "Sales Contract"
-                ? "Format kontrak dagang ekspor resmi (6 klausul hukum, terbagi rapi 2 halaman)"
-                : "Format operasional ekspor standar internasional (wajib 1 lembar utuh)"
-            }
-          >
-            {selectedDocument === "Sales Contract" ? (
-              <>
-                <FileText size={12} />
-                <span>2 Halaman (Kontrak Baku)</span>
-              </>
-            ) : (
-              <>
-                <CheckCircle2 size={12} />
-                <span>✓ Pas 1 Halaman (Standar Ekspor)</span>
-              </>
-            )}
-          </span>
-
           <button
             type="button"
             className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
             onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            title="Ubah data surat, permintaan buyer, kop, dan penandatangan"
+            title="Ubah data surat, permintaan buyer, kop, format kertas, dan penandatangan"
           >
             <SlidersHorizontal size={14} />
-            <span>{isSettingsOpen ? "Tutup Pengaturan" : "Edit Dokumen & Setelan Kop"}</span>
+            <span>{isSettingsOpen ? "Tutup Pengaturan" : "Setelan Kop & Format"}</span>
             {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
           </button>
 

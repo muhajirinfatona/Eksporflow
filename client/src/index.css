@@ -4768,9 +4768,14 @@ textarea:focus-visible {
 .doc-active-specs {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
+  gap: 8px;
+  font-size: 12.5px;
   color: #64748b;
+  flex-wrap: wrap;
+}
+
+.spec-item {
+  white-space: nowrap;
 }
 
 .spec-item b {
@@ -4794,69 +4799,6 @@ textarea:focus-visible {
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
-  flex-wrap: wrap;
-}
-
-/* Quick Paper Size Selector */
-.doc-paper-quick-select {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 10px;
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 12px;
-  color: #334155;
-  transition: all 0.15s ease;
-}
-
-.doc-paper-quick-select:hover {
-  border-color: #94a3b8;
-  background: #f1f5f9;
-}
-
-.quick-select-label {
-  font-size: 11px;
-  font-weight: 700;
-  color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.quick-select-input {
-  background: transparent;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0f172a;
-  cursor: pointer;
-  padding: 1px 2px;
-  outline: none;
-}
-
-/* Page Fit Badge */
-.doc-page-fit-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
-  border-radius: 7px;
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.fit-badge-single {
-  background: #ecfdf5;
-  color: #065f46;
-  border: 1px solid #a7f3d0;
-}
-
-.fit-badge-sc {
-  background: #eff6ff;
-  color: #1e40af;
-  border: 1px solid #bfdbfe;
 }
 
 .doc-btn-toggle-settings {
