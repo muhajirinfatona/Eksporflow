@@ -84,22 +84,20 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
     items: [
       {
         id: "transactions",
-        label: "Pengelolaan Ekspor Berjalan",
+        label: "Pesanan Ekspor",
         group: "Penjualan",
-        phase: "SALES · WORKSPACE PERUSAHAAN",
-        title: "Pengelolaan Ekspor Berjalan",
-        description:
-          "Pantau dan kelola seluruh PO dari buyer yang sedang berjalan beserta alur operasional 8 tahap ekspor.",
+        phase: "PENJUALAN",
+        title: "Pesanan Ekspor",
+        description: "Daftar seluruh pesanan buyer dan pemantauan alur operasional ekspor.",
         icon: <Layers size={16} />,
       },
       {
         id: "po_intake",
-        label: "Penambahan PO Baru",
+        label: "Input PO",
         group: "Penjualan",
-        phase: "SALES · INTAKE ORDER",
-        title: "Penambahan PO Baru",
-        description:
-          "Input atau pindai dokumen PO/LOI dari buyer baru untuk memvalidasi kredibilitas perusahaan dan mendaftarkannya ke sistem.",
+        phase: "PENJUALAN",
+        title: "Input PO Buyer",
+        description: "Registrasi dan pemindaian Purchase Order atau LOI dari buyer.",
         icon: <PlusCircle size={16} />,
       },
       {

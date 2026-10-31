@@ -722,11 +722,8 @@ export function TransactionsModule({
           <section className="panel panel-padding">
             <div className="panel-head">
               <div>
-                <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
-                <h3>Daftar Permintaan &amp; Transaksi Ekspor ({allTransactions.length})</h3>
-                <p className="profile-description">
-                  Kelola banyak PO dari berbagai buyer secara terpisah tanpa tumpang tindih. Klik &quot;Buka Alur&quot; pada baris untuk menampilkan dan memproses 8 tahapan pengiriman PO tersebut di bawah.
-                </p>
+                <span className="eyebrow">RINGKASAN ORDER</span>
+                <h3>Daftar Pesanan ({allTransactions.length})</h3>
               </div>
 
               <div className="clean-table-toolbar">
@@ -735,7 +732,7 @@ export function TransactionsModule({
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Cari PO, nama buyer, negara..."
+                    placeholder="Cari PO, buyer, komoditas..."
                   />
                 </div>
                 <button
@@ -744,7 +741,7 @@ export function TransactionsModule({
                   onClick={handleNewTransactionClick}
                   style={{ padding: "6px 14px", fontSize: "12.5px" }}
                 >
-                  <Plus size={14} /> Tambah PO Baru
+                  <Plus size={14} /> Input PO Baru
                 </button>
               </div>
             </div>
@@ -1220,24 +1217,13 @@ export function TransactionsModule({
         </>
       )}
 
-      {/* Penambahan PO Baru (Intake Dokumen PO / LOI Buyer) */}
+      {/* Input PO Buyer */}
       {isIntakeMode && (
         <section className="panel panel-padding active-order-card">
-          <button
-            type="button"
-            className="tx-back-btn"
-            onClick={() => navigate("transactions")}
-          >
-            <ArrowLeft size={14} /> ← Kembali ke Pengelolaan Ekspor
-          </button>
-
-          <div className="panel-head">
+          <div className="panel-head" style={{ marginBottom: "16px" }}>
             <div>
-              <span className="eyebrow">INTAKE ORDER &amp; REGISTRASI PO</span>
-              <h3>Input &amp; Registrasi PO Buyer Baru</h3>
-              <p className="profile-description">
-                Unggah dokumen PO atau LOI dari buyer baru untuk memvalidasi kredibilitas perusahaan dengan AI 4-Pilar, menganalisis kepatuhan regulasi negara tujuan, dan mendaftarkannya ke pipeline ekspor perusahaan tanpa menimpa order yang sedang berjalan.
-              </p>
+              <span className="eyebrow">FORMULIR PESANAN</span>
+              <h3>Data Purchase Order</h3>
             </div>
 
             <div className="active-order-header-actions">
@@ -1247,7 +1233,7 @@ export function TransactionsModule({
                 onClick={() => setPoModalOpen(true)}
                 title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
               >
-                <FileSpreadsheet size={14} /> + Scan Dokumen PO / LOI
+                <FileSpreadsheet size={14} /> Scan Dokumen PO / LOI
               </button>
               <button
                 type="button"
@@ -1260,23 +1246,24 @@ export function TransactionsModule({
             </div>
           </div>
 
-          {/* Banner Hasil Screening AI Advisor Buyer Jika Ada */}
+          {/* Banner Ringkas Hasil Verifikasi AI Advisor Jika Ada */}
           {lastScreening && (
-            <div className="po-screening-banner">
-              <div className="po-screening-banner-left">
-                <span className="po-screening-badge">
-                  <CheckCircle2 size={15} /> AI Advisor: Buyer {lastScreening.buyer} Terverifikasi ({lastScreening.validation.score}%)
+            <div className="po-screening-banner" style={{ padding: "10px 14px", marginBottom: "16px", borderRadius: "6px" }}>
+              <div className="po-screening-banner-left" style={{ gap: "4px" }}>
+                <span className="po-screening-badge" style={{ fontSize: "12.5px" }}>
+                  <CheckCircle2 size={14} /> Buyer Terverifikasi AI ({lastScreening.validation.score}%) · {lastScreening.buyer}
                 </span>
-                <p>
-                  {lastScreening.validation.legalEntityStatus} · {lastScreening.validation.sanctionCheck} · {lastScreening.validation.paymentTermRisk}
+                <p style={{ fontSize: "12px", margin: 0 }}>
+                  {lastScreening.validation.legalEntityStatus} · {lastScreening.validation.sanctionCheck}
                 </p>
               </div>
               <button
                 type="button"
                 className="compact-btn"
                 onClick={() => setPoModalOpen(true)}
+                style={{ fontSize: "11.5px", padding: "4px 10px" }}
               >
-                Lihat Analisis Lengkap PO
+                Detail Analisis
               </button>
             </div>
           )}
@@ -1420,7 +1407,7 @@ export function TransactionsModule({
           {/* Footer Aksi Pendaftaran PO Baru ke Pipeline Ekspor */}
           <div className="intake-action-footer">
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-              <span className="status-pill status-pill-info">Draft PO Baru</span>
+              <span className="status-pill status-pill-info">{shipment.shipmentStatus || "Draft"}</span>
               <small style={{ color: "var(--muted)" }}>
                 {displayReference ? `PO: ${displayReference}` : "Nomor PO belum diisi"} · {shipment.buyer || "Nama buyer belum diisi"}
               </small>
@@ -1432,7 +1419,7 @@ export function TransactionsModule({
                 className="ghost-button"
                 onClick={() => navigate("transactions")}
               >
-                Batal / Kembali ke Pengelolaan Ekspor
+                Batal
               </button>
               <button
                 type="button"
@@ -1446,9 +1433,9 @@ export function TransactionsModule({
                 type="button"
                 className="intake-activate-btn"
                 onClick={() => void handleActivateNewPo()}
-                title="Daftarkan pesanan ini dan buka di alur ekspor berjalan"
+                title="Daftarkan pesanan ini ke daftar pesanan ekspor"
               >
-                <CheckCircle2 size={15} /> Daftarkan &amp; Masukkan ke Ekspor Berjalan
+                <CheckCircle2 size={15} /> Daftarkan Pesanan
               </button>
             </div>
           </div>
