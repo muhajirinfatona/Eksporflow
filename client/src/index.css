@@ -2198,45 +2198,58 @@ textarea:focus-visible {
 }
 
 /* ==========================================================================
-   Floating AI Advisor Popup Widget (Intercom / LiveChat Style)
+   Floating AI Advisor Popup Widget (Sleek Enterprise AI Flyout)
    ========================================================================== */
 .ai-float-trigger-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 56px;
-  height: 56px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+  padding: 0 16px;
+  height: 42px;
+  border-radius: 999px;
+  background: #0f172a;
   color: #ffffff;
-  border: 0;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   display: flex;
   align-items: center;
-  justify-content: center;
-  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.45);
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.35);
   cursor: pointer;
   z-index: 1000;
-  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ai-float-trigger-btn:hover {
-  transform: scale(1.08);
-  box-shadow: 0 10px 30px rgba(234, 88, 12, 0.6);
+  transform: translateY(-2px);
+  background: #1e293b;
+  border-color: rgba(56, 189, 248, 0.4);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.45);
 }
 
 .ai-float-trigger-btn.open {
-  background: #ea580c;
+  width: 42px;
+  padding: 0;
+  justify-content: center;
+  background: #334155;
+  border-radius: 50%;
+}
+
+.ai-float-trigger-label {
+  display: inline;
 }
 
 .ai-float-trigger-badge {
   position: absolute;
   top: 1px;
   right: 1px;
-  width: 14px;
-  height: 14px;
+  width: 11px;
+  height: 11px;
   border-radius: 50%;
   background: #10b981;
-  border: 2px solid #ffffff;
+  border: 2px solid #0f172a;
 }
 
 .ai-float-trigger-badge.risk-warning {
@@ -2249,15 +2262,15 @@ textarea:focus-visible {
 
 .ai-float-popup {
   position: fixed;
-  bottom: 92px;
+  bottom: 78px;
   right: 24px;
   width: 380px;
   max-width: calc(100vw - 32px);
-  height: 570px;
-  max-height: calc(100vh - 120px);
+  height: 560px;
+  max-height: calc(100vh - 110px);
   background: #ffffff;
-  border-radius: 18px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.22), 0 0 0 1px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(15, 23, 42, 0.08);
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -2277,38 +2290,39 @@ textarea:focus-visible {
 }
 
 .ai-float-header {
-  background: linear-gradient(135deg, #c2410c 0%, #ea580c 50%, #f97316 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #ffffff;
   padding: 14px 16px;
   position: relative;
   overflow: hidden;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .ai-float-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 .ai-float-pill-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 12px;
-  background: rgba(255, 255, 255, 0.95);
-  color: #c2410c;
-  font-size: 11.5px;
-  font-weight: 700;
+  gap: 5px;
+  padding: 3px 10px;
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 600;
   border-radius: 999px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .ai-float-screen-tag {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.95);
-  font-weight: 600;
-  background: rgba(0, 0, 0, 0.18);
+  color: #94a3b8;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.06);
   padding: 3px 8px;
   border-radius: 6px;
 }
@@ -2350,18 +2364,18 @@ textarea:focus-visible {
 }
 
 .ai-float-header h4 {
-  font-size: 14.5px;
-  font-weight: 700;
-  text-align: center;
-  margin: 0 0 3px;
+  font-size: 13.5px;
+  font-weight: 600;
+  text-align: left;
+  margin: 0 0 2px;
   color: #ffffff;
 }
 
 .ai-float-header p {
   font-size: 11.5px;
-  text-align: center;
+  text-align: left;
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: #94a3b8;
   display: flex;
   align-items: center;
   justify-content: center;

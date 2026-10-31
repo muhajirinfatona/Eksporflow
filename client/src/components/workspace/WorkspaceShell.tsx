@@ -61,17 +61,17 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "dashboard",
         label: "Dashboard",
         group: "Ringkasan",
-        phase: "WORKSPACE · RINGKASAN",
-        title: "Siapkan ekspor tanpa pindah-pindah alat.",
+        phase: "Ringkasan",
+        title: "Dashboard Ekspor",
         description:
-          "Satu sumber data terhubung untuk memantau penawaran, kesiapan dokumen, muatan kontainer, dan langkah prioritas hari ini.",
+          "Satu sumber data terhubung untuk memantau penawaran, kesiapan dokumen, muatan kontainer, dan langkah operasional.",
         icon: <LayoutGrid size={16} />,
       },
       {
         id: "readiness",
         label: "Asesmen Kesiapan",
         group: "Ringkasan",
-        phase: "MULAI EKSPOR · PANDUAN KESIAPAN",
+        phase: "Ringkasan",
         title: "Asesmen Kesiapan Ekspor",
         description:
           "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
@@ -86,25 +86,25 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "transactions",
         label: "Pesanan Ekspor",
         group: "Penjualan",
-        phase: "PENJUALAN",
+        phase: "Penjualan",
         title: "Pesanan Ekspor",
-        description: "Daftar seluruh pesanan buyer dan pemantauan alur operasional ekspor.",
+        description: "Kelola daftar pesanan buyer dan pantau alur tahapan operasional ekspor.",
         icon: <Layers size={16} />,
       },
       {
         id: "po_intake",
         label: "Input PO",
         group: "Penjualan",
-        phase: "PENJUALAN",
-        title: "Input PO Buyer",
-        description: "Registrasi dan pemindaian Purchase Order atau LOI dari buyer.",
+        phase: "Penjualan",
+        title: "Input Purchase Order",
+        description: "Catat pesanan baru atau pindai dokumen PO/LOI buyer.",
         icon: <PlusCircle size={16} />,
       },
       {
         id: "pricing",
         label: "Harga & Order",
         group: "Penjualan",
-        phase: "SALES · QUOTE BUILDER",
+        phase: "Penjualan",
         title: "Harga & Order",
         description:
           "Kalkulasi biaya logistik, kepabeanan, contingency, dan harga jual bersih di 7 skenario Incoterms® 2020.",
@@ -114,7 +114,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "approvals",
         label: "Persetujuan",
         group: "Penjualan",
-        phase: "SALES · REVIEW & CONTROL",
+        phase: "Penjualan",
         title: "Persetujuan",
         description:
           "Tinjau perubahan harga, margin, atau Incoterm secara terstruktur sebelum quotation dikirim ke buyer.",
@@ -129,7 +129,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "documents",
         label: "Dokumen Ekspor",
         group: "Operasional Ekspor",
-        phase: "OPERASIONAL EKSPOR · DOCUMENT CENTER",
+        phase: "Operasional Ekspor",
         title: "Dokumen Ekspor",
         description:
           "Siapkan Proforma Invoice, Commercial Invoice, Packing List, dan B/L draft dari satu sumber data transaksi.",
@@ -139,7 +139,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "cargo",
         label: "Rencana Muatan",
         group: "Operasional Ekspor",
-        phase: "OPERASIONAL EKSPOR · PACKING PLAN",
+        phase: "Operasional Ekspor",
         title: "Rencana Muatan & Simulasi 3D",
         description:
           "Hitung kapasitas volume/berat kontainer, pallet kayu, dan susut komoditas tanpa mencampur layar dokumen.",
@@ -149,7 +149,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "shipment",
         label: "Logistik & Pengiriman",
         group: "Operasional Ekspor",
-        phase: "OPERASIONAL EKSPOR · CONTROL TOWER",
+        phase: "Operasional Ekspor",
         title: "Logistik & Pengiriman",
         description:
           "Pantau tahapan shipment, nomor booking/kontainer/seal, handoff checklist, dan arsip bukti transaksi.",
@@ -159,7 +159,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "risk",
         label: "Risk Center",
         group: "Operasional Ekspor",
-        phase: "OPERASIONAL EKSPOR · REVIEW & EVIDENCE",
+        phase: "Operasional Ekspor",
         title: "Risk Center",
         description:
           "Tampilkan temuan konsistensi 3-way, kelengkapan bukti PO/email, dan checklist verifikasi sebelum keberangkatan.",
@@ -174,7 +174,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "advisor",
         label: "AI Advisor",
         group: "Advisor & Pengetahuan",
-        phase: "ADVISOR · MODE BELAJAR & TRANSAKSI",
+        phase: "Advisor & Pengetahuan",
         title: "AI Advisor",
         description:
           "Tanyakan risiko, skenario Incoterm, atau kelengkapan dokumen berdasarkan snapshot transaksi yang sedang dibuka.",
@@ -184,7 +184,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "knowledge",
         label: "Pengetahuan Tim",
         group: "Advisor & Pengetahuan",
-        phase: "ADVISOR · GOVERNANCE SUMBER",
+        phase: "Advisor & Pengetahuan",
         title: "Pengetahuan Tim",
         description:
           "Kelola SOP internal dan panduan pasar dengan batas scope, masa berlaku, dan pemisahan uploader vs reviewer.",
@@ -199,7 +199,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "partners",
         label: "Mitra & Kontak",
         group: "Data Utama",
-        phase: "DATA UTAMA · BUYER & KONTAK",
+        phase: "Data Utama",
         title: "Mitra & Kontak",
         description:
           "Simpan identitas buyer, negara tujuan, dan terms pembayaran agar tidak diketik berulang kali.",
@@ -209,7 +209,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "products",
         label: "Katalog Produk",
         group: "Data Utama",
-        phase: "DATA UTAMA · SPESIFIKASI PRODUK",
+        phase: "Data Utama",
         title: "Katalog Produk",
         description:
           "Kelola spesifikasi kemasan standar dan HS Code referensi untuk ditambahkan cepat ke transaksi.",
@@ -224,7 +224,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "finance",
         label: "Keuangan",
         group: "Keuangan & Analitik",
-        phase: "P2 · AKUNTANSI INTI",
+        phase: "Keuangan",
         title: "Keuangan (AR / AP)",
         description:
           "Pantau rencana piutang dan kontrol pemisahan antara dokumen perdagangan dengan pengakuan pendapatan akuntansi.",
@@ -234,7 +234,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "bank",
         label: "Rekonsiliasi Bank",
         group: "Keuangan & Analitik",
-        phase: "P2 · BANK MATCHING",
+        phase: "Keuangan",
         title: "Rekonsiliasi Bank",
         description:
           "Tinjau saran pencocokan pembayaran uang muka/pelunasan dan kurs realisasi sebelum posting Finance.",
@@ -244,7 +244,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "journals",
         label: "Jurnal & Bagan Akun",
         group: "Keuangan & Analitik",
-        phase: "P2 · LEDGER CONTROL",
+        phase: "Keuangan",
         title: "Jurnal & Bagan Akun",
         description:
           "Pratinjau jurnal double-entry seimbang dengan kontrol jejak sumber dan kebijakan koreksi via reversal.",
@@ -254,7 +254,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "reports",
         label: "Laporan & Analitik",
         group: "Keuangan & Analitik",
-        phase: "P2 · MARGIN SHIPMENT",
+        phase: "Keuangan",
         title: "Laporan & Analitik",
         description:
           "Evaluasi struktur biaya, estimasi margin per shipment, dan pemisahan tegas antara asumsi quote vs realisasi.",
@@ -269,7 +269,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         id: "settings",
         label: "Pengaturan Workspace",
         group: "Administrasi",
-        phase: "P0 · ADMIN & GOVERNANCE",
+        phase: "Administrasi",
         title: "Pengaturan Workspace",
         description:
           "Kelola sesi autentikasi, status koneksi PostgreSQL / Supabase, keamanan RLS, dan ekspor portabilitas data.",
@@ -681,9 +681,6 @@ export function WorkspaceShell({
               <p>{activeMeta.description}</p>
             </div>
             <div className="heading-actions">
-              <button className="ghost-button" type="button" onClick={onReset}>
-                <RefreshCcw size={14} /> Kosongkan form
-              </button>
               {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
             </div>
           </section>

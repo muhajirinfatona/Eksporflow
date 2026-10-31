@@ -4,7 +4,7 @@ import { formatMoney } from "@shared/format";
 import type { PoScreeningResult } from "@shared/poScreening";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
-import type { ContainerCalc, Shipment, ShipmentStatus } from "@shared/shipment";
+import type { ContainerCalc, Incoterm, Shipment, ShipmentStatus } from "@shared/shipment";
 import {
   Activity,
   ArrowLeft,
@@ -356,6 +356,7 @@ export function TransactionsModule({
   mode?: "active_management" | "new_po_intake";
 }) {
   const isIntakeMode = mode === "new_po_intake";
+  const [activeTab, setActiveTab] = useState<"list" | "workflow">("list");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
@@ -497,6 +498,12 @@ export function TransactionsModule({
     navigate("po_intake");
   };
 
+  const handleResetForm = () => {
+    handleResetPo();
+    createNewDraft();
+    toast.info("Formulir telah dikosongkan.");
+  };
+
   const handleActivateNewPo = async () => {
     const ref = displayReference || shipment.poNumber?.trim();
     if (!ref && !shipment.buyer) {
@@ -509,9 +516,10 @@ export function TransactionsModule({
     if (user) {
       await saveShipment();
     }
-    toast.success("PO Berhasil Didaftarkan ke Ekspor Berjalan", {
+    toast.success("PO Berhasil Didaftarkan", {
       description: `Transaksi ${ref || "PO Baru"} (${shipment.buyer || "Buyer"}) kini aktif di alur ekspor perusahaan.`,
     });
+    setActiveTab("workflow");
     navigate("transactions");
   };
 
@@ -526,6 +534,7 @@ export function TransactionsModule({
       loadCustomShipment(item.shipment, item.id);
     }
     setIsEditingActiveOrder(false);
+    setActiveTab("workflow");
   };
 
   const handleDeleteTransaction = async (row: UnifiedTransactionItem) => {
@@ -726,6 +735,7 @@ export function TransactionsModule({
   const activeExecutionCount = allTransactions.filter(
     (r) => !["Draft", "Quotation", "Completed"].includes(r.status),
   ).length;
+  const completedTxCount = allTransactions.filter((r) => r.status === "Completed").length;
 
   // Apakah dokumen PO atau LOI sudah discan dan cocok dengan transaksi saat ini
   const hasScannedPo = Boolean(
@@ -735,11 +745,11 @@ export function TransactionsModule({
 
   return (
     <div className="module-stack">
-      {/* 1. Notifikasi Mode Draft Lokal (Jika belum masuk akun) */}
+      {/* Notifikasi Mode Draft Lokal (Jika belum masuk akun) */}
       {!user && (
-        <div className="clean-notice warn">
+        <div className="clean-notice warn" style={{ marginBottom: "14px" }}>
           <div>
-            <b>Mode Draft Lokal Aktif</b> — Data transaksi disimpan sementara di browser perangkat ini. Masuk akun agar transaksi tersimpan aman di database cloud PostgreSQL beserta riwayat versi.
+            <b>Mode Draft Lokal Aktif</b> — Data transaksi disimpan sementara di browser ini. Masuk akun agar transaksi tersimpan aman di database cloud PostgreSQL beserta riwayat versi.
           </div>
           <button type="button" className="save-button" onClick={() => void login()}>
             <Cloud size={14} /> Masuk &amp; Hubungkan Cloud
@@ -747,522 +757,555 @@ export function TransactionsModule({
         </div>
       )}
 
-      {/* 1. Pengelolaan Ekspor Berjalan (Tabel PO Perusahaan & Alur 8 Tahap) */}
+      {/* TAMPILAN 1: PENGELOLAAN PESANAN EKSPOR */}
       {!isIntakeMode && (
         <>
-          <section className="panel panel-padding">
-            <div className="panel-head">
-              <div>
-                <span className="eyebrow">RINGKASAN ORDER</span>
-                <h3>Daftar Pesanan ({allTransactions.length})</h3>
-              </div>
-
-              <div className="clean-table-toolbar">
-                <div className="clean-search-box compact">
-                  <Search size={14} />
-                  <input
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="Cari PO, buyer, komoditas..."
-                  />
-                </div>
-                <button
-                  type="button"
-                  className="save-button"
-                  onClick={handleNewTransactionClick}
-                  style={{ padding: "6px 14px", fontSize: "12.5px" }}
-                >
-                  <Plus size={14} /> Input PO Baru
-                </button>
-              </div>
+          {/* Metrik KPI Ringkas di Bagian Atas */}
+          <div className="clean-grid-4" style={{ marginBottom: "16px" }}>
+            <div className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">TOTAL PESANAN</span>
+              <strong style={{ fontSize: "24px", color: "var(--navy)" }}>{allTransactions.length}</strong>
+              <small>Semua pesanan tercatat</small>
             </div>
-
-            {/* Isi Tabel Riwayat Transaksi */}
-            {allTransactions.length === 0 ? (
-              <div className="tx-empty-state">
-                <div className="tx-empty-state-icon">
-                  <FileSpreadsheet size={24} />
-                </div>
-                <h4>Belum Ada Transaksi Ekspor</h4>
-                <p>
-                  Mulai dengan memindai dokumen PO atau LOI dari buyer Anda, atau masukkan parameter transaksi secara manual.
-                </p>
-                <button
-                  type="button"
-                  className="save-button"
-                  onClick={handleNewTransactionClick}
-                >
-                  <Plus size={14} /> Input / Scan PO Baru
-                </button>
-              </div>
-            ) : (
-              <div className="clean-table-wrap">
-                <table className="clean-table">
-                  <thead>
-                    <tr>
-                      <th>Nomor PO / Referensi</th>
-                      <th>Nama Buyer &amp; Negara</th>
-                      <th>Komoditas &amp; Incoterm</th>
-                      <th>Status Alur</th>
-                      <th>Status</th>
-                      <th>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {allTransactions
-                      .filter((row) => {
-                        const q = query.trim().toLowerCase();
-                        if (!q) return true;
-                        return (
-                          row.reference.toLowerCase().includes(q) ||
-                          row.buyer.toLowerCase().includes(q) ||
-                          row.buyerCountry.toLowerCase().includes(q) ||
-                          row.product.toLowerCase().includes(q)
-                        );
-                      })
-                      .map((row) => {
-                        const isCurrent =
-                          (row.reference && row.reference === displayReference) ||
-                          row.id === activeShipmentId;
-                        return (
-                          <tr key={row.id} className={isCurrent ? "active-row" : ""}>
-                            <td>
-                              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                <b style={{ color: "var(--navy)" }}>{row.reference || "(Tanpa nomor)"}</b>
-                                {isCurrent && (
-                                  <span className="current-tx-badge">● Sedang Dibuka</span>
-                                )}
-                              </div>
-                            </td>
-                            <td>
-                              <div style={{ fontWeight: 600, color: "#1e293b" }}>{row.buyer}</div>
-                              <small style={{ color: "#64748b" }}>{row.buyerCountry}</small>
-                            </td>
-                            <td>
-                              <div>{row.product}</div>
-                              <small style={{ color: "#0284c7", fontWeight: 600 }}>
-                                {row.incoterm} · {row.quantity} {row.unit}
-                              </small>
-                            </td>
-                            <td>
-                              <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                <div style={{ width: "60px", height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>
-                                  <div
-                                    style={{
-                                      width: isCurrent ? `${percentCompleted}%` : row.status === "Completed" ? "100%" : "25%",
-                                      height: "100%",
-                                      background: row.status === "Completed" ? "#16a34a" : "#0284c7",
-                                    }}
-                                  />
-                                </div>
-                                <small style={{ color: "#475569", fontWeight: 600, fontSize: "11px" }}>
-                                  {isCurrent ? `${completedCount}/${totalCount} (${percentCompleted}%)` : row.status === "Completed" ? "Selesai" : "Berjalan"}
-                                </small>
-                              </div>
-                            </td>
-                            <td>
-                              <StatusPill tone={statusTone(row.status)}>{row.status}</StatusPill>
-                            </td>
-                            <td>
-                              <div className="row-actions" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                {isCurrent ? (
-                                  <button
-                                    type="button"
-                                    className="tx-active-btn"
-                                    title="Transaksi ini sedang aktif di alur ekspor bawah"
-                                  >
-                                    <Check size={12} strokeWidth={3} /> Alur Aktif
-                                  </button>
-                                ) : (
-                                  <button
-                                    type="button"
-                                    className="save-button"
-                                    style={{ padding: "5px 10px", fontSize: "12px" }}
-                                    onClick={() => void handleSwitchTransaction(row)}
-                                    title="Buka alur 8 tahap ekspor untuk transaksi ini"
-                                  >
-                                    <FolderOpen size={13} /> Buka Alur
-                                  </button>
-                                )}
-                                <button
-                                  type="button"
-                                  className="tx-delete-btn"
-                                  onClick={() => void handleDeleteTransaction(row)}
-                                  title={`Hapus transaksi ${row.reference} (${row.buyer})`}
-                                >
-                                  <Trash2 size={12} /> Hapus
-                                </button>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-
-          {/* Kartu Ringkasan Hero Pesanan Aktif */}
-          <div className="active-order-summary-card">
-            <div className="active-order-summary-main">
-              <span className="active-order-ref-pill">
-                {displayReference || shipment.poNumber || "Pesanan Aktif"}
-              </span>
-              <div className="active-order-buyer-info">
-                <span className="active-order-buyer-name">
-                  {shipment.buyer || "Buyer Belum Ditentukan"}
-                </span>
-                <span className="active-order-buyer-meta">
-                  {shipment.buyerCountry || "-"} · {shipment.destination || "Pelabuhan Tujuan -"} · {shipment.product || "Komoditas"}
-                </span>
-              </div>
-              <span className="tab-badge">{shipment.incoterm || "FOB"}</span>
-              <StatusPill tone={statusTone(shipment.shipmentStatus)}>
-                {shipment.shipmentStatus}
-              </StatusPill>
+            <div className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">DRAFT / QUOTATION</span>
+              <strong style={{ fontSize: "24px", color: "#d97706" }}>{draftCount}</strong>
+              <small>Fase penawaran &amp; negosiasi</small>
             </div>
-
-            <div className="active-order-summary-stats">
-              <div className="active-order-stat-item">
-                <span className="active-order-stat-label">Progress Ekspor</span>
-                <span
-                  className="active-order-stat-val"
-                  style={{ color: percentCompleted === 100 ? "#16a34a" : "#0284c7" }}
-                >
-                  {completedCount}/{totalCount} Tahap ({percentCompleted}%)
-                </span>
-              </div>
-              <button
-                type="button"
-                className="ghost-button"
-                style={{ fontSize: "12px", padding: "6px 12px" }}
-                onClick={() => setIsEditingActiveOrder(!isEditingActiveOrder)}
-                title="Buka atau tutup form untuk mengubah parameter order aktif"
-              >
-                <Pencil size={13} /> {isEditingActiveOrder ? "Tutup Form Parameter" : "Ubah Parameter PO"}
-              </button>
-              <button
-                type="button"
-                className="save-button"
-                style={{ fontSize: "12px", padding: "6px 12px" }}
-                onClick={() => void handleSaveShipmentWithLocal()}
-                disabled={saveState === "saving"}
-                title="Simpan perubahan transaksi ini ke cloud"
-              >
-                <Save size={13} /> {saveState === "saving" ? "Menyimpan..." : "Simpan"}
-              </button>
+            <div className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">DALAM EKSEKUSI</span>
+              <strong style={{ fontSize: "24px", color: "#0284c7" }}>{activeExecutionCount}</strong>
+              <small>Confirmed, stuffing hingga kapal</small>
+            </div>
+            <div className="panel panel-padding clean-stat-card">
+              <span className="eyebrow">SELESAI</span>
+              <strong style={{ fontSize: "24px", color: "#16a34a" }}>{completedTxCount}</strong>
+              <small>Kargo tiba &amp; pembayaran lunas</small>
             </div>
           </div>
 
-          {/* Form Parameter yang Bisa Di-Expand/Collapse Jika Perlu Diedit */}
-          {isEditingActiveOrder && (
-            <section className="panel panel-padding active-order-card" style={{ marginBottom: "14px" }}>
+          {/* Tab Navigasi Bersih & Profesional */}
+          <div className="clean-tabs" style={{ marginBottom: "16px" }}>
+            <button
+              type="button"
+              className={activeTab === "list" ? "active" : ""}
+              onClick={() => setActiveTab("list")}
+            >
+              <Layers size={15} /> Daftar Pesanan ({allTransactions.length})
+            </button>
+            <button
+              type="button"
+              className={activeTab === "workflow" ? "active" : ""}
+              onClick={() => setActiveTab("workflow")}
+            >
+              <Activity size={15} /> Alur Operasional: {displayReference || shipment.buyer || "Pesanan Aktif"}
+            </button>
+          </div>
+
+          {/* TAB KONTEN 1: TABEL DAFTAR PESANAN */}
+          {activeTab === "list" && (
+            <section className="panel panel-padding">
               <div className="panel-head">
                 <div>
-                  <span className="eyebrow">PARAMETER PO AKTIF</span>
-                  <h3>Penyesuaian Data Transaksi</h3>
+                  <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
+                  <h3>Daftar Pesanan Ekspor ({allTransactions.length})</h3>
                 </div>
 
-                <div className="active-order-header-actions">
-                  <button
-                    type="button"
-                    className="create-po-btn"
-                    onClick={() => setPoModalOpen(true)}
-                    title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
-                  >
-                    <FileSpreadsheet size={14} /> Scan Dokumen PO / LOI
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    onClick={handleSaveDraft}
-                    title="Simpan sebagai draft lokal"
-                  >
-                    <FileText size={14} /> Draft
-                  </button>
-                  <button
-                    type="button"
-                    className="ghost-button select-partner-btn"
-                    onClick={() => navigate("partners")}
-                    title="Pilih dari daftar mitra buyer tersimpan"
-                  >
-                    <Users size={14} /> Mitra
-                  </button>
-                </div>
-              </div>
-
-              <div className="profile-grid">
-                <Field
-                  label="Nomor PO / Transaksi"
-                  value={displayReference}
-                  placeholder="Contoh: PO-001, INV-2026/01"
-                  onChange={(value) => update("reference", value)}
-                />
-
-                <Field
-                  label="Nama Buyer (Pembeli)"
-                  value={shipment.buyer}
-                  placeholder="Nama perusahaan pembeli luar negeri"
-                  onChange={(value) => update("buyer", value)}
-                />
-
-                <Field
-                  label="Negara Tujuan"
-                  value={shipment.buyerCountry}
-                  placeholder="Contoh: Jepang, Jerman, AS"
-                  onChange={(value) => update("buyerCountry", value)}
-                />
-
-                <Field
-                  label="Pelabuhan Tujuan"
-                  value={shipment.destination}
-                  placeholder="Contoh: Port of Tokyo"
-                  onChange={(value) => update("destination", value)}
-                />
-
-                <Field
-                  label="Nama Eksportir"
-                  value={shipment.exporter}
-                  placeholder="Nama perusahaan Anda"
-                  onChange={(value) => update("exporter", value)}
-                />
-
-                <Field
-                  label="HS Code"
-                  value={shipment.hsCode}
-                  placeholder="Contoh: 0901.11"
-                  onChange={(value) => update("hsCode", value)}
-                />
-
-                <SelectField
-                  label="Status Siklus Transaksi"
-                  value={shipment.shipmentStatus}
-                  onChange={(val) => {
-                    const nextStatus = val as ShipmentStatus;
-                    update("shipmentStatus", nextStatus);
-                    saveToLocalList({ ...shipment, shipmentStatus: nextStatus }, nextStatus);
-                  }}
-                >
-                  <option value="Draft">Draft (Tahap Perencanaan / Draf Awal)</option>
-                  <option value="Quotation">Quotation (Fase Penawaran Resmi ke Buyer)</option>
-                  <option value="Confirmed">Confirmed (PO / Kontrak Disepakati)</option>
-                  <option value="Ready to Ship">Ready to Ship (Kargo Siap di Gudang)</option>
-                  <option value="Booked">Booked (Booking Kapal / Pelayaran Terbit)</option>
-                  <option value="Stuffing">Stuffing (Pemuatan Kargo ke Kontainer)</option>
-                  <option value="Departed">Departed (Kapal Berangkat dari Pelabuhan)</option>
-                  <option value="In Transit">In Transit (Dalam Pelayaran ke Negara Tujuan)</option>
-                  <option value="Completed">Completed (Tiba di Buyer & Transaksi Selesai)</option>
-                </SelectField>
-              </div>
-            </section>
-          )}
-
-          {/* Banner Hasil Screening AI Advisor Buyer Jika Ada */}
-          {activeScreening && (
-            <div className="po-screening-banner" style={{ marginBottom: "14px" }}>
-              <div className="po-screening-banner-left">
-                <span className="po-screening-badge">
-                  <CheckCircle2 size={15} /> AI Advisor: Buyer {activeScreening.buyer} Terverifikasi ({activeScreening.validation.score}%)
-                </span>
-                <p>
-                  {activeScreening.validation.legalEntityStatus} · {activeScreening.validation.sanctionCheck} · {activeScreening.validation.paymentTermRisk}
-                </p>
-              </div>
-              <button
-                type="button"
-                className="compact-btn"
-                onClick={() => setPoModalOpen(true)}
-              >
-                Lihat Analisis Lengkap PO
-              </button>
-            </div>
-          )}
-
-          {/* Rel Navigasi Antar Modul Terintegrasi */}
-          <div className="connection-rail" style={{ marginBottom: "14px" }}>
-            <div className="rail-chips">
-              <button type="button" className="rail-chip" onClick={() => navigate("pricing")}>
-                <Calculator size={13} />
-                <span>Harga &amp; Order</span>
-              </button>
-              <button type="button" className="rail-chip" onClick={() => navigate("documents")}>
-                <FileText size={13} />
-                <span>Dokumen Ekspor</span>
-              </button>
-              <button type="button" className="rail-chip" onClick={() => navigate("cargo")}>
-                <Package size={13} />
-                <span>Rencana Muatan</span>
-              </button>
-              <button type="button" className="rail-chip" onClick={() => navigate("risk")}>
-                <ShieldAlert size={13} />
-                <span>Risk Center</span>
-              </button>
-            </div>
-            <span className="rail-status">Sinkron otomatis</span>
-          </div>
-
-          {/* ALUR OPERASIONAL EKSPOR TERINTEGRASI (8 TAHAP) */}
-          <section className="panel panel-padding clean-workflow-card">
-            <div className="clean-workflow-head">
-              <div>
-                <span className="eyebrow">ALUR OPERASIONAL EKSPOR</span>
-                <h3>Alur Transaksi ({workflow.incoterm})</h3>
-              </div>
-              <div className="clean-workflow-progress">
-                <span className="clean-workflow-count">
-                  <b>{completedCount}</b> dari {totalCount} tahap selesai ({percentCompleted}%)
-                </span>
-                <div className="clean-workflow-track">
-                  <div
-                    className="clean-workflow-fill"
-                    style={{ width: `${percentCompleted}%` }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Bar Koordinasi Buyer (Singkat & Elegan) */}
-            {workflow.coordinationTip && (
-              <div className="clean-buyer-notice">
-                <MessageSquare size={14} />
-                <span>
-                  <strong>Koordinasi Buyer:</strong> {workflow.coordinationTip}
-                </span>
-              </div>
-            )}
-
-            {/* Daftar Tahapan Rapi, Bersih & Minimalis */}
-            <div className="clean-stage-list">
-              {workflow.stages.map((stage) => {
-                return (
-                  <div
-                    key={stage.id}
-                    className="clean-stage-row"
-                    onClick={() => navigate(stage.targetScreen)}
-                    title="Klik untuk membuka modul terkait"
-                  >
-                    <div className={`clean-stage-dot ${stage.isDone ? "done" : ""}`}>
-                      {stage.isDone ? <Check size={12} strokeWidth={3} /> : stage.number}
-                    </div>
-
-                    <div className="clean-stage-info">
-                      <span className="clean-stage-title">{stage.title}</span>
-                      <span className="clean-stage-meta">{stage.meta}</span>
-                    </div>
-
-                    <div className="clean-stage-status">
-                      <span className={`clean-stage-pill ${stage.isDone ? "done" : "pending"}`}>
-                        {stage.isDone ? "Selesai" : "Perlu Dilengkapi"}
-                      </span>
-                      <ChevronRight size={15} className="clean-stage-arrow" />
-                    </div>
+                <div className="clean-table-toolbar">
+                  <div className="clean-search-box compact">
+                    <Search size={14} />
+                    <input
+                      value={query}
+                      onChange={(event) => setQuery(event.target.value)}
+                      placeholder="Cari PO, buyer, komoditas..."
+                    />
                   </div>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Dokumen & Sertifikat Kepatuhan Ekspor Hasil Scan AI */}
-          {hasScannedPo && (
-            <div className="trans-compliance-box" style={{ marginTop: "14px" }}>
-              <div className="trans-compliance-head">
-                <div className="trans-compliance-title">
-                  <Sparkles size={14} />
-                  <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
-                  <span className="compliance-tag-scanned">
-                    <CheckCircle2 size={11} /> AI Rekomendasi Aktif dari PO / LOI
-                  </span>
-                </div>
-                <div className="trans-compliance-actions">
-                  <span className="trans-compliance-note">
-                    Konfirmasi tarif resmi ke freight forwarder Anda
-                  </span>
                   <button
                     type="button"
-                    className="trans-compliance-relink"
-                    onClick={() => setPoModalOpen(true)}
-                    title="Scan atau ganti dokumen PO/LOI lain"
+                    className="save-button"
+                    onClick={handleNewTransactionClick}
+                    style={{ padding: "7px 14px", fontSize: "12.5px" }}
                   >
-                    <RefreshCw size={11} /> Ganti Dokumen
+                    <Plus size={14} /> Input PO Baru
                   </button>
                 </div>
               </div>
 
-              {aiRegulations.length > 0 ? (
-                <div className="trans-compliance-table-wrap">
-                  <table className="trans-compliance-table">
+              {/* Status Filter Chips */}
+              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px", flexWrap: "wrap" }}>
+                {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setStatusFilter(st)}
+                    style={{
+                      padding: "4px 12px",
+                      borderRadius: "999px",
+                      fontSize: "12px",
+                      border: "1px solid",
+                      borderColor: statusFilter === st ? "#0284c7" : "#e2e8f0",
+                      background: statusFilter === st ? "#e0f2fe" : "#ffffff",
+                      color: statusFilter === st ? "#0369a1" : "#64748b",
+                      fontWeight: statusFilter === st ? 600 : 500,
+                      cursor: "pointer",
+                      transition: "all 0.15s ease",
+                    }}
+                  >
+                    {st === "ALL" ? "Semua" : st}
+                  </button>
+                ))}
+              </div>
+
+              {/* Isi Tabel Riwayat Transaksi */}
+              {allTransactions.length === 0 ? (
+                <div className="tx-empty-state">
+                  <div className="tx-empty-state-icon">
+                    <FileSpreadsheet size={24} />
+                  </div>
+                  <h4>Belum Ada Transaksi Ekspor</h4>
+                  <p>
+                    Mulai dengan memindai dokumen PO atau LOI dari buyer Anda, atau masukkan parameter transaksi secara manual.
+                  </p>
+                  <button
+                    type="button"
+                    className="save-button"
+                    onClick={handleNewTransactionClick}
+                  >
+                    <Plus size={14} /> Input / Scan PO Baru
+                  </button>
+                </div>
+              ) : (
+                <div className="clean-table-wrap">
+                  <table className="clean-table">
                     <thead>
                       <tr>
-                        <th style={{ width: "26%" }}>Dokumen</th>
-                        <th style={{ width: "20%" }}>Instansi Penerbit</th>
-                        <th style={{ width: "54%" }}>Keterangan &amp; Persiapan</th>
+                        <th>Nomor PO / Referensi</th>
+                        <th>Nama Buyer &amp; Negara</th>
+                        <th>Komoditas &amp; Incoterm</th>
+                        <th>Progress Alur</th>
+                        <th>Status</th>
+                        <th style={{ textAlign: "right" }}>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {aiRegulations.map((reg) => (
-                        <tr key={reg.id}>
-                          <td className="compliance-td-doc">
-                            <span className="compliance-doc-name">{reg.name}</span>
-                          </td>
-                          <td className="compliance-td-auth">
-                            <span className="compliance-auth-badge">{reg.issuingAuthority}</span>
-                          </td>
-                          <td className="compliance-td-desc">
-                            <p className="compliance-desc-text">{reg.description}</p>
-                            <p className="compliance-prep-text">
-                              <strong>Persiapan:</strong> {reg.preparationTip}
-                            </p>
-                          </td>
-                        </tr>
-                      ))}
+                      {allTransactions
+                        .filter((row) => {
+                          if (statusFilter !== "ALL" && row.status !== statusFilter) return false;
+                          const q = query.trim().toLowerCase();
+                          if (!q) return true;
+                          return (
+                            row.reference.toLowerCase().includes(q) ||
+                            row.buyer.toLowerCase().includes(q) ||
+                            row.buyerCountry.toLowerCase().includes(q) ||
+                            row.product.toLowerCase().includes(q)
+                          );
+                        })
+                        .map((row) => {
+                          const isCurrent =
+                            (row.reference && row.reference === displayReference) ||
+                            row.id === activeShipmentId;
+                          return (
+                            <tr key={row.id} className={isCurrent ? "active-row" : ""}>
+                              <td>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <b style={{ color: "var(--navy)" }}>{row.reference || "(Tanpa nomor)"}</b>
+                                  {isCurrent && (
+                                    <span className="current-tx-badge">● Aktif</span>
+                                  )}
+                                </div>
+                              </td>
+                              <td>
+                                <div style={{ fontWeight: 600, color: "#1e293b" }}>{row.buyer}</div>
+                                <small style={{ color: "#64748b" }}>{row.buyerCountry}</small>
+                              </td>
+                              <td>
+                                <div>{row.product}</div>
+                                <small style={{ color: "#0284c7", fontWeight: 600 }}>
+                                  {row.incoterm} · {row.quantity} {row.unit}
+                                </small>
+                              </td>
+                              <td>
+                                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                  <div style={{ width: "60px", height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>
+                                    <div
+                                      style={{
+                                        width: isCurrent ? `${percentCompleted}%` : row.status === "Completed" ? "100%" : "25%",
+                                        height: "100%",
+                                        background: row.status === "Completed" ? "#16a34a" : "#0284c7",
+                                      }}
+                                    />
+                                  </div>
+                                  <small style={{ color: "#475569", fontWeight: 600, fontSize: "11px" }}>
+                                    {isCurrent ? `${completedCount}/${totalCount}` : row.status === "Completed" ? "Selesai" : "Berjalan"}
+                                  </small>
+                                </div>
+                              </td>
+                              <td>
+                                <StatusPill tone={statusTone(row.status)}>{row.status}</StatusPill>
+                              </td>
+                              <td style={{ textAlign: "right" }}>
+                                <div className="row-actions" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                                  <button
+                                    type="button"
+                                    className="save-button"
+                                    style={{ padding: "5px 12px", fontSize: "12px" }}
+                                    onClick={() => void handleSwitchTransaction(row)}
+                                    title="Buka alur operasional 8 tahap transaksi ini"
+                                  >
+                                    <Activity size={12} /> Buka Alur
+                                  </button>
+                                  <button
+                                    type="button"
+                                    className="tx-delete-btn"
+                                    onClick={() => void handleDeleteTransaction(row)}
+                                    title={`Hapus transaksi ${row.reference} (${row.buyer})`}
+                                  >
+                                    <Trash2 size={12} /> Hapus
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
                     </tbody>
                   </table>
                 </div>
-              ) : (
-                <div className="compliance-empty-reg-note">
-                  Tidak ada dokumen kepatuhan khusus yang diwajibkan untuk negara ini. Siapkan dokumen standar ekspor (PEB, Invoice, Packing List).
+              )}
+            </section>
+          )}
+
+          {/* TAB KONTEN 2: ALUR OPERASIONAL TRANSAKSI AKTIF */}
+          {activeTab === "workflow" && (
+            <div className="module-stack">
+              {/* Kartu Ringkasan Hero Pesanan Aktif */}
+              <div className="active-order-summary-card">
+                <div className="active-order-summary-main">
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                      <span className="active-order-ref-pill">
+                        {displayReference || shipment.poNumber || "Pesanan Aktif"}
+                      </span>
+                      <span className="tab-badge">{shipment.incoterm || "FOB"}</span>
+                      <StatusPill tone={statusTone(shipment.shipmentStatus)}>
+                        {shipment.shipmentStatus}
+                      </StatusPill>
+                    </div>
+                    <span className="active-order-buyer-name">
+                      {shipment.buyer || "Buyer Belum Ditentukan"}
+                    </span>
+                    <span className="active-order-buyer-meta">
+                      {shipment.buyerCountry || "-"} · {shipment.destination || "Pelabuhan Tujuan -"} · {shipment.product || "Komoditas"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="active-order-summary-stats">
+                  <div className="active-order-stat-item">
+                    <span className="active-order-stat-label">Progress Alur Ekspor</span>
+                    <span
+                      className="active-order-stat-val"
+                      style={{ color: percentCompleted === 100 ? "#16a34a" : "#0284c7" }}
+                    >
+                      {completedCount}/{totalCount} Tahap ({percentCompleted}%)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    className="ghost-button"
+                    style={{ fontSize: "12px", padding: "6px 12px" }}
+                    onClick={() => setIsEditingActiveOrder(!isEditingActiveOrder)}
+                    title="Buka atau tutup form untuk mengubah parameter order aktif"
+                  >
+                    <Pencil size={13} /> {isEditingActiveOrder ? "Tutup Edit Parameter" : "Ubah Parameter PO"}
+                  </button>
+                  <button
+                    type="button"
+                    className="save-button"
+                    style={{ fontSize: "12px", padding: "6px 12px" }}
+                    onClick={() => void handleSaveShipmentWithLocal()}
+                    disabled={saveState === "saving"}
+                    title="Simpan perubahan transaksi ini ke cloud"
+                  >
+                    <Save size={13} /> {saveState === "saving" ? "Menyimpan..." : "Simpan"}
+                  </button>
+                </div>
+              </div>
+
+              {/* Form Parameter yang Bisa Di-Expand/Collapse Jika Perlu Diedit */}
+              {isEditingActiveOrder && (
+                <section className="panel panel-padding active-order-card" style={{ marginBottom: "14px" }}>
+                  <div className="panel-head">
+                    <div>
+                      <span className="eyebrow">PARAMETER PO AKTIF</span>
+                      <h3>Penyesuaian Data Transaksi</h3>
+                    </div>
+
+                    <div className="active-order-header-actions">
+                      <button
+                        type="button"
+                        className="save-button"
+                        onClick={() => setPoModalOpen(true)}
+                        title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
+                        style={{ padding: "6px 12px", fontSize: "12px" }}
+                      >
+                        <FileSpreadsheet size={13} /> Scan Dokumen
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost-button select-partner-btn"
+                        onClick={() => navigate("partners")}
+                        title="Pilih dari daftar mitra buyer tersimpan"
+                        style={{ padding: "6px 12px", fontSize: "12px" }}
+                      >
+                        <Users size={13} /> Mitra
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="profile-grid">
+                    <Field
+                      label="Nomor PO / Transaksi"
+                      value={displayReference}
+                      placeholder="Contoh: PO-001, INV-2026/01"
+                      onChange={(value) => update("reference", value)}
+                    />
+
+                    <Field
+                      label="Nama Buyer (Pembeli)"
+                      value={shipment.buyer}
+                      placeholder="Nama perusahaan pembeli luar negeri"
+                      onChange={(value) => update("buyer", value)}
+                    />
+
+                    <Field
+                      label="Negara Tujuan"
+                      value={shipment.buyerCountry}
+                      placeholder="Contoh: Jepang, Jerman, AS"
+                      onChange={(value) => update("buyerCountry", value)}
+                    />
+
+                    <Field
+                      label="Pelabuhan Tujuan"
+                      value={shipment.destination}
+                      placeholder="Contoh: Port of Tokyo"
+                      onChange={(value) => update("destination", value)}
+                    />
+
+                    <Field
+                      label="Nama Eksportir"
+                      value={shipment.exporter}
+                      placeholder="Nama perusahaan Anda"
+                      onChange={(value) => update("exporter", value)}
+                    />
+
+                    <Field
+                      label="HS Code"
+                      value={shipment.hsCode}
+                      placeholder="Contoh: 0901.11"
+                      onChange={(value) => update("hsCode", value)}
+                    />
+
+                    <SelectField
+                      label="Status Siklus Transaksi"
+                      value={shipment.shipmentStatus}
+                      onChange={(val) => {
+                        const nextStatus = val as ShipmentStatus;
+                        update("shipmentStatus", nextStatus);
+                        saveToLocalList({ ...shipment, shipmentStatus: nextStatus }, nextStatus);
+                      }}
+                    >
+                      <option value="Draft">Draft (Tahap Perencanaan / Draf Awal)</option>
+                      <option value="Quotation">Quotation (Fase Penawaran Resmi ke Buyer)</option>
+                      <option value="Confirmed">Confirmed (PO / Kontrak Disepakati)</option>
+                      <option value="Ready to Ship">Ready to Ship (Kargo Siap di Gudang)</option>
+                      <option value="Booked">Booked (Booking Kapal / Pelayaran Terbit)</option>
+                      <option value="Stuffing">Stuffing (Pemuatan Kargo ke Kontainer)</option>
+                      <option value="Departed">Departed (Kapal Berangkat dari Pelabuhan)</option>
+                      <option value="In Transit">In Transit (Dalam Pelayaran ke Negara Tujuan)</option>
+                      <option value="Completed">Completed (Tiba di Buyer &amp; Transaksi Selesai)</option>
+                    </SelectField>
+                  </div>
+                </section>
+              )}
+
+              {/* Rel Navigasi Antar Modul Terintegrasi */}
+              <div className="connection-rail" style={{ marginBottom: "14px" }}>
+                <div className="rail-chips">
+                  <button type="button" className="rail-chip" onClick={() => navigate("pricing")}>
+                    <Calculator size={13} />
+                    <span>Harga &amp; Order</span>
+                  </button>
+                  <button type="button" className="rail-chip" onClick={() => navigate("documents")}>
+                    <FileText size={13} />
+                    <span>Dokumen Ekspor</span>
+                  </button>
+                  <button type="button" className="rail-chip" onClick={() => navigate("cargo")}>
+                    <Package size={13} />
+                    <span>Rencana Muatan</span>
+                  </button>
+                  <button type="button" className="rail-chip" onClick={() => navigate("risk")}>
+                    <ShieldAlert size={13} />
+                    <span>Risk Center</span>
+                  </button>
+                </div>
+                <span className="rail-status">Sinkron otomatis</span>
+              </div>
+
+              {/* ALUR OPERASIONAL EKSPOR TERINTEGRASI (8 TAHAP) */}
+              <section className="panel panel-padding clean-workflow-card">
+                <div className="clean-workflow-head">
+                  <div>
+                    <span className="eyebrow">ALUR OPERASIONAL EKSPOR</span>
+                    <h3>Alur Transaksi ({workflow.incoterm})</h3>
+                  </div>
+                  <div className="clean-workflow-progress">
+                    <span className="clean-workflow-count">
+                      <b>{completedCount}</b> dari {totalCount} tahap selesai ({percentCompleted}%)
+                    </span>
+                    <div className="clean-workflow-track">
+                      <div
+                        className="clean-workflow-fill"
+                        style={{ width: `${percentCompleted}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bar Koordinasi Buyer (Singkat & Elegan) */}
+                {workflow.coordinationTip && (
+                  <div className="clean-buyer-notice">
+                    <MessageSquare size={14} />
+                    <span>
+                      <strong>Koordinasi Buyer:</strong> {workflow.coordinationTip}
+                    </span>
+                  </div>
+                )}
+
+                {/* Daftar Tahapan Rapi, Bersih & Minimalis */}
+                <div className="clean-stage-list">
+                  {workflow.stages.map((stage) => {
+                    return (
+                      <div
+                        key={stage.id}
+                        className="clean-stage-row"
+                        onClick={() => navigate(stage.targetScreen)}
+                        title="Klik untuk membuka modul terkait"
+                      >
+                        <div className={`clean-stage-dot ${stage.isDone ? "done" : ""}`}>
+                          {stage.isDone ? <Check size={12} strokeWidth={3} /> : stage.number}
+                        </div>
+
+                        <div className="clean-stage-info">
+                          <span className="clean-stage-title">{stage.title}</span>
+                          <span className="clean-stage-meta">{stage.meta}</span>
+                        </div>
+
+                        <div className="clean-stage-status">
+                          <span className={`clean-stage-pill ${stage.isDone ? "done" : "pending"}`}>
+                            {stage.isDone ? "Selesai" : "Perlu Dilengkapi"}
+                          </span>
+                          <ChevronRight size={15} className="clean-stage-arrow" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+
+              {/* Dokumen & Sertifikat Kepatuhan Ekspor Hasil Scan AI */}
+              {hasScannedPo && (
+                <div className="trans-compliance-box" style={{ marginTop: "14px" }}>
+                  <div className="trans-compliance-head">
+                    <div className="trans-compliance-title">
+                      <Sparkles size={14} />
+                      <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
+                      <span className="compliance-tag-scanned">
+                        <CheckCircle2 size={11} /> AI Rekomendasi Aktif dari PO / LOI
+                      </span>
+                    </div>
+                    <div className="trans-compliance-actions">
+                      <span className="trans-compliance-note">
+                        Konfirmasi tarif resmi ke freight forwarder Anda
+                      </span>
+                      <button
+                        type="button"
+                        className="trans-compliance-relink"
+                        onClick={() => setPoModalOpen(true)}
+                        title="Scan atau ganti dokumen PO/LOI lain"
+                      >
+                        <RefreshCw size={11} /> Ganti Dokumen
+                      </button>
+                    </div>
+                  </div>
+
+                  {aiRegulations.length > 0 ? (
+                    <div className="trans-compliance-table-wrap">
+                      <table className="trans-compliance-table">
+                        <thead>
+                          <tr>
+                            <th style={{ width: "26%" }}>Dokumen</th>
+                            <th style={{ width: "20%" }}>Instansi Penerbit</th>
+                            <th style={{ width: "54%" }}>Keterangan &amp; Persiapan</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {aiRegulations.map((reg) => (
+                            <tr key={reg.id}>
+                              <td className="compliance-td-doc">
+                                <span className="compliance-doc-name">{reg.name}</span>
+                              </td>
+                              <td className="compliance-td-auth">
+                                <span className="compliance-auth-badge">{reg.issuingAuthority}</span>
+                              </td>
+                              <td className="compliance-td-desc">
+                                <p className="compliance-desc-text">{reg.description}</p>
+                                <p className="compliance-prep-text">
+                                  <strong>Persiapan:</strong> {reg.preparationTip}
+                                </p>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <div className="compliance-empty-reg-note">
+                      Tidak ada dokumen kepatuhan khusus yang diwajibkan untuk negara ini. Siapkan dokumen standar ekspor (PEB, Invoice, Packing List).
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
-
-          {/* Ringkasan Statistik Eksekutif */}
-          <div className="clean-grid-3" style={{ marginTop: "14px" }}>
-            <section className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">TOTAL TRANSAKSI TERSIMPAN</span>
-              <strong>{user ? genuineShipments.length : allTransactions.length}</strong>
-              <small>{user ? "Tercatat di database workspace" : "Tersimpan di perangkat lokal"}</small>
-            </section>
-            <section className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">FASE PENAWARAN (DRAFT / QUOTE)</span>
-              <strong>{draftCount}</strong>
-              <small>Negosiasi harga atau menunggu konfirmasi buyer</small>
-            </section>
-            <section className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">EKSEKUSI BERJALAN</span>
-              <strong>{activeExecutionCount}</strong>
-              <small>Confirmed, Booked, Stuffing, hingga Pelayaran</small>
-            </section>
-          </div>
         </>
       )}
 
-      {/* Input PO Buyer */}
+      {/* TAMPILAN 2: INPUT PURCHASE ORDER BARU */}
       {isIntakeMode && (
         <section className="panel panel-padding active-order-card">
-          <div className="panel-head" style={{ marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "18px", paddingBottom: "14px", borderBottom: "1px solid var(--line)" }}>
             <div>
-              <span className="eyebrow">FORMULIR PESANAN</span>
-              <h3>Data Purchase Order</h3>
-            </div>
-
-            <div className="active-order-header-actions">
               <button
                 type="button"
-                className="create-po-btn"
+                className="ghost-button"
+                onClick={() => navigate("transactions")}
+                style={{ fontSize: "12px", padding: "4px 8px", marginBottom: "8px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+              >
+                <ArrowLeft size={13} /> Kembali ke Pesanan Ekspor
+              </button>
+              <h3 style={{ margin: "2px 0 4px", fontSize: "18px", color: "var(--navy)" }}>Input Purchase Order (PO) Baru</h3>
+              <p style={{ margin: 0, fontSize: "13px", color: "var(--muted)" }}>
+                Catat pesanan ekspor baru atau gunakan pemindaian AI untuk mengekstrak data dari dokumen PO/LOI buyer.
+              </p>
+            </div>
+
+            <div className="active-order-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <button
+                type="button"
+                className="save-button"
                 onClick={() => setPoModalOpen(true)}
                 title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
+                style={{ padding: "8px 14px", fontSize: "12.5px" }}
               >
                 <FileSpreadsheet size={14} /> Scan Dokumen PO / LOI
               </button>
@@ -1271,6 +1314,7 @@ export function TransactionsModule({
                 className="ghost-button select-partner-btn"
                 onClick={() => navigate("partners")}
                 title="Pilih dari daftar mitra buyer tersimpan"
+                style={{ padding: "8px 12px", fontSize: "12.5px" }}
               >
                 <Users size={14} /> Pilih Mitra
               </button>
@@ -1301,7 +1345,7 @@ export function TransactionsModule({
                   type="button"
                   className="ghost-button"
                   onClick={handleResetPo}
-                  title="Tutup & reset hasil screening"
+                  title="Tutup &amp; reset hasil screening"
                   style={{ padding: "4px 8px", fontSize: "11px", color: "#64748b" }}
                 >
                   ✕
@@ -1334,7 +1378,7 @@ export function TransactionsModule({
             />
 
             <Field
-              label="Pelabuhan Tujuan"
+              label="Pelabuhan Tujuan (POD)"
               value={shipment.destination}
               placeholder="Contoh: Port of Tokyo, Jebel Ali Port"
               onChange={(value) => update("destination", value)}
@@ -1355,6 +1399,20 @@ export function TransactionsModule({
             />
 
             <SelectField
+              label="Incoterm Yang Disepakati"
+              value={shipment.incoterm || "FOB"}
+              onChange={(val) => update("incoterm", val as Incoterm)}
+            >
+              <option value="FOB">FOB (Free On Board)</option>
+              <option value="CIF">CIF (Cost, Insurance &amp; Freight)</option>
+              <option value="CFR">CFR (Cost &amp; Freight)</option>
+              <option value="EXW">EXW (Ex Works)</option>
+              <option value="FCA">FCA (Free Carrier)</option>
+              <option value="DAP">DAP (Delivered at Place)</option>
+              <option value="DDP">DDP (Delivered Duty Paid)</option>
+            </SelectField>
+
+            <SelectField
               label="Status Transaksi Awal"
               value={shipment.shipmentStatus}
               onChange={(val) => update("shipmentStatus", val as ShipmentStatus)}
@@ -1366,88 +1424,8 @@ export function TransactionsModule({
             </SelectField>
           </div>
 
-          {/* Rekomendasi Dokumen: Hanya Ditampilkan Setelah Ada PO/LOI dari Buyer */}
-          {!hasScannedPo ? (
-            <div className="trans-compliance-pending">
-              <div className="trans-compliance-pending-left">
-                <div className="trans-compliance-pending-icon">
-                  <Sparkles size={18} />
-                </div>
-                <div className="trans-compliance-pending-text">
-                  <span className="trans-compliance-pending-title">
-                    Rekomendasi Regulasi &amp; Sertifikat Ekspor (AI Advisor)
-                  </span>
-                  <p>
-                    Saran dokumen kepatuhan belum ditampilkan karena belum ada PO/LOI dari buyer. Gunakan tombol <strong>+ Scan Dokumen PO / LOI</strong> di atas agar AI Advisor dapat memindai negara tujuan dan memunculkan dokumen yang wajib Anda siapkan.
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <div className="trans-compliance-box">
-              <div className="trans-compliance-head">
-                <div className="trans-compliance-title">
-                  <Sparkles size={14} />
-                  <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
-                  <span className="compliance-tag-scanned">
-                    <CheckCircle2 size={11} /> AI Rekomendasi Aktif dari PO / LOI
-                  </span>
-                </div>
-                <div className="trans-compliance-actions">
-                  <span className="trans-compliance-note">
-                    Konfirmasi tarif resmi ke freight forwarder Anda
-                  </span>
-                  <button
-                    type="button"
-                    className="trans-compliance-relink"
-                    onClick={() => setPoModalOpen(true)}
-                    title="Scan atau ganti dokumen PO/LOI lain"
-                  >
-                    <RefreshCw size={11} /> Ganti Dokumen
-                  </button>
-                </div>
-              </div>
-
-              {aiRegulations.length > 0 ? (
-                <div className="trans-compliance-table-wrap">
-                  <table className="trans-compliance-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: "26%" }}>Dokumen</th>
-                        <th style={{ width: "20%" }}>Instansi Penerbit</th>
-                        <th style={{ width: "54%" }}>Keterangan &amp; Persiapan</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {aiRegulations.map((reg) => (
-                        <tr key={reg.id}>
-                          <td className="compliance-td-doc">
-                            <span className="compliance-doc-name">{reg.name}</span>
-                          </td>
-                          <td className="compliance-td-auth">
-                            <span className="compliance-auth-badge">{reg.issuingAuthority}</span>
-                          </td>
-                          <td className="compliance-td-desc">
-                            <p className="compliance-desc-text">{reg.description}</p>
-                            <p className="compliance-prep-text">
-                              <strong>Persiapan:</strong> {reg.preparationTip}
-                            </p>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              ) : (
-                <div className="compliance-empty-reg-note">
-                  Tidak ada dokumen kepatuhan khusus yang diwajibkan untuk negara ini. Siapkan dokumen standar ekspor (PEB, Invoice, Packing List).
-                </div>
-              )}
-            </div>
-          )}
-
           {/* Footer Aksi Pendaftaran PO Baru ke Pipeline Ekspor */}
-          <div className="intake-action-footer">
+          <div className="intake-action-footer" style={{ marginTop: "24px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span className="status-pill status-pill-info">{shipment.shipmentStatus || "Draft"}</span>
               <small style={{ color: "var(--muted)" }}>
@@ -1456,6 +1434,14 @@ export function TransactionsModule({
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="ghost-button"
+                onClick={handleResetForm}
+                title="Kosongkan formulir"
+              >
+                <RefreshCw size={13} /> Kosongkan Form
+              </button>
               <button
                 type="button"
                 className="ghost-button"
@@ -1473,9 +1459,10 @@ export function TransactionsModule({
               </button>
               <button
                 type="button"
-                className="intake-activate-btn"
+                className="save-button"
                 onClick={() => void handleActivateNewPo()}
                 title="Daftarkan pesanan ini ke daftar pesanan ekspor"
+                style={{ padding: "8px 18px", fontSize: "13px" }}
               >
                 <CheckCircle2 size={15} /> Daftarkan Pesanan
               </button>

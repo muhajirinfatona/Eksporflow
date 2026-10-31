@@ -891,19 +891,20 @@ export function ScreenAIFloatingWidget({
 
   return (
     <>
-      {/* Floating Action Button (Selalu Tampil di Pojok Kanan Bawah Semua Menu) */}
+      {/* Floating Action Button (Sleek Enterprise AI Advisor) */}
       <button
         type="button"
         className={`ai-float-trigger-btn ${isOpen ? "open" : ""}`}
         onClick={onToggle}
-        aria-label={isOpen ? "Tutup Tanya AI Advisor" : "Buka Tanya AI Advisor"}
-        title={isOpen ? "Tutup Tanya AI Advisor" : "Tanya AI Advisor Ekspor"}
+        aria-label={isOpen ? "Tutup AI Advisor" : "Buka AI Advisor"}
+        title={isOpen ? "Tutup AI Advisor" : "Buka AI Export Advisor"}
       >
         {isOpen ? (
-          <X size={26} strokeWidth={2.4} />
+          <X size={20} strokeWidth={2.4} />
         ) : (
           <>
-            <Bot size={26} />
+            <Sparkles size={18} />
+            <span className="ai-float-trigger-label">AI Advisor</span>
             <span
               className={`ai-float-trigger-badge ${
                 insight.riskLevel === "danger"
@@ -917,16 +918,17 @@ export function ScreenAIFloatingWidget({
         )}
       </button>
 
-      {/* Floating Chat Popup (Didesain Sesuai Gambar 1: Bersih, Rapi, Buka-Tutup) */}
+      {/* Floating Chat Popup (Sleek Enterprise Panel) */}
       {isOpen && (
         <div className="ai-float-popup" role="dialog" aria-label="Tanya AI Advisor Ekspor">
-          {/* Header Warm Orange Gradient Matching Gambar 1 */}
           <div className="ai-float-header">
             <div className="ai-float-header-top">
-              <span className="ai-float-pill-btn">
-                <MessageSquare size={12} /> Messages
-              </span>
-              <span className="ai-float-screen-tag">{screenTitle}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span className="ai-float-pill-btn">
+                  <Sparkles size={13} /> AI Advisor
+                </span>
+                <span className="ai-float-screen-tag">{screenTitle}</span>
+              </div>
               <button
                 type="button"
                 className="ai-float-header-close"
@@ -937,23 +939,12 @@ export function ScreenAIFloatingWidget({
               </button>
             </div>
 
-            {/* 3 Icons Visual Row Matching Gambar 1 */}
-            <div className="ai-float-icons-row">
-              <div className="ai-float-icon-bubble" title="Kesiapan Ekspor">
-                <Bot size={18} />
-              </div>
-              <div className="ai-float-icon-bubble" title="Mitigasi Risiko">
-                <ShieldAlert size={18} />
-              </div>
-              <div className="ai-float-icon-bubble" title="Kepatuhan Global">
-                <Sparkles size={18} />
-              </div>
+            <div style={{ marginTop: "6px" }}>
+              <h4>Konsultasi Regulasi &amp; Risiko</h4>
+              <p>
+                <span className="ai-float-dot" /> Analisis real-time · {shipment.reference || "EksporFlow"}
+              </p>
             </div>
-
-            <h4>Ada Pertanyaan? Hubungi Kami.</h4>
-            <p>
-              <span className="ai-float-dot" /> membalas secara instan · {shipment.reference || "EksporFlow"}
-            </p>
           </div>
 
           {/* Isi Pesan Konsultasi */}
