@@ -122,6 +122,7 @@ export type Shipment = {
   traderLabelPackaging?: number;
   traderStaffingOverhead?: number;
   traderMargin?: number;
+  contractSpecialTerms?: string;
   mfgRawMaterial?: number;
   mfgAuxiliary?: number;
   mfgDirectLabor?: number;

@@ -6256,6 +6256,12 @@ textarea:focus-visible {
   font-style: italic;
 }
 
+.doc-type-sales-contract .doc-dual-signatures {
+  margin-top: 14px;
+  padding-top: 8px;
+  border-top: none;
+}
+
 /* Shipping Instruction Specifics */
 .doc-si-header-grid {
   display: grid;
@@ -9738,55 +9744,201 @@ textarea:focus-visible {
     min-height: 40px !important;
   }
 
-  /* Sales Contract (SC) multi-page rules: cleanly breaks across 2 pages */
-  .contract-articles-wrapper {
+  /* ==========================================================================
+     Sales Contract (SC) Print Optimization:
+     - Standar Pas 1 Halaman A4 untuk 6 Pasal Lengkap + Dual Tanda Tangan
+     - Flow Dinamis Otomatis ke Halaman 2 jika terdapat pasal tambahan / teks buyer
+     ========================================================================== */
+  .doc-type-sales-contract .paper-letterhead-wrap {
+    margin-bottom: 4px !important;
+  }
+  .doc-type-sales-contract .letterhead-brand {
+    gap: 12px !important;
+  }
+  .doc-type-sales-contract .letterhead-logo {
+    height: 56px !important;
+    max-height: 58px !important;
+  }
+  .doc-type-sales-contract .company-title {
+    font-size: 15.5px !important;
+    margin-bottom: 1px !important;
+  }
+  .doc-type-sales-contract .company-meta-line {
+    font-size: 10px !important;
+    line-height: 1.25 !important;
+  }
+  .doc-type-sales-contract .letterhead-divider-line {
+    margin-top: 3px !important;
+  }
+  .doc-type-sales-contract .doc-title-bar {
+    margin-bottom: 4px !important;
+    padding: 3px 8px !important;
+  }
+  .doc-type-sales-contract .doc-title-bar h2 {
+    font-size: 12.5px !important;
+  }
+  .doc-type-sales-contract .doc-contract-ref-bar {
+    margin-bottom: 3.5px !important;
+    padding: 1px 0 !important;
     gap: 8px !important;
-    margin: 10px 0 !important;
+    font-size: 9.5px !important;
+  }
+  .doc-type-sales-contract .doc-preamble-text {
+    margin-bottom: 3.5px !important;
+    font-size: 9.5px !important;
+    line-height: 1.25 !important;
+  }
+  .doc-type-sales-contract .doc-contract-parties-grid {
+    gap: 6px !important;
+    margin-bottom: 4px !important;
+  }
+  .doc-type-sales-contract .contract-party-card {
+    padding: 4px 8px !important;
+    border: 1px solid #cbd5e1 !important;
+  }
+  .doc-type-sales-contract .contract-party-header {
+    margin: -4px -8px 3px !important;
+    padding: 2px 8px !important;
+    font-size: 8.5px !important;
+  }
+  .doc-type-sales-contract .party-name {
+    font-size: 10.5px !important;
+    margin-bottom: 1px !important;
+  }
+  .doc-type-sales-contract .party-address,
+  .doc-type-sales-contract .party-phone,
+  .doc-type-sales-contract .party-tax {
+    font-size: 9.5px !important;
+    line-height: 1.22 !important;
+    margin-bottom: 1px !important;
+  }
+  .doc-type-sales-contract .contract-articles-wrapper {
+    gap: 3px !important;
+    margin: 3.5px 0 !important;
+  }
+  .doc-type-sales-contract .contract-article-block {
+    padding-bottom: 2.5px !important;
+    margin-bottom: 2.5px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .doc-type-sales-contract .contract-article-block:last-child {
+    border-bottom: none !important;
+  }
+  .doc-type-sales-contract .article-title {
+    font-size: 10.5px !important;
+    font-weight: 700 !important;
+    margin: 0 0 1px !important;
+    color: #0f2942 !important;
+  }
+  .doc-type-sales-contract .contract-article-block p {
+    font-size: 9.5px !important;
+    line-height: 1.26 !important;
+    margin: 0 0 1px !important;
+    color: #0f172a !important;
+  }
+  .doc-type-sales-contract .article-ordered-list {
+    padding-left: 14px !important;
+    margin: 1px 0 0 !important;
+    font-size: 9.5px !important;
+    line-height: 1.26 !important;
+  }
+  .doc-type-sales-contract .article-ordered-list li {
+    margin-bottom: 1px !important;
+  }
+  .doc-type-sales-contract .doc-witness-clause {
+    font-size: 9px !important;
+    margin: 4px 0 3px !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .doc-type-sales-contract .doc-dual-signatures {
+    margin-top: 3px !important;
+    padding-top: 0 !important;
+    border-top: none !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .doc-type-sales-contract .sig-side {
+    max-width: 260px !important;
+    text-align: center !important;
+  }
+  .doc-type-sales-contract .sig-header-txt {
+    font-size: 8.5px !important;
+    font-weight: 700 !important;
+  }
+  .doc-type-sales-contract .sig-side b {
+    font-size: 9.5px !important;
+  }
+  .doc-type-sales-contract .sig-box-space {
+    height: 32px !important;
+    min-height: 30px !important;
+    margin: 1px 0 !important;
+  }
+  .doc-type-sales-contract .sig-placeholder {
+    font-size: 9px !important;
+  }
+  .doc-type-sales-contract .sig-name {
+    font-size: 11px !important;
+    font-weight: 700 !important;
+  }
+  .doc-type-sales-contract .sig-sub {
+    font-size: 9.5px !important;
+  }
+
+  /* Fallback multi-page rules for generic contract elements */
+  .contract-articles-wrapper {
+    gap: 4px !important;
+    margin: 6px 0 !important;
   }
   .contract-article-block {
-    padding-bottom: 6px !important;
-    margin-bottom: 6px !important;
+    padding-bottom: 3px !important;
+    margin-bottom: 3px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
   .article-title {
-    font-size: 12.5px !important;
+    font-size: 11px !important;
     font-weight: 800 !important;
-    margin: 0 0 2px !important;
+    margin: 0 0 1px !important;
   }
   .contract-article-block p {
-    font-size: 11.5px !important;
-    line-height: 1.4 !important;
-    margin: 0 0 2px !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+    margin: 0 0 1px !important;
   }
   .doc-witness-clause {
-    font-size: 11.5px !important;
-    margin: 10px 0 6px !important;
+    font-size: 9.5px !important;
+    margin: 5px 0 3px !important;
     break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
   .doc-dual-signatures {
-    margin-top: 8px !important;
+    margin-top: 4px !important;
+    padding-top: 0 !important;
+    border-top: none !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
   .sig-side {
-    max-width: 280px !important;
+    max-width: 260px !important;
     text-align: center !important;
   }
   .sig-box-space {
-    height: 46px !important;
-    min-height: 46px !important;
-    margin: 4px 0 !important;
+    height: 34px !important;
+    min-height: 32px !important;
+    margin: 2px 0 !important;
   }
   .sig-placeholder {
-    font-size: 10px !important;
+    font-size: 9px !important;
   }
   .sig-name {
-    font-size: 13px !important;
+    font-size: 11.5px !important;
     font-weight: 800 !important;
   }
   .sig-sub {
-    font-size: 11px !important;
+    font-size: 9.5px !important;
   }
 
   /* Proteksi pemotongan halaman di tengah blok penting */

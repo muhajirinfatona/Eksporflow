@@ -394,6 +394,7 @@ export function DocumentsModule({
               unitPricePerMT={unitPricePerMT}
               totalAmount={totalAmount}
               amountInWords={amountInWords}
+              contractSpecialTerms={shipment.contractSpecialTerms}
               isId={isId}
             />
           )}
@@ -859,6 +860,7 @@ function SalesContractDoc({
   unitPricePerMT,
   totalAmount,
   amountInWords,
+  contractSpecialTerms,
   isId = false,
 }: {
   shipment?: Shipment;
@@ -889,6 +891,7 @@ function SalesContractDoc({
   unitPricePerMT: number;
   totalAmount: number;
   amountInWords: string;
+  contractSpecialTerms?: string;
   isId?: boolean;
 }) {
   return (
@@ -1063,6 +1066,15 @@ function SalesContractDoc({
               : "Neither party shall be liable for any delay or failure to perform due to Force Majeure (natural disasters, war, government embargo). Any disputes arising from this contract shall be settled amicably. If amicable settlement fails, the dispute shall be submitted to the Indonesian National Board of Arbitration (BANI) in accordance with ICC rules."}
           </p>
         </div>
+
+        {contractSpecialTerms && contractSpecialTerms.trim() !== "" && (
+          <div className="contract-article-block">
+            <h4 className="article-title">
+              {isId ? "PASAL 7: KETENTUAN KHUSUS / TAMBAHAN" : "ARTICLE 7: SPECIAL CONDITIONS"}
+            </h4>
+            <p style={{ whiteSpace: "pre-line" }}>{contractSpecialTerms}</p>
+          </div>
+        )}
       </div>
 
       <p className="doc-witness-clause">
@@ -2167,6 +2179,12 @@ function DocumentSettings({
                 value={shipment.bankSwift || "BMRIIDJA"}
                 placeholder="Contoh: BMRIIDJA"
                 onChange={(value) => update("bankSwift", value)}
+              />
+              <Field
+                label="Klausul / Ketentuan Tambahan Kontrak (Opsional / Permintaan Khusus)"
+                value={shipment.contractSpecialTerms || ""}
+                placeholder="Kosongkan jika kontrak standar 1 lembar (Pasal 1-6). Isi bila ada penambahan pasal dari buyer/eksportir (otomatis terbit sebagai Pasal 7 & mengalir ke lembar ke-2 jika panjang)."
+                onChange={(value) => update("contractSpecialTerms", value)}
               />
             </div>
           </div>
