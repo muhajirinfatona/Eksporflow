@@ -5982,68 +5982,87 @@ textarea:focus-visible {
   transition: padding 0.15s ease;
 }
 
-/* Consistent Typographic Hierarchy across all Export Documents */
+/* Consistent Typographic Hierarchy across all Export Documents, dynamically scaling with user-selected font size */
 .paper-document {
-  font-size: 12px;
+  --doc-font-size: 12pt;
+  font-size: var(--doc-font-size, 12pt) !important;
   line-height: 1.45;
 }
 
-.paper-document .company-name {
-  font-size: 18px !important;
-  font-weight: 800 !important;
-}
-
-.paper-document .doc-title-bar h2 {
-  font-size: 14px !important;
-  font-weight: 800 !important;
-}
-
-.paper-document .article-title,
-.paper-document .doc-terms-header,
-.paper-document .bank-card-title {
-  font-size: 12px !important;
-  font-weight: 700 !important;
-}
-
+/* All paragraphs, articles, list items, and standard body text scale dynamically */
+.paper-document p,
 .paper-document .contract-article-block p,
 .paper-document .article-ordered-list,
-.paper-document .doc-witness-clause {
-  font-size: 12px !important;
+.paper-document .article-ordered-list li,
+.paper-document .doc-witness-clause,
+.paper-document .doc-intro-p,
+.paper-document .doc-entity-name,
+.paper-document .party-name,
+.paper-document .sig-company-name,
+.paper-document .sig-signatory-name,
+.paper-document .official-signatory-name {
+  font-size: var(--doc-font-size, 12pt) !important;
   line-height: 1.45 !important;
 }
 
-.paper-document .doc-table-pro th {
-  font-size: 10.5px !important;
-  font-weight: 700 !important;
-}
-
-.paper-document .doc-table-pro td {
-  font-size: 11px !important;
-}
-
-.paper-document .doc-entity-name {
-  font-size: 12px !important;
-  font-weight: 800 !important;
-}
-
-.paper-document .doc-entity-address,
-.paper-document .doc-entity-contact {
-  font-size: 10.5px !important;
+/* Tables (Header & Sel) scale proportionally with the document font size */
+.paper-document table td,
+.paper-document .doc-table-pro td,
+.paper-document .doc-user-table td {
+  font-size: calc(var(--doc-font-size, 12pt) * 0.92) !important;
   line-height: 1.35 !important;
 }
 
-.paper-document .meta-label {
-  font-size: 10.5px !important;
-}
-
-.paper-document .meta-value {
-  font-size: 11px !important;
+.paper-document table th,
+.paper-document .doc-table-pro th,
+.paper-document .doc-user-table th {
+  font-size: calc(var(--doc-font-size, 12pt) * 0.88) !important;
   font-weight: 700 !important;
 }
 
+/* Headings and section titles scale proportionally */
+.paper-document .article-title,
+.paper-document .doc-terms-header,
+.paper-document .bank-card-title,
+.paper-document .doc-section-title {
+  font-size: calc(var(--doc-font-size, 12pt) * 1.05) !important;
+  font-weight: 700 !important;
+}
+
+/* Main title (SALES CONTRACT / PROFORMA INVOICE / dll) */
+.paper-document .doc-title-bar h2 {
+  font-size: calc(var(--doc-font-size, 12pt) * 1.25) !important;
+  font-weight: 800 !important;
+}
+
+/* Letterhead company name */
+.paper-document .company-name {
+  font-size: calc(var(--doc-font-size, 12pt) * 1.5) !important;
+  font-weight: 800 !important;
+}
+
+/* Meta, addresses, labels, bank details scale proportionally */
+.paper-document .doc-entity-address,
+.paper-document .doc-entity-contact,
+.paper-document .company-details,
+.paper-document .company-contact,
+.paper-document .meta-label,
+.paper-document .terms-lbl,
 .paper-document .bank-lbl,
+.paper-document .doc-box-tag,
+.paper-document .contract-party-header,
+.paper-document .sig-signed-for,
+.paper-document .sig-signatory-title,
+.paper-document .official-signatory-role {
+  font-size: calc(var(--doc-font-size, 12pt) * 0.88) !important;
+  line-height: 1.35 !important;
+}
+
+.paper-document .meta-value,
+.paper-document .terms-val,
 .paper-document .bank-val {
-  font-size: 11px !important;
+  font-size: calc(var(--doc-font-size, 12pt) * 0.92) !important;
+  font-weight: 700 !important;
 }
 
 /* Document Header & Footer (Word-like) */

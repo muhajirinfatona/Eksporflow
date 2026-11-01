@@ -430,6 +430,10 @@ export function DocumentsModule({
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
             margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm;
           }
+          .paper-document {
+            --doc-font-size: ${shipment.docEditorFontSize || 12}pt !important;
+            font-size: ${shipment.docEditorFontSize || 12}pt !important;
+          }
         }
       `}</style>
 
@@ -770,6 +774,7 @@ export function DocumentsModule({
           style={{
             fontFamily: shipment.docEditorFontFamily || "Calibri",
             fontSize: `${shipment.docEditorFontSize || 12}pt`,
+            ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 12}pt`,
             lineHeight: shipment.docEditorLineHeight || 1.35,
             textAlign: shipment.docEditorTextAlign || "left",
             paddingTop: `${docMargins.top}mm`,

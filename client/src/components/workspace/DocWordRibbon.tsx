@@ -180,11 +180,32 @@ export function DocWordRibbon({
   };
 
   const handleFontSizeChange = (size: number) => {
+    // 1. Check if user highlighted a specific text span in edit mode
+    const selection = window.getSelection();
+    if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
+      const paperEl = document.querySelector(".paper-document");
+      if (paperEl && paperEl.contains(selection.anchorNode)) {
+        try {
+          const range = selection.getRangeAt(0);
+          const span = document.createElement("span");
+          span.style.fontSize = `${size}pt`;
+          range.surroundContents(span);
+          toast.success(`Ukuran teks terpilih diubah ke ${size} pt`);
+          return;
+        } catch {
+          // Cross-block selection fallback
+        }
+      }
+    }
+
+    // 2. Document-wide font size: updates all sections, articles, tables & headings
     update("docEditorFontSize", size);
+    toast.success(`Ukuran tulisan seluruh dokumen diubah ke ${size} pt`);
   };
 
   const stepFontSize = (delta: number) => {
-    const nextSize = Math.max(8, Math.min(28, (shipment.docEditorFontSize || 12) + delta));
+    const current = Number(shipment.docEditorFontSize || 12);
+    const nextSize = Math.max(7, Math.min(32, Math.round((current + delta) * 2) / 2));
     handleFontSizeChange(nextSize);
   };
 
@@ -463,15 +484,26 @@ export function DocWordRibbon({
                     onChange={(e) => handleFontSizeChange(Number(e.target.value))}
                     title="Ukuran Huruf Dokumen (Font Size dalam pt)"
                   >
+                    <option value="8">8 pt</option>
                     <option value="8.5">8.5 pt</option>
                     <option value="9">9 pt</option>
+                    <option value="9.5">9.5 pt</option>
                     <option value="10">10 pt</option>
+                    <option value="10.5">10.5 pt</option>
                     <option value="11">11 pt</option>
+                    <option value="11.5">11.5 pt</option>
                     <option value="12">12 pt (Standar Ekspor)</option>
+                    <option value="12.5">12.5 pt</option>
                     <option value="13">13 pt</option>
                     <option value="14">14 pt</option>
+                    <option value="15">15 pt</option>
                     <option value="16">16 pt</option>
                     <option value="18">18 pt</option>
+                    <option value="20">20 pt</option>
+                    <option value="24">24 pt</option>
+                    {!["8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13", "14", "15", "16", "18", "20", "24"].includes(String(activeFontSize)) && (
+                      <option value={activeFontSize}>{activeFontSize} pt</option>
+                    )}
                   </select>
 
                   {/* Grow / Shrink Font Buttons */}
