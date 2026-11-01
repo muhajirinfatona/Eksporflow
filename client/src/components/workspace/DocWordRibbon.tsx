@@ -298,7 +298,7 @@ export function DocWordRibbon({
         <div className="doc-ribbon-brand">
           <div className="doc-word-icon-badge">W</div>
           <span className="doc-ribbon-title">EksporFlow Word Editor</span>
-          <span className="doc-ribbon-subtitle">Toolbar Format & Editor Surat Resmi Ekspor</span>
+          <span className="doc-ribbon-subtitle">Format & Editor Resmi</span>
         </div>
 
         <div className="doc-ribbon-top-actions">
@@ -323,7 +323,7 @@ export function DocWordRibbon({
             title="Aktifkan atau kunci mode pengetikan langsung di kertas"
           >
             <Edit3 size={13} />
-            <span>{isEditMode ? "Mode Edit Aktif (Bisa Diketik)" : "Kunci Mode Pratinjau"}</span>
+            <span>{isEditMode ? "Mode Edit Aktif" : "Mode Pratinjau"}</span>
             <div className={`doc-mode-dot ${isEditMode ? "on" : "off"}`} />
           </button>
 
@@ -335,7 +335,7 @@ export function DocWordRibbon({
             title="Buka panel Tanda Tangan Digital & Stempel Resmi"
           >
             <FileSignature size={14} />
-            <span>Tanda Tangan Digital</span>
+            <span>Tanda Tangan</span>
           </button>
 
           {/* Minimize / Expand Ribbon */}
@@ -345,7 +345,7 @@ export function DocWordRibbon({
             onClick={() => setIsRibbonCollapsed((prev) => !prev)}
             title={isRibbonCollapsed ? "Tampilkan Ribbon Penuh" : "Ciutkan Ribbon"}
           >
-            {isRibbonCollapsed ? "▼ Buka Toolbar" : "▲ Ciutkan"}
+            {isRibbonCollapsed ? "▼ Buka" : "▲ Ciutkan"}
           </button>
         </div>
       </div>

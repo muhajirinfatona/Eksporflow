@@ -441,24 +441,31 @@ export function DocumentsModule({
         })}
       </div>
 
-      {/* 2. Document Action & Overview Bar */}
+      {/* 2. Document Action & Overview Bar (2-Row Layout: Header Info & Action Controls) */}
       <div className="doc-action-bar">
-        <div className="doc-action-info">
+        {/* Row 1: Document Active Info & Specs Strip */}
+        <div className="doc-action-top-row">
+          <div className="doc-active-name-wrap">
+            <span className="doc-active-eyebrow">DOKUMEN AKTIF</span>
+            <h2 className="doc-active-title">{selectedDocument}</h2>
+            <span className="doc-active-ref">{getDocumentNumber(selectedDocument, isId)}</span>
+          </div>
+
           <div className="doc-active-meta-strip">
-            <span className="spec-badge-paper">{getPaperSizeSpec(shipment.paperSize).label} · {shipment.documentOrientation}</span>
-            <span className="spec-badge-template">{shipment.documentTemplate}</span>
-            <span className={`spec-badge-lang ${shipment.previewLanguage === "Bahasa Indonesia" ? "lang-id" : "lang-en"}`}>
-              {shipment.previewLanguage === "Bahasa Indonesia" ? "🇮🇩 Review: Indonesia" : "🇬🇧 Standar: English"}
+            <span className="spec-badge-paper">
+              {getPaperSizeSpec(shipment.paperSize).label} · {shipment.documentOrientation}
             </span>
+            <span className="spec-badge-template">{shipment.documentTemplate}</span>
             <span className={`spec-badge-status ${shipment.documentReviewed ? "status-verified" : "status-draft"}`}>
-              {shipment.documentReviewed ? "✓ Terverifikasi Ekspor" : "● Draft / Siap Review"}
+              {shipment.documentReviewed ? "✓ Terverifikasi Ekspor" : "● Draft Transaksi"}
             </span>
           </div>
         </div>
 
-        <div className="doc-action-buttons">
-          {/* Review & Verification Workflow Group */}
-          <div className="doc-review-workflow-group">
+        {/* Row 2: Workflow & Action Controls */}
+        <div className="doc-action-controls-row">
+          {/* Left Cluster: Workflow Review & Verification */}
+          <div className="doc-workflow-cluster">
             {/* 1. Review Dropdown: Pilih Review Bahasa Indonesia / English */}
             <div className="doc-review-dropdown-wrap" ref={reviewMenuRef}>
               <button
@@ -543,60 +550,62 @@ export function DocumentsModule({
             )}
           </div>
 
-          {/* Setelan Kop Drawer Toggle */}
-          <button
-            type="button"
-            className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
-            onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-            title="Ubah data surat, permintaan buyer, kop, format kertas, dan penandatangan"
-          >
-            <SlidersHorizontal size={14} />
-            <span>Setelan Kop</span>
-            {isSettingsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
-          </button>
-
-          {/* Word Ribbon Toolbar Toggle */}
-          <button
-            type="button"
-            className={`doc-btn-word-toggle ${isWordRibbonOpen ? "active" : ""}`}
-            onClick={() => setIsWordRibbonOpen((prev) => !prev)}
-            title="Tampilkan / sembunyikan toolbar editor format gaya Microsoft Word"
-          >
-            <Edit3 size={14} />
-            <span>Toolbar Word</span>
-          </button>
-
-          <button
-            type="button"
-            className="doc-btn-print"
-            onClick={handlePrint}
-            title="Cetak atau simpan dokumen dalam format PDF"
-          >
-            <Printer size={15} />
-            <span>Cetak PDF</span>
-          </button>
-
-          {/* Multi-Format Download Dropdown Menu */}
-          <div className="doc-download-dropdown-wrap" ref={downloadMenuRef}>
+          {/* Right Cluster: Settings & Export Operations */}
+          <div className="doc-actions-cluster">
+            {/* Setelan Kop Drawer Toggle */}
             <button
               type="button"
-              className={`doc-btn-download-trigger ${isDownloadMenuOpen ? "active" : ""}`}
-              onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
-              title="Pilih format unduhan file (PDF, Word, Excel, HTML, Text)"
-              disabled={isExporting}
+              className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              title="Ubah data surat, permintaan buyer, kop, format kertas, dan penandatangan"
             >
-              <FileDown size={15} />
-              <span>Unduh File</span>
-              <ChevronDown
-                size={13}
-                style={{
-                  transform: isDownloadMenuOpen ? "rotate(180deg)" : "none",
-                  transition: "transform 0.2s ease",
-                }}
-              />
+              <SlidersHorizontal size={14} />
+              <span>Setelan Kop</span>
+              {isSettingsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
 
-            {isDownloadMenuOpen && (
+            {/* Word Ribbon Toolbar Toggle */}
+            <button
+              type="button"
+              className={`doc-btn-word-toggle ${isWordRibbonOpen ? "active" : ""}`}
+              onClick={() => setIsWordRibbonOpen((prev) => !prev)}
+              title="Tampilkan / sembunyikan toolbar editor format gaya Microsoft Word"
+            >
+              <Edit3 size={14} />
+              <span>Toolbar Word</span>
+            </button>
+
+            <button
+              type="button"
+              className="doc-btn-print"
+              onClick={handlePrint}
+              title="Cetak atau simpan dokumen dalam format PDF"
+            >
+              <Printer size={15} />
+              <span>Cetak PDF</span>
+            </button>
+
+            {/* Multi-Format Download Dropdown Menu */}
+            <div className="doc-download-dropdown-wrap" ref={downloadMenuRef}>
+              <button
+                type="button"
+                className={`doc-btn-download-trigger ${isDownloadMenuOpen ? "active" : ""}`}
+                onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+                title="Pilih format unduhan file (PDF, Word, Excel, HTML, Text)"
+                disabled={isExporting}
+              >
+                <FileDown size={15} />
+                <span>Unduh File</span>
+                <ChevronDown
+                  size={13}
+                  style={{
+                    transform: isDownloadMenuOpen ? "rotate(180deg)" : "none",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              {isDownloadMenuOpen && (
               <div className="doc-download-menu-panel" role="menu">
                 <div className="doc-download-menu-header">
                   <span className="doc-download-menu-title">PILIH FORMAT FILE</span>
@@ -673,6 +682,7 @@ export function DocumentsModule({
           </div>
         </div>
       </div>
+    </div>
 
       {/* 2. Collapsible Settings Drawer (only rendered when toggled) */}
       {isSettingsOpen && (
