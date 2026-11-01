@@ -896,6 +896,7 @@ export function DocumentsModule({
             fontFamily: shipment.docEditorFontFamily || "Calibri",
             fontSize: `${shipment.docEditorFontSize || 12}pt`,
             ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 12}pt`,
+            ["--logo-scale" as any]: `${(shipment.letterheadLogoScale ?? 100) / 100}`,
             lineHeight: shipment.docEditorLineHeight || 1.35,
             textAlign: shipment.docEditorTextAlign || "left",
             paddingTop: `${docMargins.top}mm`,
@@ -912,6 +913,8 @@ export function DocumentsModule({
             exporterAddress={exporterAddress}
             onOpenSettings={() => setIsSettingsOpen(true)}
             isId={isId}
+            isEditMode={isEditMode}
+            update={update}
           />
 
           {/* Render Specific Document Type */}
@@ -1185,23 +1188,138 @@ function OfficialLetterhead({
   exporterAddress,
   onOpenSettings,
   isId = false,
+  isEditMode = false,
+  update,
 }: {
   shipment: Shipment;
   exporterName: string;
   exporterAddress: string;
   onOpenSettings: () => void;
   isId?: boolean;
+  isEditMode?: boolean;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
+  const logoScale = (shipment.letterheadLogoScale ?? 100) / 100;
+  const baseLogoHeight = 68;
+  const scaledHeight = Math.round(baseLogoHeight * logoScale);
+
   return (
     <div className="paper-letterhead-wrap">
       <div className="paper-letterhead-content">
         <div className="letterhead-brand">
           {shipment.letterheadImage ? (
-            <img
-              src={shipment.letterheadImage}
-              alt="Logo Resmi Perusahaan"
-              className="letterhead-logo"
-            />
+            <div
+              className="letterhead-logo-container group relative inline-flex flex-col items-start"
+              style={{ position: "relative" }}
+            >
+              <img
+                src={shipment.letterheadImage}
+                alt="Logo Resmi Perusahaan"
+                className="letterhead-logo"
+                style={{
+                  height: `${scaledHeight}px`,
+                  maxHeight: `${Math.round(120 * logoScale)}px`,
+                  maxWidth: `${Math.round(240 * logoScale)}px`,
+                  width: "auto",
+                  objectFit: "contain",
+                }}
+              />
+              {isEditMode && update && (
+                <div
+                  className="letterhead-logo-scale-toolbar no-print"
+                  contentEditable={false}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "3px",
+                    marginTop: "4px",
+                    padding: "2px 6px",
+                    background: "#f1f5f9",
+                    border: "1px solid #cbd5e1",
+                    borderRadius: "4px",
+                    fontSize: "10px",
+                    lineHeight: 1,
+                    userSelect: "none",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const cur = shipment.letterheadLogoScale ?? 100;
+                      update("letterheadLogoScale", Math.max(40, cur - 10));
+                    }}
+                    style={{
+                      padding: "2px 5px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "3px",
+                      background: "#fff",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                      fontSize: "10px",
+                      lineHeight: "10px",
+                    }}
+                    title="Perkecil logo (-10%)"
+                  >
+                    -
+                  </button>
+                  <span
+                    style={{
+                      minWidth: "32px",
+                      textAlign: "center",
+                      fontWeight: 700,
+                      fontSize: "10px",
+                      color: "#1e293b",
+                    }}
+                  >
+                    {shipment.letterheadLogoScale ?? 100}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const cur = shipment.letterheadLogoScale ?? 100;
+                      update("letterheadLogoScale", Math.min(200, cur + 10));
+                    }}
+                    style={{
+                      padding: "2px 5px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "3px",
+                      background: "#fff",
+                      cursor: "pointer",
+                      fontWeight: 700,
+                      fontSize: "10px",
+                      lineHeight: "10px",
+                    }}
+                    title="Perbesar logo (+10%)"
+                  >
+                    +
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      update("letterheadLogoScale", 100);
+                    }}
+                    style={{
+                      marginLeft: "2px",
+                      padding: "2px 5px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "3px",
+                      background: "#fff",
+                      cursor: "pointer",
+                      fontSize: "9px",
+                      lineHeight: "10px",
+                      color: "#475569",
+                    }}
+                    title="Reset ke ukuran asli (100%)"
+                  >
+                    100%
+                  </button>
+                </div>
+              )}
+            </div>
           ) : (
             <div
               className="letterhead-crest-badge"
@@ -3090,6 +3208,91 @@ function DocumentSettings({
                         >
                           <Trash2 size={13} /> Hapus
                         </button>
+                      </div>
+
+                      {/* Scale / Ukuran Logo Slider & Presets */}
+                      <div className="doc-logo-scale-control" style={{ marginTop: "12px", paddingTop: "8px", borderTop: "1px dashed #cbd5e1" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
+                          <span style={{ fontSize: "11px", fontWeight: 600, color: "#334155" }}>
+                            Skala / Ukuran Logo:
+                          </span>
+                          <span style={{ fontSize: "12px", fontWeight: 700, color: "#0284c7" }}>
+                            {shipment.letterheadLogoScale ?? 100}%
+                          </span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                          <button
+                            type="button"
+                            className="doc-logo-scale-btn"
+                            onClick={() => {
+                              const cur = shipment.letterheadLogoScale ?? 100;
+                              update("letterheadLogoScale", Math.max(40, cur - 10));
+                            }}
+                            style={{
+                              width: "24px",
+                              height: "24px",
+                              border: "1px solid #cbd5e1",
+                              background: "#fff",
+                              borderRadius: "4px",
+                              fontWeight: "bold",
+                              cursor: "pointer",
+                            }}
+                            title="Perkecil logo (-10%)"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="range"
+                            min="40"
+                            max="200"
+                            step="5"
+                            value={shipment.letterheadLogoScale ?? 100}
+                            onChange={(e) => update("letterheadLogoScale", Number(e.target.value))}
+                            style={{ flex: 1, accentColor: "#0284c7", cursor: "pointer" }}
+                          />
+                          <button
+                            type="button"
+                            className="doc-logo-scale-btn"
+                            onClick={() => {
+                              const cur = shipment.letterheadLogoScale ?? 100;
+                              update("letterheadLogoScale", Math.min(200, cur + 10));
+                            }}
+                            style={{
+                              width: "24px",
+                              height: "24px",
+                              border: "1px solid #cbd5e1",
+                              background: "#fff",
+                              borderRadius: "4px",
+                              fontWeight: "bold",
+                              cursor: "pointer",
+                            }}
+                            title="Perbesar logo (+10%)"
+                          >
+                            +
+                          </button>
+                        </div>
+                        <div style={{ display: "flex", gap: "4px", marginTop: "6px" }}>
+                          {[60, 80, 100, 120, 150].map((scaleVal) => (
+                            <button
+                              key={scaleVal}
+                              type="button"
+                              onClick={() => update("letterheadLogoScale", scaleVal)}
+                              style={{
+                                flex: 1,
+                                fontSize: "10px",
+                                padding: "2px 0",
+                                border: (shipment.letterheadLogoScale ?? 100) === scaleVal ? "1px solid #0284c7" : "1px solid #e2e8f0",
+                                background: (shipment.letterheadLogoScale ?? 100) === scaleVal ? "#e0f2fe" : "#f8fafc",
+                                color: (shipment.letterheadLogoScale ?? 100) === scaleVal ? "#0369a1" : "#475569",
+                                borderRadius: "4px",
+                                fontWeight: (shipment.letterheadLogoScale ?? 100) === scaleVal ? 700 : 500,
+                                cursor: "pointer",
+                              }}
+                            >
+                              {scaleVal}%
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>

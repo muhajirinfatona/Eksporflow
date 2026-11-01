@@ -1750,6 +1750,70 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
+              {/* LOGO SCALE GROUP */}
+              <div className="doc-ribbon-group group-logo-scale">
+                <div className="doc-ribbon-row-top" style={{ gap: "4px", alignItems: "center" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      const cur = shipment.letterheadLogoScale ?? 100;
+                      update("letterheadLogoScale", Math.max(40, cur - 10));
+                    }}
+                    title="Perkecil Ukuran Logo (-10%)"
+                  >
+                    -
+                  </button>
+                  <span style={{ fontSize: "11px", fontWeight: 700, minWidth: "36px", textAlign: "center", color: "#1e293b" }}>
+                    {shipment.letterheadLogoScale ?? 100}%
+                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      const cur = shipment.letterheadLogoScale ?? 100;
+                      update("letterheadLogoScale", Math.min(200, cur + 10));
+                    }}
+                    title="Perbesar Ukuran Logo (+10%)"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ gap: "4px", alignItems: "center" }}>
+                  <input
+                    type="range"
+                    min="40"
+                    max="200"
+                    step="5"
+                    value={shipment.letterheadLogoScale ?? 100}
+                    onChange={(e) => update("letterheadLogoScale", Number(e.target.value))}
+                    style={{ width: "65px", height: "14px", accentColor: "#0284c7", cursor: "pointer" }}
+                    title="Geser untuk mengatur besar atau kecilnya logo perusahaan"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => update("letterheadLogoScale", 100)}
+                    style={{
+                      fontSize: "9px",
+                      padding: "1px 4px",
+                      background: "#f1f5f9",
+                      borderRadius: "3px",
+                      border: "1px solid #cbd5e1",
+                      cursor: "pointer",
+                      fontWeight: 600,
+                    }}
+                    title="Kembalikan logo ke ukuran asli 100%"
+                  >
+                    100%
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Ukuran Logo</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
               {/* DIGITAL SIGNATURE GROUP */}
               <div className="doc-ribbon-group group-signature">
                 <div className="doc-ribbon-row-top">

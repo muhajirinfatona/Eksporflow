@@ -320,6 +320,7 @@ export type Shipment = {
   documentRevision: number;
   letterheadText: string;
   letterheadImage: string;
+  letterheadLogoScale?: number;
   poNumber: string;
   bookingNumber: string;
   containerNumber: string;
@@ -460,6 +461,7 @@ export const initialShipment: Shipment = {
   contractSpecialTerms: "",
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",
+  letterheadLogoScale: 100,
   poNumber: "ABF/LOI/2026/108",
   bookingNumber: "KMTC SHIMIZU V.2611N",
   containerNumber: "TGHU 2468135",
@@ -564,6 +566,7 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     documentRevision: 1,
     letterheadText: company,
     letterheadImage: "",
+    letterheadLogoScale: 100,
     poNumber: "",
     bookingNumber: "",
     containerNumber: "",
@@ -632,6 +635,7 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "documentTemplate",
   "letterheadText",
   "letterheadImage",
+  "letterheadLogoScale",
   "signatoryName",
   "signatoryRole",
   "buyerAddress",

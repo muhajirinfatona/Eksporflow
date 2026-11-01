@@ -6369,12 +6369,13 @@ textarea:focus-visible {
 }
 
 .letterhead-logo {
-  max-width: 220px;
-  max-height: 85px;
-  height: 75px;
-  width: auto;
-  object-fit: contain;
+  max-width: calc(240px * var(--logo-scale, 1)) !important;
+  max-height: calc(120px * var(--logo-scale, 1)) !important;
+  height: calc(68px * var(--logo-scale, 1)) !important;
+  width: auto !important;
+  object-fit: contain !important;
   flex-shrink: 0;
+  transition: height 0.15s ease, max-height 0.15s ease;
 }
 
 .letterhead-logo-placeholder {
@@ -6669,18 +6670,29 @@ textarea:focus-visible {
 }
 
 .table-product-title {
-  font-size: var(--doc-font-size, 12pt);
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--doc-font-size, 12pt) !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  display: block !important;
+  margin-bottom: 4px !important;
+  line-height: 1.4 !important;
 }
 
 .table-product-specs {
-  list-style: disc;
-  padding-left: 16px;
-  margin: 5px 0 0;
-  font-size: var(--doc-font-size, 12pt);
-  color: #0f172a;
-  line-height: 1.4;
+  list-style: disc !important;
+  padding-left: 18px !important;
+  margin: 4px 0 0 !important;
+  font-size: var(--doc-font-size, 12pt) !important;
+  color: #0f172a !important;
+  line-height: 1.45 !important;
+}
+
+.table-product-specs li {
+  font-size: var(--doc-font-size, 12pt) !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  line-height: 1.45 !important;
+  margin-bottom: 3px !important;
 }
 
 .doc-table-total-row td {
@@ -7037,8 +7049,9 @@ textarea:focus-visible {
   align-items: center;
 }
 .doc-type-sales-contract .letterhead-logo {
-  height: 54px;
-  max-height: 56px;
+  height: calc(54px * var(--logo-scale, 1)) !important;
+  max-height: calc(90px * var(--logo-scale, 1)) !important;
+  max-width: calc(200px * var(--logo-scale, 1)) !important;
 }
 .doc-type-sales-contract .company-name {
   font-size: 17px;
@@ -10342,9 +10355,9 @@ textarea:focus-visible {
     align-items: center !important;
   }
   .letterhead-logo {
-    height: 68px !important;
-    max-height: 72px !important;
-    max-width: 200px !important;
+    height: calc(68px * var(--logo-scale, 1)) !important;
+    max-height: calc(120px * var(--logo-scale, 1)) !important;
+    max-width: calc(240px * var(--logo-scale, 1)) !important;
     width: auto !important;
     object-fit: contain !important;
     border-radius: 4px !important;
@@ -10678,8 +10691,8 @@ textarea:focus-visible {
     font-size: 11px !important;
   }
   .paper-letter .letterhead-logo {
-    height: 62px !important;
-    max-height: 64px !important;
+    height: calc(62px * var(--logo-scale, 1)) !important;
+    max-height: calc(110px * var(--logo-scale, 1)) !important;
   }
   .paper-letter .doc-bank-card {
     margin-bottom: 10px !important;
@@ -10705,8 +10718,8 @@ textarea:focus-visible {
     align-items: center !important;
   }
   .doc-type-sales-contract .letterhead-logo {
-    height: 52px !important;
-    max-height: 54px !important;
+    height: calc(52px * var(--logo-scale, 1)) !important;
+    max-height: calc(80px * var(--logo-scale, 1)) !important;
   }
   .doc-type-sales-contract .company-name {
     font-size: 17px !important;
@@ -10833,8 +10846,8 @@ textarea:focus-visible {
     align-items: center !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .letterhead-logo {
-    height: 52px !important;
-    max-height: 54px !important;
+    height: calc(52px * var(--logo-scale, 1)) !important;
+    max-height: calc(80px * var(--logo-scale, 1)) !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .company-name {
     font-size: 17px !important;
@@ -11006,8 +11019,8 @@ textarea:focus-visible {
     align-items: center !important;
   }
   .doc-type-sales-contract.doc-contract-mode-2page .letterhead-logo {
-    height: 52px !important;
-    max-height: 54px !important;
+    height: calc(52px * var(--logo-scale, 1)) !important;
+    max-height: calc(80px * var(--logo-scale, 1)) !important;
   }
   .doc-type-sales-contract.doc-contract-mode-2page .company-name {
     font-size: 17px !important;
