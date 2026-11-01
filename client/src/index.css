@@ -6374,7 +6374,37 @@ textarea:focus-visible {
   width: auto !important;
   object-fit: contain !important;
   flex-shrink: 0;
-  transition: height 0.15s ease, max-height 0.15s ease;
+  transition: height 0.1s ease, max-height 0.1s ease;
+}
+
+/* Microsoft Word Style Image Handles & Selection */
+.word-image-selected {
+  outline: 1.5px solid #2563eb !important;
+  outline-offset: 2px !important;
+}
+
+.word-resize-handle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  background-color: #ffffff;
+  border: 1.5px solid #2563eb;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+  pointer-events: auto;
+  user-select: none;
+}
+
+.word-resize-handle:hover {
+  background-color: #2563eb;
+  border-color: #ffffff;
+}
+
+.word-resize-tooltip {
+  pointer-events: none;
+  user-select: none;
+  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
 }
 
 .letterhead-logo-placeholder {
@@ -10360,6 +10390,13 @@ textarea:focus-visible {
     width: auto !important;
     object-fit: contain !important;
     border-radius: 4px !important;
+  }
+  .word-resize-handle,
+  .word-resize-tooltip {
+    display: none !important;
+  }
+  .word-image-selected {
+    outline: none !important;
   }
   .company-title {
     font-size: 17.5px !important;

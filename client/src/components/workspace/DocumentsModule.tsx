@@ -1199,9 +1199,85 @@ function OfficialLetterhead({
   isEditMode?: boolean;
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
-  const logoScale = (shipment.letterheadLogoScale ?? 100) / 100;
+  const [isSelected, setIsSelected] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragScale, setDragScale] = useState<number | null>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+
+  const activeScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
   const baseLogoHeight = 68;
-  const scaledHeight = Math.round(baseLogoHeight * logoScale);
+  const scaledHeight = Math.round(baseLogoHeight * (activeScale / 100));
+
+  // Deselect when clicking outside the logo
+  useEffect(() => {
+    if (!isSelected) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsSelected(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [isSelected]);
+
+  // Handle Dragging like in Microsoft Word
+  const startDragHandle = (
+    e: React.MouseEvent,
+    handle: "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!update || !imgRef.current) return;
+
+    setIsDragging(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startRect = imgRef.current.getBoundingClientRect();
+    const aspectRatio = (startRect.width || 1) / (startRect.height || 1);
+    const startHeight = startRect.height;
+    let latestScale = activeScale;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+
+      let delta = 0;
+      if (handle === "se") {
+        delta = (dx / aspectRatio + dy) / 2;
+      } else if (handle === "nw") {
+        delta = (-dx / aspectRatio - dy) / 2;
+      } else if (handle === "ne") {
+        delta = (dx / aspectRatio - dy) / 2;
+      } else if (handle === "sw") {
+        delta = (-dx / aspectRatio + dy) / 2;
+      } else if (handle === "e") {
+        delta = dx / aspectRatio;
+      } else if (handle === "w") {
+        delta = -dx / aspectRatio;
+      } else if (handle === "s") {
+        delta = dy;
+      } else if (handle === "n") {
+        delta = -dy;
+      }
+
+      const newHeight = Math.max(24, startHeight + delta);
+      const computedScale = Math.min(300, Math.max(30, Math.round((newHeight / baseLogoHeight) * 100)));
+      latestScale = computedScale;
+      setDragScale(computedScale);
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsDragging(false);
+      setDragScale(null);
+      update("letterheadLogoScale", latestScale);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
 
   return (
     <div className="paper-letterhead-wrap">
@@ -1209,115 +1285,138 @@ function OfficialLetterhead({
         <div className="letterhead-brand">
           {shipment.letterheadImage ? (
             <div
-              className="letterhead-logo-container group relative inline-flex flex-col items-start"
-              style={{ position: "relative" }}
+              ref={containerRef}
+              className={`letterhead-logo-container relative inline-flex items-center ${isEditMode && isSelected ? "word-image-selected" : ""}`}
+              style={{
+                position: "relative",
+                display: "inline-flex",
+                outline: isEditMode && isSelected ? "1.5px solid #2563eb" : undefined,
+                outlineOffset: "2px",
+                cursor: isEditMode ? "pointer" : "default",
+                userSelect: "none",
+              }}
+              onClick={(e) => {
+                if (isEditMode) {
+                  e.stopPropagation();
+                  setIsSelected(true);
+                }
+              }}
+              onDoubleClick={(e) => {
+                if (isEditMode && update) {
+                  e.stopPropagation();
+                  update("letterheadLogoScale", 100);
+                  toast.success("Ukuran logo di-reset ke 100%");
+                }
+              }}
+              title={
+                isEditMode
+                  ? "Klik untuk memilih logo & tarik titik sudutnya untuk mengubah ukuran (seperti di Word)"
+                  : undefined
+              }
             >
               <img
+                ref={imgRef}
                 src={shipment.letterheadImage}
                 alt="Logo Resmi Perusahaan"
                 className="letterhead-logo"
+                draggable={false}
                 style={{
                   height: `${scaledHeight}px`,
-                  maxHeight: `${Math.round(120 * logoScale)}px`,
-                  maxWidth: `${Math.round(240 * logoScale)}px`,
+                  maxHeight: `${Math.round(200 * (activeScale / 100))}px`,
+                  maxWidth: `${Math.round(400 * (activeScale / 100))}px`,
                   width: "auto",
                   objectFit: "contain",
+                  transition: isDragging ? "none" : "height 0.1s ease",
+                  pointerEvents: isDragging ? "none" : "auto",
                 }}
               />
-              {isEditMode && update && (
-                <div
-                  className="letterhead-logo-scale-toolbar no-print"
-                  contentEditable={false}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "3px",
-                    marginTop: "4px",
-                    padding: "2px 6px",
-                    background: "#f1f5f9",
-                    border: "1px solid #cbd5e1",
-                    borderRadius: "4px",
-                    fontSize: "10px",
-                    lineHeight: 1,
-                    userSelect: "none",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
-                  }}
-                >
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const cur = shipment.letterheadLogoScale ?? 100;
-                      update("letterheadLogoScale", Math.max(40, cur - 10));
-                    }}
-                    style={{
-                      padding: "2px 5px",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "3px",
-                      background: "#fff",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                      fontSize: "10px",
-                      lineHeight: "10px",
-                    }}
-                    title="Perkecil logo (-10%)"
-                  >
-                    -
-                  </button>
-                  <span
-                    style={{
-                      minWidth: "32px",
-                      textAlign: "center",
-                      fontWeight: 700,
-                      fontSize: "10px",
-                      color: "#1e293b",
-                    }}
-                  >
-                    {shipment.letterheadLogoScale ?? 100}%
-                  </span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const cur = shipment.letterheadLogoScale ?? 100;
-                      update("letterheadLogoScale", Math.min(200, cur + 10));
-                    }}
-                    style={{
-                      padding: "2px 5px",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "3px",
-                      background: "#fff",
-                      cursor: "pointer",
-                      fontWeight: 700,
-                      fontSize: "10px",
-                      lineHeight: "10px",
-                    }}
-                    title="Perbesar logo (+10%)"
-                  >
-                    +
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      update("letterheadLogoScale", 100);
-                    }}
-                    style={{
-                      marginLeft: "2px",
-                      padding: "2px 5px",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "3px",
-                      background: "#fff",
-                      cursor: "pointer",
-                      fontSize: "9px",
-                      lineHeight: "10px",
-                      color: "#475569",
-                    }}
-                    title="Reset ke ukuran asli (100%)"
-                  >
-                    100%
-                  </button>
-                </div>
+
+              {/* Microsoft Word Style 8 Resize Handles */}
+              {isEditMode && isSelected && (
+                <>
+                  {/* NW (Top-Left) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ top: "-5px", left: "-5px", cursor: "nwse-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "nw")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* N (Top-Center) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ top: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "n")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* NE (Top-Right) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ top: "-5px", right: "-5px", cursor: "nesw-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "ne")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* E (Middle-Right) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ top: "calc(50% - 4.5px)", right: "-5px", cursor: "ew-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "e")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* SE (Bottom-Right) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ bottom: "-5px", right: "-5px", cursor: "nwse-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "se")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* S (Bottom-Center) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ bottom: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "s")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* SW (Bottom-Left) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ bottom: "-5px", left: "-5px", cursor: "nesw-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "sw")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+                  {/* W (Middle-Left) */}
+                  <div
+                    className="word-resize-handle no-print"
+                    style={{ top: "calc(50% - 4.5px)", left: "-5px", cursor: "ew-resize" }}
+                    onMouseDown={(e) => startDragHandle(e, "w")}
+                    title="Tarik untuk mengubah ukuran logo"
+                  />
+
+                  {/* Size Indicator Tooltip while dragging */}
+                  {isDragging && (
+                    <div
+                      className="word-resize-tooltip no-print"
+                      contentEditable={false}
+                      style={{
+                        position: "absolute",
+                        bottom: "-26px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        background: "rgba(15, 23, 42, 0.9)",
+                        color: "#ffffff",
+                        padding: "2px 8px",
+                        borderRadius: "4px",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        whiteSpace: "nowrap",
+                        pointerEvents: "none",
+                        zIndex: 35,
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                      }}
+                    >
+                      {activeScale}%
+                    </div>
+                  )}
+                </>
               )}
             </div>
           ) : (
