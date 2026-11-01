@@ -20,6 +20,10 @@ import {
   FileCheck2,
   FileSignature,
   FileText,
+  FileDown,
+  FileSpreadsheet,
+  Globe,
+  FileCode,
   Landmark,
   Printer,
   ShieldCheck,
@@ -29,9 +33,19 @@ import {
   UploadCloud,
   X,
 } from "lucide-react";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Field, SelectField } from "./Primitives";
+import {
+  exportToDocx,
+  exportToXlsx,
+  exportToHtml,
+  exportToTxt,
+  downloadBlob,
+  getDocumentNumber,
+  type ExportFormat,
+  type ExportDocData,
+} from "@/lib/documentExporters";
 
 export function DocumentsModule({
   shipment,
@@ -54,6 +68,23 @@ export function DocumentsModule({
   effectiveApprovalStatus: ApprovalDecision;
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
+        setIsDownloadMenuOpen(false);
+      }
+    }
+    if (isDownloadMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isDownloadMenuOpen]);
 
   const documents: {
     type: DocumentType;
@@ -212,6 +243,97 @@ export function DocumentsModule({
     shipment.contractLayout ||
     "1-page";
 
+  const handleExport = async (format: ExportFormat) => {
+    setIsDownloadMenuOpen(false);
+    if (format === "pdf") {
+      handlePrint();
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      toast.loading(`Mempersiapkan berkas .${format.toUpperCase()}...`, { id: "export-doc" });
+
+      const exportData: ExportDocData = {
+        exporterName,
+        exporterAddress,
+        buyerName,
+        buyerAddress,
+        buyerCountry,
+        buyerPicName,
+        buyerPicRole,
+        buyerPhone,
+        buyerEmail,
+        signatoryName,
+        signatoryRole,
+        poNumber,
+        bankName,
+        bankAccountNo,
+        bankSwift,
+        paymentTerms,
+        pol,
+        pod,
+        incoterm,
+        currency,
+        productName,
+        hsCode,
+        bagsCount,
+        netWeightMT,
+        unitPricePerMT,
+        totalAmount,
+        amountInWords,
+        contractLayout: effectiveContractLayout,
+        contractSpecialTerms: shipment.contractSpecialTerms,
+        vesselName,
+        blNumber: shipment.blNumber || "KMTC-MKS0091827",
+        containerNo: containerNumber,
+        sealNo: sealNumber,
+      };
+
+      const docSlug = selectedDocument.toLowerCase().replace(/\s+/g, "_");
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const baseFilename = `${docSlug}_${timestamp}`;
+
+      if (format === "docx") {
+        const blob = await exportToDocx(selectedDocument, exportData, isId);
+        downloadBlob(blob, `${baseFilename}.docx`);
+        toast.success("Dokumen Word (.docx) berhasil diunduh!", {
+          id: "export-doc",
+          description: "Dapat langsung diedit di Microsoft Word / Google Docs.",
+        });
+      } else if (format === "xlsx") {
+        const blob = exportToXlsx(selectedDocument, exportData, isId);
+        downloadBlob(blob, `${baseFilename}.xlsx`);
+        toast.success("Dokumen Excel (.xlsx) berhasil diunduh!", {
+          id: "export-doc",
+          description: "3 sheet terstruktur: Informasi Dokumen, Finansial & Logistik.",
+        });
+      } else if (format === "html") {
+        const blob = exportToHtml(selectedDocument, exportData, isId);
+        downloadBlob(blob, `${baseFilename}.html`);
+        toast.success("File Web Standalone (.html) berhasil diunduh!", {
+          id: "export-doc",
+          description: "Dapat dibuka di browser manapun secara offline.",
+        });
+      } else if (format === "txt") {
+        const blob = exportToTxt(selectedDocument, exportData, isId);
+        downloadBlob(blob, `${baseFilename}.txt`);
+        toast.success("File Teks (.txt) berhasil diunduh!", {
+          id: "export-doc",
+          description: "Format teks rapi untuk lampiran email atau sistem ERP.",
+        });
+      }
+    } catch (err) {
+      console.error("Export error:", err);
+      toast.error("Gagal mengunduh dokumen", {
+        id: "export-doc",
+        description: err instanceof Error ? err.message : "Terjadi kesalahan sistem.",
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   return (
     <div className="doc-center-root">
       <style>{`
@@ -304,11 +426,107 @@ export function DocumentsModule({
             type="button"
             className="doc-btn-print"
             onClick={handlePrint}
-            title="Cetak atau unduh dokumen resmi dalam format PDF"
+            title="Cetak atau simpan dokumen dalam format PDF"
           >
             <Printer size={15} />
-            <span>Cetak / Unduh PDF</span>
+            <span>Cetak PDF</span>
           </button>
+
+          {/* Multi-Format Download Dropdown Menu */}
+          <div className="doc-download-dropdown-wrap" ref={downloadMenuRef}>
+            <button
+              type="button"
+              className={`doc-btn-download-trigger ${isDownloadMenuOpen ? "active" : ""}`}
+              onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
+              title="Pilih format unduhan file (PDF, Word, Excel, HTML, Text)"
+              disabled={isExporting}
+            >
+              <FileDown size={15} />
+              <span>Unduh File</span>
+              <ChevronDown
+                size={13}
+                style={{
+                  transform: isDownloadMenuOpen ? "rotate(180deg)" : "none",
+                  transition: "transform 0.2s ease",
+                }}
+              />
+            </button>
+
+            {isDownloadMenuOpen && (
+              <div className="doc-download-menu-panel" role="menu">
+                <div className="doc-download-menu-header">
+                  <span className="doc-download-menu-title">PILIH FORMAT FILE</span>
+                  <span className="doc-download-menu-subtitle">{selectedDocument}</span>
+                </div>
+                <div className="doc-download-menu-items">
+                  <button
+                    type="button"
+                    className="doc-download-item"
+                    onClick={() => handleExport("pdf")}
+                    role="menuitem"
+                  >
+                    <div className="doc-format-badge format-pdf">PDF</div>
+                    <div className="doc-format-info">
+                      <span className="doc-format-name">Dokumen PDF (.pdf)</span>
+                      <span className="doc-format-desc">Standar cetak resmi vector kualitas tinggi</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-download-item"
+                    onClick={() => handleExport("docx")}
+                    role="menuitem"
+                  >
+                    <div className="doc-format-badge format-docx">DOCX</div>
+                    <div className="doc-format-info">
+                      <span className="doc-format-name">Microsoft Word (.docx)</span>
+                      <span className="doc-format-desc">Dapat diedit untuk penyesuaian klausul kontrak</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-download-item"
+                    onClick={() => handleExport("xlsx")}
+                    role="menuitem"
+                  >
+                    <div className="doc-format-badge format-xlsx">XLSX</div>
+                    <div className="doc-format-info">
+                      <span className="doc-format-name">Microsoft Excel (.xlsx)</span>
+                      <span className="doc-format-desc">Spreadsheet rincian barang, finansial & logistik</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-download-item"
+                    onClick={() => handleExport("html")}
+                    role="menuitem"
+                  >
+                    <div className="doc-format-badge format-html">HTML</div>
+                    <div className="doc-format-info">
+                      <span className="doc-format-name">Web Standalone (.html)</span>
+                      <span className="doc-format-desc">Tampilan web presisi buka langsung di browser</span>
+                    </div>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-download-item"
+                    onClick={() => handleExport("txt")}
+                    role="menuitem"
+                  >
+                    <div className="doc-format-badge format-txt">TXT</div>
+                    <div className="doc-format-info">
+                      <span className="doc-format-name">Plain Text (.txt)</span>
+                      <span className="doc-format-desc">Format teks rapi untuk email & integrasi ERP</span>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -2157,6 +2375,18 @@ function DocumentSettings({
               >
                 <option value="1-page">Pas 1 Lembar Eksekutif (Standar Resmi · Pasal 1 s/d 6)</option>
                 <option value="2-page">2 Lembar Komprehensif (Format Legal ICC · Pasal 1 s/d 10)</option>
+              </SelectField>
+
+              <SelectField
+                label="Format File Unduhan Bawaan"
+                value={shipment.defaultExportFormat || "pdf"}
+                onChange={(value) => update("defaultExportFormat", value as any)}
+              >
+                <option value="pdf">PDF (.pdf) · Format Cetak Resmi Vector</option>
+                <option value="docx">Microsoft Word (.docx) · Dokumen Editable Kontrak</option>
+                <option value="xlsx">Microsoft Excel (.xlsx) · Spreadsheet Rincian & Logistik</option>
+                <option value="html">Web Standalone (.html) · Buka Offline di Browser</option>
+                <option value="txt">Plain Text (.txt) · Teks Bersih untuk Email / ERP</option>
               </SelectField>
 
               <div className="doc-settings-note">

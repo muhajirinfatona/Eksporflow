@@ -124,6 +124,8 @@ export type Shipment = {
   traderMargin?: number;
   contractSpecialTerms?: string;
   contractLayout?: "1-page" | "2-page";
+  defaultExportFormat?: "pdf" | "docx" | "xlsx" | "html" | "txt";
+  blNumber?: string;
   mfgRawMaterial?: number;
   mfgAuxiliary?: number;
   mfgDirectLabor?: number;
@@ -175,6 +177,8 @@ export const initialShipment: Shipment = {
   documentReviewed: false,
   documentRevision: 1,
   contractLayout: "1-page",
+  defaultExportFormat: "pdf",
+  blNumber: "KMTC-MKS0091827",
   contractSpecialTerms: "",
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",

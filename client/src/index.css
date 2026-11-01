@@ -4866,6 +4866,188 @@ textarea:focus-visible {
   box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
+/* 7.3b Multi-Format Download Dropdown */
+.doc-download-dropdown-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.doc-btn-download-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1px solid #0284c7;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+}
+
+.doc-btn-download-trigger:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  border-color: #0369a1;
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+  transform: translateY(-1px);
+}
+
+.doc-btn-download-trigger:active,
+.doc-btn-download-trigger.active {
+  background: #075985;
+  border-color: #0c4a6e;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.doc-btn-download-trigger:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.doc-download-menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  box-shadow: 0 12px 32px -4px rgba(15, 23, 42, 0.22), 0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 8px;
+  z-index: 70;
+  animation: docMenuDropdown 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes docMenuDropdown {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.doc-download-menu-header {
+  padding: 6px 10px 8px 10px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.doc-download-menu-title {
+  font-size: 10px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.doc-download-menu-subtitle {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.doc-download-menu-items {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.doc-download-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  width: 100%;
+}
+
+.doc-download-item:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  transform: translateX(2px);
+}
+
+.doc-format-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  padding: 4px 7px;
+  border-radius: 6px;
+  min-width: 46px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.doc-format-badge.format-pdf {
+  background: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fca5a5;
+}
+
+.doc-format-badge.format-docx {
+  background: #dbeafe;
+  color: #1d4ed8;
+  border: 1px solid #93c5fd;
+}
+
+.doc-format-badge.format-xlsx {
+  background: #dcfce7;
+  color: #15803d;
+  border: 1px solid #86efac;
+}
+
+.doc-format-badge.format-html {
+  background: #ffedd5;
+  color: #c2410c;
+  border: 1px solid #fdba74;
+}
+
+.doc-format-badge.format-txt {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+.doc-format-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.doc-format-name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.doc-format-desc {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* 7.4 Quick Settings Summary Strip */
 .doc-quick-settings-strip {
   background: #f8fafc;
