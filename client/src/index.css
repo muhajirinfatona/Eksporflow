@@ -14219,6 +14219,24 @@ textarea:focus-visible {
   border-bottom: 2px solid #0284c7;
 }
 
+/* Picture Tools Tab in Word Ribbon (Request 9) */
+.doc-ribbon-tab-btn.doc-ribbon-tab-picture {
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.doc-ribbon-tab-btn.doc-ribbon-tab-picture.highlighted {
+  background: #f5f3ff;
+  color: #6d28d9;
+}
+
+.doc-ribbon-tab-btn.doc-ribbon-tab-picture.active {
+  color: #6d28d9;
+  font-weight: 800;
+  background: #ffffff;
+  border-bottom: 2px solid #7c3aed;
+}
+
 /* Table Column Resizer & Active Cell Highlighting (Word Table Experience) */
 .paper-document table th {
   position: relative;
@@ -14430,11 +14448,22 @@ textarea:focus-visible {
 .doc-ribbon-tools-strip {
   display: flex;
   align-items: stretch;
-  padding: 8px 12px;
+  padding: 6px 12px;
   background: #f8fafc;
   border-bottom: 1px solid #e2e8f0;
-  gap: 12px;
+  gap: 10px;
   overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.doc-ribbon-tools-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.doc-ribbon-tools-strip::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
 }
 
 .doc-ribbon-divider {
@@ -15833,9 +15862,142 @@ textarea:focus-visible {
 @media print {
   .doc-word-ribbon-container,
   .sig-edit-hover-btn,
-  .doc-btn-click-sign {
+  .doc-btn-click-sign,
+  .word-layout-floating-btn,
+  .word-layout-popover,
+  .doc-freeze-top-header {
     display: none !important;
   }
+}
+
+/* ==========================================================================
+   WORD DESKTOP FOCUSED MODE (Request 10)
+   Freeze top navigation & ribbon menus; isolate scrolling to paper workspace!
+   ========================================================================== */
+body.doc-word-focus-mode {
+  overflow: hidden !important;
+}
+
+body.doc-word-focus-mode .main-content {
+  overflow: hidden !important;
+  height: 100vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.doc-word-focus-mode .page-wrap {
+  flex: 1 !important;
+  height: calc(100vh - 64px) !important;
+  max-width: 100% !important;
+  padding: 6px 16px 0 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+body.doc-word-focus-mode .doc-center-root {
+  flex: 1 !important;
+  height: 100% !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+}
+
+.doc-freeze-top-header {
+  flex-shrink: 0;
+  z-index: 40;
+  background: #f8fafc;
+  transition: all 0.15s ease;
+}
+
+.doc-freeze-top-header.doc-edit-mode-frozen {
+  position: sticky;
+  top: 0;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08);
+  margin-bottom: 6px;
+}
+
+.doc-freeze-top-header.doc-edit-mode-frozen .doc-word-ribbon-container {
+  margin-bottom: 0 !important;
+  border-radius: 0 0 10px 10px;
+}
+
+.doc-paper-workspace-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  position: relative;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
+}
+
+.doc-paper-workspace-scroll::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+.doc-paper-workspace-scroll::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.doc-paper-workspace-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 6px;
+  border: 2px solid #f1f5f9;
+}
+
+.doc-paper-workspace-scroll::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Edit Mode Sleek Compact Bar */
+.doc-edit-compact-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 14px;
+  background: #0f2942;
+  color: #ffffff;
+  border-radius: 10px 10px 0 0;
+  font-size: 11.5px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+/* Watermark & Behind Text layer support */
+.paper-document {
+  position: relative;
+}
+
+.paper-letterhead-content,
+.doc-title-bar,
+.doc-content-wrapper,
+.doc-two-col-grid,
+.doc-table-pro,
+.doc-terms-panel,
+.doc-bank-card,
+.official-sig-block {
+  position: relative;
+  z-index: 1;
+  background-color: transparent !important;
+}
+
+.letterhead-logo-container {
+  transition: box-shadow 0.15s ease;
+}
+
+.letterhead-logo-container.word-image-selected {
+  outline: 1.5px solid #2563eb !important;
+  outline-offset: 2px;
+}
+
+.word-layout-floating-btn:hover {
+  background: #eff6ff !important;
+  border-color: #2563eb !important;
 }
 
 

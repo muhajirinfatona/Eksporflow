@@ -52,6 +52,15 @@ import {
   AlignVerticalJustifyStart,
   AlignVerticalJustifyEnd,
   Square,
+  Image as ImageIcon,
+  Layers,
+  Move,
+  RotateCw,
+  SunMedium,
+  ZoomIn,
+  ZoomOut,
+  X,
+  Sliders,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
@@ -89,10 +98,35 @@ export function DocWordRibbon({
   onOpenAiScreening,
   onOpenBusinessCardOcr,
 }: DocWordRibbonProps) {
-  const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table">("home");
+  const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table" | "picture">("home");
   const [isTableSelected, setIsTableSelected] = useState(false);
+  const [isImageSelected, setIsImageSelected] = useState(false);
   const [activeTableTitle, setActiveTableTitle] = useState<string>("Tabel");
   const lastActiveCellRef = useRef<HTMLTableCellElement | null>(null);
+
+  // Line spacing custom modal
+  const [showCustomLineHeightModal, setShowCustomLineHeightModal] = useState(false);
+  const [customLineHeightInput, setCustomLineHeightInput] = useState<number>(shipment.docEditorLineHeight || 1.35);
+
+  // Page setup margin modal
+  const [showMarginModal, setShowMarginModal] = useState(false);
+  const docMargins = getDocMargins(shipment);
+  const [customMarginInputs, setCustomMarginInputs] = useState({
+    top: docMargins.top,
+    bottom: docMargins.bottom,
+    left: docMargins.left,
+    right: docMargins.right,
+  });
+
+  // Keep modal margin inputs in sync when shipment changes
+  useEffect(() => {
+    setCustomMarginInputs({
+      top: docMargins.top,
+      bottom: docMargins.bottom,
+      left: docMargins.left,
+      right: docMargins.right,
+    });
+  }, [docMargins.top, docMargins.bottom, docMargins.left, docMargins.right]);
 
   useEffect(() => {
     const handleTableFocus = (e: any) => {
@@ -114,9 +148,21 @@ export function DocWordRibbon({
         lastActiveCellRef.current = (window as any).__eksporflow_active_cell;
       }
     };
+
+    const handleImageFocus = (e: any) => {
+      const detail = e.detail;
+      const hasImage = detail?.hasImage !== false;
+      setIsImageSelected(hasImage);
+      if (hasImage) {
+        setActiveRibbonTab("picture");
+      }
+    };
+
     window.addEventListener("eksporflow:table-focus", handleTableFocus);
+    window.addEventListener("eksporflow:image-focus", handleImageFocus);
     return () => {
       window.removeEventListener("eksporflow:table-focus", handleTableFocus);
+      window.removeEventListener("eksporflow:image-focus", handleImageFocus);
     };
   }, []);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -171,7 +217,6 @@ export function DocWordRibbon({
   const activeLineHeight = shipment.docEditorLineHeight || 1.35;
   const activePaperSize: PaperSize = shipment.paperSize || "A4";
   const activeOrientation: DocumentOrientation = shipment.documentOrientation || "Portrait";
-  const docMargins = getDocMargins(shipment);
 
   const handlePaperSizeChange = (newSize: PaperSize) => {
     update("paperSize", newSize);
@@ -1016,6 +1061,15 @@ export function DocWordRibbon({
             <TableProperties size={13} className="mr-1 inline" />
             <span>Alat Tabel {isTableSelected && "●"}</span>
           </button>
+          <button
+            type="button"
+            className={`doc-ribbon-tab-btn doc-ribbon-tab-picture ${activeRibbonTab === "picture" ? "active" : ""} ${isImageSelected ? "highlighted" : ""}`}
+            onClick={() => setActiveRibbonTab("picture")}
+            title="Alat Format Gambar: Posisi, Bungkus Teks (Di Belakang/Depan/Kotak), Opasitas, Rotasi & Bingkai"
+          >
+            <ImageIcon size={13} className="mr-1 inline" />
+            <span>Format Gambar 🖼️ {isImageSelected && "●"}</span>
+          </button>
         </div>
       )}
 
@@ -1357,15 +1411,40 @@ export function DocWordRibbon({
                   {/* Line Spacing Selector */}
                   <select
                     className="doc-ribbon-select line-spacing-select"
-                    value={activeLineHeight}
-                    onChange={(e) => handleLineHeightChange(Number(e.target.value))}
+                    value={[1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].some(v => Math.abs(v - activeLineHeight) < 0.01) ? activeLineHeight.toString() : "custom"}
+                    onChange={(e) => {
+                      if (e.target.value === "custom") {
+                        setCustomLineHeightInput(activeLineHeight);
+                        setShowCustomLineHeightModal(true);
+                      } else {
+                        handleLineHeightChange(Number(e.target.value));
+                      }
+                    }}
                     title="Spasi Antar Baris (Line Spacing)"
                   >
+                    <option value="1">1.00 Spasi Tunggal (Single)</option>
                     <option value="1.15">1.15 Spasi Rapat</option>
                     <option value="1.25">1.25 Spasi Formal</option>
                     <option value="1.35">1.35 Spasi Standar Ekspor</option>
-                    <option value="1.5">1.50 Spasi Lebar</option>
+                    <option value="1.5">1.50 Spasi 1.5 Baris</option>
+                    <option value="1.75">1.75 Spasi Longgar</option>
+                    <option value="2">2.00 Spasi Ganda (Double)</option>
+                    <option value="2.5">2.50 Spasi Ekstra Lebar</option>
+                    <option value="3">3.00 Spasi Maksimum</option>
+                    <option value="custom">⚙️ Kustom Spasi Baris...</option>
                   </select>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      setCustomLineHeightInput(activeLineHeight);
+                      setShowCustomLineHeightModal(true);
+                    }}
+                    title="Buka dialog pengaturan kustom spasi baris"
+                    style={{ padding: "3px 6px" }}
+                  >
+                    <Sliders size={12} className="text-slate-600" />
+                  </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom">
@@ -1599,33 +1678,53 @@ export function DocWordRibbon({
           {activeRibbonTab === "layout" && (
             <>
               {/* PAGE MARGINS GROUP (Word Margins) */}
-              <div className="doc-ribbon-group group-margins" ref={marginMenuRef}>
+              <div className="doc-ribbon-group group-margins">
                 <div className="doc-ribbon-row-top">
                   <div className="doc-ribbon-field-with-icon" title="Pilih Preset Margin Sesuai Microsoft Word">
                     <Maximize2 size={13} className="doc-field-prefix-icon" />
                     <select
                       className="doc-ribbon-select doc-margin-preset-select"
                       value={shipment.docMarginPreset || "Normal"}
-                      onChange={(e) => handleMarginPresetChange(e.target.value as DocMarginPreset)}
+                      onChange={(e) => {
+                        const val = e.target.value as DocMarginPreset;
+                        if (val === "Kustom") {
+                          setCustomMarginInputs({
+                            top: docMargins.top,
+                            bottom: docMargins.bottom,
+                            left: docMargins.left,
+                            right: docMargins.right,
+                          });
+                          setShowMarginModal(true);
+                        } else {
+                          handleMarginPresetChange(val);
+                        }
+                      }}
                       title="Pilih Preset Margin Halaman Microsoft Word"
                     >
                       <option value="Normal">Normal (2.54 cm / 1 in)</option>
                       <option value="Sempit">Sempit (1.27 cm / 0.5 in)</option>
                       <option value="Sedang">Sedang (1.91 cm / 0.75 in)</option>
                       <option value="Lebar">Lebar (5.08 cm / 2.0 in)</option>
-                      <option value="Kustom">Kustom (Atur Manual)...</option>
+                      <option value="Kustom">⚙️ Margin Kustom...</option>
                     </select>
                   </div>
 
                   <button
                     type="button"
-                    className={`doc-ribbon-margin-toggle-btn ${showMarginPopover ? "active" : ""}`}
-                    onClick={() => setShowMarginPopover((prev) => !prev)}
-                    title="Buka dialog pengaturan margin kustom (Atas, Bawah, Kiri, Kanan)"
+                    className="doc-ribbon-margin-toggle-btn"
+                    onClick={() => {
+                      setCustomMarginInputs({
+                        top: docMargins.top,
+                        bottom: docMargins.bottom,
+                        left: docMargins.left,
+                        right: docMargins.right,
+                      });
+                      setShowMarginModal(true);
+                    }}
+                    title="Buka pop-up dialog pengaturan margin kustom (Atas, Bawah, Kiri, Kanan)"
                   >
                     <SlidersHorizontal size={12} />
-                    <span>Margin Kustom</span>
-                    <ChevronDown size={11} />
+                    <span>Margin Kustom...</span>
                   </button>
                 </div>
 
@@ -1639,97 +1738,6 @@ export function DocWordRibbon({
                 </div>
 
                 <span className="doc-ribbon-group-label">Margin Halaman</span>
-
-                {/* Custom Margins Popover Modal */}
-                {showMarginPopover && (
-                  <div className="doc-margin-popover" role="dialog">
-                    <div className="doc-margin-popover-header">
-                      <span className="popover-title">PENGATURAN MARGIN HALAMAN</span>
-                      <span className="popover-sub">Standar Microsoft Word</span>
-                    </div>
-
-                    <div className="doc-margin-presets-list">
-                      <button
-                        type="button"
-                        className={`doc-margin-preset-item ${shipment.docMarginPreset === "Normal" ? "selected" : ""}`}
-                        onClick={() => handleMarginPresetChange("Normal")}
-                      >
-                        <b>Normal:</b> Atas: 2.54cm · Bawah: 2.54cm · Kiri: 2.54cm · Kanan: 2.54cm
-                      </button>
-                      <button
-                        type="button"
-                        className={`doc-margin-preset-item ${shipment.docMarginPreset === "Sempit" ? "selected" : ""}`}
-                        onClick={() => handleMarginPresetChange("Sempit")}
-                      >
-                        <b>Sempit:</b> Atas: 1.27cm · Bawah: 1.27cm · Kiri: 1.27cm · Kanan: 1.27cm
-                      </button>
-                      <button
-                        type="button"
-                        className={`doc-margin-preset-item ${shipment.docMarginPreset === "Sedang" ? "selected" : ""}`}
-                        onClick={() => handleMarginPresetChange("Sedang")}
-                      >
-                        <b>Sedang:</b> Atas: 2.54cm · Bawah: 2.54cm · Kiri: 1.91cm · Kanan: 1.91cm
-                      </button>
-                    </div>
-
-                    <div className="doc-margin-inputs-grid">
-                      <label className="doc-margin-input-field">
-                        <span>Margin Atas (mm):</span>
-                        <input
-                          type="number"
-                          min="5"
-                          max="80"
-                          step="1"
-                          value={docMargins.top}
-                          onChange={(e) => handleCustomMarginInput("top", Number(e.target.value))}
-                        />
-                      </label>
-                      <label className="doc-margin-input-field">
-                        <span>Margin Bawah (mm):</span>
-                        <input
-                          type="number"
-                          min="5"
-                          max="80"
-                          step="1"
-                          value={docMargins.bottom}
-                          onChange={(e) => handleCustomMarginInput("bottom", Number(e.target.value))}
-                        />
-                      </label>
-                      <label className="doc-margin-input-field">
-                        <span>Margin Kiri (mm):</span>
-                        <input
-                          type="number"
-                          min="5"
-                          max="80"
-                          step="1"
-                          value={docMargins.left}
-                          onChange={(e) => handleCustomMarginInput("left", Number(e.target.value))}
-                        />
-                      </label>
-                      <label className="doc-margin-input-field">
-                        <span>Margin Kanan (mm):</span>
-                        <input
-                          type="number"
-                          min="5"
-                          max="80"
-                          step="1"
-                          value={docMargins.right}
-                          onChange={(e) => handleCustomMarginInput("right", Number(e.target.value))}
-                        />
-                      </label>
-                    </div>
-
-                    <div className="doc-margin-popover-footer">
-                      <button
-                        type="button"
-                        className="doc-margin-close-btn"
-                        onClick={() => setShowMarginPopover(false)}
-                      >
-                        Terapkan Margin
-                      </button>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <div className="doc-ribbon-divider" />
@@ -2696,6 +2704,671 @@ export function DocWordRibbon({
               </div>
             </>
           )}
+
+          {/* ================= TAB 5: FORMAT GAMBAR (PICTURE TOOLS) ================= */}
+          {activeRibbonTab === "picture" && (
+            <>
+              {/* 1. Bungkus Teks (Wrap Text - Sesuai Microsoft Word) */}
+              <div className="doc-ribbon-group group-wrap-text">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px" }}>
+                  <select
+                    className="doc-ribbon-select"
+                    value={shipment.letterheadLogoWrap || "inline"}
+                    onChange={(e) => {
+                      const wrap = e.target.value as any;
+                      update("letterheadLogoWrap", wrap);
+                      toast.success(`Bungkus teks diatur: ${wrap === "behind" ? "Di Belakang Teks (Watermark)" : wrap === "front" ? "Di Depan Teks" : wrap === "square" ? "Kotak (Square)" : wrap === "topBottom" ? "Atas & Bawah" : "Sejajar Teks"}`);
+                    }}
+                    title="Bungkus Teks (Wrap Text) sesuai Microsoft Word"
+                    style={{ fontWeight: 600, color: "#1e3a8a", minWidth: "140px" }}
+                  >
+                    <option value="inline">📄 Sejajar Teks (In Line)</option>
+                    <option value="square">🔲 Kotak (Square Wrap)</option>
+                    <option value="behind">📑 Di Belakang Teks (Watermark)</option>
+                    <option value="front">🏷️ Di Depan Teks (Floating)</option>
+                    <option value="topBottom">📜 Atas dan Bawah</option>
+                  </select>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "2px" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "inline" || !shipment.letterheadLogoWrap ? "active" : ""}`}
+                    onClick={() => update("letterheadLogoWrap", "inline")}
+                    title="Sejajar dengan Teks (In Line with Text)"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Sejajar</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "square" ? "active" : ""}`}
+                    onClick={() => update("letterheadLogoWrap", "square")}
+                    title="Kotak: Teks mengalir mengelilingi logo"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Kotak</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "behind" ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoWrap", "behind");
+                      if (!shipment.letterheadLogoOpacity || shipment.letterheadLogoOpacity === 100) {
+                        update("letterheadLogoOpacity", 30); // Default good watermark opacity
+                      }
+                    }}
+                    title="Di Belakang Teks (Watermark Resmi: Logo berada di bawah naskah)"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Belakang</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "front" ? "active" : ""}`}
+                    onClick={() => update("letterheadLogoWrap", "front")}
+                    title="Di Depan Teks (Melayang di atas naskah/stempel)"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Depan</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Bungkus Teks (Wrap)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 2. Posisi & Perataan Gambar */}
+              <div className="doc-ribbon-group group-pic-position">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "left" || !shipment.letterheadLogoAlign ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoAlign", "left");
+                      update("letterheadLogoX", 0);
+                      update("letterheadLogoY", 0);
+                      toast.success("Posisi logo diatur: Rata Kiri");
+                    }}
+                    title="Posisi Kiri"
+                  >
+                    <AlignLeft size={13} />
+                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>Kiri</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "center" ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoAlign", "center");
+                      toast.success("Posisi logo diatur: Tengah");
+                    }}
+                    title="Posisi Tengah"
+                  >
+                    <AlignCenter size={13} />
+                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>Tengah</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "right" ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoAlign", "right");
+                      toast.success("Posisi logo diatur: Rata Kanan");
+                    }}
+                    title="Posisi Kanan"
+                  >
+                    <AlignRight size={13} />
+                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>Kanan</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      update("letterheadLogoX", 0);
+                      update("letterheadLogoY", 0);
+                      toast.success("Koordinat posisi logo di-reset ke awal");
+                    }}
+                    title="Reset Posisi Koordinat X & Y"
+                  >
+                    <Move size={11} />
+                    <span>Reset Posisi</span>
+                  </button>
+                  <span style={{ fontSize: "10px", color: "#64748b", alignSelf: "center" }}>
+                    X: {shipment.letterheadLogoX || 0}px · Y: {shipment.letterheadLogoY || 0}px
+                  </span>
+                </div>
+                <span className="doc-ribbon-group-label">Posisi & Perataan</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 3. Opasitas / Watermark Slider */}
+              <div className="doc-ribbon-group group-pic-opacity">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <SunMedium size={13} className="text-amber-600" />
+                  <input
+                    type="range"
+                    min="10"
+                    max="100"
+                    step="5"
+                    value={shipment.letterheadLogoOpacity ?? 100}
+                    onChange={(e) => update("letterheadLogoOpacity", Number(e.target.value))}
+                    title={`Transparansi / Opasitas Logo: ${shipment.letterheadLogoOpacity ?? 100}%`}
+                    style={{ width: "90px", accentColor: "#2563eb", cursor: "pointer" }}
+                  />
+                  <span style={{ fontSize: "11px", fontWeight: 700, minWidth: "32px", color: "#1e293b" }}>
+                    {shipment.letterheadLogoOpacity ?? 100}%
+                  </span>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      update("letterheadLogoOpacity", 30);
+                      update("letterheadLogoWrap", "behind");
+                      toast.success("Mode Watermark Kop Surat Aktif (30% di Belakang Teks)");
+                    }}
+                    title="Atur otomatis sebagai Watermark Kop (30% transparan di belakang teks)"
+                  >
+                    Watermark 30%
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      update("letterheadLogoOpacity", 100);
+                      toast.success("Opasitas logo solid 100%");
+                    }}
+                    title="Solid 100%"
+                  >
+                    Solid 100%
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Opasitas / Watermark</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 4. Rotasi & Sudut Gambar */}
+              <div className="doc-ribbon-group group-pic-rotate">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      const cur = shipment.letterheadLogoRotate || 0;
+                      const next = (cur + 90) % 360;
+                      update("letterheadLogoRotate", next);
+                      toast.success(`Logo diputar ke ${next}°`);
+                    }}
+                    title="Putar 90 Derajat Searah Jarum Jam"
+                  >
+                    <RotateCw size={13} />
+                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>+90°</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      update("letterheadLogoRotate", 0);
+                      toast.success("Rotasi logo di-reset ke 0° (tegak lurus)");
+                    }}
+                    title="Tegak Lurus (0°)"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700 }}>0° Normal</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>
+                    Sudut Rotasi: {shipment.letterheadLogoRotate || 0}°
+                  </span>
+                </div>
+                <span className="doc-ribbon-group-label">Rotasi Gambar</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 5. Gaya Bingkai / Picture Style */}
+              <div className="doc-ribbon-group group-pic-style">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
+                  <select
+                    className="doc-ribbon-select"
+                    value={shipment.letterheadLogoBorder || "none"}
+                    onChange={(e) => {
+                      const b = e.target.value as any;
+                      update("letterheadLogoBorder", b);
+                      toast.success(`Bingkai logo: ${b}`);
+                    }}
+                    title="Bentuk Bingkai Logo"
+                    style={{ fontSize: "11px" }}
+                  >
+                    <option value="none">Tanpa Bingkai</option>
+                    <option value="solid">Bingkai Tipis Solid</option>
+                    <option value="dashed">Garis Putus (Dashed)</option>
+                    <option value="rounded">Sudut Bulat (Rounded)</option>
+                  </select>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoShadow ? "active" : ""}`}
+                    onClick={() => {
+                      const next = !shipment.letterheadLogoShadow;
+                      update("letterheadLogoShadow", next);
+                      toast.success(next ? "Efek bayangan logo diaktifkan" : "Efek bayangan dinonaktifkan");
+                    }}
+                    title="Efek Bayangan Lembut (Soft Shadow)"
+                  >
+                    <span>Bayangan {shipment.letterheadLogoShadow ? "✓" : ""}</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Gaya Bingkai & Efek</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 6. Skala & Ukuran Gambar */}
+              <div className="doc-ribbon-group group-pic-size">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      const cur = shipment.letterheadLogoScale ?? 100;
+                      const next = Math.max(30, cur - 10);
+                      update("letterheadLogoScale", next);
+                    }}
+                    title="Perkecil Ukuran Logo (-10%)"
+                  >
+                    <ZoomOut size={13} />
+                  </button>
+                  <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 4px", minWidth: "38px", textAlign: "center" }}>
+                    {shipment.letterheadLogoScale ?? 100}%
+                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => {
+                      const cur = shipment.letterheadLogoScale ?? 100;
+                      const next = Math.min(300, cur + 10);
+                      update("letterheadLogoScale", next);
+                    }}
+                    title="Perbesar Ukuran Logo (+10%)"
+                  >
+                    <ZoomIn size={13} />
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      update("letterheadLogoScale", 100);
+                      update("letterheadLogoWrap", "inline");
+                      update("letterheadLogoAlign", "left");
+                      update("letterheadLogoX", 0);
+                      update("letterheadLogoY", 0);
+                      update("letterheadLogoOpacity", 100);
+                      update("letterheadLogoRotate", 0);
+                      update("letterheadLogoBorder", "none");
+                      update("letterheadLogoShadow", false);
+                      toast.success("Format gambar di-reset ke standar awal");
+                    }}
+                    title="Reset Seluruh Format Gambar ke Awal"
+                  >
+                    <RotateCcw size={11} />
+                    <span>Reset Format</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Ukuran Logo</span>
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Pop-up Modal: Pengaturan Margin Kertas (Page Setup) */}
+      {showMarginModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="px-5 py-3.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <SlidersHorizontal size={18} className="text-blue-300" />
+                <div>
+                  <h3 className="font-bold text-sm">Pengaturan Margin Kertas</h3>
+                  <p className="text-xs text-blue-200">Standar Dokumen Ekspor & Microsoft Word</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowMarginModal(false)}
+                className="text-slate-300 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+              {/* Presets Grid */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
+                  Pilihan Cepat Standar Margin Word
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { id: "Normal", name: "Normal", top: 25.4, bottom: 25.4, left: 25.4, right: 25.4, desc: "2.54 cm tiap sisi" },
+                    { id: "Sempit", name: "Sempit (Narrow)", top: 12.7, bottom: 12.7, left: 12.7, right: 12.7, desc: "1.27 cm (Muat Lebih Banyak)" },
+                    { id: "Standar Ekspor", name: "Standar Ekspor", top: 20, bottom: 20, left: 20, right: 20, desc: "2.00 cm (Kop & Stempel)" },
+                    { id: "Sedang", name: "Sedang (Moderate)", top: 25.4, bottom: 25.4, left: 19.1, right: 19.1, desc: "Atas/Bwh 2.54, Samping 1.91 cm" },
+                  ].map((preset) => {
+                    const isSelected =
+                      Math.abs(customMarginInputs.top - preset.top) < 0.2 &&
+                      Math.abs(customMarginInputs.bottom - preset.bottom) < 0.2 &&
+                      Math.abs(customMarginInputs.left - preset.left) < 0.2 &&
+                      Math.abs(customMarginInputs.right - preset.right) < 0.2;
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => {
+                          setCustomMarginInputs({
+                            top: preset.top,
+                            bottom: preset.bottom,
+                            left: preset.left,
+                            right: preset.right,
+                          });
+                        }}
+                        className={`text-left p-2.5 rounded-lg border transition-all ${
+                          isSelected
+                            ? "bg-blue-50 border-blue-500 ring-2 ring-blue-500/20"
+                            : "bg-slate-50 border-slate-200 hover:bg-slate-100"
+                        }`}
+                      >
+                        <div className="font-bold text-xs text-slate-800 flex items-center justify-between">
+                          <span>{preset.name}</span>
+                          {isSelected && <Check size={13} className="text-blue-600" />}
+                        </div>
+                        <div className="text-[11px] text-slate-500 mt-0.5">{preset.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Custom Inputs with Diagram */}
+              <div className="pt-3 border-t border-slate-200">
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
+                  Batas Margin Kustom (cm / mm)
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span className="text-[11px] font-semibold text-slate-600 block">Atas (Top)</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        type="number"
+                        min="5"
+                        max="80"
+                        step="0.5"
+                        value={customMarginInputs.top}
+                        onChange={(e) => setCustomMarginInputs((p) => ({ ...p, top: Number(e.target.value) }))}
+                        className="w-full px-2 py-1 text-xs font-bold border border-slate-300 rounded bg-white"
+                      />
+                      <span className="text-[11px] text-slate-500">mm</span>
+                    </div>
+                    <span className="text-[10px] text-blue-600 font-medium block mt-0.5">
+                      {(customMarginInputs.top / 10).toFixed(2)} cm
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span className="text-[11px] font-semibold text-slate-600 block">Bawah (Bottom)</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        type="number"
+                        min="5"
+                        max="80"
+                        step="0.5"
+                        value={customMarginInputs.bottom}
+                        onChange={(e) => setCustomMarginInputs((p) => ({ ...p, bottom: Number(e.target.value) }))}
+                        className="w-full px-2 py-1 text-xs font-bold border border-slate-300 rounded bg-white"
+                      />
+                      <span className="text-[11px] text-slate-500">mm</span>
+                    </div>
+                    <span className="text-[10px] text-blue-600 font-medium block mt-0.5">
+                      {(customMarginInputs.bottom / 10).toFixed(2)} cm
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span className="text-[11px] font-semibold text-slate-600 block">Kiri (Left)</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        type="number"
+                        min="5"
+                        max="80"
+                        step="0.5"
+                        value={customMarginInputs.left}
+                        onChange={(e) => setCustomMarginInputs((p) => ({ ...p, left: Number(e.target.value) }))}
+                        className="w-full px-2 py-1 text-xs font-bold border border-slate-300 rounded bg-white"
+                      />
+                      <span className="text-[11px] text-slate-500">mm</span>
+                    </div>
+                    <span className="text-[10px] text-blue-600 font-medium block mt-0.5">
+                      {(customMarginInputs.left / 10).toFixed(2)} cm
+                    </span>
+                  </div>
+
+                  <div className="bg-slate-50 p-2 rounded-lg border border-slate-200">
+                    <span className="text-[11px] font-semibold text-slate-600 block">Kanan (Right)</span>
+                    <div className="flex items-center gap-1 mt-1">
+                      <input
+                        type="number"
+                        min="5"
+                        max="80"
+                        step="0.5"
+                        value={customMarginInputs.right}
+                        onChange={(e) => setCustomMarginInputs((p) => ({ ...p, right: Number(e.target.value) }))}
+                        className="w-full px-2 py-1 text-xs font-bold border border-slate-300 rounded bg-white"
+                      />
+                      <span className="text-[11px] text-slate-500">mm</span>
+                    </div>
+                    <span className="text-[10px] text-blue-600 font-medium block mt-0.5">
+                      {(customMarginInputs.right / 10).toFixed(2)} cm
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mini Diagram Visualizer */}
+              <div className="bg-slate-100 p-3 rounded-lg border border-slate-200 flex flex-col items-center">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                  Pratinjau Kertas ({shipment.paperSize || "A4"} · {shipment.documentOrientation || "Portrait"})
+                </span>
+                <div
+                  className="w-32 h-44 bg-white border-2 border-slate-300 shadow-xs relative flex items-center justify-center"
+                  style={{
+                    padding: `${Math.max(4, customMarginInputs.top / 3)}px ${Math.max(4, customMarginInputs.right / 3)}px ${Math.max(4, customMarginInputs.bottom / 3)}px ${Math.max(4, customMarginInputs.left / 3)}px`,
+                  }}
+                >
+                  <div className="w-full h-full border border-dashed border-blue-400 bg-blue-50/50 flex flex-col justify-center items-center p-1 text-[8px] text-blue-700 font-bold">
+                    <span>Area Teks</span>
+                  </div>
+                  <span className="absolute top-0.5 text-[8px] text-slate-400">{(customMarginInputs.top / 10).toFixed(1)}cm</span>
+                  <span className="absolute bottom-0.5 text-[8px] text-slate-400">{(customMarginInputs.bottom / 10).toFixed(1)}cm</span>
+                  <span className="absolute left-0.5 text-[8px] text-slate-400">{(customMarginInputs.left / 10).toFixed(1)}cm</span>
+                  <span className="absolute right-0.5 text-[8px] text-slate-400">{(customMarginInputs.right / 10).toFixed(1)}cm</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowMarginModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  update("docMarginPreset", "Kustom");
+                  update("docMarginTop", customMarginInputs.top);
+                  update("docMarginBottom", customMarginInputs.bottom);
+                  update("docMarginLeft", customMarginInputs.left);
+                  update("docMarginRight", customMarginInputs.right);
+                  toast.success("Margin kertas kustom berhasil diterapkan!", {
+                    description: `Atas: ${(customMarginInputs.top / 10).toFixed(2)}cm, Bawah: ${(customMarginInputs.bottom / 10).toFixed(2)}cm, Kiri: ${(customMarginInputs.left / 10).toFixed(2)}cm, Kanan: ${(customMarginInputs.right / 10).toFixed(2)}cm`,
+                  });
+                  setShowMarginModal(false);
+                }}
+                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                Terapkan Margin
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Pop-up Modal: Pengaturan Spasi Antar Baris Kustom */}
+      {showCustomLineHeightModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
+            {/* Header */}
+            <div className="px-5 py-3.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <AlignJustify size={18} className="text-blue-300" />
+                <div>
+                  <h3 className="font-bold text-sm">Pengaturan Spasi Antar Baris</h3>
+                  <p className="text-xs text-blue-200">Line Spacing Sesuai Microsoft Word</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowCustomLineHeightModal(false)}
+                className="text-slate-300 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4">
+              {/* Quick Presets Pills */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
+                  Pilihan Cepat Standar Spasi Word
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {[1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].map((val) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setCustomLineHeightInput(val)}
+                      className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition-all ${
+                        Math.abs(customLineHeightInput - val) < 0.01
+                          ? "bg-blue-600 text-white border-blue-600 shadow-xs"
+                          : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
+                      }`}
+                    >
+                      {val.toFixed(2)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Numeric Input with +/- buttons */}
+              <div>
+                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">
+                  Nilai Kelipatan Spasi (Multiplier)
+                </label>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCustomLineHeightInput((prev) => Math.max(0.8, Math.round((prev - 0.05) * 100) / 100))}
+                    className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center text-base"
+                  >
+                    -
+                  </button>
+                  <input
+                    type="number"
+                    min="0.8"
+                    max="4.0"
+                    step="0.05"
+                    value={customLineHeightInput}
+                    onChange={(e) => setCustomLineHeightInput(Number(e.target.value))}
+                    className="flex-1 h-10 px-3 border border-slate-300 rounded-lg text-center font-bold text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setCustomLineHeightInput((prev) => Math.min(4.0, Math.round((prev + 0.05) * 100) / 100))}
+                    className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center text-base"
+                  >
+                    +
+                  </button>
+                </div>
+                <span className="text-[11px] text-slate-500 mt-1 block">
+                  Contoh: 1.15 (rapat modern), 1.35 (standar ekspor resmi), 1.50 (satu setengah baris), 2.0 (ganda).
+                </span>
+              </div>
+
+              {/* Live Preview Box */}
+              <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                  Pratinjau Teks (Live Preview)
+                </span>
+                <div
+                  style={{
+                    lineHeight: customLineHeightInput,
+                    fontSize: "12px",
+                    fontFamily: shipment.docEditorFontFamily || "Calibri",
+                    color: "#334155",
+                  }}
+                  className="p-3 bg-white border border-slate-200 rounded"
+                >
+                  <div>Ini adalah baris pertama naskah resmi surat ekspor internasional.</div>
+                  <div>Jarak antar baris teks ini diatur sebesar {customLineHeightInput.toFixed(2)}x kelipatan spasi.</div>
+                  <div>Format ini diterapkan langsung ke dokumen sesuai standar Microsoft Word.</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowCustomLineHeightModal(false)}
+                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  update("docEditorLineHeight", customLineHeightInput);
+                  if (isTextSelected()) {
+                    applyInlineStyleToSelection({ "line-height": `${customLineHeightInput}` });
+                    toast.success(`Spasi baris teks terpilih diatur ke ${customLineHeightInput.toFixed(2)}x`);
+                  } else {
+                    toast.success(`Spasi baris seluruh dokumen diatur ke ${customLineHeightInput.toFixed(2)}x`);
+                  }
+                  setShowCustomLineHeightModal(false);
+                }}
+                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                Terapkan Spasi
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

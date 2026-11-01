@@ -109,6 +109,18 @@ export function DocumentsModule({
     toast.success("Dokumen berhasil di-reset ke template standar sistem!");
   };
 
+  // Freeze menus & isolate workspace scroll when Word edit mode is active (Request 10)
+  useEffect(() => {
+    if (isEditMode) {
+      document.body.classList.add("doc-word-focus-mode");
+    } else {
+      document.body.classList.remove("doc-word-focus-mode");
+    }
+    return () => {
+      document.body.classList.remove("doc-word-focus-mode");
+    };
+  }, [isEditMode]);
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
@@ -580,7 +592,7 @@ export function DocumentsModule({
   };
 
   return (
-    <div className="doc-center-root">
+    <div className={`doc-center-root ${isEditMode ? "doc-edit-mode-active" : ""}`}>
       <style>{`
         @media print {
           @page {
@@ -594,38 +606,87 @@ export function DocumentsModule({
         }
       `}</style>
 
-      {/* 1. 5 Document Selector Cards */}
-      <div className="doc-tabs-grid five-cols" role="tablist">
-        {documents.map((doc) => {
-          const isActive = selectedDocument === doc.type;
-          return (
-            <button
-              key={doc.type}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              className={`doc-tab-card ${isActive ? "active" : ""}`}
-              onClick={() => setSelectedDocument(doc.type)}
-            >
-              {isActive && <div className="doc-tab-active-indicator" />}
-              <div className="doc-tab-top">
-                <div className="doc-tab-icon-box">{doc.icon}</div>
-                <div className="doc-tab-badges">
-                  <span className="doc-code-badge">{doc.code}</span>
-                  <span className="doc-ready-badge">● Siap Terbit</span>
-                </div>
-              </div>
-              <div className="doc-tab-body">
-                <h3 className="doc-tab-name">{doc.type}</h3>
-                <p className="doc-tab-desc">{doc.desc}</p>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {/* Frozen / Pinned Header Strip in Edit Mode (Request 10) */}
+      <div className={`doc-freeze-top-header ${isEditMode ? "doc-edit-mode-frozen" : ""}`}>
+        {/* Normal Mode: 5 Document Selector Cards */}
+        {!isEditMode && (
+          <div className="doc-tabs-grid five-cols" role="tablist">
+            {documents.map((doc) => {
+              const isActive = selectedDocument === doc.type;
+              return (
+                <button
+                  key={doc.type}
+                  type="button"
+                  role="tab"
+                  aria-selected={isActive}
+                  className={`doc-tab-card ${isActive ? "active" : ""}`}
+                  onClick={() => setSelectedDocument(doc.type)}
+                >
+                  {isActive && <div className="doc-tab-active-indicator" />}
+                  <div className="doc-tab-top">
+                    <div className="doc-tab-icon-box">{doc.icon}</div>
+                    <div className="doc-tab-badges">
+                      <span className="doc-code-badge">{doc.code}</span>
+                      <span className="doc-ready-badge">● Siap Terbit</span>
+                    </div>
+                  </div>
+                  <div className="doc-tab-body">
+                    <h3 className="doc-tab-name">{doc.type}</h3>
+                    <p className="doc-tab-desc">{doc.desc}</p>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-      {/* 2. Document Action & Overview Bar (2-Row Layout: Header Info & Action Controls) */}
-      <div className="doc-action-bar">
+        {/* Edit Mode: Sleek Compact Document Switcher Strip */}
+        {isEditMode && (
+          <div className="doc-edit-compact-bar no-print">
+            <div className="flex items-center gap-2 overflow-x-auto py-1">
+              <span className="text-[11px] font-bold text-blue-300 uppercase tracking-wider flex-shrink-0">DOKUMEN:</span>
+              <div className="flex items-center gap-1.5 flex-nowrap">
+                {documents.map((doc) => {
+                  const isActive = selectedDocument === doc.type;
+                  return (
+                    <button
+                      key={doc.type}
+                      type="button"
+                      onClick={() => setSelectedDocument(doc.type)}
+                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
+                        isActive
+                          ? "bg-blue-600 text-white shadow-xs"
+                          : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                      }`}
+                    >
+                      <span>{doc.type}</span>
+                      <span className="text-[9px] px-1 py-0.5 bg-white/20 rounded font-mono">{doc.code}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs text-blue-200 font-mono hidden md:inline">
+                {getDocumentNumber(selectedDocument, isId)}
+              </span>
+              <button
+                type="button"
+                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-semibold flex items-center gap-1 border border-slate-700 transition-colors"
+                onClick={handlePrint}
+                title="Cetak PDF Dokumen"
+              >
+                <Printer size={13} />
+                <span>Cetak PDF</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Normal Mode: Document Action & Overview Bar (2-Row Layout) */}
+        {!isEditMode && (
+          <div className="doc-action-bar">
         {/* Row 1: Document Active Info & Specs Strip */}
         <div className="doc-action-top-row">
           <div className="doc-active-name-wrap">
@@ -904,6 +965,7 @@ export function DocumentsModule({
         </div>
       </div>
     </div>
+        )}
 
       {/* 2. Collapsible Settings Drawer (only rendered when toggled) */}
       {isSettingsOpen && (
@@ -928,9 +990,11 @@ export function DocumentsModule({
           onOpenBusinessCardOcr={() => setIsBusinessCardOcrOpen(true)}
         />
       )}
+      </div>
 
-      {/* 3. Executive Desk Paper Preview */}
-      <div className="doc-paper-desk">
+      {/* 3. Executive Desk Paper Preview - The ONLY Scrollable Area in Edit Mode (Request 10) */}
+      <div className="doc-paper-workspace-scroll">
+        <div className="doc-paper-desk">
         {/* Word-like Horizontal Ruler (Penggaris Word) */}
         {shipment.docShowRuler !== false && (
           <div className="no-print">
@@ -1146,6 +1210,7 @@ export function DocumentsModule({
           )}
         </div>
       </div>
+      </div>
 
       {/* Digital Signature & Official E-Seal Modal */}
       <DigitalSignatureModal
@@ -1289,8 +1354,11 @@ function OfficialLetterhead({
 }) {
   const [isSelected, setIsSelected] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const [showLayoutMenu, setShowLayoutMenu] = useState(false);
   const [dragScale, setDragScale] = useState<number | null>(null);
   const [dragShift, setDragShift] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [dragMoveOffset, setDragMoveOffset] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
@@ -1298,17 +1366,69 @@ function OfficialLetterhead({
   const baseLogoHeight = 68;
   const scaledHeight = Math.round(baseLogoHeight * (activeScale / 100));
 
-  // Deselect when clicking outside the logo
+  const wrapMode = shipment.letterheadLogoWrap || "inline";
+  const alignMode = shipment.letterheadLogoAlign || "left";
+  const logoOpacity = (shipment.letterheadLogoOpacity ?? 100) / 100;
+  const logoRotate = shipment.letterheadLogoRotate || 0;
+  const logoBorder = shipment.letterheadLogoBorder || "none";
+  const logoShadow = shipment.letterheadLogoShadow ?? false;
+
+  const currentX = dragMoveOffset ? dragMoveOffset.x : (shipment.letterheadLogoX || 0);
+  const currentY = dragMoveOffset ? dragMoveOffset.y : (shipment.letterheadLogoY || 0);
+
+  // Notify Ribbon of Image Focus / Deselection & Handle Click Outside
   useEffect(() => {
-    if (!isSelected) return;
+    if (!isSelected) {
+      window.dispatchEvent(new CustomEvent("eksporflow:image-focus", { detail: { hasImage: false } }));
+      return;
+    }
+    window.dispatchEvent(new CustomEvent("eksporflow:image-focus", { detail: { hasImage: true } }));
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsSelected(false);
+        setShowLayoutMenu(false);
       }
     };
     window.addEventListener("mousedown", handleClickOutside);
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [isSelected]);
+
+  // Free Drag Move across Document Canvas (when wrap is behind, front, or square)
+  const startDragMove = (e: React.MouseEvent) => {
+    if (!isEditMode || !update) return;
+    if (wrapMode === "inline") return;
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsMoving(true);
+    const startClientX = e.clientX;
+    const startClientY = e.clientY;
+    const startLogoX = shipment.letterheadLogoX || 0;
+    const startLogoY = shipment.letterheadLogoY || 0;
+    let finalX = startLogoX;
+    let finalY = startLogoY;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startClientX;
+      const dy = moveEvent.clientY - startClientY;
+      finalX = startLogoX + dx;
+      finalY = startLogoY + dy;
+      setDragMoveOffset({ x: finalX, y: finalY });
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsMoving(false);
+      setDragMoveOffset(null);
+      update("letterheadLogoX", finalX);
+      update("letterheadLogoY", finalY);
+      update("letterheadLogoAlign", "custom");
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
 
   // Handle Dragging like in Microsoft Word (Anchored correctly per handle)
   const startDragHandle = (
@@ -1336,23 +1456,18 @@ function OfficialLetterhead({
       let sy = 0;
 
       if (handle === "se") {
-        // Dragging bottom-right: anchor is top-left
         delta = (dx / aspectRatio + dy) / 2;
         sx = 0;
         sy = 0;
       } else if (handle === "nw") {
-        // Dragging top-left: anchor is bottom-right!
-        // Pulling up/left (dx < 0, dy < 0) expands outward towards mouse!
         delta = (-dx / aspectRatio - dy) / 2;
         sx = -delta * aspectRatio;
         sy = -delta;
       } else if (handle === "ne") {
-        // Dragging top-right: anchor is bottom-left!
         delta = (dx / aspectRatio - dy) / 2;
         sx = 0;
         sy = -delta;
       } else if (handle === "sw") {
-        // Dragging bottom-left: anchor is top-right!
         delta = (-dx / aspectRatio + dy) / 2;
         sx = -delta * aspectRatio;
         sy = 0;
@@ -1394,6 +1509,63 @@ function OfficialLetterhead({
     window.addEventListener("mouseup", onMouseUp);
   };
 
+  // Compute Word Wrap & Positioning CSS Styles
+  let wrapStyles: React.CSSProperties = {};
+  if (wrapMode === "behind") {
+    wrapStyles = {
+      position: "absolute",
+      left: `${currentX}px`,
+      top: `${currentY}px`,
+      zIndex: 0,
+      opacity: logoOpacity,
+      pointerEvents: isEditMode ? "auto" : "none",
+    };
+  } else if (wrapMode === "front") {
+    wrapStyles = {
+      position: "absolute",
+      left: `${currentX}px`,
+      top: `${currentY}px`,
+      zIndex: 25,
+      opacity: logoOpacity,
+    };
+  } else if (wrapMode === "square") {
+    wrapStyles = {
+      float: alignMode === "right" ? "right" : "left",
+      margin: alignMode === "right" ? "4px 0 12px 20px" : "4px 20px 12px 0",
+      display: "inline-block",
+      position: "relative",
+      opacity: logoOpacity,
+    };
+  } else if (wrapMode === "topBottom") {
+    wrapStyles = {
+      display: "block",
+      margin: alignMode === "center" ? "0 auto 16px" : alignMode === "right" ? "0 0 16px auto" : "0 auto 16px 0",
+      clear: "both",
+      position: "relative",
+      opacity: logoOpacity,
+    };
+  } else {
+    // inline
+    wrapStyles = {
+      display: "inline-flex",
+      position: "relative",
+      opacity: logoOpacity,
+    };
+  }
+
+  let borderStyles: React.CSSProperties = {};
+  if (logoBorder === "solid") {
+    borderStyles = { border: `1px solid ${shipment.letterheadLogoBorderColor || "#cbd5e1"}`, borderRadius: "4px", padding: "4px" };
+  } else if (logoBorder === "dashed") {
+    borderStyles = { border: `1.5px dashed ${shipment.letterheadLogoBorderColor || "#94a3b8"}`, borderRadius: "4px", padding: "4px" };
+  } else if (logoBorder === "rounded") {
+    borderStyles = { borderRadius: "9999px", overflow: "hidden", padding: "4px" };
+  }
+
+  let shadowStyles: React.CSSProperties = logoShadow
+    ? { boxShadow: "0 6px 18px rgba(15, 23, 42, 0.18)" }
+    : {};
+
   return (
     <div className="paper-letterhead-wrap">
       <div className="paper-letterhead-content">
@@ -1401,15 +1573,23 @@ function OfficialLetterhead({
           {shipment.letterheadImage ? (
             <div
               ref={containerRef}
-              className={`letterhead-logo-container relative inline-flex items-center ${isEditMode && isSelected ? "word-image-selected" : ""}`}
+              className={`letterhead-logo-container ${isEditMode && isSelected ? "word-image-selected" : ""}`}
               style={{
-                position: "relative",
-                display: "inline-flex",
-                transform: isDragging ? `translate(${dragShift.x}px, ${dragShift.y}px)` : undefined,
+                ...wrapStyles,
+                ...borderStyles,
+                ...shadowStyles,
+                transform: isDragging
+                  ? `translate(${dragShift.x}px, ${dragShift.y}px) rotate(${logoRotate}deg)`
+                  : `rotate(${logoRotate}deg)`,
                 outline: isEditMode && isSelected ? "1.5px solid #2563eb" : undefined,
                 outlineOffset: "2px",
-                cursor: isEditMode ? "pointer" : "default",
+                cursor: isEditMode ? (wrapMode !== "inline" ? (isMoving ? "grabbing" : "grab") : "pointer") : "default",
                 userSelect: "none",
+              }}
+              onMouseDown={(e) => {
+                if (isEditMode && wrapMode !== "inline") {
+                  startDragMove(e);
+                }
               }}
               onClick={(e) => {
                 if (isEditMode) {
@@ -1426,7 +1606,9 @@ function OfficialLetterhead({
               }}
               title={
                 isEditMode
-                  ? "Klik untuk memilih logo & tarik titik sudutnya untuk mengubah ukuran (seperti di Word)"
+                  ? wrapMode !== "inline"
+                    ? "Klik untuk memilih, geser untuk memindahkan posisi logo, atau tarik sudutnya (Microsoft Word)"
+                    : "Klik untuk memilih logo & tarik titik sudutnya untuk mengubah ukuran (seperti di Word)"
                   : undefined
               }
             >
@@ -1442,14 +1624,131 @@ function OfficialLetterhead({
                   maxWidth: `${Math.round(400 * (activeScale / 100))}px`,
                   width: "auto",
                   objectFit: "contain",
-                  transition: isDragging ? "none" : "height 0.1s ease",
-                  pointerEvents: isDragging ? "none" : "auto",
+                  transition: isDragging || isMoving ? "none" : "height 0.1s ease",
+                  pointerEvents: isDragging || isMoving ? "none" : "auto",
                 }}
               />
 
-              {/* Microsoft Word Style 8 Resize Handles */}
+              {/* Microsoft Word Style 8 Resize Handles & Floating Layout Options */}
               {isEditMode && isSelected && (
                 <>
+                  {/* Floating Word Layout Options Button */}
+                  <button
+                    type="button"
+                    className="word-layout-floating-btn no-print"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowLayoutMenu((prev) => !prev);
+                    }}
+                    title="Opsi Tata Letak (Word Layout Options: Di Belakang/Depan Teks, Kotak, Sejajar)"
+                    style={{
+                      position: "absolute",
+                      top: "-14px",
+                      right: "-26px",
+                      width: "22px",
+                      height: "22px",
+                      background: "#ffffff",
+                      border: "1px solid #94a3b8",
+                      borderRadius: "3px",
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: "pointer",
+                      zIndex: 40,
+                    }}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+                      <rect x="2" y="3" width="5" height="5" fill="#2563eb" rx="1" />
+                      <path d="M9 4H14M9 7H14M2 11H14M2 13H14" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" />
+                    </svg>
+                  </button>
+
+                  {/* Floating Word Layout Options Popover */}
+                  {showLayoutMenu && (
+                    <div
+                      className="word-layout-popover no-print"
+                      onClick={(e) => e.stopPropagation()}
+                      style={{
+                        position: "absolute",
+                        top: "-10px",
+                        left: "calc(100% + 8px)",
+                        background: "#ffffff",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "8px",
+                        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.18)",
+                        padding: "10px",
+                        width: "230px",
+                        zIndex: 50,
+                        fontSize: "11px",
+                      }}
+                    >
+                      <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2">
+                        <span className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">
+                          Opsi Tata Letak (Layout)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setShowLayoutMenu(false)}
+                          className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
+                        >
+                          ✕
+                        </button>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-semibold text-slate-500 block">Bungkus Teks (Wrap):</span>
+                        <div className="grid grid-cols-2 gap-1.5">
+                          {[
+                            { id: "inline", label: "📄 Sejajar", desc: "Sejajar Teks" },
+                            { id: "square", label: "🔲 Kotak", desc: "Kotak (Square)" },
+                            { id: "behind", label: "📑 Belakang", desc: "Di Belakang Teks (Watermark)" },
+                            { id: "front", label: "🏷️ Depan", desc: "Di Depan Teks (Floating)" },
+                            { id: "topBottom", label: "📜 Atas/Bwh", desc: "Atas & Bawah" },
+                          ].map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => {
+                                if (update) {
+                                  update("letterheadLogoWrap", m.id as any);
+                                  if (m.id === "behind" && (!shipment.letterheadLogoOpacity || shipment.letterheadLogoOpacity === 100)) {
+                                    update("letterheadLogoOpacity", 30);
+                                  }
+                                  toast.success(`Tata letak diatur: ${m.desc}`);
+                                }
+                              }}
+                              className={`p-1.5 text-left rounded border transition-colors ${
+                                wrapMode === m.id
+                                  ? "bg-blue-50 border-blue-500 font-bold text-blue-700"
+                                  : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              <div className="text-[11px] font-semibold">{m.label}</div>
+                            </button>
+                          ))}
+                        </div>
+
+                        {/* Opacity slider for watermark */}
+                        <div className="pt-2 border-t border-slate-100">
+                          <div className="flex justify-between items-center text-[10px] font-semibold text-slate-600 mb-1">
+                            <span>Opasitas / Watermark:</span>
+                            <span className="font-bold text-blue-600">{shipment.letterheadLogoOpacity ?? 100}%</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="100"
+                            step="5"
+                            value={shipment.letterheadLogoOpacity ?? 100}
+                            onChange={(e) => update && update("letterheadLogoOpacity", Number(e.target.value))}
+                            style={{ width: "100%", accentColor: "#2563eb" }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* NW (Top-Left) */}
                   <div
                     className="word-resize-handle no-print"

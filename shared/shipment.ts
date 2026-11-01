@@ -321,6 +321,15 @@ export type Shipment = {
   letterheadText: string;
   letterheadImage: string;
   letterheadLogoScale?: number;
+  letterheadLogoWrap?: "inline" | "square" | "behind" | "front" | "topBottom";
+  letterheadLogoAlign?: "left" | "center" | "right" | "custom";
+  letterheadLogoX?: number;
+  letterheadLogoY?: number;
+  letterheadLogoOpacity?: number;
+  letterheadLogoRotate?: number;
+  letterheadLogoBorder?: "none" | "solid" | "dashed" | "rounded";
+  letterheadLogoBorderColor?: string;
+  letterheadLogoShadow?: boolean;
   poNumber: string;
   bookingNumber: string;
   containerNumber: string;
@@ -462,6 +471,15 @@ export const initialShipment: Shipment = {
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",
   letterheadLogoScale: 100,
+  letterheadLogoWrap: "inline",
+  letterheadLogoAlign: "left",
+  letterheadLogoX: 0,
+  letterheadLogoY: 0,
+  letterheadLogoOpacity: 100,
+  letterheadLogoRotate: 0,
+  letterheadLogoBorder: "none",
+  letterheadLogoBorderColor: "#cbd5e1",
+  letterheadLogoShadow: false,
   poNumber: "ABF/LOI/2026/108",
   bookingNumber: "KMTC SHIMIZU V.2611N",
   containerNumber: "TGHU 2468135",
@@ -567,6 +585,15 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     letterheadText: company,
     letterheadImage: "",
     letterheadLogoScale: 100,
+    letterheadLogoWrap: "inline",
+    letterheadLogoAlign: "left",
+    letterheadLogoX: 0,
+    letterheadLogoY: 0,
+    letterheadLogoOpacity: 100,
+    letterheadLogoRotate: 0,
+    letterheadLogoBorder: "none",
+    letterheadLogoBorderColor: "#cbd5e1",
+    letterheadLogoShadow: false,
     poNumber: "",
     bookingNumber: "",
     containerNumber: "",
@@ -636,6 +663,15 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "letterheadText",
   "letterheadImage",
   "letterheadLogoScale",
+  "letterheadLogoWrap",
+  "letterheadLogoAlign",
+  "letterheadLogoX",
+  "letterheadLogoY",
+  "letterheadLogoOpacity",
+  "letterheadLogoRotate",
+  "letterheadLogoBorder",
+  "letterheadLogoBorderColor",
+  "letterheadLogoShadow",
   "signatoryName",
   "signatoryRole",
   "buyerAddress",
