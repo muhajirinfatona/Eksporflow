@@ -6092,7 +6092,6 @@ textarea:focus-visible {
   font-size: calc(var(--doc-font-size, 12pt) * 1.35) !important;
   font-weight: 800 !important;
 }
-}
 
 /* Document Header & Footer (Word-like) */
 .doc-page-header-zone {
@@ -10534,8 +10533,6 @@ textarea:focus-visible {
   .doc-table-total-row td {
     padding: 5px 8px !important;
     font-size: var(--doc-font-size, 12pt) !important;
-    font-weight: 800 !important;
-  }
     font-weight: 800 !important;
   }
 
