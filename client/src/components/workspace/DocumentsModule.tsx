@@ -952,7 +952,8 @@ function SalesContractDoc({
         </div>
       </div>
 
-      <div className="contract-articles-wrapper">
+      {/* HALAMAN 1 ARTIKEL: Komersial & Syarat Pembayaran */}
+      <div className="contract-articles-wrapper contract-articles-page-1">
         <div className="contract-article-block">
           <h4 className="article-title">
             {isId ? "PASAL 1: KOMODITAS & SPESIFIKASI" : "ARTICLE 1: COMMODITY & SPECIFICATION"}
@@ -1026,7 +1027,22 @@ function SalesContractDoc({
             </li>
           </ol>
         </div>
+      </div>
 
+      {/* PEMISAH HALAMAN: Page Break Print & Divider Visual Layar */}
+      <div className="doc-contract-page-break" />
+      <div className="doc-contract-screen-divider">
+        <span>{isId ? "— HALAMAN 2: KETENTUAN PENGAPALAN, KLAIM & PENGESAHAN KONTRAK —" : "— PAGE 2: SHIPMENT, CLAIMS & CONTRACT EXECUTION —"}</span>
+      </div>
+
+      {/* HEADER RESMI AWAL HALAMAN 2 */}
+      <div className="doc-contract-page-2-header">
+        <span>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} · REF: SC/IEI-ABF/XI/2026/001</span>
+        <span>{isId ? "HALAMAN 2 DARI 2" : "PAGE 2 OF 2"}</span>
+      </div>
+
+      {/* HALAMAN 2 ARTIKEL: Pengapalan, Dokumen, Klaim, Arbitrase */}
+      <div className="contract-articles-wrapper contract-articles-page-2">
         <div className="contract-article-block">
           <h4 className="article-title">
             {isId ? "PASAL 4: KETENTUAN PENGAPALAN" : "ARTICLE 4: SHIPMENT TERMS"}
@@ -1058,7 +1074,18 @@ function SalesContractDoc({
 
         <div className="contract-article-block">
           <h4 className="article-title">
-            {isId ? "PASAL 6: KEADAAN KAHAR (FORCE MAJEURE) & ARBITRASE" : "ARTICLE 6: FORCE MAJEURE & ARBITRATION"}
+            {isId ? "PASAL 6: PEMERIKSAAN MUTU & KLAIM" : "ARTICLE 6: QUALITY INSPECTION & CLAIMS"}
+          </h4>
+          <p>
+            {isId
+              ? "Pemeriksaan mutu dan kuantitas akhir dilakukan di Pelabuhan Muat oleh surveyor berwenang. Pembeli berhak memeriksa barang setibanya di Pelabuhan Bongkar. Setiap klaim atas perbedaan mutu atau susut kuantitas wajib diajukan secara tertulis dalam waktu 14 (empat belas) hari kalender setelah barang tiba di pelabuhan tujuan dengan menyertakan laporan resmi surveyor independen internasional yang diakui."
+              : "Final quantity and quality inspection shall be conducted at Port of Loading by authorized surveyors. The Buyer is entitled to inspect goods upon arrival at Port of Discharge. Any claims regarding quality or quantity discrepancy shall be submitted in writing within 14 (fourteen) calendar days after arrival at destination port accompanied by an official accredited independent surveyor's report."}
+          </p>
+        </div>
+
+        <div className="contract-article-block">
+          <h4 className="article-title">
+            {isId ? "PASAL 7: KEADAAN KAHAR (FORCE MAJEURE) & ARBITRASE" : "ARTICLE 7: FORCE MAJEURE & ARBITRATION"}
           </h4>
           <p>
             {isId
@@ -1070,7 +1097,7 @@ function SalesContractDoc({
         {contractSpecialTerms && contractSpecialTerms.trim() !== "" && (
           <div className="contract-article-block">
             <h4 className="article-title">
-              {isId ? "PASAL 7: KETENTUAN KHUSUS / TAMBAHAN" : "ARTICLE 7: SPECIAL CONDITIONS"}
+              {isId ? "PASAL 8: KETENTUAN KHUSUS / TAMBAHAN" : "ARTICLE 8: SPECIAL CONDITIONS"}
             </h4>
             <p style={{ whiteSpace: "pre-line" }}>{contractSpecialTerms}</p>
           </div>
