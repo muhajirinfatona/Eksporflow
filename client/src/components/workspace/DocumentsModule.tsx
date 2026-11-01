@@ -881,11 +881,13 @@ export function DocumentsModule({
       <div className="doc-paper-desk">
         {/* Word-like Horizontal Ruler (Penggaris Word) */}
         {shipment.docShowRuler !== false && (
-          <WordRuler
-            paperWidthMm={paperWidthMm}
-            leftMarginMm={docMargins.left}
-            rightMarginMm={docMargins.right}
-          />
+          <div className="no-print">
+            <WordRuler
+              paperWidthMm={paperWidthMm}
+              leftMarginMm={docMargins.left}
+              rightMarginMm={docMargins.right}
+            />
+          </div>
         )}
 
         <div
@@ -1135,7 +1137,7 @@ function WordRuler({
   const totalCm = Math.max(5, Math.floor(paperWidthMm / 10));
 
   return (
-    <div className="doc-word-ruler-container" title="Penggaris Margin Microsoft Word">
+    <div className="doc-word-ruler-container no-print" title="Penggaris Margin Microsoft Word">
       <div className="doc-ruler-meta-bar">
         <span>Penggaris Margin Microsoft Word</span>
         <span>

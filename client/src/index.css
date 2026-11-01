@@ -10329,9 +10329,25 @@ textarea:focus-visible {
   .sonner-toast,
   [data-sonner-toaster],
   .toast,
+  .no-print,
+  .doc-word-ruler-container,
+  .doc-ruler-meta-bar,
+  .doc-ruler-track,
+  .doc-ruler-margin-zone,
+  .doc-ruler-printable-zone,
+  [class*="doc-word-ruler"],
+  [class*="doc-ruler"],
+  [class*="doc-ribbon"],
+  .word-resize-handle,
+  .word-resize-tooltip,
   header,
   nav,
   footer {
+    display: none !important;
+  }
+
+  .no-print,
+  .no-print * {
     display: none !important;
   }
 
