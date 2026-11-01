@@ -6648,6 +6648,7 @@ textarea:focus-visible {
 }
 
 .doc-table-pro th {
+  position: relative;
   background: #0f2942;
   color: #ffffff;
   font-size: 10px;
@@ -14113,6 +14114,56 @@ textarea:focus-visible {
   border-bottom: 2px solid #2563eb;
   border-top-left-radius: 4px;
   border-top-right-radius: 4px;
+}
+
+/* Table Tools Tab in Word Ribbon */
+.doc-ribbon-tab-btn.doc-ribbon-tab-table {
+  color: #0369a1;
+  font-weight: 700;
+}
+
+.doc-ribbon-tab-btn.doc-ribbon-tab-table.highlighted {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+
+.doc-ribbon-tab-btn.doc-ribbon-tab-table.active {
+  color: #0284c7;
+  font-weight: 800;
+  background: #ffffff;
+  border-bottom: 2px solid #0284c7;
+}
+
+/* Table Column Resizer & Active Cell Highlighting (Word Table Experience) */
+.paper-document table th {
+  position: relative;
+}
+
+.word-editable-mode table th .col-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  width: 7px;
+  height: 100%;
+  cursor: col-resize;
+  user-select: none;
+  z-index: 15;
+  transition: background-color 0.12s ease;
+}
+
+.word-editable-mode table th .col-resizer:hover,
+.word-editable-mode table th .col-resizer.is-resizing {
+  background: #0284c7;
+  box-shadow: 0 0 6px rgba(2, 132, 199, 0.6);
+}
+
+.word-editable-mode table td:focus,
+.word-editable-mode table th:focus,
+.word-editable-mode table td.active-cell,
+.word-editable-mode table th.active-cell {
+  outline: 2px solid #0284c7 !important;
+  outline-offset: -1px;
+  background-color: rgba(2, 132, 199, 0.05) !important;
 }
 
 /* Page Margins Group */

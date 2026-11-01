@@ -39,6 +39,18 @@ import {
   PanelBottom,
   Hash,
   Maximize2,
+  TableProperties,
+  PaintBucket,
+  Grid,
+  ArrowDown,
+  ArrowUp,
+  ArrowLeft,
+  ArrowRight,
+  MoveHorizontal,
+  AlignVerticalJustifyCenter,
+  AlignVerticalJustifyStart,
+  AlignVerticalJustifyEnd,
+  Square,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
@@ -65,7 +77,22 @@ export function DocWordRibbon({
   onOpenAiScreening,
   onOpenBusinessCardOcr,
 }: DocWordRibbonProps) {
-  const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert">("home");
+  const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table">("home");
+  const [isTableSelected, setIsTableSelected] = useState(false);
+  const lastActiveCellRef = useRef<HTMLTableCellElement | null>(null);
+
+  useEffect(() => {
+    const handleTableFocus = () => {
+      setIsTableSelected(true);
+      if ((window as any).__eksporflow_active_cell) {
+        lastActiveCellRef.current = (window as any).__eksporflow_active_cell;
+      }
+    };
+    window.addEventListener("eksporflow:table-focus", handleTableFocus);
+    return () => {
+      window.removeEventListener("eksporflow:table-focus", handleTableFocus);
+    };
+  }, []);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [isRibbonCollapsed, setIsRibbonCollapsed] = useState(false);
@@ -236,20 +263,80 @@ export function DocWordRibbon({
     runCommand("insertText", transformed);
   };
 
-  // --- Table Operations ---
+  // --- Enhanced Microsoft Word Table Operations ---
+  const getTargetTableAndCell = () => {
+    // 1. From window variable (set by click in paper document)
+    const winCell = (window as any).__eksporflow_active_cell as HTMLTableCellElement | null;
+    if (winCell && document.contains(winCell)) {
+      return {
+        table: winCell.closest("table"),
+        cell: winCell,
+        row: winCell.closest("tr"),
+      };
+    }
+    // 2. From ref
+    if (lastActiveCellRef.current && document.contains(lastActiveCellRef.current)) {
+      const cell = lastActiveCellRef.current;
+      return {
+        table: cell.closest("table"),
+        cell,
+        row: cell.closest("tr"),
+      };
+    }
+    // 3. From window selection
+    const sel = window.getSelection();
+    const node = sel?.anchorNode;
+    const currentCell = (node instanceof Element ? node : node?.parentElement)?.closest("td, th") as HTMLTableCellElement | null;
+    if (currentCell) {
+      return {
+        table: currentCell.closest("table"),
+        cell: currentCell,
+        row: currentCell.closest("tr"),
+      };
+    }
+    // 4. Fallback to first table in document
+    const paper = document.querySelector(".paper-document");
+    const table = paper?.querySelector("table") as HTMLTableElement | null;
+    if (table) {
+      const row = table.querySelector("tbody tr, tr") as HTMLTableRowElement | null;
+      const cell = row?.querySelector("td, th") as HTMLTableCellElement | null;
+      return { table, cell, row };
+    }
+    return { table: null, cell: null, row: null };
+  };
+
+  const reindexTableNumbers = (table: HTMLTableElement) => {
+    const tbody = table.querySelector("tbody");
+    if (!tbody) return;
+    const firstTh = table.querySelector("thead th");
+    const isNumbered = firstTh && /^(no|#|\d+)$/i.test(firstTh.textContent?.trim() || "");
+    if (!isNumbered) return;
+
+    const rows = tbody.querySelectorAll("tr");
+    let counter = 1;
+    rows.forEach((r) => {
+      if (!r.classList.contains("doc-table-total-row") && r.parentElement?.tagName !== "TFOOT") {
+        const firstTd = r.querySelector("td");
+        if (firstTd) {
+          firstTd.innerText = String(counter++);
+        }
+      }
+    });
+  };
+
   const insertTable = (rows: number, cols: number) => {
     if (rows <= 0 || cols <= 0) return;
 
-    let tableHtml = `<table class="doc-user-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: inherit; border: 1.5px solid #0f2942;"><thead><tr style="background: #f1f5f9; border-bottom: 2px solid #0f2942;">`;
+    let tableHtml = `<table class="doc-user-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: inherit; border: 1.5px solid #0f2942;"><thead><tr style="background: #0f2942; color: #ffffff;">`;
     for (let c = 1; c <= cols; c++) {
-      tableHtml += `<th style="border: 1px solid #cbd5e1; padding: 6px 10px; font-weight: 700; color: #0f2942; text-align: left;">Kolom ${c}</th>`;
+      tableHtml += `<th style="border: 1px solid #1e3a5f; padding: 6px 10px; font-weight: 700; color: #ffffff; text-align: left;">Kolom ${c}</th>`;
     }
     tableHtml += `</tr></thead><tbody>`;
 
     for (let r = 1; r <= rows; r++) {
       tableHtml += `<tr style="border-bottom: 1px solid #cbd5e1;">`;
       for (let c = 1; c <= cols; c++) {
-        tableHtml += `<td style="border: 1px solid #cbd5e1; padding: 6px 10px; color: #0f172a;">Data ${r}.${c}</td>`;
+        tableHtml += `<td style="border: 1px solid #cbd5e1; padding: 6px 10px; color: #0f172a; vertical-align: top;">Data ${r}.${c}</td>`;
       }
       tableHtml += `</tr>`;
     }
@@ -260,91 +347,378 @@ export function DocWordRibbon({
     toast.success(`Tabel ${rows} × ${cols} berhasil disisipkan`);
   };
 
-  const addTableRow = () => {
-    const selection = window.getSelection();
-    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th");
-    const table = currentCell?.closest("table");
+  const insertTableRow = (direction: "above" | "below" = "below") => {
+    const { table, row } = getTargetTableAndCell();
     if (!table) {
       toast.error("Klik di dalam tabel terlebih dahulu");
       return;
     }
-    const colsCount = table.rows[0]?.cells.length || 3;
-    const newRow = table.insertRow(-1);
-    newRow.style.borderBottom = "1px solid #cbd5e1";
-    for (let i = 0; i < colsCount; i++) {
-      const newCell = newRow.insertCell(-1);
-      newCell.style.border = "1px solid #cbd5e1";
-      newCell.style.padding = "6px 10px";
-      newCell.innerText = `Data Baru`;
+
+    const tbody = table.querySelector("tbody") || table;
+    let targetRow = row;
+    if (targetRow && targetRow.parentElement?.tagName === "THEAD") {
+      targetRow = tbody.querySelector("tr") || null;
     }
-    toast.success("Baris baru berhasil ditambahkan!");
+    if (targetRow && (targetRow.parentElement?.tagName === "TFOOT" || targetRow.classList.contains("doc-table-total-row"))) {
+      const tbodyRows = tbody.querySelectorAll("tr");
+      targetRow = tbodyRows[tbodyRows.length - 1] || null;
+    }
+
+    const sampleRow = tbody.querySelector("tr") || table.querySelector("thead tr");
+    const colCount = sampleRow ? sampleRow.children.length : (table.rows[0]?.cells.length || 3);
+
+    const newRow = document.createElement("tr");
+    newRow.style.borderBottom = "1px solid #e2e8f0";
+
+    const isDocTablePro = table.classList.contains("doc-table-pro");
+    const existingBodyRows = tbody.querySelectorAll("tr:not(.doc-table-total-row)");
+    const nextItemNo = existingBodyRows.length + 1;
+
+    for (let c = 0; c < colCount; c++) {
+      const newCell = document.createElement("td");
+      newCell.style.padding = "8px 10px";
+      newCell.style.border = "1px solid #e2e8f0";
+      newCell.style.verticalAlign = "top";
+      newCell.style.color = "#0f172a";
+
+      if (isDocTablePro) {
+        if (c === 0) {
+          newCell.className = "text-center font-normal";
+          newCell.innerText = String(nextItemNo);
+        } else if (c === 1) {
+          newCell.innerHTML = `<b class="table-product-title">Item Baru ${nextItemNo}</b><ul class="table-product-specs"><li>Spesifikasi: Mutu Ekspor Standar</li><li>Kemasan: Karung / Kotak Ekspor</li></ul>`;
+        } else if (c === 2) {
+          newCell.className = "text-center font-normal";
+          newCell.innerText = "-";
+        } else if (c === 3) {
+          newCell.className = "text-right font-normal";
+          newCell.innerText = "0 MT";
+        } else if (c === 4) {
+          newCell.className = "text-right font-normal";
+          newCell.innerText = "$0.00 / MT";
+        } else {
+          newCell.className = "text-right font-bold text-slate-900";
+          newCell.innerText = "$0.00";
+        }
+      } else {
+        newCell.innerText = `Data ${nextItemNo}.${c + 1}`;
+      }
+      newRow.appendChild(newCell);
+    }
+
+    if (targetRow && targetRow.parentElement) {
+      if (direction === "above") {
+        targetRow.parentElement.insertBefore(newRow, targetRow);
+      } else {
+        targetRow.parentElement.insertBefore(newRow, targetRow.nextSibling);
+      }
+    } else {
+      tbody.appendChild(newRow);
+    }
+
+    reindexTableNumbers(table);
+    toast.success(`Baris baru berhasil ditambahkan ${direction === "above" ? "di atas" : "di bawah"}!`);
   };
 
-  const addTableCol = () => {
-    const selection = window.getSelection();
-    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th");
-    const table = currentCell?.closest("table");
-    if (!table) {
-      toast.error("Klik di dalam tabel terlebih dahulu");
-      return;
-    }
-    for (let i = 0; i < table.rows.length; i++) {
-      const row = table.rows[i];
-      const isHeader = i === 0 && row.parentElement?.tagName === "THEAD";
-      const newCell = isHeader ? document.createElement("th") : row.insertCell(-1);
-      newCell.style.border = "1px solid #cbd5e1";
-      newCell.style.padding = "6px 10px";
-      if (isHeader) {
-        newCell.style.fontWeight = "700";
-        newCell.style.color = "#0f2942";
-        newCell.style.background = "#f1f5f9";
-        newCell.innerText = `Kolom Baru`;
-      } else {
-        newCell.innerText = `Data`;
-      }
-      row.appendChild(newCell);
-    }
-    toast.success("Kolom baru berhasil ditambahkan!");
-  };
+  const addTableRow = () => insertTableRow("below");
+  const addTableCol = () => insertTableCol("right");
 
   const deleteTableRow = () => {
-    const selection = window.getSelection();
-    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th");
-    const row = currentCell?.closest("tr");
+    const { table, row } = getTargetTableAndCell();
     if (!row) {
       toast.error("Klik sel baris yang ingin dihapus");
       return;
     }
+    if (row.parentElement?.tagName === "THEAD") {
+      toast.error("Baris header judul kolom tidak dapat dihapus");
+      return;
+    }
+    if (row.parentElement?.tagName === "TFOOT" || row.classList.contains("doc-table-total-row")) {
+      toast.error("Baris total faktur tidak dapat dihapus");
+      return;
+    }
     row.remove();
-    toast.info("Baris tabel dihapus.");
+    if (table) {
+      reindexTableNumbers(table);
+    }
+    toast.info("Baris tabel berhasil dihapus.");
+  };
+
+  const insertTableCol = (direction: "left" | "right" = "right") => {
+    const { table, cell } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Klik di dalam tabel terlebih dahulu");
+      return;
+    }
+    const colIndex = cell ? cell.cellIndex : (table.rows[0]?.cells.length || 0);
+    const targetIndex = direction === "left" ? colIndex : colIndex + 1;
+
+    // Update thead
+    const thead = table.querySelector("thead");
+    if (thead) {
+      thead.querySelectorAll("tr").forEach((hRow) => {
+        const th = document.createElement("th");
+        th.style.padding = "8px 10px";
+        th.style.background = "#0f2942";
+        th.style.color = "#ffffff";
+        th.style.border = "1px solid #1e3a5f";
+        th.style.fontSize = "10px";
+        th.style.fontWeight = "700";
+        th.style.letterSpacing = "0.06em";
+        th.style.textTransform = "uppercase";
+        th.innerText = "KOLOM BARU";
+        if (targetIndex >= hRow.children.length) {
+          hRow.appendChild(th);
+        } else {
+          hRow.insertBefore(th, hRow.children[targetIndex]);
+        }
+      });
+    }
+
+    // Update tbody
+    const tbody = table.querySelector("tbody") || table;
+    tbody.querySelectorAll("tr:not(.doc-table-total-row)").forEach((bRow) => {
+      const td = document.createElement("td");
+      td.style.padding = "8px 10px";
+      td.style.border = "1px solid #e2e8f0";
+      td.style.color = "#0f172a";
+      td.innerText = "-";
+      if (targetIndex >= bRow.children.length) {
+        bRow.appendChild(td);
+      } else {
+        bRow.insertBefore(td, bRow.children[targetIndex]);
+      }
+    });
+
+    // Update tfoot colSpan if present
+    const tfoot = table.querySelector("tfoot");
+    if (tfoot) {
+      const totalCell = tfoot.querySelector("td");
+      if (totalCell && totalCell.colSpan) {
+        totalCell.colSpan += 1;
+      }
+    }
+
+    toast.success(`Kolom baru berhasil ditambahkan ${direction === "left" ? "di kiri" : "di kanan"}!`);
   };
 
   const deleteTableCol = () => {
-    const selection = window.getSelection();
-    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th") as HTMLTableCellElement | null;
-    const table = currentCell?.closest("table");
-    if (!currentCell || !table) {
+    const { table, cell } = getTargetTableAndCell();
+    if (!table || !cell) {
       toast.error("Klik sel kolom yang ingin dihapus");
       return;
     }
-    const colIndex = currentCell.cellIndex;
-    for (let i = 0; i < table.rows.length; i++) {
-      if (table.rows[i].cells[colIndex]) {
-        table.rows[i].deleteCell(colIndex);
+    const colIndex = cell.cellIndex;
+    const headerCols = table.querySelector("thead tr, tr")?.children.length || 0;
+    if (headerCols <= 1) {
+      toast.error("Tabel harus memiliki minimal 1 kolom.");
+      return;
+    }
+
+    table.querySelectorAll("thead tr, tbody tr").forEach((row) => {
+      if (!row.classList.contains("doc-table-total-row") && row.children[colIndex]) {
+        row.children[colIndex].remove();
+      }
+    });
+
+    const tfoot = table.querySelector("tfoot");
+    if (tfoot) {
+      const totalCell = tfoot.querySelector("td");
+      if (totalCell && totalCell.colSpan > 1) {
+        totalCell.colSpan -= 1;
       }
     }
+
     toast.info("Kolom tabel dihapus.");
   };
 
   const deleteTable = () => {
-    const selection = window.getSelection();
-    const table = selection?.anchorNode?.parentElement?.closest("table");
+    const { table } = getTargetTableAndCell();
     if (!table) {
       toast.error("Klik tabel yang ingin dihapus");
       return;
     }
     table.remove();
+    setIsTableSelected(false);
     toast.info("Tabel berhasil dihapus dari dokumen.");
+  };
+
+  const adjustColWidth = (deltaPx: number) => {
+    const { table, cell } = getTargetTableAndCell();
+    if (!table || !cell) {
+      toast.error("Klik sel kolom yang ingin diatur lebarnya");
+      return;
+    }
+    const colIndex = cell.cellIndex;
+    const th = (table.querySelector(`thead tr th:nth-child(${colIndex + 1})`) as HTMLElement | null) || cell;
+    const currentWidth = th.offsetWidth;
+    const newWidth = Math.max(30, currentWidth + deltaPx);
+    th.style.width = `${newWidth}px`;
+
+    table.querySelectorAll(`tbody tr td:nth-child(${colIndex + 1})`).forEach((td) => {
+      (td as HTMLElement).style.width = `${newWidth}px`;
+    });
+
+    toast.success(`Lebar kolom diatur ke ${newWidth}px`);
+  };
+
+  const distributeColumnsEvenly = () => {
+    const { table } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Klik di dalam tabel terlebih dahulu");
+      return;
+    }
+    const thList = table.querySelectorAll("thead th");
+    if (thList.length > 0) {
+      const pct = (100 / thList.length).toFixed(1);
+      thList.forEach((th) => {
+        (th as HTMLElement).style.width = `${pct}%`;
+      });
+      table.querySelectorAll("tbody td").forEach((td) => {
+        (td as HTMLElement).style.width = "auto";
+      });
+      toast.success("Seluruh kolom telah diratakan sama rata.");
+    }
+  };
+
+  const autoFitColumns = () => {
+    const { table } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Klik di dalam tabel terlebih dahulu");
+      return;
+    }
+    table.querySelectorAll("th, td").forEach((c) => {
+      (c as HTMLElement).style.width = "auto";
+    });
+    table.style.width = "100%";
+    toast.success("Lebar kolom otomatis disesuaikan dengan isi teks.");
+  };
+
+  const setCellAlign = (align: "left" | "center" | "right" | "justify") => {
+    const { cell } = getTargetTableAndCell();
+    if (!cell) {
+      toast.error("Pilih sel tabel terlebih dahulu");
+      return;
+    }
+    cell.style.textAlign = align;
+    toast.success(`Perataan teks: ${align}`);
+  };
+
+  const setCellVAlign = (vAlign: "top" | "middle" | "bottom") => {
+    const { cell } = getTargetTableAndCell();
+    if (!cell) {
+      toast.error("Pilih sel tabel terlebih dahulu");
+      return;
+    }
+    cell.style.verticalAlign = vAlign;
+    toast.success(`Perataan vertikal: ${vAlign}`);
+  };
+
+  const setCellPadding = (preset: "compact" | "normal" | "spacious") => {
+    const { table, cell } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Pilih sel atau tabel terlebih dahulu");
+      return;
+    }
+    const paddingVal = preset === "compact" ? "4px 6px" : preset === "spacious" ? "12px 14px" : "8px 10px";
+    if (cell) {
+      cell.style.padding = paddingVal;
+    } else {
+      table.querySelectorAll("td, th").forEach((c) => {
+        (c as HTMLElement).style.padding = paddingVal;
+      });
+    }
+    toast.success(`Padding sel: ${preset}`);
+  };
+
+  const setTableBorderPreset = (preset: "all" | "horizontal" | "outer" | "none") => {
+    const { table } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Pilih tabel terlebih dahulu");
+      return;
+    }
+    if (preset === "all") {
+      table.style.border = "1.5px solid #0f2942";
+      table.querySelectorAll("th, td").forEach((c) => {
+        (c as HTMLElement).style.border = "1px solid #cbd5e1";
+      });
+      toast.success("Gaya border: Semua Garis (Grid)");
+    } else if (preset === "horizontal") {
+      table.style.border = "none";
+      table.querySelectorAll("th, td").forEach((c) => {
+        (c as HTMLElement).style.borderLeft = "none";
+        (c as HTMLElement).style.borderRight = "none";
+        (c as HTMLElement).style.borderTop = "1px solid #e2e8f0";
+        (c as HTMLElement).style.borderBottom = "1px solid #cbd5e1";
+      });
+      toast.success("Gaya border: Garis Horizontal Saja");
+    } else if (preset === "outer") {
+      table.style.border = "2px solid #0f2942";
+      table.querySelectorAll("th, td").forEach((c) => {
+        (c as HTMLElement).style.border = "none";
+      });
+      toast.success("Gaya border: Garis Luar Saja");
+    } else if (preset === "none") {
+      table.style.border = "none";
+      table.querySelectorAll("th, td").forEach((c) => {
+        (c as HTMLElement).style.border = "none";
+      });
+      toast.success("Gaya border: Tanpa Garis");
+    }
+  };
+
+  const setCellBackground = (bgColor: string) => {
+    const { cell } = getTargetTableAndCell();
+    if (!cell) {
+      toast.error("Pilih sel terlebih dahulu");
+      return;
+    }
+    cell.style.backgroundColor = bgColor;
+    if (bgColor === "#0f2942") {
+      cell.style.color = "#ffffff";
+    } else if (bgColor === "#ffffff" || bgColor === "transparent" || bgColor === "#f8fafc") {
+      cell.style.color = "#0f172a";
+    }
+    toast.success("Warna latar sel diterapkan.");
+  };
+
+  const setTablePreset = (preset: "corporate" | "zebra" | "minimal") => {
+    const { table } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Pilih tabel terlebih dahulu");
+      return;
+    }
+    const tbody = table.querySelector("tbody") || table;
+    const rows = tbody.querySelectorAll("tr:not(.doc-table-total-row)");
+
+    if (preset === "corporate") {
+      table.querySelectorAll("thead th").forEach((th) => {
+        (th as HTMLElement).style.background = "#0f2942";
+        (th as HTMLElement).style.color = "#ffffff";
+      });
+      rows.forEach((r) => {
+        (r as HTMLElement).style.backgroundColor = "#ffffff";
+      });
+      toast.success("Gaya Tabel: Standar Ekspor Corporate");
+    } else if (preset === "zebra") {
+      table.querySelectorAll("thead th").forEach((th) => {
+        (th as HTMLElement).style.background = "#1e293b";
+        (th as HTMLElement).style.color = "#ffffff";
+      });
+      rows.forEach((r, idx) => {
+        (r as HTMLElement).style.backgroundColor = idx % 2 === 1 ? "#f8fafc" : "#ffffff";
+      });
+      toast.success("Gaya Tabel: Zebra Striping");
+    } else if (preset === "minimal") {
+      table.querySelectorAll("thead th").forEach((th) => {
+        (th as HTMLElement).style.background = "#f1f5f9";
+        (th as HTMLElement).style.color = "#0f172a";
+      });
+      rows.forEach((r) => {
+        (r as HTMLElement).style.backgroundColor = "#ffffff";
+      });
+      toast.success("Gaya Tabel: Minimalis Bersih");
+    }
   };
 
   return (
@@ -395,7 +769,7 @@ export function DocWordRibbon({
         </div>
       </div>
 
-      {/* 2. Word Ribbon Tab Navigation (Beranda · Tata Letak · Sisipkan) */}
+      {/* 2. Word Ribbon Tab Navigation (Beranda · Tata Letak · Sisipkan · Alat Tabel) */}
       {!isRibbonCollapsed && (
         <div className="doc-ribbon-tab-nav">
           <button
@@ -418,6 +792,15 @@ export function DocWordRibbon({
             onClick={() => setActiveRibbonTab("insert")}
           >
             Sisipkan (Insert & Header)
+          </button>
+          <button
+            type="button"
+            className={`doc-ribbon-tab-btn doc-ribbon-tab-table ${activeRibbonTab === "table" ? "active" : ""} ${isTableSelected ? "highlighted" : ""}`}
+            onClick={() => setActiveRibbonTab("table")}
+            title="Alat Tabel Word: Desain, Baris, Kolom, Lebar, Garis & Perataan"
+          >
+            <TableProperties size={13} className="mr-1 inline" />
+            <span>Alat Tabel {isTableSelected && "●"}</span>
           </button>
         </div>
       )}
@@ -814,6 +1197,146 @@ export function DocWordRibbon({
                 </div>
 
                 <span className="doc-ribbon-group-label">Paragraf</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* Quick Table Group on Home Tab (Word standard) */}
+              <div className="doc-ribbon-group group-table" ref={tableMenuRef}>
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-trigger ${showTableMenu ? "active" : ""}`}
+                    onClick={() => setShowTableMenu((prev) => !prev)}
+                    title="Sisipkan Tabel Baru (Seperti di Microsoft Word)"
+                  >
+                    <Table size={13} />
+                    <span>Tabel</span>
+                    <ChevronDown size={11} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => insertTableRow("below")}
+                    title="Tambah 1 Baris ke Bawah pada Tabel yang Dipilih"
+                  >
+                    <Rows size={13} />
+                    <span style={{ fontSize: "9px", fontWeight: 800, marginLeft: "1px" }}>+</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => insertTableCol("right")}
+                    title="Tambah 1 Kolom ke Kanan pada Tabel yang Dipilih"
+                  >
+                    <Columns size={13} />
+                    <span style={{ fontSize: "9px", fontWeight: 800, marginLeft: "1px" }}>+</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={deleteTableRow}
+                    title="Hapus Baris Tabel Aktif"
+                  >
+                    - Baris
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={deleteTableCol}
+                    title="Hapus Kolom Tabel Aktif"
+                  >
+                    - Kolom
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn danger"
+                    onClick={deleteTable}
+                    title="Hapus Seluruh Tabel Aktif"
+                  >
+                    <Trash2 size={11} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ color: "#0284c7", fontWeight: 700 }}
+                    onClick={() => setActiveRibbonTab("table")}
+                    title="Buka Pengaturan Tabel Lengkap (Lebar, Garis, Perataan & Shading)"
+                  >
+                    Alat Tabel »
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Tabel Word</span>
+
+                {/* Table Insert Popover Modal/Dropdown */}
+                {showTableMenu && (
+                  <div className="doc-table-popover" role="dialog">
+                    <div className="doc-table-popover-header">
+                      <span className="popover-title">SISIPKAN TABEL</span>
+                      <span className="popover-sub">
+                        {hoverGrid.r > 0 && hoverGrid.c > 0 ? `Tabel ${hoverGrid.r} × ${hoverGrid.c}` : "Pilih Ukuran Grid"}
+                      </span>
+                    </div>
+
+                    <div className="doc-table-grid-picker">
+                      {[1, 2, 3, 4, 5].map((r) => (
+                        <div key={`row-home-${r}`} className="grid-picker-row">
+                          {[1, 2, 3, 4, 5].map((c) => {
+                            const isHighlighted = r <= hoverGrid.r && c <= hoverGrid.c;
+                            return (
+                              <div
+                                key={`cell-home-${r}-${c}`}
+                                className={`grid-picker-cell ${isHighlighted ? "highlighted" : ""}`}
+                                onMouseEnter={() => setHoverGrid({ r, c })}
+                                onClick={() => insertTable(r, c)}
+                              />
+                            );
+                          })}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="doc-table-custom-form">
+                      <span className="custom-form-title">Ukuran Kustom:</span>
+                      <div className="custom-form-inputs">
+                        <label>
+                          <span>Baris:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="20"
+                            value={customRows}
+                            onChange={(e) => setCustomRows(Math.max(1, Number(e.target.value)))}
+                          />
+                        </label>
+                        <label>
+                          <span>Kolom:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={customCols}
+                            onChange={(e) => setCustomCols(Math.max(1, Number(e.target.value)))}
+                          />
+                        </label>
+                      </div>
+                      <button
+                        type="button"
+                        className="doc-btn-insert-table"
+                        onClick={() => insertTable(customRows, customCols)}
+                      >
+                        <Plus size={13} />
+                        <span>Sisipkan Tabel</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1299,6 +1822,361 @@ export function DocWordRibbon({
                   <span className="doc-ribbon-group-label">AI Advisor</span>
                 </div>
               )}
+            </>
+          )}
+
+          {/* ================= TAB 4: ALAT TABEL (TABLE TOOLS - DESAIN & TATA LETAK) ================= */}
+          {activeRibbonTab === "table" && (
+            <>
+              {/* 1. Baris & Kolom (Rows & Columns) */}
+              <div className="doc-ribbon-group group-table-rows">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => insertTableRow("above")}
+                    title="Sisipkan 1 Baris di Atas baris terpilih"
+                  >
+                    <ArrowUp size={11} />
+                    <span>+ Baris Atas</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => insertTableRow("below")}
+                    title="Sisipkan 1 Baris di Bawah baris terpilih"
+                  >
+                    <ArrowDown size={11} />
+                    <span>+ Baris Bawah</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn danger"
+                    onClick={deleteTableRow}
+                    title="Hapus Baris yang Sedang Dipilih"
+                  >
+                    <Trash2 size={11} />
+                    <span>- Baris</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => insertTableCol("left")}
+                    title="Sisipkan 1 Kolom di Sebelah Kiri"
+                  >
+                    <ArrowLeft size={11} />
+                    <span>+ Kolom Kiri</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => insertTableCol("right")}
+                    title="Sisipkan 1 Kolom di Sebelah Kanan"
+                  >
+                    <ArrowRight size={11} />
+                    <span>+ Kolom Kanan</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn danger"
+                    onClick={deleteTableCol}
+                    title="Hapus Kolom yang Sedang Dipilih"
+                  >
+                    <Trash2 size={11} />
+                    <span>- Kolom</span>
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Baris & Kolom</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 2. Ukuran & Lebar Kolom (Width & Sizing) */}
+              <div className="doc-ribbon-group group-table-width">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => adjustColWidth(-20)}
+                    title="Persempit Lebar Kolom Terpilih (-20px)"
+                  >
+                    <span>Kolom ◀-</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => adjustColWidth(20)}
+                    title="Perlebar Lebar Kolom Terpilih (+20px)"
+                  >
+                    <span>-+ Kolom ▶</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={distributeColumnsEvenly}
+                    title="Ratakan Lebar Seluruh Kolom Sama Rata (Distribute Columns Evenly)"
+                  >
+                    <MoveHorizontal size={11} />
+                    <span>Ratakan Kolom</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={autoFitColumns}
+                    title="Sesuaikan Lebar Otomatis Sesuai Teks (AutoFit)"
+                  >
+                    <span>AutoFit</span>
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Lebar Kolom</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 3. Perataan Sel (Cell Alignment & Padding) */}
+              <div className="doc-ribbon-group group-table-align">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => setCellAlign("left")}
+                    title="Rata Kiri Sel (Align Left)"
+                  >
+                    <AlignLeft size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => setCellAlign("center")}
+                    title="Rata Tengah Sel (Align Center)"
+                  >
+                    <AlignCenter size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => setCellAlign("right")}
+                    title="Rata Kanan Sel (Align Right)"
+                  >
+                    <AlignRight size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => setCellVAlign("top")}
+                    title="Perataan Vertikal: Atas (Top)"
+                  >
+                    <AlignVerticalJustifyStart size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => setCellVAlign("middle")}
+                    title="Perataan Vertikal: Tengah (Middle)"
+                  >
+                    <AlignVerticalJustifyCenter size={13} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => setCellVAlign("bottom")}
+                    title="Perataan Vertikal: Bawah (Bottom)"
+                  >
+                    <AlignVerticalJustifyEnd size={13} />
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: 700, marginRight: "2px" }}>Padding:</span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setCellPadding("compact")}
+                    title="Padding Rapat (4px)"
+                  >
+                    Rapat
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setCellPadding("normal")}
+                    title="Padding Normal (8px)"
+                  >
+                    Normal
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setCellPadding("spacious")}
+                    title="Padding Longgar (12px)"
+                  >
+                    Longgar
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Perataan & Spasi</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 4. Garis & Border Tabel */}
+              <div className="doc-ribbon-group group-table-border">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTableBorderPreset("all")}
+                    title="Semua Garis (Grid Kotak Lengkap)"
+                  >
+                    <Grid size={11} />
+                    <span>Semua Garis</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTableBorderPreset("horizontal")}
+                    title="Garis Horizontal Saja (Standar Faktur)"
+                  >
+                    <Rows size={11} />
+                    <span>Horizontal</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTableBorderPreset("outer")}
+                    title="Garis Bingkai Luar Saja"
+                  >
+                    <Square size={11} />
+                    <span>Garis Luar</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTableBorderPreset("none")}
+                    title="Tanpa Garis / Borderless"
+                  >
+                    <span>Tanpa Garis</span>
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Gaya Garis</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 5. Warna Shading Sel (Cell Background Color) */}
+              <div className="doc-ribbon-group group-table-color">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <PaintBucket size={12} style={{ color: "#475569" }} />
+                  <span style={{ fontSize: "9.5px", fontWeight: 700, color: "#334155" }}>Warna Sel:</span>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
+                  <button
+                    type="button"
+                    className="doc-color-swatch-mini swatch-clear"
+                    onClick={() => setCellBackground("transparent")}
+                    title="Bening / Hapus Warna"
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", border: "1px solid #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", cursor: "pointer" }}
+                  >
+                    ✕
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-color-swatch-mini"
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#ffffff", border: "1px solid #94a3b8", cursor: "pointer" }}
+                    onClick={() => setCellBackground("#ffffff")}
+                    title="Putih Bersih"
+                  />
+                  <button
+                    type="button"
+                    className="doc-color-swatch-mini"
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#f8fafc", border: "1px solid #cbd5e1", cursor: "pointer" }}
+                    onClick={() => setCellBackground("#f8fafc")}
+                    title="Abu Sangat Muda"
+                  />
+                  <button
+                    type="button"
+                    className="doc-color-swatch-mini"
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#e0f2fe", border: "1px solid #93c5fd", cursor: "pointer" }}
+                    onClick={() => setCellBackground("#e0f2fe")}
+                    title="Biru Muda Lembut"
+                  />
+                  <button
+                    type="button"
+                    className="doc-color-swatch-mini"
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#fef9c3", border: "1px solid #fde047", cursor: "pointer" }}
+                    onClick={() => setCellBackground("#fef9c3")}
+                    title="Kuning Sorot"
+                  />
+                  <button
+                    type="button"
+                    className="doc-color-swatch-mini"
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#0f2942", border: "1px solid #0f2942", cursor: "pointer" }}
+                    onClick={() => setCellBackground("#0f2942")}
+                    title="Navy Resmi Ekspor"
+                  />
+                </div>
+
+                <span className="doc-ribbon-group-label">Shading Sel</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 6. Desain Cepat & Hapus Tabel */}
+              <div className="doc-ribbon-group group-table-presets">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTablePreset("corporate")}
+                    title="Gaya Standar Ekspor: Header Navy & Garis Abu"
+                  >
+                    Standar Ekspor
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTablePreset("zebra")}
+                    title="Zebra Striping: Baris Selang-Seling"
+                  >
+                    Zebra
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setTablePreset("minimal")}
+                    title="Gaya Minimalis: Header Abu & Garis Tipis"
+                  >
+                    Minimalis
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn danger"
+                    onClick={deleteTable}
+                    title="Hapus Seluruh Tabel Ini"
+                  >
+                    <Trash2 size={11} />
+                    <span>Hapus Tabel</span>
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Desain Cepat</span>
+              </div>
             </>
           )}
         </div>

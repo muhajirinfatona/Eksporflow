@@ -125,6 +125,127 @@ export function DocumentsModule({
     };
   }, [isDownloadMenuOpen, isReviewMenuOpen]);
 
+  // Interactive Table Column Resizing, Active Cell Focus & Tab Key Navigation (Word Table Mode)
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    const paperEl = document.querySelector(".paper-document");
+    if (!paperEl) return;
+
+    // 1. Cell Focus Tracking
+    const handleCellFocus = (e: Event) => {
+      const target = e.target as HTMLElement;
+      const cell = target.closest("td, th") as HTMLTableCellElement | null;
+      if (cell) {
+        (window as any).__eksporflow_active_cell = cell;
+        (window as any).__eksporflow_active_table = cell.closest("table");
+        window.dispatchEvent(new CustomEvent("eksporflow:table-focus", { detail: { hasTable: true } }));
+        paperEl.querySelectorAll("td.active-cell, th.active-cell").forEach((el) => {
+          el.classList.remove("active-cell");
+        });
+        cell.classList.add("active-cell");
+      }
+    };
+
+    // 2. Attach Interactive Column Resizers to all table headers
+    const attachColResizers = () => {
+      const tables = paperEl.querySelectorAll("table");
+      tables.forEach((table) => {
+        const thList = table.querySelectorAll("thead th");
+        thList.forEach((th) => {
+          if (!th.querySelector(".col-resizer")) {
+            const resizer = document.createElement("span");
+            resizer.className = "col-resizer";
+            resizer.setAttribute("contenteditable", "false");
+            resizer.title = "Tarik (drag) untuk mengatur lebar kolom ini";
+
+            let startX = 0;
+            let startWidth = 0;
+
+            const onMouseMove = (moveEvent: MouseEvent) => {
+              const dx = moveEvent.clientX - startX;
+              const newWidth = Math.max(30, startWidth + dx);
+              (th as HTMLElement).style.width = `${newWidth}px`;
+              const cellIndex = (th as HTMLTableCellElement).cellIndex;
+              table.querySelectorAll(`tbody tr td:nth-child(${cellIndex + 1})`).forEach((td) => {
+                (td as HTMLElement).style.width = `${newWidth}px`;
+              });
+            };
+
+            const onMouseUp = () => {
+              resizer.classList.remove("is-resizing");
+              document.removeEventListener("mousemove", onMouseMove);
+              document.removeEventListener("mouseup", onMouseUp);
+            };
+
+            resizer.addEventListener("mousedown", (mdEvent: MouseEvent) => {
+              mdEvent.preventDefault();
+              mdEvent.stopPropagation();
+              startX = mdEvent.clientX;
+              startWidth = (th as HTMLElement).offsetWidth;
+              resizer.classList.add("is-resizing");
+              document.addEventListener("mousemove", onMouseMove);
+              document.addEventListener("mouseup", onMouseUp);
+            });
+
+            th.appendChild(resizer);
+          }
+        });
+      });
+    };
+
+    attachColResizers();
+    (paperEl as HTMLElement).addEventListener("mousedown", handleCellFocus as EventListener);
+
+    // 3. Tab Key Navigation inside Table Cells (Word experience)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Tab") {
+        const selection = window.getSelection();
+        const node = selection?.anchorNode;
+        const cell = (node instanceof Element ? node : node?.parentElement)?.closest("td, th") as HTMLTableCellElement | null;
+        if (cell) {
+          e.preventDefault();
+          const row = cell.closest("tr");
+          const table = cell.closest("table");
+          if (!row || !table) return;
+
+          const cellsInRow = Array.from(row.querySelectorAll("td, th"));
+          const currentIndex = cellsInRow.indexOf(cell);
+
+          if (!e.shiftKey) {
+            // Next cell in row
+            if (currentIndex < cellsInRow.length - 1) {
+              const nextCell = cellsInRow[currentIndex + 1] as HTMLElement;
+              nextCell.focus();
+            } else {
+              // Next row first cell
+              const allRows = Array.from(table.querySelectorAll("tbody tr"));
+              const currentRowIndex = allRows.indexOf(row);
+              if (currentRowIndex < allRows.length - 1) {
+                const nextRow = allRows[currentRowIndex + 1];
+                const firstCell = nextRow.querySelector("td") as HTMLElement | null;
+                firstCell?.focus();
+              }
+            }
+          } else {
+            // Shift + Tab: Previous cell
+            if (currentIndex > 0) {
+              const prevCell = cellsInRow[currentIndex - 1] as HTMLElement;
+              prevCell.focus();
+            }
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      (paperEl as HTMLElement).removeEventListener("mousedown", handleCellFocus as EventListener);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isEditMode, selectedDocument, shipment.contractLayout, editorKey]);
+
   const documents: {
     type: DocumentType;
     code: string;
@@ -1348,12 +1469,12 @@ function ProformaInvoiceDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "40px", textAlign: "center" }}>No</th>
-            <th>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
-            <th style={{ width: "110px", textAlign: "center" }}>{isId ? "Kode HS" : "HS Code"}</th>
-            <th style={{ width: "110px", textAlign: "right" }}>{isId ? "Jumlah (MT)" : "Qty (MT)"}</th>
-            <th style={{ width: "130px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-            <th style={{ width: "140px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
+            <th style={{ width: "36px", textAlign: "center" }}>No</th>
+            <th style={{ width: "42%" }}>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
+            <th style={{ width: "85px", textAlign: "center" }}>{isId ? "Kode HS" : "HS Code"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Jumlah (MT)" : "Qty (MT)"}</th>
+            <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+            <th style={{ width: "105px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
           </tr>
         </thead>
         <tbody>
@@ -2163,11 +2284,11 @@ function CommercialInvoiceDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "160px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
-            <th>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
-            <th style={{ width: "120px", textAlign: "right" }}>{isId ? "Kuantitas" : "Quantity"}</th>
-            <th style={{ width: "120px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-            <th style={{ width: "140px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
+            <th style={{ width: "130px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
+            <th style={{ width: "42%" }}>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Kuantitas" : "Quantity"}</th>
+            <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+            <th style={{ width: "105px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
           </tr>
         </thead>
         <tbody>
@@ -2406,12 +2527,12 @@ function PackingListDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "150px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
-            <th>{isId ? "Deskripsi Barang & Spesifikasi Kemasan" : "Description of Goods & Packing Spec"}</th>
-            <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Jumlah (Koli)" : "Qty (Bags)"}</th>
-            <th style={{ width: "115px", textAlign: "right" }}>{isId ? "Berat Neto (Net Weight)" : "Net Weight"}</th>
-            <th style={{ width: "115px", textAlign: "right" }}>{isId ? "Berat Bruto (Gross Weight)" : "Gross Weight"}</th>
-            <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Volume (CBM)" : "Meas. (CBM)"}</th>
+            <th style={{ width: "120px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
+            <th style={{ width: "40%" }}>{isId ? "Deskripsi Barang & Spesifikasi Kemasan" : "Description of Goods & Packing Spec"}</th>
+            <th style={{ width: "70px", textAlign: "right" }}>{isId ? "Jumlah (Koli)" : "Qty (Bags)"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Neto (Net Weight)" : "Net Weight"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Bruto (Gross Weight)" : "Gross Weight"}</th>
+            <th style={{ width: "75px", textAlign: "right" }}>{isId ? "Volume (CBM)" : "Meas. (CBM)"}</th>
           </tr>
         </thead>
         <tbody>
@@ -2629,11 +2750,11 @@ function ShippingInstructionDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "150px" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
-            <th style={{ width: "160px" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
-            <th>{isId ? "Deskripsi Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
-            <th style={{ width: "130px", textAlign: "right" }}>{isId ? "Berat (Kg)" : "Weight (Kgs)"}</th>
-            <th style={{ width: "110px", textAlign: "right" }}>{isId ? "Dimensi / Volume" : "Measurement"}</th>
+            <th style={{ width: "120px" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
+            <th style={{ width: "100px" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
+            <th style={{ width: "44%" }}>{isId ? "Deskripsi Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat (Kg)" : "Weight (Kgs)"}</th>
+            <th style={{ width: "80px", textAlign: "right" }}>{isId ? "Dimensi / Volume" : "Measurement"}</th>
           </tr>
         </thead>
         <tbody>
