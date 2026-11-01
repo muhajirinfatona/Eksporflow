@@ -6213,22 +6213,22 @@ textarea:focus-visible {
 .contract-articles-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin: 12px 0;
+  gap: 10px;
+  margin: 14px 0;
 }
 
 .doc-contract-mode-1page .contract-articles-wrapper {
-  gap: 6px;
-  margin: 8px 0;
+  gap: 10px;
+  margin: 12px 0;
 }
 
 .contract-article-block {
   border-bottom: 1px solid #e2e8f0;
-  padding-bottom: 7px;
+  padding-bottom: 8px;
 }
 
 .doc-contract-mode-1page .contract-article-block {
-  padding-bottom: 5px;
+  padding-bottom: 8px;
 }
 
 .contract-article-block:last-child {
@@ -6244,8 +6244,8 @@ textarea:focus-visible {
 }
 
 .doc-contract-mode-1page .article-title {
-  font-size: 11px;
-  margin: 0 0 2px;
+  font-size: 11.5px;
+  margin: 0 0 3px;
 }
 
 .contract-article-block p {
@@ -6256,9 +6256,9 @@ textarea:focus-visible {
 }
 
 .doc-contract-mode-1page .contract-article-block p {
-  font-size: 10.5px;
-  line-height: 1.38;
-  margin: 0 0 2px;
+  font-size: 11px;
+  line-height: 1.45;
+  margin: 0 0 3px;
 }
 
 .article-ordered-list {
@@ -6270,10 +6270,10 @@ textarea:focus-visible {
 }
 
 .doc-contract-mode-1page .article-ordered-list {
-  padding-left: 16px;
-  margin: 2px 0 0;
-  font-size: 10.5px;
-  line-height: 1.38;
+  padding-left: 18px;
+  margin: 3px 0 0;
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .article-ordered-list li {
@@ -6281,27 +6281,27 @@ textarea:focus-visible {
 }
 
 .doc-witness-clause {
-  font-size: 11px;
+  font-size: 11.5px;
   font-weight: 600;
   color: #0f172a;
   text-align: center;
-  margin: 12px 0 6px;
+  margin: 16px 0 8px;
   font-style: italic;
 }
 
 .doc-contract-mode-1page .doc-witness-clause {
-  margin: 10px 0 4px;
+  margin: 16px 0 8px;
 }
 
 .doc-type-sales-contract .doc-dual-signatures {
-  margin-top: 12px;
-  padding-top: 6px;
+  margin-top: 16px;
+  padding-top: 8px;
   border-top: none;
 }
 
 .doc-type-sales-contract.doc-contract-mode-1page .doc-dual-signatures {
-  margin-top: 8px;
-  padding-top: 2px;
+  margin-top: 16px;
+  padding-top: 8px;
 }
 
 /* Sales Contract 2-Page Layout Elements */
@@ -9951,13 +9951,55 @@ textarea:focus-visible {
   .doc-type-sales-contract.doc-contract-mode-1page .doc-contract-page-2-header {
     display: none !important;
   }
+  .doc-type-sales-contract.doc-contract-mode-1page .letterhead-logo {
+    height: 64px !important;
+    max-height: 66px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .company-title {
+    font-size: 16.5px !important;
+    margin-bottom: 2px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .company-meta-line {
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .doc-title-bar {
+    margin-bottom: 7px !important;
+    padding: 5px 12px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .doc-title-bar h2 {
+    font-size: 13px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .doc-contract-ref-bar {
+    margin-bottom: 7px !important;
+    padding: 2px 0 !important;
+    gap: 12px !important;
+    font-size: 10px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .doc-preamble-text {
+    margin-bottom: 7px !important;
+    font-size: 10px !important;
+    line-height: 1.3 !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .doc-contract-parties-grid {
+    gap: 10px !important;
+    margin-bottom: 8px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .contract-party-card {
+    padding: 6px 10px !important;
+  }
+  .doc-type-sales-contract.doc-contract-mode-1page .contract-party-header {
+    margin: -6px -10px 4px !important;
+    padding: 3px 10px !important;
+    font-size: 8.5px !important;
+  }
   .doc-type-sales-contract.doc-contract-mode-1page .contract-articles-wrapper {
-    gap: 2.5px !important;
-    margin: 3px 0 !important;
+    gap: 6px !important;
+    margin: 6px 0 !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .contract-article-block {
-    padding-bottom: 2px !important;
-    margin-bottom: 2px !important;
+    padding-bottom: 5px !important;
+    margin-bottom: 5px !important;
     border-bottom: 1px solid #e2e8f0 !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -9966,40 +10008,40 @@ textarea:focus-visible {
     border-bottom: none !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .article-title {
-    font-size: 9.5px !important;
+    font-size: 10.5px !important;
     font-weight: 700 !important;
-    margin: 0 0 1px !important;
+    margin: 0 0 2px !important;
     color: #0f2942 !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .contract-article-block p {
-    font-size: 8.5px !important;
-    line-height: 1.25 !important;
-    margin: 0 0 1px !important;
+    font-size: 9.5px !important;
+    line-height: 1.34 !important;
+    margin: 0 0 2px !important;
     color: #0f172a !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .article-ordered-list {
-    padding-left: 14px !important;
-    margin: 1px 0 0 !important;
-    font-size: 8.5px !important;
-    line-height: 1.25 !important;
+    padding-left: 16px !important;
+    margin: 2px 0 0 !important;
+    font-size: 9.5px !important;
+    line-height: 1.34 !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .article-ordered-list li {
-    margin-bottom: 1px !important;
+    margin-bottom: 2px !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .doc-witness-clause {
-    font-size: 8.5px !important;
-    margin: 5px 0 3px !important;
+    font-size: 9.5px !important;
+    margin: 10px 0 6px !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .doc-dual-signatures {
-    margin-top: 5px !important;
-    padding-top: 0 !important;
+    margin-top: 10px !important;
+    padding-top: 2px !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .sig-box-space {
-    height: 32px !important;
-    min-height: 30px !important;
-    margin: 2px 0 !important;
+    height: 46px !important;
+    min-height: 44px !important;
+    margin: 3px 0 !important;
   }
 
   /* --- MODE 2: 2 LEMBAR KOMPREHENSIF (STANDAR ICC LEGAL) --- */
