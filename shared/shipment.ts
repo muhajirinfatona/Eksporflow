@@ -123,6 +123,7 @@ export type Shipment = {
   traderStaffingOverhead?: number;
   traderMargin?: number;
   contractSpecialTerms?: string;
+  contractLayout?: "1-page" | "2-page";
   mfgRawMaterial?: number;
   mfgAuxiliary?: number;
   mfgDirectLabor?: number;
@@ -173,6 +174,8 @@ export const initialShipment: Shipment = {
   previewLanguage: "English",
   documentReviewed: false,
   documentRevision: 1,
+  contractLayout: "1-page",
+  contractSpecialTerms: "",
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",
   poNumber: "ABF/LOI/2026/108",

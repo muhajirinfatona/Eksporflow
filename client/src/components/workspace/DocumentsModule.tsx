@@ -319,7 +319,7 @@ export function DocumentsModule({
       {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
         <div
-          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")}`}
+          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${shipment.contractLayout === "2-page" ? "2page" : "1page"}` : ""}`}
         >
           {/* Official Letterhead Header */}
           <OfficialLetterhead
@@ -367,6 +367,7 @@ export function DocumentsModule({
           {selectedDocument === "Sales Contract" && (
             <SalesContractDoc
               shipment={shipment}
+              contractLayout={shipment.contractLayout || "1-page"}
               exporterName={exporterName}
               exporterAddress={exporterAddress}
               buyerName={buyerName}
@@ -861,6 +862,7 @@ function SalesContractDoc({
   totalAmount,
   amountInWords,
   contractSpecialTerms,
+  contractLayout = "1-page",
   isId = false,
 }: {
   shipment?: Shipment;
@@ -892,10 +894,13 @@ function SalesContractDoc({
   totalAmount: number;
   amountInWords: string;
   contractSpecialTerms?: string;
+  contractLayout?: "1-page" | "2-page";
   isId?: boolean;
 }) {
+  const is2Page = contractLayout === "2-page";
+
   return (
-    <div className="doc-content-wrapper">
+    <div className={`doc-content-wrapper doc-contract-wrapper ${is2Page ? "mode-2page" : "mode-1page"}`}>
       <div className="doc-title-bar">
         <h2>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"}</h2>
       </div>
@@ -934,6 +939,10 @@ function SalesContractDoc({
           <p className="party-phone">
             Telp: +62 812 3456 7890 | Email: official@indicoexport.com
           </p>
+          <p className="party-tax">
+            {isId ? "Up:" : "Attn:"} {signatoryName || "Muhajirin Fatona"} (
+            {isId ? signatoryRole || "Direktur Ekspor" : signatoryRole || "Export Director"})
+          </p>
         </div>
 
         <div className="contract-party-card">
@@ -952,157 +961,310 @@ function SalesContractDoc({
         </div>
       </div>
 
-      {/* HALAMAN 1 ARTIKEL: Komersial & Syarat Pembayaran */}
-      <div className="contract-articles-wrapper contract-articles-page-1">
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 1: KOMODITAS & SPESIFIKASI" : "ARTICLE 1: COMMODITY & SPECIFICATION"}
-          </h4>
-          <p>
-            <b>{isId ? "Komoditas:" : "Commodity:"}</b> {productName} |{" "}
-            <b>{isId ? "Kode HS:" : "HS Code:"}</b> {hsCode}
-          </p>
-          <p>
-            <b>{isId ? "Kualitas:" : "Quality:"}</b>{" "}
-            {isId
-              ? "Kualitas Mutu Ekspor Grade A, Kadar Air ≤ 2.5%, Ukuran Butiran Mesh 16-18, Kelarutan 99%, Gula Pereduksi Maks 6%, Sukrosa 80-85%, Timbal (Pb) < 0.2 mg/kg."
-              : "Grade A Export Quality, Moisture ≤ 2.5%, Granule Size Mesh 16-18, Solubility 99%, Reducing Sugar Max 6%, Sucrose 80-85%, Lead (Pb) < 0.2 mg/kg."}
-          </p>
-        </div>
-
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 2: KUANTITAS, KEMASAN & HARGA" : "ARTICLE 2: QUANTITY, PACKING & PRICE"}
-          </h4>
-          <p>
-            <b>{isId ? "Kuantitas:" : "Quantity:"}</b>{" "}
-            {isId
-              ? `${formatNumber(netWeightMT, 0)} Metrik Ton (${formatNumber(netWeightMT * 1000, 0)} Kg) toleransi +/- 2% atas pilihan Penjual.`
-              : `${formatNumber(netWeightMT, 0)} Metric Tons (${formatNumber(netWeightMT * 1000, 0)} Kgs) +/- 2% tolerance at Seller's option.`}
-          </p>
-          <p>
-            <b>{isId ? "Kemasan:" : "Packing:"}</b>{" "}
-            {isId
-              ? `Dikemas dalam karung kertas Kraft 3 lapis dengan lapisan dalam plastik PE food-grade 20 kg neto. Total ${formatNumber(bagsCount)} karung dimuat dalam 1 x 20ft Kontainer Kering (Food Grade).`
-              : `Packed in 20 kg net weight food-grade PE inner liner and 3-ply Kraft Paper outer bag. Total ${formatNumber(bagsCount)} bags loaded in 1 x 20ft Dry Container (Food Grade Container).`}
-          </p>
-          <p>
-            <b>{isId ? "Harga Satuan:" : "Unit Price:"}</b> {currency}{" "}
-            {formatNumber(unitPricePerMT, 2)} / MT {incoterm} Pelabuhan Makassar, Indonesia (Incoterms 2020).
-          </p>
-          <p>
-            <b>{isId ? "Nilai Total:" : "Total Value:"}</b> {currency} {formatNumber(totalAmount, 2)}{" "}
-            ({isId ? "Terbilang:" : "Say:"} {amountInWords}).
-          </p>
-        </div>
-
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 3: SYARAT PEMBAYARAN" : "ARTICLE 3: TERMS OF PAYMENT"}
-          </h4>
-          <p>
-            {isId
-              ? `Pembayaran dilakukan melalui Telegraphic Transfer (T/T) ke rekening bank yang ditunjuk oleh Penjual (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, No. Rek: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}) sebagai berikut:`
-              : `Payment shall be made by Telegraphic Transfer (T/T) to Seller's designated bank account (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, Acc No: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}) as follows:`}
-          </p>
-          <ol className="article-ordered-list">
-            <li>
-              <b>
-                {isId ? "Ketentuan:" : "Terms:"}
-              </b>{" "}
-              {paymentTerms ||
-                (isId
-                  ? `50% Uang Muka (DP) (${currency} ${formatNumber(totalAmount * 0.5, 2)}) dibayarkan dalam waktu 3 hari kerja.`
-                  : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)}) payable within 3 working days.`)}
-            </li>
-            <li>
-              <b>
-                {isId
-                  ? `50% Pelunasan Sisa (${currency} ${formatNumber(totalAmount * 0.5, 2)})`
-                  : `50% Balance Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)})`}
-              </b>{" "}
-              {isId
-                ? "dibayarkan dalam waktu 5 (lima) hari kerja terhadap salinan pindaian (scanned copy) dokumen pengapalan lengkap. Dokumen asli akan dikirim melalui kurir (DHL/FedEx) atau Telex Release setelah pembayaran lunas 100% diterima."
-                : "payable within 5 (five) working days against scanned copies of full set shipping documents. Original documents will be released via courier (DHL/FedEx) or Telex Release upon receipt of 100% full payment."}
-            </li>
-          </ol>
-        </div>
-      </div>
-
-      {/* PEMISAH HALAMAN: Page Break Print & Divider Visual Layar */}
-      <div className="doc-contract-page-break" />
-      <div className="doc-contract-screen-divider">
-        <span>{isId ? "— HALAMAN 2: KETENTUAN PENGAPALAN, KLAIM & PENGESAHAN KONTRAK —" : "— PAGE 2: SHIPMENT, CLAIMS & CONTRACT EXECUTION —"}</span>
-      </div>
-
-      {/* HEADER RESMI AWAL HALAMAN 2 */}
-      <div className="doc-contract-page-2-header">
-        <span>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} · REF: SC/IEI-ABF/XI/2026/001</span>
-        <span>{isId ? "HALAMAN 2 DARI 2" : "PAGE 2 OF 2"}</span>
-      </div>
-
-      {/* HALAMAN 2 ARTIKEL: Pengapalan, Dokumen, Klaim, Arbitrase */}
-      <div className="contract-articles-wrapper contract-articles-page-2">
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 4: KETENTUAN PENGAPALAN" : "ARTICLE 4: SHIPMENT TERMS"}
-          </h4>
-          <p>
-            <b>{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</b> {pol} |{" "}
-            <b>{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</b> {pod}
-          </p>
-          <p>
-            <b>{isId ? "Batas Akhir Pengapalan:" : "Latest Shipment:"}</b>{" "}
-            {isId ? "25 November 2026" : "November 25, 2026"} |{" "}
-            <b>{isId ? "Pengapalan Sebagian (Partial):" : "Partial Shipment:"}</b>{" "}
-            {isId ? "Tidak Diizinkan" : "Not Allowed"} |{" "}
-            <b>{isId ? "Pindah Kapal (Transshipment):" : "Transshipment:"}</b>{" "}
-            {isId ? "Diizinkan" : "Allowed"}
-          </p>
-        </div>
-
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 5: DOKUMEN YANG DIPERLUKAN" : "ARTICLE 5: REQUIRED DOCUMENTS"}
-          </h4>
-          <p>
-            {isId
-              ? "Penjual wajib menyediakan dokumen-dokumen berikut kepada Pembeli: (1) 1 Set Lengkap (3/3) Bill of Lading (B/L) Asli Clean on Board Ocean; (2) Faktur Komersial (Commercial Invoice) Asli bertandatangan dalam rangkap 3; (3) Daftar Kemasan (Packing List) Asli bertandatangan dalam rangkap 3; (4) Surat Keterangan Asal (COO / Form AK / e-COO) resmi dari instansi pemerintah; (5) Sertifikat Fitosanitari dari Badan Karantina Pertanian Indonesia; (6) Sertifikat Analisis (COA) dan Sertifikat Halal."
-              : "Seller shall provide the following documents to the Buyer: (1) Full Set (3/3) Original Clean on Board Ocean Bill of Lading; (2) Signed Commercial Invoice in 3 originals; (3) Signed Packing List in 3 originals; (4) Certificate of Origin (COO) issued by Indonesian Chamber of Commerce / Ministry of Trade; (5) Phytosanitary Certificate issued by Indonesian Agricultural Quarantine Agency; (6) Certificate of Analysis (COA) and Halal Certificate."}
-          </p>
-        </div>
-
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 6: PEMERIKSAAN MUTU & KLAIM" : "ARTICLE 6: QUALITY INSPECTION & CLAIMS"}
-          </h4>
-          <p>
-            {isId
-              ? "Pemeriksaan mutu dan kuantitas akhir dilakukan di Pelabuhan Muat oleh surveyor berwenang. Pembeli berhak memeriksa barang setibanya di Pelabuhan Bongkar. Setiap klaim atas perbedaan mutu atau susut kuantitas wajib diajukan secara tertulis dalam waktu 14 (empat belas) hari kalender setelah barang tiba di pelabuhan tujuan dengan menyertakan laporan resmi surveyor independen internasional yang diakui."
-              : "Final quantity and quality inspection shall be conducted at Port of Loading by authorized surveyors. The Buyer is entitled to inspect goods upon arrival at Port of Discharge. Any claims regarding quality or quantity discrepancy shall be submitted in writing within 14 (fourteen) calendar days after arrival at destination port accompanied by an official accredited independent surveyor's report."}
-          </p>
-        </div>
-
-        <div className="contract-article-block">
-          <h4 className="article-title">
-            {isId ? "PASAL 7: KEADAAN KAHAR (FORCE MAJEURE) & ARBITRASE" : "ARTICLE 7: FORCE MAJEURE & ARBITRATION"}
-          </h4>
-          <p>
-            {isId
-              ? "Tidak ada pihak yang bertanggung jawab atas keterlambatan atau kegagalan pemenuhan kewajiban akibat Keadaan Kahar (bencana alam, perang, embargo atau keputusan darurat pemerintah). Setiap perselisihan yang timbul dari kontrak ini akan diselesaikan secara musyawarah mufakat. Apabila musyawarah mufakat gagal dicapai, perselisihan akan diajukan ke Badan Arbitrase Nasional Indonesia (BANI) sesuai dengan peraturan ICC yang berlaku."
-              : "Neither party shall be liable for any delay or failure to perform due to Force Majeure (natural disasters, war, government embargo). Any disputes arising from this contract shall be settled amicably. If amicable settlement fails, the dispute shall be submitted to the Indonesian National Board of Arbitration (BANI) in accordance with ICC rules."}
-          </p>
-        </div>
-
-        {contractSpecialTerms && contractSpecialTerms.trim() !== "" && (
+      {/* JIKA MODE 1-PAGE (STANDAR RESMI): Seluruh 6 Pasal mengalir utuh dalam 1 lembar tanpa pemisah */}
+      {!is2Page ? (
+        <div className="contract-articles-wrapper">
           <div className="contract-article-block">
             <h4 className="article-title">
-              {isId ? "PASAL 8: KETENTUAN KHUSUS / TAMBAHAN" : "ARTICLE 8: SPECIAL CONDITIONS"}
+              {isId ? "PASAL 1: KOMODITAS & SPESIFIKASI" : "ARTICLE 1: COMMODITY & SPECIFICATION"}
             </h4>
-            <p style={{ whiteSpace: "pre-line" }}>{contractSpecialTerms}</p>
+            <p>
+              <b>{isId ? "Komoditas:" : "Commodity:"}</b> {productName} |{" "}
+              <b>{isId ? "Kode HS:" : "HS Code:"}</b> {hsCode}
+            </p>
+            <p>
+              <b>{isId ? "Kualitas:" : "Quality:"}</b>{" "}
+              {isId
+                ? "Kualitas Mutu Ekspor Grade A, Kadar Air ≤ 2.5%, Ukuran Butiran Mesh 16-18, Kelarutan 99%, Gula Pereduksi Maks 6%, Sukrosa 80-85%, Timbal (Pb) < 0.2 mg/kg."
+                : "Grade A Export Quality, Moisture ≤ 2.5%, Granule Size Mesh 16-18, Solubility 99%, Reducing Sugar Max 6%, Sucrose 80-85%, Lead (Pb) < 0.2 mg/kg."}
+            </p>
           </div>
-        )}
-      </div>
+
+          <div className="contract-article-block">
+            <h4 className="article-title">
+              {isId ? "PASAL 2: KUANTITAS, KEMASAN & HARGA" : "ARTICLE 2: QUANTITY, PACKING & PRICE"}
+            </h4>
+            <p>
+              <b>{isId ? "Kuantitas:" : "Quantity:"}</b>{" "}
+              {isId
+                ? `${formatNumber(netWeightMT, 0)} Metrik Ton (${formatNumber(netWeightMT * 1000, 0)} Kg) toleransi +/- 2% atas pilihan Penjual.`
+                : `${formatNumber(netWeightMT, 0)} Metric Tons (${formatNumber(netWeightMT * 1000, 0)} Kgs) +/- 2% tolerance at Seller's option.`}
+            </p>
+            <p>
+              <b>{isId ? "Kemasan:" : "Packing:"}</b>{" "}
+              {isId
+                ? `Dikemas dalam karung kertas Kraft 3 lapis dengan lapisan plastik PE food-grade 20 kg neto. Total ${formatNumber(bagsCount)} karung dimuat dalam 1 x 20ft Kontainer Kering.`
+                : `Packed in 20 kg net weight food-grade PE inner liner and 3-ply Kraft Paper outer bag. Total ${formatNumber(bagsCount)} bags loaded in 1 x 20ft Dry Container.`}
+            </p>
+            <p>
+              <b>{isId ? "Harga & Nilai:" : "Price & Value:"}</b> {currency}{" "}
+              {formatNumber(unitPricePerMT, 2)} / MT {incoterm} Pelabuhan Makassar, Indonesia (Incoterms 2020) |{" "}
+              <b>{isId ? "Total Nilai:" : "Total Value:"}</b> {currency} {formatNumber(totalAmount, 2)}{" "}
+              ({isId ? "Terbilang:" : "Say:"} {amountInWords}).
+            </p>
+          </div>
+
+          <div className="contract-article-block">
+            <h4 className="article-title">
+              {isId ? "PASAL 3: SYARAT PEMBAYARAN" : "ARTICLE 3: TERMS OF PAYMENT"}
+            </h4>
+            <p>
+              {isId
+                ? `Pembayaran melalui Telegraphic Transfer (T/T) ke rekening Penjual (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, No. Rek: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}):`
+                : `Payment by Telegraphic Transfer (T/T) to Seller's designated bank account (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, Acc No: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}):`}
+            </p>
+            <ol className="article-ordered-list">
+              <li>
+                <b>{isId ? "Ketentuan:" : "Terms:"}</b>{" "}
+                {paymentTerms ||
+                  (isId
+                    ? `50% Uang Muka (DP) (${currency} ${formatNumber(totalAmount * 0.5, 2)}) dibayarkan dalam waktu 3 hari kerja.`
+                    : `50% Down Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)}) payable within 3 working days.`)}
+              </li>
+              <li>
+                <b>
+                  {isId
+                    ? `50% Pelunasan Sisa (${currency} ${formatNumber(totalAmount * 0.5, 2)})`
+                    : `50% Balance Payment (${currency} ${formatNumber(totalAmount * 0.5, 2)})`}
+                </b>{" "}
+                {isId
+                  ? "dibayarkan dalam 5 hari kerja terhadap salinan pindaian dokumen pengapalan lengkap. Dokumen asli dikirim setelah pelunasan 100% diterima."
+                  : "payable within 5 working days against scanned copies of full set shipping documents. Original documents released upon receipt of 100% full payment."}
+              </li>
+            </ol>
+          </div>
+
+          <div className="contract-article-block">
+            <h4 className="article-title">
+              {isId ? "PASAL 4: KETENTUAN PENGAPALAN" : "ARTICLE 4: SHIPMENT TERMS"}
+            </h4>
+            <p>
+              <b>{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</b> {pol} |{" "}
+              <b>{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</b> {pod}
+            </p>
+            <p>
+              <b>{isId ? "Batas Akhir Pengapalan:" : "Latest Shipment:"}</b>{" "}
+              {isId ? "25 November 2026" : "November 25, 2026"} |{" "}
+              <b>{isId ? "Pengapalan Sebagian:" : "Partial Shipment:"}</b> {isId ? "Tidak Diizinkan" : "Not Allowed"} |{" "}
+              <b>{isId ? "Pindah Kapal (Transshipment):" : "Transshipment:"}</b> {isId ? "Diizinkan" : "Allowed"}
+            </p>
+          </div>
+
+          <div className="contract-article-block">
+            <h4 className="article-title">
+              {isId ? "PASAL 5: DOKUMEN YANG DIPERLUKAN" : "ARTICLE 5: REQUIRED DOCUMENTS"}
+            </h4>
+            <p>
+              {isId
+                ? "Penjual wajib menyediakan: (1) Full Set (3/3) B/L Asli Clean on Board Ocean; (2) Faktur Komersial Asli rangkap 3; (3) Packing List Asli rangkap 3; (4) COO (Surat Keterangan Asal / Form AK / e-COO); (5) Sertifikat Fitosanitari Karantina Pertanian; (6) Sertifikat Analisis (COA) dan Sertifikat Halal."
+                : "Seller shall provide: (1) Full Set (3/3) Original Clean on Board Ocean Bill of Lading; (2) Signed Commercial Invoice in 3 originals; (3) Signed Packing List in 3 originals; (4) Certificate of Origin (COO / Form AK / e-COO); (5) Phytosanitary Certificate; (6) Certificate of Analysis (COA) and Halal Certificate."}
+            </p>
+          </div>
+
+          <div className="contract-article-block">
+            <h4 className="article-title">
+              {isId ? "PASAL 6: KEADAAN KAHAR & ARBITRASE" : "ARTICLE 6: FORCE MAJEURE & ARBITRATION"}
+            </h4>
+            <p>
+              {isId
+                ? "Keadaan Kahar (bencana alam, perang, embargo pemerintah) membebaskan kedua pihak dari tanggung jawab keterlambatan. Setiap perselisihan diselesaikan secara musyawarah mufakat, atau diajukan ke Badan Arbitrase Nasional Indonesia (BANI) sesuai dengan peraturan ICC yang berlaku."
+                : "Neither party shall be liable for delay or failure to perform due to Force Majeure (natural disasters, war, government embargo). Any disputes shall be settled amicably, failing which the dispute shall be submitted to the Indonesian National Board of Arbitration (BANI) in accordance with ICC rules."}
+            </p>
+          </div>
+
+          {contractSpecialTerms && contractSpecialTerms.trim() !== "" && (
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 7: KETENTUAN KHUSUS / TAMBAHAN" : "ARTICLE 7: SPECIAL CONDITIONS"}
+              </h4>
+              <p style={{ whiteSpace: "pre-line" }}>{contractSpecialTerms}</p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* JIKA MODE 2-PAGE: Pembagian proporsional & padat hukum ICC (Pasal 1-5 di Halaman 1, Pasal 6-10 di Halaman 2) */
+        <>
+          {/* HALAMAN 1 ARTIKEL: Komersial, Kuantitas, Harga, Pembayaran & Jadwal Pengapalan */}
+          <div className="contract-articles-wrapper contract-articles-page-1">
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 1: KOMODITAS & STANDAR SPESIFIKASI" : "ARTICLE 1: COMMODITY & SPECIFICATION STANDARDS"}
+              </h4>
+              <p>
+                <b>{isId ? "Komoditas:" : "Commodity:"}</b> {productName} |{" "}
+                <b>{isId ? "Kode Harmonized System (HS):" : "Harmonized System (HS) Code:"}</b> {hsCode}
+              </p>
+              <p>
+                <b>{isId ? "Spesifikasi Mutu:" : "Quality Specification:"}</b>{" "}
+                {isId
+                  ? "Kualitas Mutu Ekspor Grade A (Ekspor Premium), Kadar Air ≤ 2.5%, Ukuran Butiran Granul Mesh 16-18, Kelarutan 99%, Gula Pereduksi Maks 6%, Sukrosa 80-85%, Timbal (Pb) < 0.2 mg/kg, Aflatoksin Negatif, Bebas dari hama serangga hidup dan kontaminan asing."
+                  : "Grade A Export Quality (Premium Export Grade), Moisture Content ≤ 2.5%, Granule Size Mesh 16-18, Water Solubility 99%, Reducing Sugar Max 6%, Sucrose Content 80-85%, Lead (Pb) < 0.2 mg/kg, Aflatoxin Negative, Free from live insects and foreign contaminants."}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 2: KUANTITAS, KEMASAN & TOLERANSI" : "ARTICLE 2: QUANTITY, PACKAGING & TOLERANCE"}
+              </h4>
+              <p>
+                <b>{isId ? "Kuantitas Kontrak:" : "Contract Quantity:"}</b>{" "}
+                {isId
+                  ? `${formatNumber(netWeightMT, 0)} Metrik Ton (${formatNumber(netWeightMT * 1000, 0)} Kg neto) dengan batas toleransi kuantitas pengapalan +/- 2% atas diskresi Penjual sesuai standar perdagangan komoditas internasional.`
+                  : `${formatNumber(netWeightMT, 0)} Metric Tons (${formatNumber(netWeightMT * 1000, 0)} Kgs net weight) with shipment tolerance of +/- 2% at Seller's discretion in line with international commodity trading practice.`}
+              </p>
+              <p>
+                <b>{isId ? "Standar Kemasan:" : "Packaging Standard:"}</b>{" "}
+                {isId
+                  ? `Dikemas dalam karung kertas Kraft 3 lapis (multi-wall 3-ply Kraft paper) berkekuatan tinggi dengan lapisan kantong dalam plastik PE (Polyethylene) food-grade 20 kg neto per karung. Total muatan ${formatNumber(bagsCount)} karung dimuat rapi dalam 1 x 20ft Full Container Load (FCL Food Grade Dry Container).`
+                  : `Packed in 20 kg net weight heavy-duty 3-ply multiwall Kraft paper outer bags with food-grade PE (Polyethylene) inner liner. Total ${formatNumber(bagsCount)} bags stowed in 1 x 20ft Full Container Load (FCL Food Grade Dry Container).`}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 3: NILAI KONTRAK & KETENTUAN KOMERSIAL" : "ARTICLE 3: CONTRACT VALUE & COMMERCIAL TERMS"}
+              </h4>
+              <p>
+                <b>{isId ? "Harga Satuan Kontrak:" : "Contract Unit Price:"}</b> {currency}{" "}
+                {formatNumber(unitPricePerMT, 2)} / MT {incoterm} Pelabuhan Makassar, Sulawesi Selatan, Indonesia (Incoterms 2020).
+              </p>
+              <p>
+                <b>{isId ? "Total Nilai Kontrak:" : "Total Contract Value:"}</b> {currency}{" "}
+                {formatNumber(totalAmount, 2)} ({isId ? "Terbilang:" : "Say:"} {amountInWords}).
+              </p>
+              <p>
+                {isId
+                  ? "Harga tersebut sudah mencakup biaya pengadaan, pengemasan ekspor, pengangkutan lokal, fumigasi, penanganan terminal di pelabuhan muat, dan pengurusan kepabeanan ekspor (PEB) Indonesia."
+                  : "The unit price includes product cost, export packaging, inland transport, fumigation, terminal handling charges at Port of Loading, and Indonesian export customs clearance."}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 4: SYARAT PEMBAYARAN & REKENING BANK" : "ARTICLE 4: TERMS OF PAYMENT & BANKING PROTOCOL"}
+              </h4>
+              <p>
+                {isId
+                  ? `Seluruh pembayaran wajib ditransfer melalui Telegraphic Transfer (T/T) dalam mata uang USD ke rekening bank resmi Penjual (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, No. Rekening: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}, Atas Nama: ${exporterName}) dengan skema bertahap:`
+                  : `All payments shall be remitted via Telegraphic Transfer (T/T) in USD currency to Seller's designated bank account (${bankName || "PT. Bank Mandiri (Persero) Tbk"}, Acc No: ${bankAccountNo || "152-00-9876543-2"}, SWIFT: ${bankSwift || "BMRIIDJA"}, Beneficiary: ${exporterName}) according to the following schedule:`}
+              </p>
+              <ol className="article-ordered-list">
+                <li>
+                  <b>{isId ? "Uang Muka (Down Payment 50%):" : "Advance Deposit (50% Down Payment):"}</b>{" "}
+                  {currency} {formatNumber(totalAmount * 0.5, 2)}{" "}
+                  {isId
+                    ? "wajib disetorkan oleh Pembeli dalam waktu 3 (tiga) hari kerja perbankan setelah penandatanganan Kontrak Penjualan ini untuk memulai proses produksi, kemasan, dan pemesanan ruang kapal."
+                    : "payable within 3 (three) banking days following the execution of this Sales Contract to initiate production, export packing, and vessel booking."}
+                </li>
+                <li>
+                  <b>{isId ? "Pelunasan Sisa (50% Balance Payment):" : "Final Balance (50% Balance Payment):"}</b>{" "}
+                  {currency} {formatNumber(totalAmount * 0.5, 2)}{" "}
+                  {isId
+                    ? "wajib disetorkan dalam waktu 5 (lima) hari kerja setelah diterimanya salinan pindaian (scanned copy) dokumen pengapalan lengkap termasuk Bill of Lading asli. Dokumen fisik asli akan segera dikirimkan melalui kurir ekspres internasional (DHL/FedEx) atau diinstruksikan melalui Telex Release setelah pembayaran 100% lunas tercatat di rekening Penjual."
+                    : "payable within 5 (five) working days upon receipt of scanned copies of complete shipping documents including original Bill of Lading. Original documents shall be dispatched via international express courier (DHL/FedEx) or Telex Released upon 100% full fund clearance."}
+                </li>
+              </ol>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 5: JADWAL PENGAPALAN & LOGISTIK MARITIM" : "ARTICLE 5: SHIPMENT & MARITIME LOGISTICS SCHEDULE"}
+              </h4>
+              <p>
+                <b>{isId ? "Pelabuhan Muat (POL):" : "Port of Loading (POL):"}</b> {pol} |{" "}
+                <b>{isId ? "Pelabuhan Bongkar (POD):" : "Port of Discharge (POD):"}</b> {pod}
+              </p>
+              <p>
+                <b>{isId ? "Batas Akhir Pengapalan (Latest Shipment):" : "Latest Shipment Date:"}</b>{" "}
+                {isId ? "25 November 2026" : "November 25, 2026"} |{" "}
+                <b>{isId ? "Pengapalan Parsial (Partial Shipment):" : "Partial Shipment:"}</b>{" "}
+                {isId ? "Tidak Diizinkan" : "Not Allowed"} |{" "}
+                <b>{isId ? "Pindah Kapal (Transshipment):" : "Transshipment:"}</b>{" "}
+                {isId ? "Diizinkan" : "Allowed"}
+              </p>
+            </div>
+          </div>
+
+          {/* PEMISAH HALAMAN: Page Break Print & Divider Visual Layar */}
+          <div className="doc-contract-page-break" />
+          <div className="doc-contract-screen-divider">
+            <span>{isId ? "— HALAMAN 2: DOKUMEN EKSPOR, KLAIM & PENGESAHAN KONTRAK —" : "— PAGE 2: EXPORT DOCUMENTS, CLAIMS & CONTRACT EXECUTION —"}</span>
+          </div>
+
+          {/* HEADER RESMI AWAL HALAMAN 2 */}
+          <div className="doc-contract-page-2-header">
+            <span>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} · REF: SC/IEI-ABF/XI/2026/001</span>
+            <span>{isId ? "HALAMAN 2 DARI 2" : "PAGE 2 OF 2"}</span>
+          </div>
+
+          {/* HALAMAN 2 ARTIKEL: Dokumen, Inspeksi, Klaim, Kahar & Arbitrase */}
+          <div className="contract-articles-wrapper contract-articles-page-2">
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 6: DOKUMEN PENGAPALAN RESMI (SHIPPING DOCUMENTS)" : "ARTICLE 6: OFFICIAL SHIPPING & EXPORT DOCUMENTS"}
+              </h4>
+              <p>
+                {isId
+                  ? "Penjual berkewajiban menyiapkan dan menyerahkan kelengkapan dokumen ekspor standar internasional kepada Pembeli sebagai berikut: (1) 1 Set Lengkap (3/3) Bill of Lading (B/L) Asli Clean on Board Ocean diterbitkan untuk order pembeli; (2) Faktur Komersial (Commercial Invoice) Asli bertandatangan bermeterai/stempel dalam rangkap 3; (3) Daftar Kemasan (Packing List) Asli bertandatangan dalam rangkap 3; (4) Surat Keterangan Asal (Certificate of Origin / COO Form AK / e-COO) resmi dari instansi pemerintah/KADIN; (5) Sertifikat Fitosanitari resmi dari Badan Karantina Pertanian Republik Indonesia; (6) Sertifikat Analisis Mutu Laboratorium (COA) dan Sertifikat Halal resmi."
+                  : "Seller shall prepare and deliver the following complete set of international export documents to the Buyer: (1) Full Set (3/3) Original Clean on Board Ocean Bill of Lading; (2) Signed Commercial Invoice in 3 originals; (3) Signed Packing List in 3 originals; (4) Certificate of Origin (COO / Form AK / e-COO) issued by Indonesian Chamber of Commerce / Ministry of Trade; (5) Phytosanitary Certificate issued by Indonesian Agricultural Quarantine Agency; (6) Certificate of Analysis (COA) and official Halal Certificate."}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 7: PEMERIKSAAN MUTU, SURVEYOR & VERIFIKASI" : "ARTICLE 7: QUALITY INSPECTION, SURVEYOR & VERIFICATION"}
+              </h4>
+              <p>
+                {isId
+                  ? "Pemeriksaan kuantitas, kemasan dan mutu akhir dilakukan di gudang pelabuhan muat sebelum pemuatan ke dalam peti kemas oleh surveyor independen terakreditasi internasional (seperti Sucofindo / PT Surveyor Indonesia / SGS). Sertifikat hasil inspeksi yang diterbitkan surveyor menjadi bukti pemenuhan spesifikasi sebelum keberangkatan kapal. Pembeli berhak melakukan verifikasi inspeksi mandiri atau menunjuk perwakilan pada saat pemuatan dengan seluruh biaya koordinasi ditanggung pihak masing-masing."
+                  : "Final quantity, packaging, and quality inspection shall be conducted at Port of Loading warehouse prior to container stuffing by an accredited independent surveyor (such as Sucofindo / Surveyor Indonesia / SGS). The inspection certificate issued serves as prima facie evidence of conformity prior to vessel departure. Buyer is entitled to perform inspection verification at their discretion at Port of Loading."}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 8: PROSEDUR KLAIM & GANTI RUGI" : "ARTICLE 8: CLAIMS PROCEDURE, DISCREPANCIES & REMEDIES"}
+              </h4>
+              <p>
+                {isId
+                  ? "Pembeli berhak memeriksa kondisi fisik kargo setibanya di Pelabuhan Bongkar (Jebel Ali Port). Setiap klaim atas perbedaan mutu spesifikasi atau susut kuantitas wajib diajukan secara tertulis dalam jangka waktu paling lambat 14 (empat belas) hari kalender terhitung sejak tanggal pembongkaran kontainer di pelabuhan tujuan, dengan menyertakan bukti tertulis berupa Laporan Survei Bersama (Joint Survey Report) dari surveyor internasional terakreditasi. Klaim yang diajukan melampaui tenggat waktu tersebut dinyatakan gugur demi hukum."
+                  : "The Buyer is entitled to inspect cargo upon discharge at Port of Discharge (Jebel Ali Port). Any claims regarding quality discrepancy or weight shortage must be lodged in writing within 14 (fourteen) calendar days from the container discharge date, supported by a formal Joint Survey Report from an accredited international surveyor. Any claims submitted beyond this period shall be deemed null and void."}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 9: KEADAAN KAHAR (FORCE MAJEURE) & KESULITAN BESAR" : "ARTICLE 9: FORCE MAJEURE & HARDSHIP CLAUSE"}
+              </h4>
+              <p>
+                {isId
+                  ? "Tidak ada pihak yang dianggap melanggar kontrak atau bertanggung jawab atas keterlambatan kinerja akibat Keadaan Kahar sebagaimana didefinisikan dalam ICC Force Majeure Clause 2020 (termasuk namun tidak terbatas pada bencana alam dahsyat, perang, blokade maritim militer, kerusuhan, pandemi global, dan kebijakan embargo atau larangan ekspor/impor darurat pemerintah). Pihak yang terdampak wajib memberitahukan pihak lainnya secara tertulis disertai bukti resmi dalam waktu 7 (tujuh) hari kalender sejak peristiwa terjadi."
+                  : "Neither party shall be held liable for delay or failure in performing contract obligations resulting from Force Majeure as defined under the ICC Force Majeure Clause 2020 (including natural disasters, armed conflicts, maritime blockades, pandemics, and emergency statutory export/import bans). The affected party shall notify the other party in writing with official verification within 7 (seven) calendar days of occurrence."}
+              </p>
+            </div>
+
+            <div className="contract-article-block">
+              <h4 className="article-title">
+                {isId ? "PASAL 10: HUKUM YANG BERLAKU & PENYELESAIAN SENGKETA" : "ARTICLE 10: GOVERNING LAW & DISPUTE RESOLUTION"}
+              </h4>
+              <p>
+                {isId
+                  ? "Kontrak ini diatur dan ditafsirkan sesuai dengan ketentuan Incoterms 2020 dan prinsip hukum perdagangan internasional ICC. Setiap perselisihan atau sengketa yang timbul wajib diselesaikan terlebih dahulu melalui musyawarah mufakat secara itikad baik dalam waktu 30 (tiga puluh) hari kalender. Apabila mufakat tidak tercapai, perselisihan akan diputus melalui arbitrase mengikat pada Badan Arbitrase Nasional Indonesia (BANI) di Jakarta atau ICC International Court of Arbitration, dengan putusan yang bersifat final dan mengikat kedua belah pihak."
+                  : "This contract shall be construed in accordance with Incoterms 2020 and recognized international commercial practices. Any disputes arising out of this contract shall first be settled through amicable good-faith negotiations within 30 (thirty) days. Failing amicable resolution, the dispute shall be finally resolved by binding arbitration under the rules of the Indonesian National Board of Arbitration (BANI) or ICC International Court of Arbitration, whose award shall be final and binding."}
+              </p>
+            </div>
+
+            {contractSpecialTerms && contractSpecialTerms.trim() !== "" && (
+              <div className="contract-article-block">
+                <h4 className="article-title">
+                  {isId ? "PASAL 11: KETENTUAN KHUSUS / KESEPAKATAN TAMBAHAN" : "ARTICLE 11: SPECIAL CONDITIONS & CUSTOM ADDENDA"}
+                </h4>
+                <p style={{ whiteSpace: "pre-line" }}>{contractSpecialTerms}</p>
+              </div>
+            )}
+          </div>
+        </>
+      )}
 
       <p className="doc-witness-clause">
         {isId
@@ -1115,9 +1277,9 @@ function SalesContractDoc({
           <span className="sig-header-txt">
             {isId ? "PIHAK PEMBELI (THE BUYER)" : "THE BUYER"}
           </span>
-          <b>{isId ? `Untuk ${buyerName}` : `For ${buyerName}`}</b>
+          <b className="sig-company-name">{isId ? `Untuk ${buyerName}` : `For ${buyerName}`}</b>
           <div className="sig-box-space" />
-          <b className="sig-name">{buyerPicName || "Tariq Al-Mansoor"}</b>
+          <b className="sig-name">{buyerPicName || "Mr. Tariq Al-Mansoor"}</b>
           <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
         </div>
 
@@ -1125,7 +1287,7 @@ function SalesContractDoc({
           <span className="sig-header-txt">
             {isId ? "PIHAK PENJUAL (THE SELLER)" : "THE SELLER"}
           </span>
-          <b>{isId ? `Untuk ${exporterName}` : `For ${exporterName}`}</b>
+          <b className="sig-company-name">{isId ? `Untuk ${exporterName}` : `For ${exporterName}`}</b>
           <div className="sig-box-space" />
           <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
           <span className="sig-sub">
@@ -1980,6 +2142,15 @@ function DocumentSettings({
               >
                 <option value="English">English · Standar Resmi Ekspor Global</option>
                 <option value="Bahasa Indonesia">Bahasa Indonesia · Pratinjau Internal</option>
+              </SelectField>
+
+              <SelectField
+                label="Format Halaman Sales Contract (SC)"
+                value={shipment.contractLayout || "1-page"}
+                onChange={(value) => update("contractLayout", value as "1-page" | "2-page")}
+              >
+                <option value="1-page">Pas 1 Lembar Eksekutif (Standar Resmi · Pasal 1 s/d 6)</option>
+                <option value="2-page">2 Lembar Komprehensif (Format Legal ICC · Pasal 1 s/d 10)</option>
               </SelectField>
 
               <div className="doc-settings-note">

@@ -38,9 +38,21 @@ function readScreenFromUrl(): ScreenId {
   return "dashboard";
 }
 
+function readDocFromUrl(): DocumentType {
+  try {
+    const raw = new URLSearchParams(window.location.search).get("doc");
+    if (raw) {
+      return raw as DocumentType;
+    }
+  } catch {
+    // Fallback ke Proforma Invoice
+  }
+  return "Proforma Invoice";
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<ScreenId>(readScreenFromUrl);
-  const [selectedDocument, setSelectedDocument] = useState<DocumentType>("Proforma Invoice");
+  const [selectedDocument, setSelectedDocument] = useState<DocumentType>(readDocFromUrl);
 
   const {
     user,
