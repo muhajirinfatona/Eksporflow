@@ -55,6 +55,17 @@ import {
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
 import { getPaperSizeSpec, getDocMargins, DOC_MARGIN_PRESETS } from "@shared/shipment";
+import {
+  saveActiveSelection,
+  restoreActiveSelection,
+  isTextSelected,
+  applyInlineStyleToSelection,
+  getSelectionFontSize,
+  getSelectionFontFamily,
+  stepSelectionFontSize,
+  changeSelectionCase,
+  clearFormattingFromSelection,
+} from "../../lib/wordEditorEngine";
 
 interface DocWordRibbonProps {
   shipment: Shipment;
@@ -120,8 +131,35 @@ export function DocWordRibbon({
   const tableMenuRef = useRef<HTMLDivElement>(null);
   const marginMenuRef = useRef<HTMLDivElement>(null);
 
-  const activeFontFamily = shipment.docEditorFontFamily || "Calibri";
-  const activeFontSize = shipment.docEditorFontSize || 12;
+  // Live dynamic selection tracking inside .paper-document (Microsoft Word Fidelity)
+  const [selectedFontSize, setSelectedFontSize] = useState<number | null>(null);
+  const [selectedFontFamily, setSelectedFontFamily] = useState<string | null>(null);
+  const [hasBlockedText, setHasBlockedText] = useState(false);
+
+  useEffect(() => {
+    const handleSelectionChange = () => {
+      const selected = isTextSelected();
+      setHasBlockedText(selected);
+      if (selected) {
+        saveActiveSelection();
+        const pt = getSelectionFontSize();
+        const font = getSelectionFontFamily();
+        setSelectedFontSize(pt);
+        setSelectedFontFamily(font);
+      } else {
+        setSelectedFontSize(null);
+        setSelectedFontFamily(null);
+      }
+    };
+
+    document.addEventListener("selectionchange", handleSelectionChange);
+    return () => {
+      document.removeEventListener("selectionchange", handleSelectionChange);
+    };
+  }, []);
+
+  const activeFontFamily = selectedFontFamily || shipment.docEditorFontFamily || "Calibri";
+  const activeFontSize = selectedFontSize ?? (shipment.docEditorFontSize || 11);
   const activeLineHeight = shipment.docEditorLineHeight || 1.35;
   const activePaperSize: PaperSize = shipment.paperSize || "A4";
   const activeOrientation: DocumentOrientation = shipment.documentOrientation || "Portrait";
@@ -206,8 +244,9 @@ export function DocWordRibbon({
     };
   }, [showTableMenu, showMarginPopover]);
 
-  // Execute formatting command while keeping selection
+  // Execute formatting command while preserving selection
   const runCommand = (command: string, value: string | undefined = undefined) => {
+    restoreActiveSelection();
     try {
       document.execCommand(command, false, value);
     } catch {
@@ -216,37 +255,52 @@ export function DocWordRibbon({
   };
 
   const handleFontFamilyChange = (font: string) => {
-    update("docEditorFontFamily", font);
-    runCommand("fontName", font);
-  };
-
-  const handleFontSizeChange = (size: number) => {
-    // 1. Check if user highlighted a specific text span in edit mode
-    const selection = window.getSelection();
-    if (selection && !selection.isCollapsed && selection.rangeCount > 0) {
-      const paperEl = document.querySelector(".paper-document");
-      if (paperEl && paperEl.contains(selection.anchorNode)) {
-        try {
-          const range = selection.getRangeAt(0);
-          const span = document.createElement("span");
-          span.style.fontSize = `${size}pt`;
-          range.surroundContents(span);
-          toast.success(`Ukuran teks terpilih diubah ke ${size} pt`);
-          return;
-        } catch {
-          // Cross-block selection fallback
-        }
+    // 1. If text is blocked/selected, apply style ONLY to the selected text segment
+    if (isTextSelected()) {
+      const success = applyInlineStyleToSelection({ "font-family": font });
+      if (success) {
+        setSelectedFontFamily(font);
+        toast.success(`Jenis huruf teks terpilih diubah ke ${font} (teks lain tidak berubah)`);
+        return;
       }
     }
 
-    // 2. Document-wide font size: updates all sections, articles, tables & headings
+    // 2. Document-wide font family
+    update("docEditorFontFamily", font);
+    setSelectedFontFamily(font);
+    runCommand("fontName", font);
+    toast.success(`Jenis huruf seluruh dokumen diubah ke ${font}`);
+  };
+
+  const handleFontSizeChange = (size: number) => {
+    // 1. If text is blocked/selected, apply style ONLY to the selected text segment
+    if (isTextSelected()) {
+      const success = applyInlineStyleToSelection({ "font-size": `${size}pt` });
+      if (success) {
+        setSelectedFontSize(size);
+        toast.success(`Ukuran teks terpilih diubah ke ${size} pt (teks lain tidak terpengaruh)`);
+        return;
+      }
+    }
+
+    // 2. Document-wide font size: updates document base size
     update("docEditorFontSize", size);
+    setSelectedFontSize(size);
     toast.success(`Ukuran tulisan seluruh dokumen diubah ke ${size} pt`);
   };
 
   const stepFontSize = (delta: number) => {
-    const current = Number(shipment.docEditorFontSize || 12);
-    const nextSize = Math.max(7, Math.min(32, Math.round((current + delta) * 2) / 2));
+    if (isTextSelected()) {
+      const nextSize = stepSelectionFontSize(delta);
+      if (nextSize !== null) {
+        setSelectedFontSize(nextSize);
+        toast.success(`Ukuran teks terpilih: ${nextSize} pt`);
+        return;
+      }
+    }
+
+    const current = Number(shipment.docEditorFontSize || 11);
+    const nextSize = Math.max(7, Math.min(36, Math.round((current + delta) * 2) / 2));
     handleFontSizeChange(nextSize);
   };
 
@@ -255,26 +309,54 @@ export function DocWordRibbon({
   };
 
   const handleTextColor = (color: string) => {
-    runCommand("foreColor", color);
+    restoreActiveSelection();
+    if (isTextSelected()) {
+      applyInlineStyleToSelection({ color: color });
+      toast.success("Warna teks terpilih diubah");
+    } else {
+      runCommand("foreColor", color);
+    }
     setShowColorPicker(false);
   };
 
   const handleHighlightColor = (color: string) => {
-    runCommand("hiliteColor", color);
+    restoreActiveSelection();
+    if (isTextSelected()) {
+      applyInlineStyleToSelection({ "background-color": color });
+      toast.success("Warna sorotan teks terpilih diterapkan");
+    } else {
+      runCommand("hiliteColor", color);
+    }
     setShowHighlightPicker(false);
   };
 
   const handleCaseChange = () => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) return;
-    const selectedText = selection.toString();
-    if (!selectedText) return;
+    restoreActiveSelection();
+    if (isTextSelected()) {
+      changeSelectionCase();
+      toast.success("Kapitalisasi teks terpilih diubah");
+    } else {
+      const selection = window.getSelection();
+      if (!selection || selection.rangeCount === 0) return;
+      const selectedText = selection.toString();
+      if (!selectedText) return;
 
-    const isAllUpper = selectedText === selectedText.toUpperCase();
-    const transformed = isAllUpper
-      ? selectedText.toLowerCase()
-      : selectedText.toUpperCase();
-    runCommand("insertText", transformed);
+      const isAllUpper = selectedText === selectedText.toUpperCase();
+      const transformed = isAllUpper
+        ? selectedText.toLowerCase()
+        : selectedText.toUpperCase();
+      runCommand("insertText", transformed);
+    }
+  };
+
+  const handleClearFormat = () => {
+    restoreActiveSelection();
+    if (isTextSelected()) {
+      clearFormattingFromSelection();
+      toast.success("Format teks terpilih dibersihkan");
+    } else {
+      runCommand("removeFormat");
+    }
   };
 
   // --- Enhanced Microsoft Word Table Operations ---
@@ -890,6 +972,8 @@ export function DocWordRibbon({
                   <select
                     className="doc-ribbon-select font-family-select"
                     value={activeFontFamily}
+                    onFocus={() => saveActiveSelection()}
+                    onMouseDown={() => saveActiveSelection()}
                     onChange={(e) => handleFontFamilyChange(e.target.value)}
                     title="Pilih Jenis Huruf (Font Family)"
                   >
@@ -907,27 +991,31 @@ export function DocWordRibbon({
                   <select
                     className="doc-ribbon-select font-size-select"
                     value={activeFontSize}
+                    onFocus={() => saveActiveSelection()}
+                    onMouseDown={() => saveActiveSelection()}
                     onChange={(e) => handleFontSizeChange(Number(e.target.value))}
                     title="Ukuran Huruf Dokumen (Font Size dalam pt)"
                   >
+                    <option value="7">7 pt (Sangat Kecil)</option>
                     <option value="8">8 pt</option>
                     <option value="8.5">8.5 pt</option>
-                    <option value="9">9 pt</option>
+                    <option value="9">9 pt (Word Ringkas / Kecil)</option>
                     <option value="9.5">9.5 pt</option>
                     <option value="10">10 pt</option>
-                    <option value="10.5">10.5 pt</option>
-                    <option value="11">11 pt</option>
+                    <option value="10.5">10.5 pt (Standar Calibri/Arial)</option>
+                    <option value="11">11 pt (Standar Word Modern)</option>
                     <option value="11.5">11.5 pt</option>
-                    <option value="12">12 pt (Standar Ekspor)</option>
+                    <option value="12">12 pt (Standar Ekspor Formal)</option>
                     <option value="12.5">12.5 pt</option>
                     <option value="13">13 pt</option>
-                    <option value="14">14 pt</option>
-                    <option value="15">15 pt</option>
-                    <option value="16">16 pt</option>
-                    <option value="18">18 pt</option>
+                    <option value="14">14 pt (Subheading)</option>
+                    <option value="16">16 pt (Heading)</option>
+                    <option value="18">18 pt (Judul Besar)</option>
                     <option value="20">20 pt</option>
-                    <option value="24">24 pt</option>
-                    {!["8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13", "14", "15", "16", "18", "20", "24"].includes(String(activeFontSize)) && (
+                    <option value="24">24 pt (Judul Utama)</option>
+                    <option value="28">28 pt</option>
+                    <option value="36">36 pt</option>
+                    {!["7", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13", "14", "16", "18", "20", "24", "28", "36"].includes(String(activeFontSize)) && (
                       <option value={activeFontSize}>{activeFontSize} pt</option>
                     )}
                   </select>
@@ -975,7 +1063,7 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("removeFormat");
+                      handleClearFormat();
                     }}
                     title="Hapus Pemformatan Teks"
                   >
@@ -1067,6 +1155,10 @@ export function DocWordRibbon({
                     <button
                       type="button"
                       className="doc-ribbon-btn-icon doc-color-trigger"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        saveActiveSelection();
+                      }}
                       onClick={() => setShowHighlightPicker((prev) => !prev)}
                       title="Warna Sorotan Teks (Highlighter)"
                     >
@@ -1075,11 +1167,11 @@ export function DocWordRibbon({
                     </button>
                     {showHighlightPicker && (
                       <div className="doc-color-dropdown">
-                        <button type="button" className="color-swatch swatch-yellow" onClick={() => handleHighlightColor("#fef08a")} />
-                        <button type="button" className="color-swatch swatch-green" onClick={() => handleHighlightColor("#bbf7d0")} />
-                        <button type="button" className="color-swatch swatch-cyan" onClick={() => handleHighlightColor("#bae6fd")} />
-                        <button type="button" className="color-swatch swatch-pink" onClick={() => handleHighlightColor("#fbcfe8")} />
-                        <button type="button" className="color-swatch swatch-clear" onClick={() => handleHighlightColor("transparent")} title="Hapus Sorotan">✕</button>
+                        <button type="button" className="color-swatch swatch-yellow" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#fef08a")} />
+                        <button type="button" className="color-swatch swatch-green" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#bbf7d0")} />
+                        <button type="button" className="color-swatch swatch-cyan" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#bae6fd")} />
+                        <button type="button" className="color-swatch swatch-pink" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#fbcfe8")} />
+                        <button type="button" className="color-swatch swatch-clear" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("transparent")} title="Hapus Sorotan">✕</button>
                       </div>
                     )}
                   </div>
@@ -1089,6 +1181,10 @@ export function DocWordRibbon({
                     <button
                       type="button"
                       className="doc-ribbon-btn-icon doc-color-trigger"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        saveActiveSelection();
+                      }}
                       onClick={() => setShowColorPicker((prev) => !prev)}
                       title="Warna Font Huruf (Text Color)"
                     >
@@ -1097,17 +1193,19 @@ export function DocWordRibbon({
                     </button>
                     {showColorPicker && (
                       <div className="doc-color-dropdown">
-                        <button type="button" className="color-swatch swatch-black" onClick={() => handleTextColor("#0f172a")} />
-                        <button type="button" className="color-swatch swatch-navy" onClick={() => handleTextColor("#0f2942")} />
-                        <button type="button" className="color-swatch swatch-blue" onClick={() => handleTextColor("#1d4ed8")} />
-                        <button type="button" className="color-swatch swatch-red" onClick={() => handleTextColor("#b91c1c")} />
-                        <button type="button" className="color-swatch swatch-gray" onClick={() => handleTextColor("#475569")} />
+                        <button type="button" className="color-swatch swatch-black" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#0f172a")} />
+                        <button type="button" className="color-swatch swatch-navy" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#0f2942")} />
+                        <button type="button" className="color-swatch swatch-blue" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#1d4ed8")} />
+                        <button type="button" className="color-swatch swatch-red" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#b91c1c")} />
+                        <button type="button" className="color-swatch swatch-gray" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#475569")} />
                       </div>
                     )}
                   </div>
                 </div>
 
-                <span className="doc-ribbon-group-label">Font ({activeFontSize} pt)</span>
+                <span className="doc-ribbon-group-label">
+                  Font ({activeFontSize} pt{hasBlockedText ? " · Teks Terpilih" : ""})
+                </span>
               </div>
 
               <div className="doc-ribbon-divider" />

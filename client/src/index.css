@@ -5984,93 +5984,93 @@ textarea:focus-visible {
 
 /* ==========================================================================
    100% UNIFORM TYPOGRAPHY (MICROSOFT WORD STANDARD)
-   All body text, tables, bullets, terms, labels, and values share the exact same
-   font size: var(--doc-font-size, 12pt).
+   Document-level base font size and font family with full support for
+   isolated selection/blocked formatting without overriding user inline styles.
    ========================================================================== */
 
 .paper-document {
-  --doc-font-size: 12pt;
-  font-size: var(--doc-font-size, 12pt) !important;
+  --doc-font-size: 11pt;
+  font-size: var(--doc-font-size, 11pt);
   line-height: 1.45;
 }
 
 /* Reset all font family inside paper to inherit user-selected font (Calibri, Arial, etc.) */
 .paper-document,
 .paper-document * {
-  font-family: inherit !important;
+  font-family: inherit;
 }
 
-/* 1. All text elements, paragraphs, lists, and bullets (100% UNIFORM SIZE) */
-.paper-document p,
-.paper-document span,
-.paper-document b,
-.paper-document strong,
-.paper-document li,
-.paper-document div,
-.paper-document .contract-article-block p,
+/* 1. All text elements, paragraphs, lists, and bullets (Default Document Base Size) */
+.paper-document p:not([style*="font-size"]),
+.paper-document span:not([style*="font-size"]),
+.paper-document b:not([style*="font-size"]),
+.paper-document strong:not([style*="font-size"]),
+.paper-document li:not([style*="font-size"]),
+.paper-document div:not([style*="font-size"]),
+.paper-document .contract-article-block p:not([style*="font-size"]),
 .paper-document .article-ordered-list,
-.paper-document .article-ordered-list li,
+.paper-document .article-ordered-list li:not([style*="font-size"]),
 .paper-document .table-product-specs,
-.paper-document .table-product-specs li,
-.paper-document .table-product-title,
-.paper-document .doc-witness-clause,
-.paper-document .doc-intro-p,
-.paper-document .doc-words-banner,
-.paper-document .doc-cert-banner,
-.paper-document .doc-instructions-box,
-.paper-document .terms-lbl,
-.paper-document .terms-val,
-.paper-document .meta-label,
-.paper-document .meta-value,
-.paper-document .bank-lbl,
-.paper-document .bank-val,
-.paper-document .bank-card-title,
-.paper-document .doc-terms-header,
+.paper-document .table-product-specs li:not([style*="font-size"]),
+.paper-document .table-product-title:not([style*="font-size"]),
+.paper-document .doc-witness-clause:not([style*="font-size"]),
+.paper-document .doc-intro-p:not([style*="font-size"]),
+.paper-document .doc-words-banner:not([style*="font-size"]),
+.paper-document .doc-cert-banner:not([style*="font-size"]),
+.paper-document .doc-instructions-box:not([style*="font-size"]),
+.paper-document .terms-lbl:not([style*="font-size"]),
+.paper-document .terms-val:not([style*="font-size"]),
+.paper-document .meta-label:not([style*="font-size"]),
+.paper-document .meta-value:not([style*="font-size"]),
+.paper-document .bank-lbl:not([style*="font-size"]),
+.paper-document .bank-val:not([style*="font-size"]),
+.paper-document .bank-card-title:not([style*="font-size"]),
+.paper-document .doc-terms-header:not([style*="font-size"]),
 .paper-document .doc-terms-panel,
 .paper-document .doc-terms-grid,
 .paper-document .doc-box,
-.paper-document .doc-box-tag,
-.paper-document .doc-entity-name,
-.paper-document .doc-entity-address,
-.paper-document .doc-entity-contact,
-.paper-document .company-details,
-.paper-document .company-contact,
-.paper-document .contract-party-header,
-.paper-document .party-name,
-.paper-document .party-address,
-.paper-document .party-phone,
-.paper-document .party-tax,
+.paper-document .doc-box-tag:not([style*="font-size"]),
+.paper-document .doc-entity-name:not([style*="font-size"]),
+.paper-document .doc-entity-address:not([style*="font-size"]),
+.paper-document .doc-entity-contact:not([style*="font-size"]),
+.paper-document .company-details:not([style*="font-size"]),
+.paper-document .company-contact:not([style*="font-size"]),
+.paper-document .contract-party-header:not([style*="font-size"]),
+.paper-document .party-name:not([style*="font-size"]),
+.paper-document .party-address:not([style*="font-size"]),
+.paper-document .party-phone:not([style*="font-size"]),
+.paper-document .party-tax:not([style*="font-size"]),
 .paper-document .official-sig-block,
-.paper-document .sig-company-name,
-.paper-document .sig-signatory-name,
-.paper-document .sig-signatory-title,
-.paper-document .sig-signed-for,
-.paper-document .official-signatory-name,
-.paper-document .official-signatory-role,
-.paper-document .text-xs,
-.paper-document .text-sm,
-.paper-document .text-base,
-.paper-document .text-lg,
-.paper-document .font-mono {
-  font-size: var(--doc-font-size, 12pt) !important;
-  line-height: 1.4 !important;
+.paper-document .sig-company-name:not([style*="font-size"]),
+.paper-document .sig-signatory-name:not([style*="font-size"]),
+.paper-document .sig-signatory-title:not([style*="font-size"]),
+.paper-document .sig-signed-for:not([style*="font-size"]),
+.paper-document .official-signatory-name:not([style*="font-size"]),
+.paper-document .official-signatory-role:not([style*="font-size"]),
+.paper-document .text-xs:not([style*="font-size"]),
+.paper-document .text-sm:not([style*="font-size"]),
+.paper-document .text-base:not([style*="font-size"]),
+.paper-document .text-lg:not([style*="font-size"]),
+.paper-document .font-mono:not([style*="font-size"]) {
+  font-size: var(--doc-font-size, 11pt);
+  line-height: 1.4;
 }
 
-/* 2. All tables (Headers, Cells, Totals) share the EXACT SAME FONT SIZE */
-.paper-document table,
-.paper-document table th,
-.paper-document table td,
+/* 2. All tables (Headers, Cells, Totals) share the base font size */
+.paper-document table:not([style*="font-size"]),
+.paper-document table th:not([style*="font-size"]),
+.paper-document table td:not([style*="font-size"]),
 .paper-document .doc-table-pro,
-.paper-document .doc-table-pro th,
-.paper-document .doc-table-pro td,
+.paper-document .doc-table-pro th:not([style*="font-size"]),
+.paper-document .doc-table-pro td:not([style*="font-size"]),
 .paper-document .doc-user-table,
-.paper-document .doc-user-table th,
-.paper-document .doc-user-table td,
-.paper-document .doc-table-total-row td,
-.paper-document .bank-card-table td,
-.paper-document .bank-card-table th {
-  font-size: var(--doc-font-size, 12pt) !important;
-  line-height: 1.4 !important;
+.paper-document .doc-user-table th:not([style*="font-size"]),
+.paper-document .doc-user-table td:not([style*="font-size"]),
+.paper-document .doc-table-total-row td:not([style*="font-size"]),
+.paper-document .bank-card-table td:not([style*="font-size"]),
+.paper-document .bank-card-table th:not([style*="font-size"]) {
+  font-size: var(--doc-font-size, 11pt);
+  line-height: 1.4;
 }
 
 /* 3. Section Titles (same font size, bold) */
@@ -6078,19 +6078,30 @@ textarea:focus-visible {
 .paper-document .doc-terms-header,
 .paper-document .bank-card-title,
 .paper-document .doc-section-title {
-  font-size: var(--doc-font-size, 12pt) !important;
-  font-weight: 700 !important;
+  font-size: var(--doc-font-size, 11pt);
+  font-weight: 700;
 }
 
 /* 4. Document Main Title Bar & Letterhead Company Name */
-.paper-document .doc-title-bar h2 {
-  font-size: calc(var(--doc-font-size, 12pt) * 1.15) !important;
-  font-weight: 800 !important;
+.paper-document .doc-title-bar h2:not([style*="font-size"]) {
+  font-size: calc(var(--doc-font-size, 11pt) * 1.15);
+  font-weight: 800;
 }
 
-.paper-document .company-name {
-  font-size: calc(var(--doc-font-size, 12pt) * 1.35) !important;
-  font-weight: 800 !important;
+.paper-document .company-name:not([style*="font-size"]) {
+  font-size: calc(var(--doc-font-size, 11pt) * 1.35);
+  font-weight: 800;
+}
+
+/* 5. Microsoft Word-Grade Blocked Text / Inline Formatting Protection */
+.paper-document .word-formatted-span {
+  display: inline;
+}
+.paper-document [style*="font-size"] {
+  /* Strictly respects user's explicit font-size on selected block */
+}
+.paper-document [style*="font-family"] {
+  /* Strictly respects user's explicit font-family on selected block */
 }
 
 /* Document Header & Footer (Word-like) */
@@ -6706,7 +6717,7 @@ textarea:focus-visible {
 }
 
 .table-product-title {
-  font-size: var(--doc-font-size, 12pt) !important;
+  font-size: var(--doc-font-size, 11pt);
   font-weight: 700 !important;
   color: #0f172a !important;
   display: block !important;
@@ -6718,13 +6729,13 @@ textarea:focus-visible {
   list-style: disc !important;
   padding-left: 18px !important;
   margin: 4px 0 0 !important;
-  font-size: var(--doc-font-size, 12pt) !important;
+  font-size: var(--doc-font-size, 11pt);
   color: #0f172a !important;
   line-height: 1.45 !important;
 }
 
 .table-product-specs li {
-  font-size: var(--doc-font-size, 12pt) !important;
+  font-size: var(--doc-font-size, 11pt);
   font-weight: 500 !important;
   color: #0f172a !important;
   line-height: 1.45 !important;

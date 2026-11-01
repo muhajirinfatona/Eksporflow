@@ -521,7 +521,7 @@ export function DocumentsModule({
         paperSize: shipment.paperSize || "A4",
         documentOrientation: shipment.documentOrientation || "Portrait",
         fontFamily: shipment.docEditorFontFamily || "Calibri",
-        fontSize: shipment.docEditorFontSize || 12,
+        fontSize: shipment.docEditorFontSize || 11,
         lineHeight: shipment.docEditorLineHeight || 1.35,
         docMarginPreset: shipment.docMarginPreset,
         docMarginTop: shipment.docMarginTop,
@@ -588,8 +588,8 @@ export function DocumentsModule({
             margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm;
           }
           .paper-document {
-            --doc-font-size: ${shipment.docEditorFontSize || 12}pt !important;
-            font-size: ${shipment.docEditorFontSize || 12}pt !important;
+            --doc-font-size: ${shipment.docEditorFontSize || 11}pt !important;
+            font-size: ${shipment.docEditorFontSize || 11}pt !important;
           }
         }
       `}</style>
@@ -952,8 +952,8 @@ export function DocumentsModule({
           suppressContentEditableWarning={true}
           style={{
             fontFamily: shipment.docEditorFontFamily || "Calibri",
-            fontSize: `${shipment.docEditorFontSize || 12}pt`,
-            ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 12}pt`,
+            fontSize: `${shipment.docEditorFontSize || 11}pt`,
+            ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 11}pt`,
             ["--logo-scale" as any]: `${(shipment.letterheadLogoScale ?? 100) / 100}`,
             lineHeight: shipment.docEditorLineHeight || 1.35,
             textAlign: shipment.docEditorTextAlign || "left",
