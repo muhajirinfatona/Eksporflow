@@ -2,14 +2,15 @@ import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
 import { formatMoney, formatNumber, numberToWords } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
-import type {
-  ContainerCalc,
-  DocumentOrientation,
-  DocumentTemplate,
-  DocumentType,
-  PaperSize,
-  PreviewLanguage,
-  Shipment,
+import {
+  type ContainerCalc,
+  type DocumentOrientation,
+  type DocumentTemplate,
+  type DocumentType,
+  type PaperSize,
+  type PreviewLanguage,
+  type Shipment,
+  getPaperSizeSpec,
 } from "@shared/shipment";
 import {
   Building2,
@@ -348,6 +349,11 @@ export function DocumentsModule({
         buyerSignatureDate: shipment.buyerSignatureDate,
         buyerVerificationCode: shipment.buyerVerificationCode || "ABF-DIGISIG-1092-DXB",
         includeOfficialStamp: shipment.includeOfficialStamp,
+        paperSize: shipment.paperSize || "A4",
+        documentOrientation: shipment.documentOrientation || "Portrait",
+        fontFamily: shipment.docEditorFontFamily || "Calibri",
+        fontSize: shipment.docEditorFontSize || 12,
+        lineHeight: shipment.docEditorLineHeight || 1.35,
       };
 
       const docSlug = selectedDocument.toLowerCase().replace(/\s+/g, "_");
@@ -399,7 +405,7 @@ export function DocumentsModule({
       <style>{`
         @media print {
           @page {
-            size: ${shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4"} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
+            size: ${getPaperSizeSpec(shipment.paperSize).cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
             margin: 6mm 10mm 6mm 10mm;
           }
         }
@@ -439,7 +445,7 @@ export function DocumentsModule({
       <div className="doc-action-bar">
         <div className="doc-action-info">
           <div className="doc-active-meta-strip">
-            <span className="spec-badge-paper">{shipment.paperSize} · {shipment.documentOrientation}</span>
+            <span className="spec-badge-paper">{getPaperSizeSpec(shipment.paperSize).label} · {shipment.documentOrientation}</span>
             <span className="spec-badge-template">{shipment.documentTemplate}</span>
             <span className={`spec-badge-lang ${shipment.previewLanguage === "Bahasa Indonesia" ? "lang-id" : "lang-en"}`}>
               {shipment.previewLanguage === "Bahasa Indonesia" ? "🇮🇩 Review: Indonesia" : "🇬🇧 Standar: English"}
@@ -2674,13 +2680,21 @@ function DocumentSettings({
             </div>
             <div className="doc-settings-card-fields">
               <SelectField
-                label="Ukuran Kertas Dokumen"
+                label="Ukuran Kertas Dokumen (Tersedia juga di Toolbar Word)"
                 value={shipment.paperSize}
                 onChange={(value) => update("paperSize", value as PaperSize)}
               >
                 <option value="A4">A4 · 210 × 297 mm (Standar Internasional ISO)</option>
                 <option value="Letter">US Letter · 8.5 × 11 in (Standar Amerika)</option>
                 <option value="Legal">US Legal · 8.5 × 14 in (Panjang)</option>
+                <option value="Folio">Folio / F4 · 8.5 × 13 in (Standar Bisnis & Ekspor RI)</option>
+                <option value="Executive">Executive · 7.25 × 10.5 in</option>
+                <option value="A3">A3 · 297 × 420 mm (Format Lebar ISO)</option>
+                <option value="A5">A5 · 148 × 210 mm (Format Ringkas ISO)</option>
+                <option value="B4">B4 JIS · 257 × 364 mm (Standar Jepang)</option>
+                <option value="B5">B5 JIS · 182 × 257 mm (Standar Jepang)</option>
+                <option value="Tabloid">Tabloid · 11 × 17 in (Ledger ANSI B)</option>
+                <option value="Statement">Statement · 5.5 × 8.5 in (Half Letter)</option>
               </SelectField>
 
               <SelectField

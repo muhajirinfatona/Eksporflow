@@ -23,7 +23,7 @@ import { useActiveShipment } from "@/hooks/useActiveShipment";
 import { useWorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { AuthFlow } from "@/pages/AuthFlow";
 import type { ScreenId } from "@shared/risk";
-import type { DocumentType } from "@shared/shipment";
+import { type DocumentType, getPaperSizeSpec } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
 
 function readScreenFromUrl(): ScreenId {
@@ -120,9 +120,9 @@ export default function Home() {
     }
     const style = document.createElement("style");
     style.id = "eksporflow-print-page";
-    const paperSizeVal = shipment.paperSize === "Letter" ? "letter" : shipment.paperSize === "Legal" ? "legal" : "A4";
+    const paperSpec = getPaperSizeSpec(shipment.paperSize);
     const orientationVal = shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait";
-    style.textContent = `@media print { @page { size: ${paperSizeVal} ${orientationVal}; margin: 6mm 10mm 6mm 10mm; } }`;
+    style.textContent = `@media print { @page { size: ${paperSpec.cssSize} ${orientationVal}; margin: 6mm 10mm 6mm 10mm; } }`;
     document.head.appendChild(style);
 
     const handleAfterPrint = () => {

@@ -31,9 +31,12 @@ import {
   Columns,
   Rows,
   ChevronDown,
+  FileText,
+  Layout,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Shipment } from "@shared/shipment";
+import type { Shipment, PaperSize, DocumentOrientation } from "@shared/shipment";
+import { getPaperSizeSpec } from "@shared/shipment";
 
 interface DocWordRibbonProps {
   shipment: Shipment;
@@ -66,6 +69,23 @@ export function DocWordRibbon({
   const activeFontFamily = shipment.docEditorFontFamily || "Calibri";
   const activeFontSize = shipment.docEditorFontSize || 12;
   const activeLineHeight = shipment.docEditorLineHeight || 1.35;
+  const activePaperSize: PaperSize = shipment.paperSize || "A4";
+  const activeOrientation: DocumentOrientation = shipment.documentOrientation || "Portrait";
+
+  const handlePaperSizeChange = (newSize: PaperSize) => {
+    update("paperSize", newSize);
+    const spec = getPaperSizeSpec(newSize);
+    toast.success(`Ukuran kertas diatur: ${spec.label}`, {
+      description: spec.description,
+    });
+  };
+
+  const handleOrientationChange = (newOrientation: DocumentOrientation) => {
+    update("documentOrientation", newOrientation);
+    toast.success(
+      `Orientasi kertas: ${newOrientation === "Landscape" ? "Lanskap (Mendatar)" : "Potret (Tegak)"}`
+    );
+  };
 
   // Click outside to close table popover
   useEffect(() => {
@@ -842,6 +862,52 @@ export function DocWordRibbon({
                 </div>
               </div>
             )}
+          </div>
+
+          <div className="doc-ribbon-divider" />
+
+          {/* PAGE SETUP / UKURAN KERTAS GROUP (NEW: Seperti di Microsoft Word) */}
+          <div className="doc-ribbon-group group-pagesetup">
+            <div className="doc-ribbon-row-top">
+              <div className="doc-ribbon-field-with-icon" title="Pilih Ukuran Kertas Sesuai Standar Microsoft Word">
+                <FileText size={13} className="doc-field-prefix-icon" />
+                <select
+                  className="doc-ribbon-select paper-size-select"
+                  value={activePaperSize}
+                  onChange={(e) => handlePaperSizeChange(e.target.value as PaperSize)}
+                  title="Pilih Ukuran Kertas Sesuai Standar Word"
+                >
+                  <option value="A4">A4 (210 × 297 mm)</option>
+                  <option value="Letter">Letter (8.5 × 11 in)</option>
+                  <option value="Legal">Legal (8.5 × 14 in)</option>
+                  <option value="Folio">Folio / F4 (8.5 × 13 in)</option>
+                  <option value="Executive">Executive (7.25 × 10.5 in)</option>
+                  <option value="A3">A3 (297 × 420 mm)</option>
+                  <option value="A5">A5 (148 × 210 mm)</option>
+                  <option value="B4">B4 JIS (257 × 364 mm)</option>
+                  <option value="B5">B5 JIS (182 × 257 mm)</option>
+                  <option value="Tabloid">Tabloid (11 × 17 in)</option>
+                  <option value="Statement">Statement (5.5 × 8.5 in)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="doc-ribbon-row-bottom">
+              <div className="doc-ribbon-field-with-icon" title="Orientasi Kertas">
+                <Layout size={12} className="doc-field-prefix-icon" />
+                <select
+                  className="doc-ribbon-select doc-orientation-select"
+                  value={activeOrientation}
+                  onChange={(e) => handleOrientationChange(e.target.value as DocumentOrientation)}
+                  title="Orientasi Kertas"
+                >
+                  <option value="Portrait">Potret (Tegak)</option>
+                  <option value="Landscape">Lanskap (Mendatar)</option>
+                </select>
+              </div>
+            </div>
+
+            <span className="doc-ribbon-group-label">Kertas</span>
           </div>
 
           <div className="doc-ribbon-divider" />

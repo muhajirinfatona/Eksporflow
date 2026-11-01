@@ -1,6 +1,25 @@
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, HeadingLevel, BorderStyle } from "docx";
+import {
+  Document,
+  Packer,
+  Paragraph,
+  TextRun,
+  Table,
+  TableRow,
+  TableCell,
+  WidthType,
+  AlignmentType,
+  HeadingLevel,
+  BorderStyle,
+  PageOrientation,
+} from "docx";
 import * as XLSX from "xlsx";
-import type { Shipment, DocumentType } from "@shared/shipment";
+import {
+  type Shipment,
+  type DocumentType,
+  type PaperSize,
+  type DocumentOrientation,
+  getPaperSizeSpec,
+} from "@shared/shipment";
 
 export type ExportFormat = "pdf" | "docx" | "xlsx" | "html" | "txt";
 
@@ -45,6 +64,11 @@ export interface ExportDocData {
   buyerSignatureDate?: string;
   buyerVerificationCode?: string;
   includeOfficialStamp?: boolean;
+  paperSize?: PaperSize;
+  documentOrientation?: DocumentOrientation;
+  fontFamily?: string;
+  fontSize?: number;
+  lineHeight?: number;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
@@ -84,6 +108,28 @@ export async function exportToDocx(
   const isContract = docType === "Sales Contract";
   const is2Page = data.contractLayout === "2-page";
 
+  const paperSpec = getPaperSizeSpec(data.paperSize || "A4");
+  const isLandscape = data.documentOrientation === "Landscape";
+  const pageWidth = isLandscape ? paperSpec.heightDxa : paperSpec.widthDxa;
+  const pageHeight = isLandscape ? paperSpec.widthDxa : paperSpec.heightDxa;
+  const fontSizePt = data.fontSize || 12;
+  const fontFamily = data.fontFamily || "Calibri";
+  const baseRunSize = Math.round(fontSizePt * 2); // Half-points (12pt = 24)
+
+  const tr = (
+    text: string,
+    opts?: { bold?: boolean; italics?: boolean; size?: number; color?: string }
+  ) => {
+    return new TextRun({
+      text,
+      font: fontFamily,
+      bold: opts?.bold,
+      italics: opts?.italics,
+      size: opts?.size !== undefined ? opts.size : baseRunSize,
+      color: opts?.color,
+    });
+  };
+
   const children: (Paragraph | Table)[] = [];
 
   // Kop Surat Perusahaan
@@ -91,10 +137,9 @@ export async function exportToDocx(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({
-          text: data.exporterName.toUpperCase(),
+        tr(data.exporterName.toUpperCase(), {
           bold: true,
-          size: 28, // 14pt
+          size: baseRunSize + 6,
           color: "0F2942",
         }),
       ],
@@ -102,9 +147,8 @@ export async function exportToDocx(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({
-          text: data.exporterAddress,
-          size: 19,
+        tr(data.exporterAddress, {
+          size: Math.max(16, baseRunSize - 4),
           color: "334155",
         }),
       ],
@@ -112,9 +156,8 @@ export async function exportToDocx(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       children: [
-        new TextRun({
-          text: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
-          size: 18,
+        tr("Telp: +62 812 3456 7890 · Email: official@indicoexport.com", {
+          size: Math.max(16, baseRunSize - 4),
           color: "475569",
         }),
       ],
@@ -123,8 +166,7 @@ export async function exportToDocx(
       alignment: AlignmentType.CENTER,
       spacing: { after: 200 },
       children: [
-        new TextRun({
-          text: "_________________________________________________________________________________",
+        tr("_________________________________________________________________________________", {
           color: "0F2942",
         }),
       ],
@@ -137,10 +179,9 @@ export async function exportToDocx(
       alignment: AlignmentType.CENTER,
       spacing: { before: 100, after: 100 },
       children: [
-        new TextRun({
-          text: docType.toUpperCase(),
+        tr(docType.toUpperCase(), {
           bold: true,
-          size: 26,
+          size: baseRunSize + 4,
           color: "0F2942",
         }),
       ],
@@ -149,12 +190,12 @@ export async function exportToDocx(
       alignment: AlignmentType.CENTER,
       spacing: { after: 200 },
       children: [
-        new TextRun({ text: `${isId ? "No. Dokumen" : "Doc No"}: `, bold: true, size: 20 }),
-        new TextRun({ text: `${docNo}   |   `, size: 20 }),
-        new TextRun({ text: `${isId ? "Tanggal" : "Date"}: `, bold: true, size: 20 }),
-        new TextRun({ text: `November 20, 2026   |   `, size: 20 }),
-        new TextRun({ text: `${isId ? "Ref PO" : "Buyer PO Ref"}: `, bold: true, size: 20 }),
-        new TextRun({ text: data.poNumber || "ABF/LOI/2026/108", size: 20 }),
+        tr(`${isId ? "No. Dokumen" : "Doc No"}: `, { bold: true, size: Math.max(16, baseRunSize - 2) }),
+        tr(`${docNo}   |   `, { size: Math.max(16, baseRunSize - 2) }),
+        tr(`${isId ? "Tanggal" : "Date"}: `, { bold: true, size: Math.max(16, baseRunSize - 2) }),
+        tr(`November 20, 2026   |   `, { size: Math.max(16, baseRunSize - 2) }),
+        tr(`${isId ? "Ref PO" : "Buyer PO Ref"}: `, { bold: true, size: Math.max(16, baseRunSize - 2) }),
+        tr(data.poNumber || "ABF/LOI/2026/108", { size: Math.max(16, baseRunSize - 2) }),
       ],
     })
   );
@@ -179,26 +220,24 @@ export async function exportToDocx(
               children: [
                 new Paragraph({
                   children: [
-                    new TextRun({
-                      text: isId ? "PIHAK PENJUAL (THE SELLER):" : "THE SELLER / EXPORTER:",
+                    tr(isId ? "PIHAK PENJUAL (THE SELLER):" : "THE SELLER / EXPORTER:", {
                       bold: true,
-                      size: 19,
+                      size: Math.max(16, baseRunSize - 2),
                       color: "0F2942",
                     }),
                   ],
                 }),
                 new Paragraph({
-                  children: [new TextRun({ text: data.exporterName, bold: true, size: 21 })],
+                  children: [tr(data.exporterName, { bold: true, size: baseRunSize + 1 })],
                 }),
-                new Paragraph({ children: [new TextRun({ text: data.exporterAddress, size: 19 })] }),
+                new Paragraph({ children: [tr(data.exporterAddress, { size: Math.max(16, baseRunSize - 2) })] }),
                 new Paragraph({
-                  children: [new TextRun({ text: "Telp: +62 812 3456 7890 | Email: official@indicoexport.com", size: 19 })],
+                  children: [tr("Telp: +62 812 3456 7890 | Email: official@indicoexport.com", { size: Math.max(16, baseRunSize - 2) })],
                 }),
                 new Paragraph({
                   children: [
-                    new TextRun({
-                      text: `Attn: ${data.signatoryName || "Muhajirin Fatona"} (${data.signatoryRole || "Export Director"})`,
-                      size: 19,
+                    tr(`Attn: ${data.signatoryName || "Muhajirin Fatona"} (${data.signatoryRole || "Export Director"})`, {
+                      size: Math.max(16, baseRunSize - 2),
                     }),
                   ],
                 }),
@@ -357,17 +396,16 @@ export async function exportToDocx(
       children.push(
         new Paragraph({
           children: [
-            new TextRun({
-              text: art.title,
+            tr(art.title, {
               bold: true,
-              size: 23, // ~11.5pt
+              size: baseRunSize + 2,
               color: "0F2942",
             }),
           ],
           spacing: { before: 120, after: 40 },
         }),
         new Paragraph({
-          children: [new TextRun({ text: art.body, size: 21 })], // ~10.5pt
+          children: [tr(art.body, { size: baseRunSize })],
           spacing: { after: 100 },
         })
       );
@@ -389,23 +427,23 @@ export async function exportToDocx(
             children: [
               new TableCell({
                 borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: "Marks & Numbers", bold: true, size: 19 })] })],
+                children: [new Paragraph({ children: [tr("Marks & Numbers", { bold: true, size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: "Description of Goods", bold: true, size: 19 })] })],
+                children: [new Paragraph({ children: [tr("Description of Goods", { bold: true, size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: "Quantity", bold: true, size: 19 })] })],
+                children: [new Paragraph({ children: [tr("Quantity", { bold: true, size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: "Unit Price", bold: true, size: 19 })] })],
+                children: [new Paragraph({ children: [tr("Unit Price", { bold: true, size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: "Total Amount", bold: true, size: 19 })] })],
+                children: [new Paragraph({ children: [tr("Total Amount", { bold: true, size: baseRunSize })] })],
               }),
             ],
           }),
@@ -413,23 +451,23 @@ export async function exportToDocx(
             children: [
               new TableCell({
                 borders: cellBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: `IEI / DUBAI / 2026\n1 - ${data.bagsCount}`, size: 19 })] })],
+                children: [new Paragraph({ children: [tr(`IEI / DUBAI / 2026\n1 - ${data.bagsCount}`, { size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: cellBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: `${data.productName}\nHS Code: ${data.hsCode}\nPacking: ${data.bagsCount} bags @ 20 kg`, size: 19 })] })],
+                children: [new Paragraph({ children: [tr(`${data.productName}\nHS Code: ${data.hsCode}\nPacking: ${data.bagsCount} bags @ 20 kg`, { size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: cellBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: `${data.netWeightMT} MT\n(${data.bagsCount} Bags)`, size: 19 })] })],
+                children: [new Paragraph({ children: [tr(`${data.netWeightMT} MT\n(${data.bagsCount} Bags)`, { size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: cellBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: `${data.currency} ${data.unitPricePerMT.toFixed(2)}`, size: 19 })] })],
+                children: [new Paragraph({ children: [tr(`${data.currency} ${data.unitPricePerMT.toFixed(2)}`, { size: baseRunSize })] })],
               }),
               new TableCell({
                 borders: cellBorder,
-                children: [new Paragraph({ children: [new TextRun({ text: `${data.currency} ${data.totalAmount.toFixed(2)}`, bold: true, size: 19 })] })],
+                children: [new Paragraph({ children: [tr(`${data.currency} ${data.totalAmount.toFixed(2)}`, { bold: true, size: baseRunSize })] })],
               }),
             ],
           }),
@@ -445,14 +483,16 @@ export async function exportToDocx(
       alignment: AlignmentType.CENTER,
       spacing: { before: 200, after: 150 },
       children: [
-        new TextRun({
-          text: isId
+        tr(
+          isId
             ? "DEMIKIANLAH, kedua belah pihak telah menyepakati dan menandatangani dokumen ini dengan kekuatan hukum yang sah."
             : "IN WITNESS WHEREOF, both parties have executed this document in duplicate with equal legal force.",
-          italics: true,
-          bold: true,
-          size: 21,
-        }),
+          {
+            italics: true,
+            bold: true,
+            size: baseRunSize,
+          }
+        ),
       ],
     })
   );
@@ -517,15 +557,37 @@ export async function exportToDocx(
   );
 
   const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: fontFamily,
+            size: baseRunSize,
+            color: "0F172A",
+          },
+          paragraph: {
+            spacing: {
+              line: Math.round((data.lineHeight || 1.35) * 240),
+              after: 80,
+            },
+          },
+        },
+      },
+    },
     sections: [
       {
         properties: {
           page: {
+            size: {
+              width: pageWidth,
+              height: pageHeight,
+              orientation: isLandscape ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT,
+            },
             margin: {
               top: 1000,
               bottom: 1000,
-              left: 1200,
-              right: 1200,
+              left: 1100,
+              right: 1100,
             },
           },
         },
@@ -621,6 +683,11 @@ export function exportToHtml(
   isId: boolean
 ): Blob {
   const docNo = getDocumentNumber(docType, isId);
+  const paperSpec = getPaperSizeSpec(data.paperSize || "A4");
+  const orientation = (data.documentOrientation || "Portrait").toLowerCase();
+  const fontSize = data.fontSize || 12;
+  const fontFamily = data.fontFamily || "Calibri";
+  const lineHeight = data.lineHeight || 1.35;
   const paperElement = document.querySelector(".paper-document");
   const contentHtml = paperElement ? paperElement.outerHTML : `<div>Dokumen ${docType} - ${docNo}</div>`;
 
@@ -630,8 +697,33 @@ export function exportToHtml(
   <meta charset="UTF-8">
   <title>${docType} - ${docNo}</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; background: #f8fafc; padding: 24px; color: #0f172a; margin: 0; }
-    .paper-document { background: #ffffff; max-width: 860px; margin: 0 auto; padding: 40px; box-shadow: 0 4px 14px rgba(0,0,0,0.08); border-radius: 4px; }
+    @page {
+      size: ${paperSpec.cssSize} ${orientation};
+      margin: 6mm 10mm 6mm 10mm;
+    }
+    body {
+      font-family: '${fontFamily}', Calibri, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      background: #f8fafc;
+      padding: 24px;
+      color: #0f172a;
+      margin: 0;
+      font-size: ${fontSize}px;
+    }
+    .paper-document {
+      background: #ffffff;
+      max-width: ${orientation === "landscape" ? Math.round(paperSpec.heightMm * 3.78) : Math.round(paperSpec.widthMm * 3.78)}px;
+      margin: 0 auto;
+      padding: 36px 44px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      border-radius: 4px;
+      font-family: '${fontFamily}', Calibri, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      font-size: ${fontSize}px;
+      line-height: ${lineHeight};
+    }
+    .contract-article-block p, .article-ordered-list, td, th {
+      font-size: ${fontSize}px !important;
+      line-height: ${lineHeight};
+    }
     .paper-letterhead-wrap { margin-bottom: 6px; }
     .letterhead-brand { display: flex; align-items: center; gap: 14px; }
     .company-name { font-size: 18px; font-weight: 800; color: #0f2942; margin: 0; text-transform: uppercase; }
@@ -676,12 +768,14 @@ export function exportToTxt(
   isId: boolean
 ): Blob {
   const docNo = getDocumentNumber(docType, isId);
+  const paperSpec = getPaperSizeSpec(data.paperSize || "A4");
   const lines: string[] = [
     `================================================================================`,
     `                      ${data.exporterName.toUpperCase()}`,
     `           ${data.exporterAddress}`,
     `      Telp: +62 812 3456 7890 · Email: official@indicoexport.com`,
     `================================================================================`,
+    `[STANDAR KERTAS: ${paperSpec.label} (${data.documentOrientation || "Portrait"}) · FONT: ${data.fontFamily || "Calibri"} ${data.fontSize || 12}pt]`,
     ``,
     `                              ${docType.toUpperCase()}`,
     `Dokumen No: ${docNo}  |  Tanggal: November 20, 2026  |  PO Ref: ${data.poNumber || "ABF/LOI/2026/108"}`,

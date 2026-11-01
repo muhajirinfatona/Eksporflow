@@ -5939,14 +5939,62 @@ textarea:focus-visible {
 }
 
 .paper-letter,
-.paper-legal {
+.paper-legal,
+.paper-folio {
   max-width: 835px;
+  margin: 0 auto;
+}
+
+.paper-executive {
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.paper-a3 {
+  max-width: 1060px;
+  margin: 0 auto;
+}
+
+.paper-a5 {
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.paper-b4 {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.paper-b5 {
+  max-width: 770px;
+  margin: 0 auto;
+}
+
+.paper-tabloid {
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.paper-statement {
+  max-width: 620px;
   margin: 0 auto;
 }
 
 .paper-landscape {
   max-width: 1080px;
 }
+
+.paper-landscape.paper-a4 { max-width: 1100px; }
+.paper-landscape.paper-letter { max-width: 1080px; }
+.paper-landscape.paper-legal { max-width: 1350px; }
+.paper-landscape.paper-folio { max-width: 1250px; }
+.paper-landscape.paper-executive { max-width: 1020px; }
+.paper-landscape.paper-a3 { max-width: 1400px; }
+.paper-landscape.paper-a5 { max-width: 820px; }
+.paper-landscape.paper-b4 { max-width: 1280px; }
+.paper-landscape.paper-b5 { max-width: 980px; }
+.paper-landscape.paper-tabloid { max-width: 1450px; }
+.paper-landscape.paper-statement { max-width: 835px; }
 
 /* Letterhead */
 .paper-letterhead-wrap {
@@ -13766,6 +13814,32 @@ textarea:focus-visible {
 
 .line-spacing-select {
   width: 145px;
+}
+
+.paper-size-select {
+  width: 158px;
+}
+
+.doc-orientation-select {
+  width: 158px;
+}
+
+.doc-ribbon-field-with-icon {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
+.doc-field-prefix-icon {
+  position: absolute;
+  left: 6px;
+  color: #64748b;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.doc-ribbon-field-with-icon .doc-ribbon-select {
+  padding-left: 24px;
 }
 
 /* Color triggers and dropdown */

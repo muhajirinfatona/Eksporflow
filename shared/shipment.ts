@@ -8,7 +8,171 @@ export type DocumentType =
   | "Packing List"
   | "Shipping Instruction"
   | "Bill of Lading";
-export type PaperSize = "A4" | "Letter" | "Legal";
+export type PaperSize =
+  | "A4"
+  | "Letter"
+  | "Legal"
+  | "Folio"
+  | "Executive"
+  | "A3"
+  | "A5"
+  | "B4"
+  | "B5"
+  | "Tabloid"
+  | "Statement";
+
+export interface PaperSizeSpec {
+  size: PaperSize;
+  label: string;
+  widthMm: number;
+  heightMm: number;
+  widthIn: number;
+  heightIn: number;
+  widthDxa: number;
+  heightDxa: number;
+  cssSize: string;
+  description: string;
+}
+
+export const PAPER_SIZE_SPECS: Record<PaperSize, PaperSizeSpec> = {
+  A4: {
+    size: "A4",
+    label: "A4",
+    widthMm: 210,
+    heightMm: 297,
+    widthIn: 8.27,
+    heightIn: 11.69,
+    widthDxa: 11906,
+    heightDxa: 16838,
+    cssSize: "210mm 297mm",
+    description: "A4 (210 × 297 mm) · Standar Internasional ISO",
+  },
+  Letter: {
+    size: "Letter",
+    label: "Letter",
+    widthMm: 215.9,
+    heightMm: 279.4,
+    widthIn: 8.5,
+    heightIn: 11.0,
+    widthDxa: 12240,
+    heightDxa: 15840,
+    cssSize: "8.5in 11in",
+    description: "Letter (8.5 × 11 in / 216 × 279 mm) · Standar US",
+  },
+  Legal: {
+    size: "Legal",
+    label: "Legal",
+    widthMm: 215.9,
+    heightMm: 355.6,
+    widthIn: 8.5,
+    heightIn: 14.0,
+    widthDxa: 12240,
+    heightDxa: 20160,
+    cssSize: "8.5in 14in",
+    description: "Legal (8.5 × 14 in / 216 × 356 mm) · US Legal",
+  },
+  Folio: {
+    size: "Folio",
+    label: "Folio / F4",
+    widthMm: 215.9,
+    heightMm: 330.2,
+    widthIn: 8.5,
+    heightIn: 13.0,
+    widthDxa: 12240,
+    heightDxa: 18720,
+    cssSize: "215.9mm 330.2mm",
+    description: "Folio / F4 (8.5 × 13 in / 216 × 330 mm) · Standar Bisnis & Ekspor RI",
+  },
+  Executive: {
+    size: "Executive",
+    label: "Executive",
+    widthMm: 184.1,
+    heightMm: 266.7,
+    widthIn: 7.25,
+    heightIn: 10.5,
+    widthDxa: 10440,
+    heightDxa: 15120,
+    cssSize: "7.25in 10.5in",
+    description: "Executive (7.25 × 10.5 in / 184 × 267 mm)",
+  },
+  A3: {
+    size: "A3",
+    label: "A3",
+    widthMm: 297,
+    heightMm: 420,
+    widthIn: 11.69,
+    heightIn: 16.54,
+    widthDxa: 16838,
+    heightDxa: 23811,
+    cssSize: "297mm 420mm",
+    description: "A3 (297 × 420 mm) · Format Besar ISO",
+  },
+  A5: {
+    size: "A5",
+    label: "A5",
+    widthMm: 148,
+    heightMm: 210,
+    widthIn: 5.83,
+    heightIn: 8.27,
+    widthDxa: 8391,
+    heightDxa: 11906,
+    cssSize: "148mm 210mm",
+    description: "A5 (148 × 210 mm) · Format Ringkas ISO",
+  },
+  B4: {
+    size: "B4",
+    label: "B4 (JIS)",
+    widthMm: 257,
+    heightMm: 364,
+    widthIn: 10.12,
+    heightIn: 14.33,
+    widthDxa: 14570,
+    heightDxa: 20636,
+    cssSize: "257mm 364mm",
+    description: "B4 JIS (257 × 364 mm) · Standar Jepang",
+  },
+  B5: {
+    size: "B5",
+    label: "B5 (JIS)",
+    widthMm: 182,
+    heightMm: 257,
+    widthIn: 7.17,
+    heightIn: 10.12,
+    widthDxa: 10318,
+    heightDxa: 14570,
+    cssSize: "182mm 257mm",
+    description: "B5 JIS (182 × 257 mm) · Standar Jepang",
+  },
+  Tabloid: {
+    size: "Tabloid",
+    label: "Tabloid",
+    widthMm: 279.4,
+    heightMm: 431.8,
+    widthIn: 11.0,
+    heightIn: 17.0,
+    widthDxa: 15840,
+    heightDxa: 24480,
+    cssSize: "11in 17in",
+    description: "Tabloid / Ledger (11 × 17 in / 279 × 432 mm)",
+  },
+  Statement: {
+    size: "Statement",
+    label: "Statement",
+    widthMm: 139.7,
+    heightMm: 215.9,
+    widthIn: 5.5,
+    heightIn: 8.5,
+    widthDxa: 7920,
+    heightDxa: 12240,
+    cssSize: "5.5in 8.5in",
+    description: "Statement / Half Letter (5.5 × 8.5 in / 140 × 216 mm)",
+  },
+};
+
+export function getPaperSizeSpec(size: PaperSize = "A4"): PaperSizeSpec {
+  return PAPER_SIZE_SPECS[size] || PAPER_SIZE_SPECS.A4;
+}
+
 export type DocumentOrientation = "Portrait" | "Landscape";
 export type DocumentTemplate = "Classic Trade" | "Corporate Clean" | "Minimal";
 export type PreviewLanguage = "English" | "Bahasa Indonesia";
