@@ -11,6 +11,7 @@ import {
   type PreviewLanguage,
   type Shipment,
   getPaperSizeSpec,
+  getDocMargins,
 } from "@shared/shipment";
 import {
   Building2,
@@ -85,6 +86,11 @@ export function DocumentsModule({
   const [editorKey, setEditorKey] = useState(0);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
   const reviewMenuRef = useRef<HTMLDivElement>(null);
+
+  const docMargins = getDocMargins(shipment);
+  const paperSpec = getPaperSizeSpec(shipment.paperSize);
+  const isLandscape = shipment.documentOrientation === "Landscape";
+  const paperWidthMm = isLandscape ? paperSpec.heightMm : paperSpec.widthMm;
 
   const handleOpenSignatureModal = (party: "seller" | "buyer" = "seller") => {
     setSignatureParty(party);
@@ -354,6 +360,16 @@ export function DocumentsModule({
         fontFamily: shipment.docEditorFontFamily || "Calibri",
         fontSize: shipment.docEditorFontSize || 12,
         lineHeight: shipment.docEditorLineHeight || 1.35,
+        docMarginPreset: shipment.docMarginPreset,
+        docMarginTop: shipment.docMarginTop,
+        docMarginBottom: shipment.docMarginBottom,
+        docMarginLeft: shipment.docMarginLeft,
+        docMarginRight: shipment.docMarginRight,
+        docHeaderEnabled: shipment.docHeaderEnabled,
+        docHeaderText: shipment.docHeaderText,
+        docFooterEnabled: shipment.docFooterEnabled,
+        docFooterText: shipment.docFooterText,
+        docShowPageNumber: shipment.docShowPageNumber,
       };
 
       const docSlug = selectedDocument.toLowerCase().replace(/\s+/g, "_");
@@ -405,8 +421,8 @@ export function DocumentsModule({
       <style>{`
         @media print {
           @page {
-            size: ${getPaperSizeSpec(shipment.paperSize).cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 6mm 10mm 6mm 10mm;
+            size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
+            margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm;
           }
         }
       `}</style>
@@ -708,18 +724,51 @@ export function DocumentsModule({
 
       {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
+        {/* Word-like Horizontal Ruler (Penggaris Word) */}
+        {shipment.docShowRuler !== false && (
+          <WordRuler
+            paperWidthMm={paperWidthMm}
+            leftMarginMm={docMargins.left}
+            rightMarginMm={docMargins.right}
+          />
+        )}
+
         <div
           key={editorKey}
           contentEditable={isEditMode}
           suppressContentEditableWarning={true}
           style={{
             fontFamily: shipment.docEditorFontFamily || "Calibri",
-            fontSize: `${shipment.docEditorFontSize || 12}px`,
+            fontSize: `${shipment.docEditorFontSize || 12}pt`,
             lineHeight: shipment.docEditorLineHeight || 1.35,
             textAlign: shipment.docEditorTextAlign || "left",
+            paddingTop: `${docMargins.top}mm`,
+            paddingBottom: `${docMargins.bottom}mm`,
+            paddingLeft: `${docMargins.left}mm`,
+            paddingRight: `${docMargins.right}mm`,
           }}
           className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""} ${isEditMode ? "word-editable-mode" : ""}`}
         >
+          {/* Word-like Document Header (Bagian Atas Kertas) */}
+          {shipment.docHeaderEnabled !== false && (
+            <div
+              className={`doc-page-header-zone ${isEditMode ? "editable-highlight" : ""}`}
+              contentEditable={isEditMode}
+              suppressContentEditableWarning={true}
+              title={isEditMode ? "Header Halaman (Dapat Diketik Langsung)" : "Header Dokumen Resmi"}
+            >
+              <div className="doc-page-header-content">
+                <span className="doc-header-doc-title">
+                  {selectedDocument.toUpperCase()} · REF: {getDocumentNumber(selectedDocument, isId)}
+                </span>
+                <span className="doc-header-meta">
+                  {shipment.docHeaderText || (isId ? "DOKUMEN RESMI EKSPOR INTERNASIONAL" : "OFFICIAL COMMERCIAL EXPORT CONTRACT")}
+                </span>
+              </div>
+              {isEditMode && <span className="doc-header-tag">Header (Bisa Diketik Langsung)</span>}
+            </div>
+          )}
+
           {/* Official Letterhead Header */}
           <OfficialLetterhead
             shipment={shipment}
@@ -898,6 +947,28 @@ export function DocumentsModule({
               onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
+
+          {/* Word-like Document Footer (Bagian Bawah Kertas) */}
+          {shipment.docFooterEnabled !== false && (
+            <div
+              className={`doc-page-footer-zone ${isEditMode ? "editable-highlight" : ""}`}
+              contentEditable={isEditMode}
+              suppressContentEditableWarning={true}
+              title={isEditMode ? "Footer Halaman (Dapat Diketik Langsung)" : "Footer Dokumen Resmi"}
+            >
+              <div className="doc-page-footer-content">
+                <span className="doc-footer-confidential">
+                  {shipment.docFooterText || (isId ? "Dokumen Resmi Ekspor · Rahasia & Mengikat Hukum Para Pihak" : "Official Commercial Export Document · Strictly Confidential & Legally Binding")}
+                </span>
+                {shipment.docShowPageNumber !== false && (
+                  <span className="doc-footer-pagenum">
+                    {isId ? "Halaman 1 dari 1" : "Page 1 of 1"}
+                  </span>
+                )}
+              </div>
+              {isEditMode && <span className="doc-footer-tag">Footer (Bisa Diketik Langsung)</span>}
+            </div>
+          )}
         </div>
       </div>
 
@@ -909,6 +980,66 @@ export function DocumentsModule({
         update={update}
         initialParty={signatureParty}
       />
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Word-like Horizontal Ruler Component (Penggaris Word)
+// --------------------------------------------------------------------------
+function WordRuler({
+  paperWidthMm,
+  leftMarginMm,
+  rightMarginMm,
+}: {
+  paperWidthMm: number;
+  leftMarginMm: number;
+  rightMarginMm: number;
+}) {
+  const printableMm = Math.max(10, paperWidthMm - leftMarginMm - rightMarginMm);
+  const totalCm = Math.max(5, Math.floor(paperWidthMm / 10));
+
+  return (
+    <div className="doc-word-ruler-container" title="Penggaris Margin Microsoft Word">
+      <div className="doc-ruler-meta-bar">
+        <span>Penggaris Margin Microsoft Word</span>
+        <span>
+          Margin Kiri: {(leftMarginMm / 10).toFixed(2)} cm · Area Teks: {(printableMm / 10).toFixed(2)} cm · Margin Kanan: {(rightMarginMm / 10).toFixed(2)} cm
+        </span>
+      </div>
+      <div className="doc-ruler-track">
+        {/* Left Margin Gray Zone */}
+        <div
+          className="doc-ruler-margin-zone left"
+          style={{ width: `${(leftMarginMm / paperWidthMm) * 100}%` }}
+          title={`Margin Kiri: ${(leftMarginMm / 10).toFixed(2)} cm`}
+        >
+          <div className="doc-ruler-marker-triangle marker-left">▼</div>
+        </div>
+
+        {/* Printable White Zone */}
+        <div
+          className="doc-ruler-printable-zone"
+          style={{ width: `${(printableMm / paperWidthMm) * 100}%` }}
+        >
+          <div className="doc-ruler-ticks">
+            {Array.from({ length: totalCm }).map((_, i) => (
+              <div key={i} className="doc-ruler-cm-mark">
+                <span className="doc-ruler-cm-number">{i + 1}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Right Margin Gray Zone */}
+        <div
+          className="doc-ruler-margin-zone right"
+          style={{ width: `${(rightMarginMm / paperWidthMm) * 100}%` }}
+          title={`Margin Kanan: ${(rightMarginMm / 10).toFixed(2)} cm`}
+        >
+          <div className="doc-ruler-marker-triangle marker-right">▲</div>
+        </div>
+      </div>
     </div>
   );
 }

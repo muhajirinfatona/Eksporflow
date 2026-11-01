@@ -173,6 +173,68 @@ export function getPaperSizeSpec(size: PaperSize = "A4"): PaperSizeSpec {
   return PAPER_SIZE_SPECS[size] || PAPER_SIZE_SPECS.A4;
 }
 
+// --- Microsoft Word Standard Page Margins ---
+export type DocMarginPreset = "Normal" | "Sempit" | "Sedang" | "Lebar" | "Kustom";
+
+export interface DocMarginSpec {
+  preset: DocMarginPreset;
+  top: number; // in mm
+  bottom: number; // in mm
+  left: number; // in mm
+  right: number; // in mm
+  label: string;
+}
+
+export const DOC_MARGIN_PRESETS: Record<"Normal" | "Sempit" | "Sedang" | "Lebar", DocMarginSpec> = {
+  Normal: {
+    preset: "Normal",
+    top: 25.4,
+    bottom: 25.4,
+    left: 25.4,
+    right: 25.4,
+    label: "Normal (Atas: 2.54cm · Bawah: 2.54cm · Kiri: 2.54cm · Kanan: 2.54cm)",
+  },
+  Sempit: {
+    preset: "Sempit",
+    top: 12.7,
+    bottom: 12.7,
+    left: 12.7,
+    right: 12.7,
+    label: "Sempit / Narrow (Atas/Bawah: 1.27cm · Kiri/Kanan: 1.27cm)",
+  },
+  Sedang: {
+    preset: "Sedang",
+    top: 25.4,
+    bottom: 25.4,
+    left: 19.1,
+    right: 19.1,
+    label: "Sedang / Moderate (Atas/Bawah: 2.54cm · Kiri/Kanan: 1.91cm)",
+  },
+  Lebar: {
+    preset: "Lebar",
+    top: 25.4,
+    bottom: 25.4,
+    left: 50.8,
+    right: 50.8,
+    label: "Lebar / Wide (Atas/Bawah: 2.54cm · Kiri/Kanan: 5.08cm)",
+  },
+};
+
+export function getDocMargins(shipment: Partial<Shipment>): DocMarginSpec {
+  const preset = shipment.docMarginPreset || "Normal";
+  if (preset !== "Kustom" && DOC_MARGIN_PRESETS[preset]) {
+    return DOC_MARGIN_PRESETS[preset];
+  }
+  return {
+    preset: "Kustom",
+    top: shipment.docMarginTop ?? 25.4,
+    bottom: shipment.docMarginBottom ?? 25.4,
+    left: shipment.docMarginLeft ?? 25.4,
+    right: shipment.docMarginRight ?? 25.4,
+    label: "Kustom",
+  };
+}
+
 export type DocumentOrientation = "Portrait" | "Landscape";
 export type DocumentTemplate = "Classic Trade" | "Corporate Clean" | "Minimal";
 export type PreviewLanguage = "English" | "Bahasa Indonesia";
@@ -305,6 +367,17 @@ export type Shipment = {
   docEditorLineHeight?: number;
   docEditorTextAlign?: "left" | "center" | "right" | "justify";
   docEditorMode?: boolean;
+  docMarginPreset?: DocMarginPreset;
+  docMarginTop?: number;
+  docMarginBottom?: number;
+  docMarginLeft?: number;
+  docMarginRight?: number;
+  docHeaderEnabled?: boolean;
+  docHeaderText?: string;
+  docFooterEnabled?: boolean;
+  docFooterText?: string;
+  docShowPageNumber?: boolean;
+  docShowRuler?: boolean;
   mfgRawMaterial?: number;
   mfgAuxiliary?: number;
   mfgDirectLabor?: number;
@@ -373,6 +446,17 @@ export const initialShipment: Shipment = {
   docEditorLineHeight: 1.35,
   docEditorTextAlign: "left",
   docEditorMode: false,
+  docMarginPreset: "Normal",
+  docMarginTop: 25.4,
+  docMarginBottom: 25.4,
+  docMarginLeft: 25.4,
+  docMarginRight: 25.4,
+  docHeaderEnabled: true,
+  docHeaderText: "OFFICIAL COMMERCIAL EXPORT CONTRACT",
+  docFooterEnabled: true,
+  docFooterText: "CONFIDENTIAL & LEGALLY BINDING INTERNATIONAL COMMERCIAL DOCUMENT",
+  docShowPageNumber: true,
+  docShowRuler: true,
   contractSpecialTerms: "",
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",

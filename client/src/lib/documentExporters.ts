@@ -11,6 +11,9 @@ import {
   HeadingLevel,
   BorderStyle,
   PageOrientation,
+  Header,
+  Footer,
+  PageNumber,
 } from "docx";
 import * as XLSX from "xlsx";
 import {
@@ -18,7 +21,9 @@ import {
   type DocumentType,
   type PaperSize,
   type DocumentOrientation,
+  type DocMarginPreset,
   getPaperSizeSpec,
+  getDocMargins,
 } from "@shared/shipment";
 
 export type ExportFormat = "pdf" | "docx" | "xlsx" | "html" | "txt";
@@ -69,6 +74,16 @@ export interface ExportDocData {
   fontFamily?: string;
   fontSize?: number;
   lineHeight?: number;
+  docMarginPreset?: DocMarginPreset;
+  docMarginTop?: number;
+  docMarginBottom?: number;
+  docMarginLeft?: number;
+  docMarginRight?: number;
+  docHeaderEnabled?: boolean;
+  docHeaderText?: string;
+  docFooterEnabled?: boolean;
+  docFooterText?: string;
+  docShowPageNumber?: boolean;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
@@ -115,6 +130,18 @@ export async function exportToDocx(
   const fontSizePt = data.fontSize || 12;
   const fontFamily = data.fontFamily || "Calibri";
   const baseRunSize = Math.round(fontSizePt * 2); // Half-points (12pt = 24)
+
+  const margins = getDocMargins({
+    docMarginPreset: data.docMarginPreset,
+    docMarginTop: data.docMarginTop,
+    docMarginBottom: data.docMarginBottom,
+    docMarginLeft: data.docMarginLeft,
+    docMarginRight: data.docMarginRight,
+  });
+  const topDxa = Math.round(margins.top * 56.69);
+  const bottomDxa = Math.round(margins.bottom * 56.69);
+  const leftDxa = Math.round(margins.left * 56.69);
+  const rightDxa = Math.round(margins.right * 56.69);
 
   const tr = (
     text: string,
@@ -584,13 +611,46 @@ export async function exportToDocx(
               orientation: isLandscape ? PageOrientation.LANDSCAPE : PageOrientation.PORTRAIT,
             },
             margin: {
-              top: 1000,
-              bottom: 1000,
-              left: 1100,
-              right: 1100,
+              top: topDxa,
+              bottom: bottomDxa,
+              left: leftDxa,
+              right: rightDxa,
+              header: 720,
+              footer: 720,
             },
           },
         },
+        headers: data.docHeaderEnabled !== false ? {
+          default: new Header({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.BOTH,
+                children: [
+                  tr(`${docType.toUpperCase()} · REF: ${docNo}`, { size: 16, color: "64748B" }),
+                  tr(`\t${data.docHeaderText || (isId ? "DOKUMEN RESMI EKSPOR" : "OFFICIAL EXPORT CONTRACT")}`, { size: 16, color: "64748B", italics: true }),
+                ],
+              }),
+            ],
+          }),
+        } : undefined,
+        footers: data.docFooterEnabled !== false ? {
+          default: new Footer({
+            children: [
+              new Paragraph({
+                alignment: AlignmentType.BOTH,
+                children: [
+                  tr(data.docFooterText || (isId ? "Dokumen Resmi Ekspor · Rahasia & Mengikat Hukum" : "Official Commercial Export Document · Strictly Confidential"), { size: 15, color: "64748B" }),
+                  ...(data.docShowPageNumber !== false ? [
+                    tr("\tPage ", { size: 15, color: "64748B" }),
+                    new TextRun({ children: [PageNumber.CURRENT], font: fontFamily, size: 15, color: "64748B" }),
+                    tr(" of ", { size: 15, color: "64748B" }),
+                    new TextRun({ children: [PageNumber.TOTAL_PAGES], font: fontFamily, size: 15, color: "64748B" }),
+                  ] : []),
+                ],
+              }),
+            ],
+          }),
+        } : undefined,
         children,
       },
     ],
@@ -688,6 +748,13 @@ export function exportToHtml(
   const fontSize = data.fontSize || 12;
   const fontFamily = data.fontFamily || "Calibri";
   const lineHeight = data.lineHeight || 1.35;
+  const margins = getDocMargins({
+    docMarginPreset: data.docMarginPreset,
+    docMarginTop: data.docMarginTop,
+    docMarginBottom: data.docMarginBottom,
+    docMarginLeft: data.docMarginLeft,
+    docMarginRight: data.docMarginRight,
+  });
   const paperElement = document.querySelector(".paper-document");
   const contentHtml = paperElement ? paperElement.outerHTML : `<div>Dokumen ${docType} - ${docNo}</div>`;
 
@@ -699,7 +766,7 @@ export function exportToHtml(
   <style>
     @page {
       size: ${paperSpec.cssSize} ${orientation};
-      margin: 6mm 10mm 6mm 10mm;
+      margin: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm;
     }
     body {
       font-family: '${fontFamily}', Calibri, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -707,21 +774,21 @@ export function exportToHtml(
       padding: 24px;
       color: #0f172a;
       margin: 0;
-      font-size: ${fontSize}px;
+      font-size: ${fontSize}pt;
     }
     .paper-document {
       background: #ffffff;
       max-width: ${orientation === "landscape" ? Math.round(paperSpec.heightMm * 3.78) : Math.round(paperSpec.widthMm * 3.78)}px;
       margin: 0 auto;
-      padding: 36px 44px;
+      padding: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm;
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
       border-radius: 4px;
       font-family: '${fontFamily}', Calibri, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-      font-size: ${fontSize}px;
+      font-size: ${fontSize}pt;
       line-height: ${lineHeight};
     }
     .contract-article-block p, .article-ordered-list, td, th {
-      font-size: ${fontSize}px !important;
+      font-size: ${fontSize}pt !important;
       line-height: ${lineHeight};
     }
     .paper-letterhead-wrap { margin-bottom: 6px; }
@@ -769,13 +836,20 @@ export function exportToTxt(
 ): Blob {
   const docNo = getDocumentNumber(docType, isId);
   const paperSpec = getPaperSizeSpec(data.paperSize || "A4");
+  const margins = getDocMargins({
+    docMarginPreset: data.docMarginPreset,
+    docMarginTop: data.docMarginTop,
+    docMarginBottom: data.docMarginBottom,
+    docMarginLeft: data.docMarginLeft,
+    docMarginRight: data.docMarginRight,
+  });
   const lines: string[] = [
     `================================================================================`,
     `                      ${data.exporterName.toUpperCase()}`,
     `           ${data.exporterAddress}`,
     `      Telp: +62 812 3456 7890 · Email: official@indicoexport.com`,
     `================================================================================`,
-    `[STANDAR KERTAS: ${paperSpec.label} (${data.documentOrientation || "Portrait"}) · FONT: ${data.fontFamily || "Calibri"} ${data.fontSize || 12}pt]`,
+    `[STANDAR KERTAS: ${paperSpec.label} (${data.documentOrientation || "Portrait"}) · MARGIN: ${margins.preset} (Atas:${margins.top}mm/Bawah:${margins.bottom}mm/Kiri:${margins.left}mm/Kanan:${margins.right}mm) · FONT: ${data.fontFamily || "Calibri"} ${data.fontSize || 12}pt]`,
     ``,
     `                              ${docType.toUpperCase()}`,
     `Dokumen No: ${docNo}  |  Tanggal: November 20, 2026  |  PO Ref: ${data.poNumber || "ABF/LOI/2026/108"}`,
