@@ -19,6 +19,7 @@ import {
   Redo2,
   Highlighter,
   Baseline,
+  CreditCard,
   FileSignature,
   RotateCcw,
   Check,
@@ -50,6 +51,8 @@ interface DocWordRibbonProps {
   setIsEditMode: (val: boolean) => void;
   onOpenSignatureModal: (party?: "seller" | "buyer") => void;
   onResetDocument: () => void;
+  onOpenAiScreening?: () => void;
+  onOpenBusinessCardOcr?: () => void;
 }
 
 export function DocWordRibbon({
@@ -59,6 +62,8 @@ export function DocWordRibbon({
   setIsEditMode,
   onOpenSignatureModal,
   onResetDocument,
+  onOpenAiScreening,
+  onOpenBusinessCardOcr,
 }: DocWordRibbonProps) {
   const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert">("home");
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -1212,6 +1217,56 @@ export function DocWordRibbon({
 
                 <span className="doc-ribbon-group-label">Otorisasi Resmi</span>
               </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* BUYER BUSINESS CARD OCR GROUP */}
+              {onOpenBusinessCardOcr && (
+                <div className="doc-ribbon-group group-ocr">
+                  <div className="doc-ribbon-row-top">
+                    <button
+                      type="button"
+                      className="doc-ribbon-sig-btn"
+                      onClick={onOpenBusinessCardOcr}
+                      title="Scan foto kartu nama buyer untuk mengekstrak nama perusahaan, PIC, jabatan, dan alamat ke surat"
+                    >
+                      <CreditCard size={14} />
+                      <span>Scan Kartu Nama</span>
+                    </button>
+                  </div>
+                  <div className="doc-ribbon-row-bottom">
+                    <span className="doc-sig-stat-txt">
+                      OCR Gambar ke Teks
+                    </span>
+                  </div>
+                  <span className="doc-ribbon-group-label">Data Buyer (OCR)</span>
+                </div>
+              )}
+
+              <div className="doc-ribbon-divider" />
+
+              {/* AI ADVISOR SCREENING GROUP */}
+              {onOpenAiScreening && (
+                <div className="doc-ribbon-group group-ai-screen">
+                  <div className="doc-ribbon-row-top">
+                    <button
+                      type="button"
+                      className="doc-ribbon-sig-btn"
+                      onClick={onOpenAiScreening}
+                      title="Screening kepatuhan, kalkulasi finansial, dan deteksi typo/kesalahan penulisan dokumen sebelum & sesudah diedit"
+                    >
+                      <Sparkles size={14} />
+                      <span>AI Screening</span>
+                    </button>
+                  </div>
+                  <div className="doc-ribbon-row-bottom">
+                    <span className="doc-sig-stat-txt">
+                      Deteksi Typo & Audit
+                    </span>
+                  </div>
+                  <span className="doc-ribbon-group-label">AI Advisor</span>
+                </div>
+              )}
             </>
           )}
         </div>

@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronUp,
   ClipboardList,
+  CreditCard,
   FileCheck2,
   FileSignature,
   FileText,
@@ -35,6 +36,7 @@ import {
   ShieldCheck,
   Ship,
   SlidersHorizontal,
+  Sparkles,
   Trash2,
   UploadCloud,
   X,
@@ -44,6 +46,8 @@ import { toast } from "sonner";
 import { Field, SelectField } from "./Primitives";
 import { DocWordRibbon } from "./DocWordRibbon";
 import { DigitalSignatureModal } from "./DigitalSignatureModal";
+import { DocumentAiScreeningModal } from "./DocumentAiScreeningModal";
+import { BusinessCardOcrModal } from "./BusinessCardOcrModal";
 import {
   exportToDocx,
   exportToXlsx,
@@ -83,6 +87,8 @@ export function DocumentsModule({
   const [isEditMode, setIsEditMode] = useState(shipment.docEditorMode ?? false);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [signatureParty, setSignatureParty] = useState<"seller" | "buyer">("seller");
+  const [isAiScreeningOpen, setIsAiScreeningOpen] = useState(false);
+  const [isBusinessCardOcrOpen, setIsBusinessCardOcrOpen] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
   const reviewMenuRef = useRef<HTMLDivElement>(null);
@@ -564,10 +570,32 @@ export function DocumentsModule({
                 <span>Verifikasi Dokumen</span>
               </button>
             )}
+
+            {/* 3. AI Advisor Screening & Deteksi Kesalahan */}
+            <button
+              type="button"
+              className="doc-btn-ai-screen"
+              onClick={() => setIsAiScreeningOpen(true)}
+              title="Screening kepatuhan, kalkulasi finansial, dan deteksi typo/kesalahan penulisan dokumen sebelum & sesudah diedit"
+            >
+              <Sparkles size={14} className="icon-sparkle-amber" />
+              <span>AI Screening</span>
+            </button>
           </div>
 
           {/* Right Cluster: Settings & Export Operations */}
           <div className="doc-actions-cluster">
+            {/* Scan Foto Kartu Nama Buyer (OCR) */}
+            <button
+              type="button"
+              className="doc-btn-ocr-card"
+              onClick={() => setIsBusinessCardOcrOpen(true)}
+              title="Scan foto kartu nama buyer untuk mengekstrak nama perusahaan, PIC, jabatan, dan alamat ke surat"
+            >
+              <CreditCard size={14} />
+              <span>Scan Kartu Nama</span>
+            </button>
+
             {/* Setelan Kop Drawer Toggle */}
             <button
               type="button"
@@ -719,6 +747,8 @@ export function DocumentsModule({
           setIsEditMode={setIsEditMode}
           onOpenSignatureModal={handleOpenSignatureModal}
           onResetDocument={handleResetDocument}
+          onOpenAiScreening={() => setIsAiScreeningOpen(true)}
+          onOpenBusinessCardOcr={() => setIsBusinessCardOcrOpen(true)}
         />
       )}
 
@@ -749,26 +779,6 @@ export function DocumentsModule({
           }}
           className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""} ${isEditMode ? "word-editable-mode" : ""}`}
         >
-          {/* Word-like Document Header (Bagian Atas Kertas) */}
-          {shipment.docHeaderEnabled !== false && (
-            <div
-              className={`doc-page-header-zone ${isEditMode ? "editable-highlight" : ""}`}
-              contentEditable={isEditMode}
-              suppressContentEditableWarning={true}
-              title={isEditMode ? "Header Halaman (Dapat Diketik Langsung)" : "Header Dokumen Resmi"}
-            >
-              <div className="doc-page-header-content">
-                <span className="doc-header-doc-title">
-                  {selectedDocument.toUpperCase()} · REF: {getDocumentNumber(selectedDocument, isId)}
-                </span>
-                <span className="doc-header-meta">
-                  {shipment.docHeaderText || (isId ? "DOKUMEN RESMI EKSPOR INTERNASIONAL" : "OFFICIAL COMMERCIAL EXPORT CONTRACT")}
-                </span>
-              </div>
-              {isEditMode && <span className="doc-header-tag">Header (Bisa Diketik Langsung)</span>}
-            </div>
-          )}
-
           {/* Official Letterhead Header */}
           <OfficialLetterhead
             shipment={shipment}
@@ -947,28 +957,6 @@ export function DocumentsModule({
               onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
-
-          {/* Word-like Document Footer (Bagian Bawah Kertas) */}
-          {shipment.docFooterEnabled !== false && (
-            <div
-              className={`doc-page-footer-zone ${isEditMode ? "editable-highlight" : ""}`}
-              contentEditable={isEditMode}
-              suppressContentEditableWarning={true}
-              title={isEditMode ? "Footer Halaman (Dapat Diketik Langsung)" : "Footer Dokumen Resmi"}
-            >
-              <div className="doc-page-footer-content">
-                <span className="doc-footer-confidential">
-                  {shipment.docFooterText || (isId ? "Dokumen Resmi Ekspor · Rahasia & Mengikat Hukum Para Pihak" : "Official Commercial Export Document · Strictly Confidential & Legally Binding")}
-                </span>
-                {shipment.docShowPageNumber !== false && (
-                  <span className="doc-footer-pagenum">
-                    {isId ? "Halaman 1 dari 1" : "Page 1 of 1"}
-                  </span>
-                )}
-              </div>
-              {isEditMode && <span className="doc-footer-tag">Footer (Bisa Diketik Langsung)</span>}
-            </div>
-          )}
         </div>
       </div>
 
@@ -979,6 +967,24 @@ export function DocumentsModule({
         shipment={shipment}
         update={update}
         initialParty={signatureParty}
+      />
+
+      {/* AI Advisor Document Screening & Typo Detection Modal */}
+      <DocumentAiScreeningModal
+        isOpen={isAiScreeningOpen}
+        onClose={() => setIsAiScreeningOpen(false)}
+        shipment={shipment}
+        update={update}
+        selectedDocument={selectedDocument}
+        isId={isId}
+      />
+
+      {/* Business Card OCR Scanner Modal */}
+      <BusinessCardOcrModal
+        isOpen={isBusinessCardOcrOpen}
+        onClose={() => setIsBusinessCardOcrOpen(false)}
+        shipment={shipment}
+        update={update}
       />
     </div>
   );
