@@ -1183,22 +1183,7 @@ function SalesContractDoc({
                 {isId ? "Diizinkan" : "Allowed"}
               </p>
             </div>
-          </div>
 
-          {/* PEMISAH HALAMAN: Page Break Print & Divider Visual Layar */}
-          <div className="doc-contract-page-break" />
-          <div className="doc-contract-screen-divider">
-            <span>{isId ? "— HALAMAN 2: DOKUMEN EKSPOR, KLAIM & PENGESAHAN KONTRAK —" : "— PAGE 2: EXPORT DOCUMENTS, CLAIMS & CONTRACT EXECUTION —"}</span>
-          </div>
-
-          {/* HEADER RESMI AWAL HALAMAN 2 */}
-          <div className="doc-contract-page-2-header">
-            <span>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} · REF: SC/IEI-ABF/XI/2026/001</span>
-            <span>{isId ? "HALAMAN 2 DARI 2" : "PAGE 2 OF 2"}</span>
-          </div>
-
-          {/* HALAMAN 2 ARTIKEL: Dokumen, Inspeksi, Klaim, Kahar & Arbitrase */}
-          <div className="contract-articles-wrapper contract-articles-page-2">
             <div className="contract-article-block">
               <h4 className="article-title">
                 {isId ? "PASAL 6: DOKUMEN PENGAPALAN RESMI (SHIPPING DOCUMENTS)" : "ARTICLE 6: OFFICIAL SHIPPING & EXPORT DOCUMENTS"}
@@ -1220,7 +1205,22 @@ function SalesContractDoc({
                   : "Final quantity, packaging, and quality inspection shall be conducted at Port of Loading warehouse prior to container stuffing by an accredited independent surveyor (such as Sucofindo / Surveyor Indonesia / SGS). The inspection certificate issued serves as prima facie evidence of conformity prior to vessel departure. Buyer is entitled to perform inspection verification at their discretion at Port of Loading."}
               </p>
             </div>
+          </div>
 
+          {/* PEMISAH HALAMAN: Page Break Print & Divider Visual Layar */}
+          <div className="doc-contract-page-break" />
+          <div className="doc-contract-screen-divider">
+            <span>{isId ? "— HALAMAN 2: PROSEDUR KLAIM, KAHAR & PENGESAHAN KONTRAK —" : "— PAGE 2: CLAIMS, FORCE MAJEURE & CONTRACT EXECUTION —"}</span>
+          </div>
+
+          {/* HEADER RESMI AWAL HALAMAN 2 */}
+          <div className="doc-contract-page-2-header">
+            <span>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} · REF: SC/IEI-ABF/XI/2026/001</span>
+            <span>{isId ? "HALAMAN 2 DARI 2" : "PAGE 2 OF 2"}</span>
+          </div>
+
+          {/* HALAMAN 2 ARTIKEL: Dokumen, Inspeksi, Klaim, Kahar & Arbitrase */}
+          <div className="contract-articles-wrapper contract-articles-page-2">
             <div className="contract-article-block">
               <h4 className="article-title">
                 {isId ? "PASAL 8: PROSEDUR KLAIM & GANTI RUGI" : "ARTICLE 8: CLAIMS PROCEDURE, DISCREPANCIES & REMEDIES"}
