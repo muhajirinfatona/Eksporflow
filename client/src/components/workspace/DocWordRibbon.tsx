@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Bold,
   Italic,
@@ -25,6 +25,12 @@ import {
   Edit3,
   SlidersHorizontal,
   Sparkles,
+  Table,
+  Plus,
+  Trash2,
+  Columns,
+  Rows,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shipment } from "@shared/shipment";
@@ -50,9 +56,31 @@ export function DocWordRibbon({
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [isRibbonCollapsed, setIsRibbonCollapsed] = useState(false);
 
+  // Table creator state
+  const [showTableMenu, setShowTableMenu] = useState(false);
+  const [customRows, setCustomRows] = useState(3);
+  const [customCols, setCustomCols] = useState(3);
+  const [hoverGrid, setHoverGrid] = useState<{ r: number; c: number }>({ r: 0, c: 0 });
+  const tableMenuRef = useRef<HTMLDivElement>(null);
+
   const activeFontFamily = shipment.docEditorFontFamily || "Calibri";
   const activeFontSize = shipment.docEditorFontSize || 12;
   const activeLineHeight = shipment.docEditorLineHeight || 1.35;
+
+  // Click outside to close table popover
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (tableMenuRef.current && !tableMenuRef.current.contains(event.target as Node)) {
+        setShowTableMenu(false);
+      }
+    }
+    if (showTableMenu) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showTableMenu]);
 
   // Execute formatting command while keeping selection
   const runCommand = (command: string, value: string | undefined = undefined) => {
@@ -104,6 +132,145 @@ export function DocWordRibbon({
     runCommand("insertText", transformed);
   };
 
+  // --- Table Operations ---
+  const insertTable = (rows: number, cols: number) => {
+    if (rows <= 0 || cols <= 0) return;
+
+    let tableHtml = `<table class="doc-user-table" style="width: 100%; border-collapse: collapse; margin: 12px 0; font-size: inherit; border: 1.5px solid #0f2942;"><thead><tr style="background: #f1f5f9; border-bottom: 2px solid #0f2942;">`;
+    for (let c = 1; c <= cols; c++) {
+      tableHtml += `<th style="border: 1px solid #cbd5e1; padding: 6px 10px; text-align: left; font-weight: 700; color: #0f2942;">Kolom ${c}</th>`;
+    }
+    tableHtml += `</tr></thead><tbody>`;
+    for (let r = 1; r <= rows; r++) {
+      tableHtml += `<tr>`;
+      for (let c = 1; c <= cols; c++) {
+        tableHtml += `<td style="border: 1px solid #cbd5e1; padding: 6px 10px; color: #0f172a;">Data ${r}.${c}</td>`;
+      }
+      tableHtml += `</tr>`;
+    }
+    tableHtml += `</tbody></table><p><br/></p>`;
+
+    const selection = window.getSelection();
+    const paperDoc = document.querySelector(".paper-document");
+
+    if (selection && selection.rangeCount > 0 && paperDoc && paperDoc.contains(selection.anchorNode)) {
+      const range = selection.getRangeAt(0);
+      range.deleteContents();
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = tableHtml;
+      const frag = document.createDocumentFragment();
+      let node: Node | null;
+      while ((node = tempDiv.firstChild)) {
+        frag.appendChild(node);
+      }
+      range.insertNode(frag);
+    } else if (paperDoc) {
+      const targetSection = paperDoc.querySelector(".doc-witness-clause, .doc-dual-signatures, .doc-single-signature-wrap") || paperDoc;
+      const tempDiv = document.createElement("div");
+      tempDiv.innerHTML = tableHtml;
+      if (targetSection !== paperDoc && targetSection.parentNode) {
+        targetSection.parentNode.insertBefore(tempDiv.firstChild!, targetSection);
+      } else {
+        paperDoc.appendChild(tempDiv.firstChild!);
+      }
+    }
+
+    if (!isEditMode) {
+      setIsEditMode(true);
+      update("docEditorMode", true);
+    }
+    setShowTableMenu(false);
+    toast.success(`Tabel ${rows} × ${cols} berhasil disisipkan!`, {
+      description: "Klik pada sel tabel untuk langsung mengisi dan mengedit teks.",
+    });
+  };
+
+  const addTableRow = () => {
+    const selection = window.getSelection();
+    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th");
+    const table = currentCell?.closest("table");
+    if (!table) {
+      toast.error("Klik salah satu sel tabel terlebih dahulu");
+      return;
+    }
+    const colCount = table.rows[0]?.cells.length || 2;
+    const newRow = table.insertRow();
+    for (let i = 0; i < colCount; i++) {
+      const newCell = newRow.insertCell();
+      newCell.style.border = "1px solid #cbd5e1";
+      newCell.style.padding = "6px 10px";
+      newCell.innerText = `Data Baru`;
+    }
+    toast.success("Baris baru berhasil ditambahkan!");
+  };
+
+  const addTableCol = () => {
+    const selection = window.getSelection();
+    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th");
+    const table = currentCell?.closest("table");
+    if (!table) {
+      toast.error("Klik salah satu sel tabel terlebih dahulu");
+      return;
+    }
+    for (let i = 0; i < table.rows.length; i++) {
+      const row = table.rows[i];
+      const isHeader = row.parentElement?.tagName === "THEAD" || i === 0;
+      const newCell = document.createElement(isHeader ? "th" : "td");
+      newCell.style.border = "1px solid #cbd5e1";
+      newCell.style.padding = "6px 10px";
+      if (isHeader) {
+        newCell.style.fontWeight = "700";
+        newCell.style.color = "#0f2942";
+        newCell.style.background = "#f1f5f9";
+        newCell.innerText = `Kolom Baru`;
+      } else {
+        newCell.innerText = `Data`;
+      }
+      row.appendChild(newCell);
+    }
+    toast.success("Kolom baru berhasil ditambahkan!");
+  };
+
+  const deleteTableRow = () => {
+    const selection = window.getSelection();
+    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th");
+    const row = currentCell?.closest("tr");
+    if (!row) {
+      toast.error("Klik sel baris yang ingin dihapus");
+      return;
+    }
+    row.remove();
+    toast.info("Baris tabel dihapus.");
+  };
+
+  const deleteTableCol = () => {
+    const selection = window.getSelection();
+    const currentCell = selection?.anchorNode?.parentElement?.closest("td, th") as HTMLTableCellElement | null;
+    const table = currentCell?.closest("table");
+    if (!currentCell || !table) {
+      toast.error("Klik sel kolom yang ingin dihapus");
+      return;
+    }
+    const colIndex = currentCell.cellIndex;
+    for (let i = 0; i < table.rows.length; i++) {
+      if (table.rows[i].cells[colIndex]) {
+        table.rows[i].deleteCell(colIndex);
+      }
+    }
+    toast.info("Kolom tabel dihapus.");
+  };
+
+  const deleteTable = () => {
+    const selection = window.getSelection();
+    const table = selection?.anchorNode?.parentElement?.closest("table");
+    if (!table) {
+      toast.error("Klik tabel yang ingin dihapus");
+      return;
+    }
+    table.remove();
+    toast.info("Tabel berhasil dihapus dari dokumen.");
+  };
+
   return (
     <div className="doc-word-ribbon-container">
       {/* 1. Ribbon Title Bar */}
@@ -140,7 +307,7 @@ export function DocWordRibbon({
             <div className={`doc-mode-dot ${isEditMode ? "on" : "off"}`} />
           </button>
 
-          {/* Digital Signature Trigger */}
+          {/* Digital Signature Trigger (Unique here, not duplicated above) */}
           <button
             type="button"
             className="doc-ribbon-sig-btn"
@@ -545,6 +712,140 @@ export function DocWordRibbon({
 
           <div className="doc-ribbon-divider" />
 
+          {/* TABLE TOOLS GROUP (NEW: Seperti di Word) */}
+          <div className="doc-ribbon-group group-table" ref={tableMenuRef}>
+            <div className="doc-ribbon-row-top">
+              <button
+                type="button"
+                className={`doc-ribbon-table-trigger ${showTableMenu ? "active" : ""}`}
+                onClick={() => setShowTableMenu((prev) => !prev)}
+                title="Sisipkan Tabel Baru (Seperti di Microsoft Word)"
+              >
+                <Table size={13} />
+                <span>Tabel</span>
+                <ChevronDown size={11} />
+              </button>
+
+              {/* Quick Row/Col Add Buttons */}
+              <button
+                type="button"
+                className="doc-ribbon-btn-icon"
+                onClick={addTableRow}
+                title="Tambah 1 Baris ke Bawah pada Tabel yang Dipilih"
+              >
+                <Rows size={13} />
+                <span style={{ fontSize: "9px", fontWeight: 800, marginLeft: "1px" }}>+</span>
+              </button>
+
+              <button
+                type="button"
+                className="doc-ribbon-btn-icon"
+                onClick={addTableCol}
+                title="Tambah 1 Kolom ke Kanan pada Tabel yang Dipilih"
+              >
+                <Columns size={13} />
+                <span style={{ fontSize: "9px", fontWeight: 800, marginLeft: "1px" }}>+</span>
+              </button>
+            </div>
+
+            <div className="doc-ribbon-row-bottom">
+              <button
+                type="button"
+                className="doc-ribbon-table-subbtn"
+                onClick={deleteTableRow}
+                title="Hapus Baris Tabel Aktif"
+              >
+                - Baris
+              </button>
+              <button
+                type="button"
+                className="doc-ribbon-table-subbtn"
+                onClick={deleteTableCol}
+                title="Hapus Kolom Tabel Aktif"
+              >
+                - Kolom
+              </button>
+              <button
+                type="button"
+                className="doc-ribbon-table-subbtn danger"
+                onClick={deleteTable}
+                title="Hapus Seluruh Tabel Aktif"
+              >
+                <Trash2 size={11} />
+              </button>
+            </div>
+
+            <span className="doc-ribbon-group-label">Tabel</span>
+
+            {/* Table Insert Popover Modal/Dropdown */}
+            {showTableMenu && (
+              <div className="doc-table-popover" role="dialog">
+                <div className="doc-table-popover-header">
+                  <span className="popover-title">SISIPKAN TABEL</span>
+                  <span className="popover-sub">
+                    {hoverGrid.r > 0 && hoverGrid.c > 0 ? `Tabel ${hoverGrid.r} × ${hoverGrid.c}` : "Pilih Ukuran Grid"}
+                  </span>
+                </div>
+
+                {/* 5x5 Grid Selector like MS Word */}
+                <div className="doc-table-grid-picker">
+                  {[1, 2, 3, 4, 5].map((r) => (
+                    <div key={`row-${r}`} className="grid-picker-row">
+                      {[1, 2, 3, 4, 5].map((c) => {
+                        const isHighlighted = r <= hoverGrid.r && c <= hoverGrid.c;
+                        return (
+                          <div
+                            key={`cell-${r}-${c}`}
+                            className={`grid-picker-cell ${isHighlighted ? "highlighted" : ""}`}
+                            onMouseEnter={() => setHoverGrid({ r, c })}
+                            onClick={() => insertTable(r, c)}
+                          />
+                        );
+                      })}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Custom Dimensions Form */}
+                <div className="doc-table-custom-form">
+                  <span className="custom-form-title">Ukuran Kustom:</span>
+                  <div className="custom-form-inputs">
+                    <label>
+                      <span>Baris:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={customRows}
+                        onChange={(e) => setCustomRows(Math.max(1, Number(e.target.value)))}
+                      />
+                    </label>
+                    <label>
+                      <span>Kolom:</span>
+                      <input
+                        type="number"
+                        min="1"
+                        max="10"
+                        value={customCols}
+                        onChange={(e) => setCustomCols(Math.max(1, Number(e.target.value)))}
+                      />
+                    </label>
+                  </div>
+                  <button
+                    type="button"
+                    className="doc-btn-insert-table"
+                    onClick={() => insertTable(customRows, customCols)}
+                  >
+                    <Plus size={13} />
+                    <span>Sisipkan Tabel</span>
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="doc-ribbon-divider" />
+
           {/* Quick Reset & Status Info */}
           <div className="doc-ribbon-group group-status">
             <button
@@ -570,7 +871,7 @@ export function DocWordRibbon({
         <div className="doc-ribbon-edit-hint">
           <Edit3 size={13} />
           <span>
-            <b>Mode Edit Word Aktif:</b> Anda dapat mengeklik bagian manapun pada surat/dokumen (artikel, nama buyer, rincian koli, syarat bayar) untuk mengedit, menambah klausul, atau mengubah kata secara bebas.
+            <b>Mode Edit Word Aktif:</b> Anda dapat mengeklik bagian manapun pada surat/dokumen (artikel, nama buyer, rincian koli, syarat bayar) untuk mengedit, menyisipkan tabel, atau mengubah klausul bebas.
           </span>
         </div>
       )}

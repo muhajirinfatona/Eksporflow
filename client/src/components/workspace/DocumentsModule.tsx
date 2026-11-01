@@ -13,6 +13,7 @@ import type {
 } from "@shared/shipment";
 import {
   Building2,
+  Check,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
@@ -25,6 +26,7 @@ import {
   Globe,
   FileCode,
   Landmark,
+  Languages,
   PenTool,
   Edit3,
   Printer,
@@ -73,6 +75,7 @@ export function DocumentsModule({
 }) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
+  const [isReviewMenuOpen, setIsReviewMenuOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isWordRibbonOpen, setIsWordRibbonOpen] = useState(true);
   const [isEditMode, setIsEditMode] = useState(shipment.docEditorMode ?? false);
@@ -80,6 +83,7 @@ export function DocumentsModule({
   const [signatureParty, setSignatureParty] = useState<"seller" | "buyer">("seller");
   const [editorKey, setEditorKey] = useState(0);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
+  const reviewMenuRef = useRef<HTMLDivElement>(null);
 
   const handleOpenSignatureModal = (party: "seller" | "buyer" = "seller") => {
     setSignatureParty(party);
@@ -96,14 +100,17 @@ export function DocumentsModule({
       if (downloadMenuRef.current && !downloadMenuRef.current.contains(event.target as Node)) {
         setIsDownloadMenuOpen(false);
       }
+      if (reviewMenuRef.current && !reviewMenuRef.current.contains(event.target as Node)) {
+        setIsReviewMenuOpen(false);
+      }
     }
-    if (isDownloadMenuOpen) {
+    if (isDownloadMenuOpen || isReviewMenuOpen) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [isDownloadMenuOpen]);
+  }, [isDownloadMenuOpen, isReviewMenuOpen]);
 
   const documents: {
     type: DocumentType;
@@ -161,16 +168,43 @@ export function DocumentsModule({
     reader.readAsDataURL(file);
   };
 
+  // Review & Verification workflow handlers
+  const handleStartReviewId = () => {
+    setIsReviewMenuOpen(false);
+    update("previewLanguage", "Bahasa Indonesia");
+    update("documentReviewed", false);
+    toast.info("Mode Review Bahasa Indonesia Aktif", {
+      description: "Seluruh pasal, rincian koli, dan data perbankan dialihkan ke Bahasa Indonesia untuk telaah internal tim eksportir.",
+    });
+  };
+
+  const handleStartReviewEn = () => {
+    setIsReviewMenuOpen(false);
+    update("previewLanguage", "English");
+    update("documentReviewed", false);
+    toast.info("Mode Review English Aktif", {
+      description: "Pratinjau naskah dokumen dalam bahasa Inggris standar perdagangan internasional.",
+    });
+  };
+
+  const handleVerifyDocument = () => {
+    update("documentReviewed", true);
+    update("previewLanguage", "English"); // Selalu kembali ke Bahasa Inggris otomatis sesuai request user!
+    toast.success("Dokumen Berhasil Diverifikasi!", {
+      description: "Dokumen telah disetujui. Bahasa dokumen otomatis dikembalikan ke Bahasa Inggris resmi untuk transaksi ekspor.",
+    });
+  };
+
+  const handleReopenReview = () => {
+    update("documentReviewed", false);
+    toast.info("Status verifikasi dibuka kembali untuk penelaahan / revisi naskah.");
+  };
+
   const finishReview = () => {
-    const nextReviewed = !shipment.documentReviewed;
-    update("documentReviewed", nextReviewed);
-    if (nextReviewed) {
-      update("previewLanguage", "English");
-      toast.success("Dokumen ditandai selesai diperiksa", {
-        description: "Bahasa dokumen dialihkan kembali ke Bahasa Inggris untuk standar ekspor internasional.",
-      });
+    if (shipment.documentReviewed) {
+      handleReopenReview();
     } else {
-      toast.info("Status dokumen kembali ke draft");
+      handleVerifyDocument();
     }
   };
 
@@ -404,29 +438,106 @@ export function DocumentsModule({
       {/* 2. Document Action & Overview Bar */}
       <div className="doc-action-bar">
         <div className="doc-action-info">
-          <div className="doc-active-specs">
-            <span className="spec-item">
-              Kertas: <b>{shipment.paperSize} ({shipment.documentOrientation})</b>
+          <div className="doc-active-meta-strip">
+            <span className="spec-badge-paper">{shipment.paperSize} · {shipment.documentOrientation}</span>
+            <span className="spec-badge-template">{shipment.documentTemplate}</span>
+            <span className={`spec-badge-lang ${shipment.previewLanguage === "Bahasa Indonesia" ? "lang-id" : "lang-en"}`}>
+              {shipment.previewLanguage === "Bahasa Indonesia" ? "🇮🇩 Review: Indonesia" : "🇬🇧 Standar: English"}
             </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
-              Gaya Desain: <b>{shipment.documentTemplate}</b>
-            </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
-              Bahasa Output: <b>{shipment.previewLanguage}</b>
-            </span>
-            <span className="spec-dot">·</span>
-            <span className="spec-item">
-              Status:{" "}
-              <b className={shipment.documentReviewed ? "spec-reviewed" : "spec-draft"}>
-                {shipment.documentReviewed ? "✓ Selesai Diperiksa" : "Draft Transaksi"}
-              </b>
+            <span className={`spec-badge-status ${shipment.documentReviewed ? "status-verified" : "status-draft"}`}>
+              {shipment.documentReviewed ? "✓ Terverifikasi Ekspor" : "● Draft / Siap Review"}
             </span>
           </div>
         </div>
 
         <div className="doc-action-buttons">
+          {/* Review & Verification Workflow Group */}
+          <div className="doc-review-workflow-group">
+            {/* 1. Review Dropdown: Pilih Review Bahasa Indonesia / English */}
+            <div className="doc-review-dropdown-wrap" ref={reviewMenuRef}>
+              <button
+                type="button"
+                className={`doc-btn-review-trigger ${isReviewMenuOpen ? "active" : ""} ${shipment.previewLanguage === "Bahasa Indonesia" ? "review-id-active" : ""}`}
+                onClick={() => setIsReviewMenuOpen((prev) => !prev)}
+                title="Pilih bahasa review dokumen: Bahasa Indonesia atau English"
+              >
+                <Languages size={14} />
+                <span>
+                  {shipment.previewLanguage === "Bahasa Indonesia"
+                    ? "Review: Indonesia"
+                    : "Review: English"}
+                </span>
+                <ChevronDown
+                  size={12}
+                  style={{
+                    transform: isReviewMenuOpen ? "rotate(180deg)" : "none",
+                    transition: "transform 0.2s ease",
+                  }}
+                />
+              </button>
+
+              {isReviewMenuOpen && (
+                <div className="doc-review-menu-panel" role="menu">
+                  <div className="doc-review-menu-header">
+                    <span className="doc-review-menu-title">PILIH BAHASA REVIEW</span>
+                    <span className="doc-review-menu-subtitle">Telaah Naskah</span>
+                  </div>
+                  <div className="doc-review-menu-items">
+                    <button
+                      type="button"
+                      className={`doc-review-menu-item ${shipment.previewLanguage === "Bahasa Indonesia" ? "selected" : ""}`}
+                      onClick={handleStartReviewId}
+                    >
+                      <div className="doc-lang-flag">🇮🇩</div>
+                      <div className="doc-lang-info">
+                        <span className="doc-lang-name">Review Bahasa Indonesia</span>
+                        <span className="doc-lang-desc">Telaah internal pasal, klausul & data perbankan</span>
+                      </div>
+                      {shipment.previewLanguage === "Bahasa Indonesia" && <Check size={14} className="doc-lang-check" />}
+                    </button>
+
+                    <button
+                      type="button"
+                      className={`doc-review-menu-item ${shipment.previewLanguage === "English" ? "selected" : ""}`}
+                      onClick={handleStartReviewEn}
+                    >
+                      <div className="doc-lang-flag">🇬🇧</div>
+                      <div className="doc-lang-info">
+                        <span className="doc-lang-name">Review English</span>
+                        <span className="doc-lang-desc">Standar bahasa resmi naskah ekspor internasional</span>
+                      </div>
+                      {shipment.previewLanguage === "English" && <Check size={14} className="doc-lang-check" />}
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 2. Tombol Verifikasi: Lolos Review -> Otomatis kembali ke English! */}
+            {shipment.documentReviewed ? (
+              <button
+                type="button"
+                className="doc-btn-verified-status"
+                onClick={handleReopenReview}
+                title="Dokumen telah lolos review & diverifikasi resmi. Klik jika ingin membuka kembali untuk revisi."
+              >
+                <CheckCircle2 size={14} className="icon-check-green" />
+                <span>Terverifikasi (English)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="doc-btn-verify-action"
+                onClick={handleVerifyDocument}
+                title="Verifikasi dokumen (otomatis kembali ke bahasa Inggris standar ekspor)"
+              >
+                <ShieldCheck size={14} />
+                <span>Verifikasi Dokumen</span>
+              </button>
+            )}
+          </div>
+
+          {/* Setelan Kop Drawer Toggle */}
           <button
             type="button"
             className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
@@ -434,45 +545,19 @@ export function DocumentsModule({
             title="Ubah data surat, permintaan buyer, kop, format kertas, dan penandatangan"
           >
             <SlidersHorizontal size={14} />
-            <span>{isSettingsOpen ? "Tutup Pengaturan" : "Setelan Kop & Format"}</span>
-            {isSettingsOpen ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            <span>Setelan Kop</span>
+            {isSettingsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
           </button>
 
+          {/* Word Ribbon Toolbar Toggle */}
           <button
             type="button"
-            className="doc-btn-review"
-            onClick={finishReview}
-            title="Tandai dokumen sudah diperiksa & siap diterbitkan"
-          >
-            <CheckCircle2 size={14} />
-            <span>{shipment.documentReviewed ? "Terverifikasi" : "Selesai Diperiksa"}</span>
-          </button>
-
-          {/* Word Ribbon Toggle Button */}
-          <button
-            type="button"
-            className={`doc-btn-review ${isWordRibbonOpen ? "active" : ""}`}
+            className={`doc-btn-word-toggle ${isWordRibbonOpen ? "active" : ""}`}
             onClick={() => setIsWordRibbonOpen((prev) => !prev)}
-            title="Tampilkan atau sembunyikan toolbar editor format Word"
+            title="Tampilkan / sembunyikan toolbar editor format gaya Microsoft Word"
           >
             <Edit3 size={14} />
-            <span>{isWordRibbonOpen ? "Tutup Toolbar Word" : "Toolbar Word"}</span>
-          </button>
-
-          {/* Digital Signature Trigger Button */}
-          <button
-            type="button"
-            className="doc-btn-review"
-            onClick={() => handleOpenSignatureModal("seller")}
-            title="Bubuhkan tanda tangan digital & stempel resmi"
-          >
-            <PenTool size={14} />
-            <span>Tanda Tangan Digital</span>
-            {(shipment.sellerSignatureImage || shipment.buyerSignatureImage) && (
-              <span style={{ fontSize: "10px", background: "#dcfce7", color: "#15803d", padding: "1px 5px", borderRadius: "4px", fontWeight: 700, marginLeft: "4px" }}>
-                ✓ Siap
-              </span>
-            )}
+            <span>Toolbar Word</span>
           </button>
 
           <button
