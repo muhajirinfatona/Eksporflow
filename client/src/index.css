@@ -6004,12 +6004,12 @@ textarea:focus-visible {
 
 .sig-side.sig-side-right {
   margin-left: auto;
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
 }
 
 .sig-side.sig-side-right .sig-box-space {
-  justify-content: flex-end;
+  justify-content: flex-start;
 }
 
 .sig-header-txt {
@@ -6059,9 +6059,11 @@ textarea:focus-visible {
 .official-sig-block {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  text-align: right;
+  align-items: flex-start;
+  text-align: left;
   position: relative;
+  min-width: 230px;
+  max-width: 280px;
 }
 
 .sig-signed-for {
@@ -6084,7 +6086,7 @@ textarea:focus-visible {
   position: relative;
   display: flex;
   align-items: flex-end;
-  justify-content: flex-end;
+  justify-content: flex-start;
   margin: 4px 0;
 }
 
@@ -9673,14 +9675,19 @@ textarea:focus-visible {
     page-break-before: avoid !important;
   }
   .official-sig-block {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    min-width: 230px !important;
     max-width: 270px !important;
-    text-align: center !important;
   }
   .sig-signed-for {
     font-size: 10px !important;
     line-height: 1.22 !important;
     font-weight: 600 !important;
     color: #1e293b !important;
+    text-align: left !important;
   }
   .sig-company-name {
     font-size: 12px !important;
@@ -9688,23 +9695,29 @@ textarea:focus-visible {
     line-height: 1.22 !important;
     color: #0f172a !important;
     margin-top: 1px !important;
+    text-align: left !important;
   }
   .sig-canvas-zone {
     min-height: 46px !important;
     height: 48px !important;
     margin: 2px 0 !important;
+    align-items: flex-end !important;
+    justify-content: flex-start !important;
   }
   .sig-signatory-name {
     font-size: 12.5px !important;
     font-weight: 800 !important;
     line-height: 1.22 !important;
     color: #0f172a !important;
+    text-align: left !important;
   }
   .sig-signatory-title {
     font-size: 10.5px !important;
     font-weight: 700 !important;
     line-height: 1.22 !important;
     color: #0f172a !important;
+    margin-top: 1px !important;
+    text-align: left !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */
