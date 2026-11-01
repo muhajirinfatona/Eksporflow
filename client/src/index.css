@@ -6407,6 +6407,13 @@ textarea:focus-visible {
   font-family: ui-sans-serif, system-ui, -apple-system, sans-serif !important;
 }
 
+/* Active Table Selection in Word Mode */
+.paper-document table.active-table {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+}
+
 .letterhead-logo-placeholder {
   display: inline-flex;
   align-items: center;
@@ -10413,6 +10420,10 @@ textarea:focus-visible {
   }
   .word-image-selected {
     outline: none !important;
+  }
+  .paper-document table.active-table {
+    outline: none !important;
+    box-shadow: none !important;
   }
   .company-title {
     font-size: 17.5px !important;

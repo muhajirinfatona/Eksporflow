@@ -33,6 +33,7 @@ import {
   PenTool,
   Edit3,
   Printer,
+  Ruler,
   ShieldCheck,
   Ship,
   SlidersHorizontal,
@@ -132,27 +133,42 @@ export function DocumentsModule({
     const paperEl = document.querySelector(".paper-document");
     if (!paperEl) return;
 
-    // 1. Cell Focus Tracking
+    // 1. Cell & Table Focus Tracking (Word Table Mode)
     const handleCellFocus = (e: Event) => {
       const target = e.target as HTMLElement;
       const cell = target.closest("td, th") as HTMLTableCellElement | null;
       if (cell) {
+        const currentTable = cell.closest("table");
         (window as any).__eksporflow_active_cell = cell;
-        (window as any).__eksporflow_active_table = cell.closest("table");
-        window.dispatchEvent(new CustomEvent("eksporflow:table-focus", { detail: { hasTable: true } }));
+        (window as any).__eksporflow_active_table = currentTable;
+        window.dispatchEvent(
+          new CustomEvent("eksporflow:table-focus", {
+            detail: { hasTable: true, table: currentTable, cell },
+          })
+        );
+        paperEl.querySelectorAll("table.active-table").forEach((el) => {
+          el.classList.remove("active-table");
+        });
         paperEl.querySelectorAll("td.active-cell, th.active-cell").forEach((el) => {
           el.classList.remove("active-cell");
         });
+        if (currentTable) {
+          currentTable.classList.add("active-table");
+        }
         cell.classList.add("active-cell");
       }
     };
 
-    // 2. Attach Interactive Column Resizers to all table headers
+    // 2. Attach Interactive Column Resizers to all table headers (isolated per table)
     const attachColResizers = () => {
       const tables = paperEl.querySelectorAll("table");
       tables.forEach((table) => {
-        const thList = table.querySelectorAll("thead th");
-        thList.forEach((th) => {
+        const headerCells =
+          table.querySelectorAll("thead th, thead td").length > 0
+            ? table.querySelectorAll("thead th, thead td")
+            : table.querySelectorAll("tbody tr:first-child > td, tbody tr:first-child > th");
+
+        headerCells.forEach((th) => {
           if (!th.querySelector(".col-resizer")) {
             const resizer = document.createElement("span");
             resizer.className = "col-resizer";
@@ -167,8 +183,13 @@ export function DocumentsModule({
               const newWidth = Math.max(30, startWidth + dx);
               (th as HTMLElement).style.width = `${newWidth}px`;
               const cellIndex = (th as HTMLTableCellElement).cellIndex;
-              table.querySelectorAll(`tbody tr td:nth-child(${cellIndex + 1})`).forEach((td) => {
-                (td as HTMLElement).style.width = `${newWidth}px`;
+              // Resize only cells in THIS table that match the column index and aren't colSpanned
+              const rows = table.querySelectorAll("tbody tr");
+              rows.forEach((row) => {
+                const cells = Array.from(row.children) as HTMLTableCellElement[];
+                if (cells[cellIndex] && (cells[cellIndex].colSpan || 1) === 1) {
+                  cells[cellIndex].style.width = `${newWidth}px`;
+                }
               });
             };
 
@@ -184,6 +205,20 @@ export function DocumentsModule({
               startX = mdEvent.clientX;
               startWidth = (th as HTMLElement).offsetWidth;
               resizer.classList.add("is-resizing");
+
+              // Immediately lock THIS table & cell as active
+              (window as any).__eksporflow_active_cell = th;
+              (window as any).__eksporflow_active_table = table;
+              paperEl.querySelectorAll("table.active-table").forEach((el) => el.classList.remove("active-table"));
+              table.classList.add("active-table");
+              paperEl.querySelectorAll("td.active-cell, th.active-cell").forEach((el) => el.classList.remove("active-cell"));
+              th.classList.add("active-cell");
+              window.dispatchEvent(
+                new CustomEvent("eksporflow:table-focus", {
+                  detail: { hasTable: true, table, cell: th },
+                })
+              );
+
               document.addEventListener("mousemove", onMouseMove);
               document.addEventListener("mouseup", onMouseUp);
             });
@@ -196,6 +231,7 @@ export function DocumentsModule({
 
     attachColResizers();
     (paperEl as HTMLElement).addEventListener("mousedown", handleCellFocus as EventListener);
+    (paperEl as HTMLElement).addEventListener("focusin", handleCellFocus as EventListener);
 
     // 3. Tab Key Navigation inside Table Cells (Word experience)
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -744,6 +780,22 @@ export function DocumentsModule({
               <span>Toolbar Word</span>
             </button>
 
+            {/* Word Ruler Toggle (Tampilkan / Sembunyikan Penggaris) */}
+            <button
+              type="button"
+              className={`doc-btn-word-toggle ${shipment.docShowRuler !== false ? "active" : ""}`}
+              onClick={() => {
+                const next = shipment.docShowRuler === false;
+                update("docShowRuler", next);
+                toast.info(next ? "Penggaris Word ditampilkan" : "Penggaris Word disembunyikan");
+              }}
+              title="Tampilkan / sembunyikan Penggaris Margin (Ruler) seperti di Microsoft Word"
+            >
+              <Ruler size={14} />
+              <span>Penggaris</span>
+              {shipment.docShowRuler !== false && <Check size={11} className="ml-0.5 text-emerald-600" />}
+            </button>
+
             <button
               type="button"
               className="doc-btn-print"
@@ -886,6 +938,10 @@ export function DocumentsModule({
               paperWidthMm={paperWidthMm}
               leftMarginMm={docMargins.left}
               rightMarginMm={docMargins.right}
+              onClose={() => {
+                update("docShowRuler", false);
+                toast.info("Penggaris disembunyikan. Anda dapat menampilkannya kembali lewat tombol 'Penggaris' di toolbar atas.");
+              }}
             />
           </div>
         )}
@@ -1128,21 +1184,51 @@ function WordRuler({
   paperWidthMm,
   leftMarginMm,
   rightMarginMm,
+  onClose,
 }: {
   paperWidthMm: number;
   leftMarginMm: number;
   rightMarginMm: number;
+  onClose?: () => void;
 }) {
   const printableMm = Math.max(10, paperWidthMm - leftMarginMm - rightMarginMm);
   const totalCm = Math.max(5, Math.floor(paperWidthMm / 10));
 
   return (
     <div className="doc-word-ruler-container no-print" title="Penggaris Margin Microsoft Word">
-      <div className="doc-ruler-meta-bar">
-        <span>Penggaris Margin Microsoft Word</span>
-        <span>
-          Margin Kiri: {(leftMarginMm / 10).toFixed(2)} cm · Area Teks: {(printableMm / 10).toFixed(2)} cm · Margin Kanan: {(rightMarginMm / 10).toFixed(2)} cm
-        </span>
+      <div className="doc-ruler-meta-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+          <Ruler size={12} className="text-blue-600" />
+          <span style={{ fontWeight: 700, color: "#1e3a8a" }}>Penggaris Margin Microsoft Word</span>
+          <span style={{ color: "#94a3b8" }}>·</span>
+          <span style={{ color: "#334155" }}>
+            Margin Kiri: {(leftMarginMm / 10).toFixed(2)} cm · Area Teks: {(printableMm / 10).toFixed(2)} cm · Margin Kanan: {(rightMarginMm / 10).toFixed(2)} cm
+          </span>
+        </div>
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            className="doc-ruler-close-btn"
+            style={{
+              background: "#f1f5f9",
+              border: "1px solid #cbd5e1",
+              borderRadius: "4px",
+              padding: "1px 6px",
+              fontSize: "10.5px",
+              color: "#475569",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "3px",
+              fontWeight: 600,
+            }}
+            title="Sembunyikan Penggaris Margin (dapat ditampilkan kembali lewat tombol Penggaris di toolbar atas)"
+          >
+            <X size={11} />
+            <span>Sembunyikan</span>
+          </button>
+        )}
       </div>
       <div className="doc-ruler-track">
         {/* Left Margin Gray Zone */}
@@ -1204,6 +1290,7 @@ function OfficialLetterhead({
   const [isSelected, setIsSelected] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [dragScale, setDragScale] = useState<number | null>(null);
+  const [dragShift, setDragShift] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
 
@@ -1223,7 +1310,7 @@ function OfficialLetterhead({
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [isSelected]);
 
-  // Handle Dragging like in Microsoft Word
+  // Handle Dragging like in Microsoft Word (Anchored correctly per handle)
   const startDragHandle = (
     e: React.MouseEvent,
     handle: "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w"
@@ -1245,28 +1332,53 @@ function OfficialLetterhead({
       const dy = moveEvent.clientY - startY;
 
       let delta = 0;
+      let sx = 0;
+      let sy = 0;
+
       if (handle === "se") {
+        // Dragging bottom-right: anchor is top-left
         delta = (dx / aspectRatio + dy) / 2;
+        sx = 0;
+        sy = 0;
       } else if (handle === "nw") {
+        // Dragging top-left: anchor is bottom-right!
+        // Pulling up/left (dx < 0, dy < 0) expands outward towards mouse!
         delta = (-dx / aspectRatio - dy) / 2;
+        sx = -delta * aspectRatio;
+        sy = -delta;
       } else if (handle === "ne") {
+        // Dragging top-right: anchor is bottom-left!
         delta = (dx / aspectRatio - dy) / 2;
+        sx = 0;
+        sy = -delta;
       } else if (handle === "sw") {
+        // Dragging bottom-left: anchor is top-right!
         delta = (-dx / aspectRatio + dy) / 2;
+        sx = -delta * aspectRatio;
+        sy = 0;
       } else if (handle === "e") {
         delta = dx / aspectRatio;
+        sx = 0;
+        sy = 0;
       } else if (handle === "w") {
         delta = -dx / aspectRatio;
+        sx = -delta * aspectRatio;
+        sy = 0;
       } else if (handle === "s") {
         delta = dy;
+        sx = 0;
+        sy = 0;
       } else if (handle === "n") {
         delta = -dy;
+        sx = 0;
+        sy = -delta;
       }
 
-      const newHeight = Math.max(24, startHeight + delta);
+      const newHeight = Math.max(20, startHeight + delta);
       const computedScale = Math.min(300, Math.max(30, Math.round((newHeight / baseLogoHeight) * 100)));
       latestScale = computedScale;
       setDragScale(computedScale);
+      setDragShift({ x: sx, y: sy });
     };
 
     const onMouseUp = () => {
@@ -1274,6 +1386,7 @@ function OfficialLetterhead({
       window.removeEventListener("mouseup", onMouseUp);
       setIsDragging(false);
       setDragScale(null);
+      setDragShift({ x: 0, y: 0 });
       update("letterheadLogoScale", latestScale);
     };
 
@@ -1292,6 +1405,7 @@ function OfficialLetterhead({
               style={{
                 position: "relative",
                 display: "inline-flex",
+                transform: isDragging ? `translate(${dragShift.x}px, ${dragShift.y}px)` : undefined,
                 outline: isEditMode && isSelected ? "1.5px solid #2563eb" : undefined,
                 outlineOffset: "2px",
                 cursor: isEditMode ? "pointer" : "default",

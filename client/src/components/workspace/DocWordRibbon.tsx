@@ -79,11 +79,25 @@ export function DocWordRibbon({
 }: DocWordRibbonProps) {
   const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table">("home");
   const [isTableSelected, setIsTableSelected] = useState(false);
+  const [activeTableTitle, setActiveTableTitle] = useState<string>("Tabel");
   const lastActiveCellRef = useRef<HTMLTableCellElement | null>(null);
 
   useEffect(() => {
-    const handleTableFocus = () => {
-      setIsTableSelected(true);
+    const handleTableFocus = (e: any) => {
+      const detail = e.detail;
+      setIsTableSelected(detail?.hasTable !== false);
+      if (detail?.table) {
+        const t = detail.table as HTMLTableElement;
+        if (t.classList.contains("doc-table-pro")) {
+          setActiveTableTitle("Rincian Barang Ekspor");
+        } else if (t.classList.contains("bank-card-table")) {
+          setActiveTableTitle("Rekening Bank Penerima");
+        } else if (t.classList.contains("doc-user-table")) {
+          setActiveTableTitle("Tabel Kustom");
+        } else {
+          setActiveTableTitle("Tabel Terpilih");
+        }
+      }
       if ((window as any).__eksporflow_active_cell) {
         lastActiveCellRef.current = (window as any).__eksporflow_active_cell;
       }
@@ -265,43 +279,72 @@ export function DocWordRibbon({
 
   // --- Enhanced Microsoft Word Table Operations ---
   const getTargetTableAndCell = () => {
-    // 1. From window variable (set by click in paper document)
+    // 1. Current live cursor/selection in paper document (Highest Priority)
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const node = sel.anchorNode;
+      const el = node instanceof Element ? node : node?.parentElement;
+      const currentCell = el?.closest("td, th") as HTMLTableCellElement | null;
+      if (currentCell && document.contains(currentCell)) {
+        const currentTable = currentCell.closest("table");
+        if (currentTable) {
+          return { table: currentTable, cell: currentCell, row: currentCell.closest("tr") };
+        }
+      }
+    }
+
+    // 2. Focused active element in DOM
+    const activeEl = document.activeElement;
+    if (activeEl) {
+      const activeCell = activeEl.closest("td, th") as HTMLTableCellElement | null;
+      if (activeCell && document.contains(activeCell)) {
+        const currentTable = activeCell.closest("table");
+        if (currentTable) {
+          return { table: currentTable, cell: activeCell, row: activeCell.closest("tr") };
+        }
+      }
+    }
+
+    // 3. Explicitly active cell / table in paper document
+    const paper = document.querySelector(".paper-document");
+    const activeCell = paper?.querySelector("td.active-cell, th.active-cell") as HTMLTableCellElement | null;
+    if (activeCell && document.contains(activeCell)) {
+      const currentTable = activeCell.closest("table");
+      if (currentTable) {
+        return { table: currentTable, cell: activeCell, row: activeCell.closest("tr") };
+      }
+    }
+
+    const activeTable = paper?.querySelector("table.active-table") as HTMLTableElement | null;
+    if (activeTable && document.contains(activeTable)) {
+      const cell = activeTable.querySelector("td.active-cell, th.active-cell, td, th") as HTMLTableCellElement | null;
+      return { table: activeTable, cell, row: cell?.closest("tr") || null };
+    }
+
+    // 4. From window variable (set by recent click in paper document)
     const winCell = (window as any).__eksporflow_active_cell as HTMLTableCellElement | null;
     if (winCell && document.contains(winCell)) {
-      return {
-        table: winCell.closest("table"),
-        cell: winCell,
-        row: winCell.closest("tr"),
-      };
+      const currentTable = winCell.closest("table");
+      if (currentTable) {
+        return { table: currentTable, cell: winCell, row: winCell.closest("tr") };
+      }
     }
-    // 2. From ref
+
+    const winTable = (window as any).__eksporflow_active_table as HTMLTableElement | null;
+    if (winTable && document.contains(winTable)) {
+      const cell = winTable.querySelector("td, th") as HTMLTableCellElement | null;
+      return { table: winTable, cell, row: cell?.closest("tr") || null };
+    }
+
+    // 5. From ref
     if (lastActiveCellRef.current && document.contains(lastActiveCellRef.current)) {
       const cell = lastActiveCellRef.current;
-      return {
-        table: cell.closest("table"),
-        cell,
-        row: cell.closest("tr"),
-      };
+      const currentTable = cell.closest("table");
+      if (currentTable) {
+        return { table: currentTable, cell, row: cell.closest("tr") };
+      }
     }
-    // 3. From window selection
-    const sel = window.getSelection();
-    const node = sel?.anchorNode;
-    const currentCell = (node instanceof Element ? node : node?.parentElement)?.closest("td, th") as HTMLTableCellElement | null;
-    if (currentCell) {
-      return {
-        table: currentCell.closest("table"),
-        cell: currentCell,
-        row: currentCell.closest("tr"),
-      };
-    }
-    // 4. Fallback to first table in document
-    const paper = document.querySelector(".paper-document");
-    const table = paper?.querySelector("table") as HTMLTableElement | null;
-    if (table) {
-      const row = table.querySelector("tbody tr, tr") as HTMLTableRowElement | null;
-      const cell = row?.querySelector("td, th") as HTMLTableCellElement | null;
-      return { table, cell, row };
-    }
+
     return { table: null, cell: null, row: null };
   };
 
@@ -1338,6 +1381,30 @@ export function DocWordRibbon({
                   </div>
                 )}
               </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* VIEW / PENGGARIS GROUP (Tab 1 shortcut) */}
+              <div className="doc-ribbon-group group-ruler-shortcut">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className={`doc-ribbon-toggle-chip ${shipment.docShowRuler !== false ? "active" : ""}`}
+                    onClick={toggleRuler}
+                    title="Tampilkan / sembunyikan Penggaris Horizontal Microsoft Word di atas kertas"
+                  >
+                    <Ruler size={13} />
+                    <span>Penggaris</span>
+                    {shipment.docShowRuler !== false && <Check size={12} />}
+                  </button>
+                </div>
+                <div className="doc-ribbon-row-bottom">
+                  <span className="doc-ruler-stat-txt">
+                    {shipment.docShowRuler !== false ? "Aktif" : "Sembunyi"}
+                  </span>
+                </div>
+                <span className="doc-ribbon-group-label">Penggaris</span>
+              </div>
             </>
           )}
 
@@ -1892,6 +1959,31 @@ export function DocWordRibbon({
           {/* ================= TAB 4: ALAT TABEL (TABLE TOOLS - DESAIN & TATA LETAK) ================= */}
           {activeRibbonTab === "table" && (
             <>
+              {/* Active Table Target Indicator */}
+              <div
+                className="doc-ribbon-group group-active-table"
+                style={{
+                  background: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  borderRadius: "6px",
+                  padding: "4px 8px",
+                  display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", color: "#1d4ed8", fontWeight: 700, fontSize: "11px" }}>
+                  <Table size={13} />
+                  <span>{activeTableTitle}</span>
+                </div>
+                <div style={{ fontSize: "9px", color: "#60a5fa", marginTop: "2px" }}>
+                  Target pengaturan tabel
+                </div>
+                <span className="doc-ribbon-group-label" style={{ color: "#2563eb" }}>Tabel Terpilih</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
               {/* 1. Baris & Kolom (Rows & Columns) */}
               <div className="doc-ribbon-group group-table-rows">
                 <div className="doc-ribbon-row-top">
