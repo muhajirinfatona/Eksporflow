@@ -38,6 +38,13 @@ export interface ExportDocData {
   blNumber?: string;
   containerNo?: string;
   sealNo?: string;
+  sellerSignatureImage?: string;
+  sellerSignatureDate?: string;
+  sellerVerificationCode?: string;
+  buyerSignatureImage?: string;
+  buyerSignatureDate?: string;
+  buyerVerificationCode?: string;
+  includeOfficialStamp?: boolean;
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
@@ -463,7 +470,19 @@ export async function exportToDocx(
               children: [
                 new Paragraph({ children: [new TextRun({ text: isId ? "PIHAK PEMBELI (THE BUYER)" : "THE BUYER", bold: true, size: 19 })] }),
                 new Paragraph({ children: [new TextRun({ text: `For ${data.buyerName}`, bold: true, size: 20 })] }),
-                new Paragraph({ text: "", spacing: { after: 600 } }), // Ruang Tanda Tangan
+                data.buyerSignatureImage
+                  ? new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: `[DIGITALLY SIGNED BY BUYER · ${data.buyerVerificationCode || "ABF-DIGISIG-1092-DXB"}]`,
+                          italics: true,
+                          color: "0369a1",
+                          size: 17,
+                        }),
+                      ],
+                      spacing: { before: 200, after: 200 },
+                    })
+                  : new Paragraph({ text: "", spacing: { after: 600 } }),
                 new Paragraph({ children: [new TextRun({ text: data.buyerPicName || "Mr. Tariq Al-Mansoor", bold: true, size: 21 })] }),
                 new Paragraph({ children: [new TextRun({ text: data.buyerPicRole || "Procurement Director", size: 19 })] }),
               ],
@@ -474,7 +493,19 @@ export async function exportToDocx(
               children: [
                 new Paragraph({ children: [new TextRun({ text: isId ? "PIHAK PENJUAL (THE SELLER)" : "THE SELLER", bold: true, size: 19 })] }),
                 new Paragraph({ children: [new TextRun({ text: `For ${data.exporterName}`, bold: true, size: 20 })] }),
-                new Paragraph({ text: "", spacing: { after: 600 } }), // Ruang Tanda Tangan
+                data.sellerSignatureImage
+                  ? new Paragraph({
+                      children: [
+                        new TextRun({
+                          text: `[DIGITALLY SIGNED & VERIFIED · ${data.sellerVerificationCode || "IEI-DIGISIG-8849-DXB"}]`,
+                          italics: true,
+                          color: "047857",
+                          size: 17,
+                        }),
+                      ],
+                      spacing: { before: 200, after: 200 },
+                    })
+                  : new Paragraph({ text: "", spacing: { after: 600 } }),
                 new Paragraph({ children: [new TextRun({ text: data.signatoryName || "Muhajirin Fatona", bold: true, size: 21 })] }),
                 new Paragraph({ children: [new TextRun({ text: data.signatoryRole || "Export Director", size: 19 })] }),
               ],

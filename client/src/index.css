@@ -13298,3 +13298,1241 @@ textarea:focus-visible {
   }
 }
 
+/* ==========================================================================
+   7.5 WORD-LIKE DOCUMENT EDITOR RIBBON & DIGITAL SIGNATURE SYSTEM
+   ========================================================================== */
+
+/* --- A. Word Ribbon Toolbar Container --- */
+.doc-word-ribbon-container {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.doc-ribbon-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  background: linear-gradient(90deg, #1e3a8a 0%, #0f2942 100%);
+  color: #ffffff;
+}
+
+.doc-ribbon-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.doc-word-icon-badge {
+  width: 22px;
+  height: 22px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 13px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.doc-ribbon-title {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.doc-ribbon-subtitle {
+  font-size: 11px;
+  color: #93c5fd;
+  margin-left: 6px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  padding-left: 8px;
+}
+
+.doc-ribbon-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-ribbon-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 5px 12px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doc-ribbon-mode-toggle:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.doc-ribbon-mode-toggle.active {
+  background: #10b981;
+  border-color: #059669;
+  color: #ffffff;
+}
+
+.doc-mode-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.doc-mode-dot.on {
+  background: #ffffff;
+  box-shadow: 0 0 6px #ffffff;
+}
+
+.doc-mode-dot.off {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.doc-ribbon-sig-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  background: #0284c7;
+  border: 1px solid #0369a1;
+  border-radius: 6px;
+  color: #ffffff;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doc-ribbon-sig-btn:hover {
+  background: #0369a1;
+}
+
+.doc-ribbon-collapse-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+}
+
+.doc-ribbon-collapse-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* --- B. Ribbon Main Tools Strip --- */
+.doc-ribbon-tools-strip {
+  display: flex;
+  align-items: stretch;
+  padding: 8px 12px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 12px;
+  overflow-x: auto;
+}
+
+.doc-ribbon-divider {
+  width: 1px;
+  background: #cbd5e1;
+  margin: 2px 0;
+  flex-shrink: 0;
+}
+
+.doc-ribbon-group {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.doc-ribbon-row-top,
+.doc-ribbon-row-bottom {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.doc-ribbon-group-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #64748b;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-top: 3px;
+}
+
+.doc-ribbon-btn-icon {
+  width: 28px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  font-size: 12px;
+  padding: 0;
+}
+
+.doc-ribbon-btn-icon:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.doc-ribbon-btn-icon:active {
+  background: #cbd5e1;
+}
+
+.doc-ribbon-select {
+  height: 26px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  padding: 0 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+  outline: none;
+}
+
+.doc-ribbon-select:hover {
+  border-color: #94a3b8;
+}
+
+.font-family-select {
+  width: 135px;
+}
+
+.font-size-select {
+  width: 80px;
+}
+
+.line-spacing-select {
+  width: 145px;
+}
+
+/* Color triggers and dropdown */
+.doc-ribbon-color-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.doc-color-trigger {
+  position: relative;
+}
+
+.doc-color-bar {
+  position: absolute;
+  bottom: 2px;
+  left: 4px;
+  right: 4px;
+  height: 3px;
+  border-radius: 1px;
+}
+
+.doc-color-bar.highlight {
+  background: #facc15;
+}
+
+.doc-color-bar.text-color {
+  background: #dc2626;
+}
+
+.doc-color-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  padding: 6px;
+  display: flex;
+  gap: 4px;
+  z-index: 100;
+}
+
+.color-swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid #94a3b8;
+  cursor: pointer;
+  padding: 0;
+}
+
+.swatch-yellow { background: #fef08a; }
+.swatch-green { background: #bbf7d0; }
+.swatch-cyan { background: #bae6fd; }
+.swatch-pink { background: #fbcfe8; }
+.swatch-clear { background: #ffffff; font-size: 10px; color: #ef4444; }
+
+.swatch-black { background: #0f172a; }
+.swatch-navy { background: #0f2942; }
+.swatch-blue { background: #1d4ed8; }
+.swatch-red { background: #b91c1c; }
+.swatch-gray { background: #475569; }
+
+/* Status & Reset button in Ribbon */
+.doc-ribbon-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 26px;
+  padding: 0 10px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doc-ribbon-reset-btn:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
+}
+
+.doc-ribbon-status-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #0369a1;
+  background: #e0f2fe;
+  padding: 2px 7px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Edit notification hint */
+.doc-ribbon-edit-hint {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: #eff6ff;
+  border-top: 1px solid #bfdbfe;
+  color: #1e40af;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+
+/* --- C. Word Editable Mode on Document Paper --- */
+.paper-document.word-editable-mode {
+  outline: 2px dashed #93c5fd;
+  outline-offset: 4px;
+  cursor: text;
+}
+
+.paper-document.word-editable-mode *:focus {
+  outline: 2px solid #3b82f6 !important;
+  outline-offset: 1px;
+  background-color: rgba(239, 246, 255, 0.5) !important;
+  border-radius: 2px;
+}
+
+/* --- D. Digital Signature Modal Styles --- */
+.doc-sig-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: docFadeIn 0.2s ease;
+}
+
+@keyframes docFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.doc-sig-modal-card {
+  width: 100%;
+  max-width: 640px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-sig-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: #0f2942;
+  color: #ffffff;
+}
+
+.doc-sig-modal-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.doc-sig-icon-box {
+  width: 36px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #38bdf8;
+}
+
+.doc-sig-modal-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.doc-sig-modal-subtitle {
+  font-size: 11px;
+  color: #94a3b8;
+  margin: 2px 0 0;
+}
+
+.doc-sig-modal-close {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.15s ease;
+}
+
+.doc-sig-modal-close:hover {
+  color: #ffffff;
+}
+
+/* Party Bar */
+.doc-sig-party-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.doc-sig-party-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.doc-sig-party-buttons {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+}
+
+.doc-party-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex: 1;
+}
+
+.doc-party-btn.active {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  color: #0369a1;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.15);
+}
+
+.doc-party-badge {
+  font-size: 9.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  background: #0284c7;
+  color: #ffffff;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.doc-party-badge.buyer {
+  background: #475569;
+}
+
+/* Tabs Nav */
+.doc-sig-tabs-nav {
+  display: flex;
+  background: #ffffff;
+  border-bottom: 1px solid #e2e8f0;
+  padding: 0 16px;
+}
+
+.doc-sig-tab-item {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 14px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.doc-sig-tab-item:hover {
+  color: #0f2942;
+}
+
+.doc-sig-tab-item.active {
+  color: #0284c7;
+  border-bottom-color: #0284c7;
+}
+
+/* Tab Content */
+.doc-sig-tab-content {
+  padding: 16px 20px;
+  min-height: 240px;
+}
+
+/* Canvas Toolbar */
+.doc-canvas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.doc-pen-colors,
+.doc-pen-thickness,
+.doc-canvas-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.doc-tool-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+}
+
+.pen-color-dot {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 1px #cbd5e1;
+  cursor: pointer;
+}
+
+.pen-color-dot.active {
+  box-shadow: 0 0 0 2px #0284c7;
+  transform: scale(1.1);
+}
+
+.dot-black { background: #0f172a; }
+.dot-blue { background: #1e40af; }
+.dot-navy { background: #1d4ed8; }
+
+.thickness-btn {
+  padding: 2px 7px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+
+.thickness-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+}
+
+.doc-canvas-mini-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+}
+
+.doc-canvas-mini-btn:hover {
+  background: #e2e8f0;
+}
+
+.doc-canvas-mini-btn.btn-clear:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  border-color: #fca5a5;
+}
+
+/* Canvas Area */
+.doc-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 160px;
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.doc-signature-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.doc-canvas-guide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: #94a3b8;
+  font-size: 11px;
+  pointer-events: none;
+  text-align: center;
+  padding: 0 20px;
+}
+
+.doc-canvas-baseline {
+  position: absolute;
+  bottom: 35px;
+  left: 40px;
+  right: 40px;
+  border-bottom: 1px solid #e2e8f0;
+  pointer-events: none;
+}
+
+/* Font Styles Grid */
+.doc-font-input-wrap {
+  margin-bottom: 12px;
+}
+
+.doc-font-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+  margin-bottom: 4px;
+}
+
+.doc-font-input {
+  width: 100%;
+  padding: 7px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.doc-font-styles-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.doc-font-card {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: #ffffff;
+}
+
+.doc-font-card:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+}
+
+.doc-font-card.selected {
+  border-color: #0284c7;
+  background: #f0f9ff;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.doc-font-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.doc-font-card-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.check-icon {
+  color: #0284c7;
+}
+
+.doc-font-sample {
+  font-size: 24px;
+  color: #0f2942;
+  text-align: center;
+  padding: 6px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.doc-font-card-line {
+  border-bottom: 1px dashed #cbd5e1;
+  margin-top: 4px;
+}
+
+/* Upload Dropzone */
+.doc-upload-dropzone {
+  border: 2px dashed #94a3b8;
+  border-radius: 8px;
+  padding: 30px 20px;
+  text-align: center;
+  cursor: pointer;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: #64748b;
+}
+
+.doc-upload-dropzone:hover {
+  border-color: #0284c7;
+  background: #f0f9ff;
+}
+
+.doc-upload-dropzone h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
+}
+
+.doc-upload-dropzone p {
+  font-size: 11px;
+  margin: 0;
+}
+
+.doc-upload-browse-btn {
+  margin-top: 4px;
+  padding: 6px 14px;
+  background: #0284c7;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-upload-preview-card {
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.doc-upload-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.doc-upload-preview-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.doc-upload-change-btn {
+  background: transparent;
+  border: none;
+  color: #0284c7;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-upload-img-box {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 6px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.uploaded-sig-img {
+  max-height: 80px;
+  max-width: 100%;
+  object-fit: contain;
+}
+
+/* Official Stamp & E-Seal Tab */
+.doc-stamp-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.doc-stamp-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.doc-stamp-color-options {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-left: 24px;
+}
+
+.stamp-radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.stamp-pill {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.stamp-pill.red {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
+}
+
+.stamp-pill.blue {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.doc-stamp-preview-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+
+.doc-stamp-preview-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+}
+
+/* Official Corporate Seal Graphic */
+.official-corporate-seal {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-8deg);
+  opacity: 0.9;
+}
+
+.official-corporate-seal.seal-red {
+  color: #b91c1c;
+}
+
+.official-corporate-seal.seal-blue {
+  color: #1e40af;
+}
+
+.seal-outer-circle {
+  width: 104px;
+  height: 104px;
+  border: 3px double currentColor;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.seal-inner-circle {
+  width: 90px;
+  height: 90px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2px;
+}
+
+.seal-text-top {
+  font-size: 6.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.seal-center-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1px 0;
+}
+
+.seal-star {
+  font-size: 6.5px;
+  letter-spacing: 1px;
+}
+
+.seal-center-text {
+  font-size: 8.5px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.seal-center-sub {
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.seal-year {
+  font-size: 6.5px;
+  font-weight: 700;
+}
+
+.seal-text-bottom {
+  font-size: 6px;
+  font-weight: 800;
+}
+
+.doc-stamp-security-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 6px;
+  color: #166534;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.shield-icon {
+  color: #16a34a;
+  flex-shrink: 0;
+}
+
+/* Modal Footer */
+.doc-sig-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.doc-sig-footer-left,
+.doc-sig-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.doc-sig-btn-delete {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 12px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-sig-security-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.doc-sig-btn-cancel {
+  padding: 7px 14px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.doc-sig-btn-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  border: 1px solid #0284c7;
+  color: #ffffff;
+  border-radius: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(2, 132, 199, 0.25);
+  transition: all 0.15s ease;
+}
+
+.doc-sig-btn-apply:hover {
+  background: linear-gradient(135deg, #0369a1 0%, #075985 100%);
+  box-shadow: 0 4px 12px rgba(2, 132, 199, 0.35);
+}
+
+/* --- E. Document Rendered Signatures & E-Seals --- */
+.sig-rendered-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 52px;
+}
+
+.doc-rendered-signature {
+  max-height: 48px;
+  max-width: 170px;
+  object-fit: contain;
+  display: block;
+}
+
+.doc-seal-overlay {
+  position: absolute;
+  top: -6px;
+  right: -30px;
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(-10deg);
+  opacity: 0.85;
+  pointer-events: none;
+}
+
+.doc-seal-overlay.seal-red {
+  color: #b91c1c;
+}
+
+.doc-seal-overlay.seal-blue {
+  color: #1e40af;
+}
+
+.seal-circle-outer {
+  width: 64px;
+  height: 64px;
+  border: 2px double currentColor;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.seal-circle-inner {
+  width: 54px;
+  height: 54px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.seal-txt-top {
+  font-size: 4.5px;
+  font-weight: 800;
+}
+
+.seal-txt-star {
+  font-size: 5px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.seal-txt-sub {
+  font-size: 4px;
+  font-weight: 800;
+}
+
+.seal-txt-bot {
+  font-size: 4.5px;
+  font-weight: 800;
+}
+
+.sig-verify-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #047857;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 1px 6px;
+  border-radius: 4px;
+  margin-top: 3px;
+}
+
+.sig-verify-check {
+  font-weight: 900;
+}
+
+.sig-edit-hover-btn {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  background: #0f2942;
+  color: #ffffff;
+  border: none;
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sig-rendered-wrap:hover .sig-edit-hover-btn {
+  opacity: 1;
+}
+
+/* Interactive click-to-sign placeholder */
+.doc-btn-click-sign {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: #f8fafc;
+  border: 1.5px dashed #94a3b8;
+  border-radius: 6px;
+  color: #0369a1;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin: 6px 0;
+}
+
+.doc-btn-click-sign:hover {
+  background: #f0f9ff;
+  border-color: #0284c7;
+  color: #0284c7;
+  transform: translateY(-1px);
+}
+
+.buyer-sign-btn {
+  color: #475569;
+}
+
+.buyer-sign-btn:hover {
+  color: #0f172a;
+}
+
+/* Print Cleanliness: Hide editor hints and hover buttons when printing */
+@media print {
+  .doc-word-ribbon-container,
+  .sig-edit-hover-btn,
+  .doc-btn-click-sign {
+    display: none !important;
+  }
+}
+
+

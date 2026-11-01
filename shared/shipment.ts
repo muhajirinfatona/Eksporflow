@@ -126,6 +126,21 @@ export type Shipment = {
   contractLayout?: "1-page" | "2-page";
   defaultExportFormat?: "pdf" | "docx" | "xlsx" | "html" | "txt";
   blNumber?: string;
+  sellerSignatureImage?: string;
+  sellerSignatureType?: "draw" | "upload" | "font" | "stamp";
+  sellerSignatureDate?: string;
+  sellerVerificationCode?: string;
+  buyerSignatureImage?: string;
+  buyerSignatureType?: "draw" | "upload" | "font" | "stamp";
+  buyerSignatureDate?: string;
+  buyerVerificationCode?: string;
+  includeOfficialStamp?: boolean;
+  officialStampColor?: "red" | "blue";
+  docEditorFontFamily?: string;
+  docEditorFontSize?: number;
+  docEditorLineHeight?: number;
+  docEditorTextAlign?: "left" | "center" | "right" | "justify";
+  docEditorMode?: boolean;
   mfgRawMaterial?: number;
   mfgAuxiliary?: number;
   mfgDirectLabor?: number;
@@ -179,6 +194,21 @@ export const initialShipment: Shipment = {
   contractLayout: "1-page",
   defaultExportFormat: "pdf",
   blNumber: "KMTC-MKS0091827",
+  sellerSignatureImage: "",
+  sellerSignatureType: "font",
+  sellerSignatureDate: "",
+  sellerVerificationCode: "IEI-DIGISIG-8849-DXB",
+  buyerSignatureImage: "",
+  buyerSignatureType: "font",
+  buyerSignatureDate: "",
+  buyerVerificationCode: "ABF-DIGISIG-1092-DXB",
+  includeOfficialStamp: true,
+  officialStampColor: "red",
+  docEditorFontFamily: "Calibri",
+  docEditorFontSize: 12,
+  docEditorLineHeight: 1.35,
+  docEditorTextAlign: "left",
+  docEditorMode: false,
   contractSpecialTerms: "",
   letterheadText: "Indico Export Indonesia",
   letterheadImage: "",

@@ -25,6 +25,8 @@ import {
   Globe,
   FileCode,
   Landmark,
+  PenTool,
+  Edit3,
   Printer,
   ShieldCheck,
   Ship,
@@ -36,6 +38,8 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Field, SelectField } from "./Primitives";
+import { DocWordRibbon } from "./DocWordRibbon";
+import { DigitalSignatureModal } from "./DigitalSignatureModal";
 import {
   exportToDocx,
   exportToXlsx,
@@ -70,7 +74,22 @@ export function DocumentsModule({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isDownloadMenuOpen, setIsDownloadMenuOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [isWordRibbonOpen, setIsWordRibbonOpen] = useState(true);
+  const [isEditMode, setIsEditMode] = useState(shipment.docEditorMode ?? false);
+  const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+  const [signatureParty, setSignatureParty] = useState<"seller" | "buyer">("seller");
+  const [editorKey, setEditorKey] = useState(0);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
+
+  const handleOpenSignatureModal = (party: "seller" | "buyer" = "seller") => {
+    setSignatureParty(party);
+    setIsSignatureModalOpen(true);
+  };
+
+  const handleResetDocument = () => {
+    setEditorKey((prev) => prev + 1);
+    toast.success("Dokumen berhasil di-reset ke template standar sistem!");
+  };
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -288,6 +307,13 @@ export function DocumentsModule({
         blNumber: shipment.blNumber || "KMTC-MKS0091827",
         containerNo: containerNumber,
         sealNo: sealNumber,
+        sellerSignatureImage: shipment.sellerSignatureImage,
+        sellerSignatureDate: shipment.sellerSignatureDate,
+        sellerVerificationCode: shipment.sellerVerificationCode || "IEI-DIGISIG-8849-DXB",
+        buyerSignatureImage: shipment.buyerSignatureImage,
+        buyerSignatureDate: shipment.buyerSignatureDate,
+        buyerVerificationCode: shipment.buyerVerificationCode || "ABF-DIGISIG-1092-DXB",
+        includeOfficialStamp: shipment.includeOfficialStamp,
       };
 
       const docSlug = selectedDocument.toLowerCase().replace(/\s+/g, "_");
@@ -422,6 +448,33 @@ export function DocumentsModule({
             <span>{shipment.documentReviewed ? "Terverifikasi" : "Selesai Diperiksa"}</span>
           </button>
 
+          {/* Word Ribbon Toggle Button */}
+          <button
+            type="button"
+            className={`doc-btn-review ${isWordRibbonOpen ? "active" : ""}`}
+            onClick={() => setIsWordRibbonOpen((prev) => !prev)}
+            title="Tampilkan atau sembunyikan toolbar editor format Word"
+          >
+            <Edit3 size={14} />
+            <span>{isWordRibbonOpen ? "Tutup Toolbar Word" : "Toolbar Word"}</span>
+          </button>
+
+          {/* Digital Signature Trigger Button */}
+          <button
+            type="button"
+            className="doc-btn-review"
+            onClick={() => handleOpenSignatureModal("seller")}
+            title="Bubuhkan tanda tangan digital & stempel resmi"
+          >
+            <PenTool size={14} />
+            <span>Tanda Tangan Digital</span>
+            {(shipment.sellerSignatureImage || shipment.buyerSignatureImage) && (
+              <span style={{ fontSize: "10px", background: "#dcfce7", color: "#15803d", padding: "1px 5px", borderRadius: "4px", fontWeight: 700, marginLeft: "4px" }}>
+                ✓ Siap
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             className="doc-btn-print"
@@ -540,10 +593,31 @@ export function DocumentsModule({
         />
       )}
 
+      {/* 2.5 Word-like Formatting Ribbon Toolbar */}
+      {isWordRibbonOpen && (
+        <DocWordRibbon
+          shipment={shipment}
+          update={update}
+          isEditMode={isEditMode}
+          setIsEditMode={setIsEditMode}
+          onOpenSignatureModal={handleOpenSignatureModal}
+          onResetDocument={handleResetDocument}
+        />
+      )}
+
       {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
         <div
-          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""}`}
+          key={editorKey}
+          contentEditable={isEditMode}
+          suppressContentEditableWarning={true}
+          style={{
+            fontFamily: shipment.docEditorFontFamily || "Calibri",
+            fontSize: `${shipment.docEditorFontSize || 12}px`,
+            lineHeight: shipment.docEditorLineHeight || 1.35,
+            textAlign: shipment.docEditorTextAlign || "left",
+          }}
+          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""} ${isEditMode ? "word-editable-mode" : ""}`}
         >
           {/* Official Letterhead Header */}
           <OfficialLetterhead
@@ -585,6 +659,7 @@ export function DocumentsModule({
               totalAmount={totalAmount}
               amountInWords={amountInWords}
               isId={isId}
+              onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
 
@@ -621,6 +696,7 @@ export function DocumentsModule({
               amountInWords={amountInWords}
               contractSpecialTerms={shipment.contractSpecialTerms}
               isId={isId}
+              onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
 
@@ -655,6 +731,7 @@ export function DocumentsModule({
               totalAmount={totalAmount}
               amountInWords={amountInWords}
               isId={isId}
+              onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
 
@@ -685,6 +762,7 @@ export function DocumentsModule({
               grossWeightMT={grossWeightMT}
               totalCBM={totalCBM}
               isId={isId}
+              onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
 
@@ -716,10 +794,20 @@ export function DocumentsModule({
               grossWeightKgs={grossWeightKgs}
               totalCBM={totalCBM}
               isId={isId}
+              onOpenSignatureModal={handleOpenSignatureModal}
             />
           )}
         </div>
       </div>
+
+      {/* Digital Signature & Official E-Seal Modal */}
+      <DigitalSignatureModal
+        isOpen={isSignatureModalOpen}
+        onClose={() => setIsSignatureModalOpen(false)}
+        shipment={shipment}
+        update={update}
+        initialParty={signatureParty}
+      />
     </div>
   );
 }
@@ -784,12 +872,16 @@ function OfficialStampAndSignature({
   signatoryName = "Muhajirin Fatona",
   role = "Export Director",
   isId = false,
+  shipment,
+  onOpenSignatureModal,
 }: {
   exporterName: string;
   signatoryName?: string;
   role?: string;
   showStamp?: boolean;
   isId?: boolean;
+  shipment?: Shipment;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   const displayRole = isId
     ? role === "Export Director"
@@ -799,13 +891,69 @@ function OfficialStampAndSignature({
         : role
     : role;
 
+  const hasSignature = !!shipment?.sellerSignatureImage;
+  const includeStamp = shipment?.includeOfficialStamp ?? true;
+  const stampColor = shipment?.officialStampColor || "red";
+
   return (
     <div className="official-sig-block">
       <span className="sig-signed-for">
         {isId ? "Ditandatangani untuk dan atas nama:" : "Signed for and on behalf of:"}
       </span>
       <b className="sig-company-name">{exporterName}</b>
-      <div className="sig-canvas-zone" />
+      <div className="sig-canvas-zone">
+        {hasSignature ? (
+          <div className="sig-rendered-wrap">
+            <img
+              src={shipment.sellerSignatureImage}
+              alt="Digital Signature"
+              className="doc-rendered-signature"
+            />
+            {includeStamp && (
+              <div className={`doc-seal-overlay seal-${stampColor}`} title="Stempel Digital Resmi Validated">
+                <div className="seal-circle-outer">
+                  <div className="seal-circle-inner">
+                    <span className="seal-txt-top">★ PT. INDICO EXPORT ★</span>
+                    <span className="seal-txt-star">★ VALIDATED ★</span>
+                    <span className="seal-txt-sub">OFFICIAL SEAL</span>
+                    <span className="seal-txt-bot">INDONESIA</span>
+                  </div>
+                </div>
+              </div>
+            )}
+            <div className="sig-verify-badge">
+              <span className="sig-verify-check">✓</span>
+              <span>Terverifikasi Digital ({shipment.sellerSignatureDate || "2026"})</span>
+            </div>
+            {onOpenSignatureModal && (
+              <button
+                type="button"
+                className="sig-edit-hover-btn"
+                onClick={() => onOpenSignatureModal("seller")}
+                title="Ganti atau perbarui tanda tangan digital"
+              >
+                Ubah Tanda Tangan
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="sig-placeholder-wrap">
+            {onOpenSignatureModal ? (
+              <button
+                type="button"
+                className="doc-btn-click-sign"
+                onClick={() => onOpenSignatureModal("seller")}
+                title="Klik untuk membubuhkan tanda tangan digital & stempel resmi"
+              >
+                <PenTool size={13} />
+                <span>+ Klik Tanda Tangan Digital & Stempel</span>
+              </button>
+            ) : (
+              <div className="sig-box-space" />
+            )}
+          </div>
+        )}
+      </div>
       <b className="sig-signatory-name">{signatoryName}</b>
       <span className="sig-signatory-title">{displayRole}</span>
     </div>
@@ -844,6 +992,7 @@ function ProformaInvoiceDoc({
   totalAmount,
   amountInWords,
   isId = false,
+  onOpenSignatureModal,
 }: {
   shipment: Shipment;
   exporterName: string;
@@ -873,6 +1022,7 @@ function ProformaInvoiceDoc({
   totalAmount: number;
   amountInWords: string;
   isId?: boolean;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   return (
     <div className="doc-content-wrapper">
@@ -1048,6 +1198,8 @@ function ProformaInvoiceDoc({
           signatoryName={signatoryName}
           role={signatoryRole}
           isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
         />
       </div>
     </div>
@@ -1058,6 +1210,7 @@ function ProformaInvoiceDoc({
 // 2. SALES CONTRACT (SC) COMPONENT
 // --------------------------------------------------------------------------
 function SalesContractDoc({
+  shipment,
   exporterName,
   exporterAddress,
   buyerName,
@@ -1088,6 +1241,7 @@ function SalesContractDoc({
   contractSpecialTerms,
   contractLayout = "1-page",
   isId = false,
+  onOpenSignatureModal,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -1120,6 +1274,7 @@ function SalesContractDoc({
   contractSpecialTerms?: string;
   contractLayout?: "1-page" | "2-page";
   isId?: boolean;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   const is2Page = contractLayout === "2-page";
 
@@ -1502,7 +1657,40 @@ function SalesContractDoc({
             {isId ? "PIHAK PEMBELI (THE BUYER)" : "THE BUYER"}
           </span>
           <b className="sig-company-name">{isId ? `Untuk ${buyerName}` : `For ${buyerName}`}</b>
-          <div className="sig-box-space" />
+          <div className="sig-box-space">
+            {shipment?.buyerSignatureImage ? (
+              <div className="sig-rendered-wrap">
+                <img
+                  src={shipment.buyerSignatureImage}
+                  alt="Buyer Signature"
+                  className="doc-rendered-signature"
+                />
+                <div className="sig-verify-badge">
+                  <span className="sig-verify-check">✓</span>
+                  <span>E-Signed by Buyer ({shipment.buyerSignatureDate || "2026"})</span>
+                </div>
+                {onOpenSignatureModal && (
+                  <button
+                    type="button"
+                    className="sig-edit-hover-btn"
+                    onClick={() => onOpenSignatureModal("buyer")}
+                  >
+                    Ubah
+                  </button>
+                )}
+              </div>
+            ) : onOpenSignatureModal ? (
+              <button
+                type="button"
+                className="doc-btn-click-sign buyer-sign-btn"
+                onClick={() => onOpenSignatureModal("buyer")}
+                title="Pasang tanda tangan digital pihak pembeli"
+              >
+                <PenTool size={12} />
+                <span>+ Tanda Tangan Buyer</span>
+              </button>
+            ) : null}
+          </div>
           <b className="sig-name">{buyerPicName || "Mr. Tariq Al-Mansoor"}</b>
           <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
         </div>
@@ -1512,7 +1700,52 @@ function SalesContractDoc({
             {isId ? "PIHAK PENJUAL (THE SELLER)" : "THE SELLER"}
           </span>
           <b className="sig-company-name">{isId ? `Untuk ${exporterName}` : `For ${exporterName}`}</b>
-          <div className="sig-box-space" />
+          <div className="sig-box-space">
+            {shipment?.sellerSignatureImage ? (
+              <div className="sig-rendered-wrap">
+                <img
+                  src={shipment.sellerSignatureImage}
+                  alt="Seller Signature"
+                  className="doc-rendered-signature"
+                />
+                {(shipment?.includeOfficialStamp ?? true) && (
+                  <div className={`doc-seal-overlay seal-${shipment?.officialStampColor || "red"}`} title="Stempel Digital Resmi Validated">
+                    <div className="seal-circle-outer">
+                      <div className="seal-circle-inner">
+                        <span className="seal-txt-top">★ PT. INDICO EXPORT ★</span>
+                        <span className="seal-txt-star">★ VALIDATED ★</span>
+                        <span className="seal-txt-sub">OFFICIAL SEAL</span>
+                        <span className="seal-txt-bot">INDONESIA</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div className="sig-verify-badge">
+                  <span className="sig-verify-check">✓</span>
+                  <span>Signed & Verified ({shipment.sellerSignatureDate || "2026"})</span>
+                </div>
+                {onOpenSignatureModal && (
+                  <button
+                    type="button"
+                    className="sig-edit-hover-btn"
+                    onClick={() => onOpenSignatureModal("seller")}
+                  >
+                    Ubah
+                  </button>
+                )}
+              </div>
+            ) : onOpenSignatureModal ? (
+              <button
+                type="button"
+                className="doc-btn-click-sign"
+                onClick={() => onOpenSignatureModal("seller")}
+                title="Pasang tanda tangan digital & stempel resmi eksportir"
+              >
+                <PenTool size={12} />
+                <span>+ Tanda Tangan Eksportir</span>
+              </button>
+            ) : null}
+          </div>
           <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
           <span className="sig-sub">
             {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")}
@@ -1527,6 +1760,7 @@ function SalesContractDoc({
 // 3. COMMERCIAL INVOICE (CI) COMPONENT
 // --------------------------------------------------------------------------
 function CommercialInvoiceDoc({
+  shipment,
   exporterName,
   buyerName,
   buyerAddress,
@@ -1555,6 +1789,7 @@ function CommercialInvoiceDoc({
   totalAmount,
   amountInWords,
   isId = false,
+  onOpenSignatureModal,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -1585,6 +1820,7 @@ function CommercialInvoiceDoc({
   totalAmount: number;
   amountInWords: string;
   isId?: boolean;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   return (
     <div className="doc-content-wrapper">
@@ -1763,6 +1999,8 @@ function CommercialInvoiceDoc({
           signatoryName={signatoryName}
           role={signatoryRole}
           isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
         />
       </div>
     </div>
@@ -1773,6 +2011,7 @@ function CommercialInvoiceDoc({
 // 4. PACKING LIST (PL) COMPONENT
 // --------------------------------------------------------------------------
 function PackingListDoc({
+  shipment,
   exporterName,
   buyerName,
   buyerAddress,
@@ -1797,6 +2036,7 @@ function PackingListDoc({
   grossWeightMT,
   totalCBM,
   isId = false,
+  onOpenSignatureModal,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -1823,6 +2063,7 @@ function PackingListDoc({
   grossWeightMT: number;
   totalCBM: number;
   isId?: boolean;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   return (
     <div className="doc-content-wrapper">
@@ -1986,6 +2227,8 @@ function PackingListDoc({
           signatoryName={signatoryName}
           role={signatoryRole}
           isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
         />
       </div>
     </div>
@@ -1996,6 +2239,7 @@ function PackingListDoc({
 // 5. SHIPPING INSTRUCTION (SI) COMPONENT
 // --------------------------------------------------------------------------
 function ShippingInstructionDoc({
+  shipment,
   exporterName,
   exporterAddress,
   buyerName,
@@ -2019,6 +2263,7 @@ function ShippingInstructionDoc({
   grossWeightKgs,
   totalCBM,
   isId = false,
+  onOpenSignatureModal,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -2045,6 +2290,7 @@ function ShippingInstructionDoc({
   grossWeightKgs: number;
   totalCBM: number;
   isId?: boolean;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   return (
     <div className="doc-content-wrapper">
@@ -2240,6 +2486,8 @@ function ShippingInstructionDoc({
           signatoryName={signatoryName}
           role={signatoryRole || (isId ? "Manajer Logistik & Ekspor" : "Logistics & Export Manager")}
           isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
         />
       </div>
     </div>
