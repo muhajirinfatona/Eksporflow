@@ -405,6 +405,7 @@ export function DocumentsModule({
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
+              buyerPicName={buyerPicName}
               buyerPhone={buyerPhone}
               buyerEmail={buyerEmail}
               signatoryName={signatoryName}
@@ -438,6 +439,7 @@ export function DocumentsModule({
               buyerName={buyerName}
               buyerAddress={buyerAddress}
               buyerCountry={buyerCountry}
+              buyerPicName={buyerPicName}
               buyerPhone={buyerPhone}
               buyerEmail={buyerEmail}
               signatoryName={signatoryName}
@@ -1104,6 +1106,7 @@ function CommercialInvoiceDoc({
   buyerName,
   buyerAddress,
   buyerCountry,
+  buyerPicName,
   buyerPhone,
   buyerEmail,
   signatoryName,
@@ -1133,6 +1136,7 @@ function CommercialInvoiceDoc({
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
+  buyerPicName?: string;
   buyerPhone?: string;
   buyerEmail?: string;
   signatoryName?: string;
@@ -1189,8 +1193,12 @@ function CommercialInvoiceDoc({
               {isId ? "PIHAK DIBERITAHU (NOTIFY PARTY):" : "NOTIFY PARTY:"}
             </span>
             <b className="doc-entity-name">
-              {isId ? "Sama dengan Penerima (Same as Consignee)" : "Same as Consignee"}
+              {isId ? "Sama dengan Penerima (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}
             </b>
+            <p className="doc-entity-address">{buyerName} — {buyerCountry}</p>
+            <p className="doc-entity-contact">
+              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} | Telp: {buyerPhone || "+971 4 223 4567"}
+            </p>
           </div>
         </div>
 
@@ -1344,6 +1352,7 @@ function PackingListDoc({
   buyerName,
   buyerAddress,
   buyerCountry,
+  buyerPicName,
   buyerPhone,
   buyerEmail,
   signatoryName,
@@ -1369,6 +1378,7 @@ function PackingListDoc({
   buyerName: string;
   buyerAddress: string;
   buyerCountry: string;
+  buyerPicName?: string;
   buyerPhone?: string;
   buyerEmail?: string;
   signatoryName?: string;
@@ -1421,8 +1431,12 @@ function PackingListDoc({
               {isId ? "PIHAK DIBERITAHU (NOTIFY PARTY):" : "NOTIFY PARTY:"}
             </span>
             <b className="doc-entity-name">
-              {isId ? "Sama dengan Penerima (Same as Consignee)" : "Same as Consignee"}
+              {isId ? "Sama dengan Penerima (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}
             </b>
+            <p className="doc-entity-address">{buyerName} — {buyerCountry}</p>
+            <p className="doc-entity-contact">
+              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} | Telp: {buyerPhone || "+971 4 223 4567"}
+            </p>
           </div>
         </div>
 

@@ -5687,26 +5687,36 @@ textarea:focus-visible {
 /* Two-Column Grid */
 .doc-two-col-grid {
   display: grid;
-  grid-template-columns: 1.25fr 1fr;
-  gap: 14px;
-  margin-bottom: 14px;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: stretch;
 }
 
 .doc-parties-column,
 .doc-reference-column {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  height: 100%;
+}
+
+.doc-parties-column .doc-box {
+  flex: 1;
+}
+
+.doc-reference-column .doc-box {
+  flex: 1;
 }
 
 .doc-box {
   background: #ffffff;
   border: 1px solid #cbd5e1;
   border-radius: 4px;
-  padding: 9px 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 2px;
 }
 
 .doc-box-tag {
@@ -5719,15 +5729,15 @@ textarea:focus-visible {
 }
 
 .doc-entity-name {
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 800;
   color: #0f172a;
 }
 
 .doc-entity-address {
-  font-size: 11px;
+  font-size: 10.5px;
   color: #0f172a;
-  line-height: 1.35;
+  line-height: 1.32;
   margin: 0;
 }
 
@@ -5741,9 +5751,10 @@ textarea:focus-visible {
 .meta-pair {
   display: flex;
   justify-content: space-between;
-  align-items: baseline;
-  font-size: 11.5px;
-  padding: 2.5px 0;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 11px;
+  padding: 2px 0;
   border-bottom: 1px dashed #f1f5f9;
 }
 
@@ -5754,12 +5765,15 @@ textarea:focus-visible {
 .meta-label {
   color: #1e293b;
   font-weight: 500;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .meta-value {
   color: #0f172a;
   font-weight: 700;
   text-align: right;
+  line-height: 1.25;
 }
 
 /* Terms Panel (Proforma Invoice) */
@@ -9427,15 +9441,31 @@ textarea:focus-visible {
 
   /* Grid 2 kolom entitas & faktur */
   .doc-two-col-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 6px !important;
     margin-bottom: 6px !important;
+    align-items: stretch !important;
+  }
+  .doc-parties-column,
+  .doc-reference-column {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 5px !important;
+    height: 100% !important;
+  }
+  .doc-parties-column .doc-box {
+    flex: 1 !important;
+  }
+  .doc-reference-column .doc-box {
+    flex: 1 !important;
   }
   .doc-box {
-    padding: 5px 8px !important;
+    padding: 4px 7px !important;
     border: 1px solid #cbd5e1 !important;
   }
   .doc-box-tag {
-    font-size: 9.5px !important;
+    font-size: 9px !important;
     font-weight: 800 !important;
     margin-bottom: 1px !important;
     color: #0f2942 !important;
@@ -9443,32 +9473,40 @@ textarea:focus-visible {
     letter-spacing: 0.04em !important;
   }
   .doc-entity-name {
-    font-size: 12.5px !important;
+    font-size: 11.5px !important;
     font-weight: 800 !important;
-    margin-bottom: 1.5px !important;
+    margin-bottom: 1px !important;
     color: #0f172a !important;
   }
   .doc-entity-address,
   .doc-entity-contact {
-    font-size: 11px !important;
-    line-height: 1.26 !important;
+    font-size: 10.5px !important;
+    line-height: 1.24 !important;
     margin-bottom: 1px !important;
     font-weight: 500 !important;
     color: #0f172a !important;
   }
   .meta-pair {
-    font-size: 11px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: flex-start !important;
+    font-size: 10.5px !important;
     padding: 1px 0 !important;
+    gap: 8px !important;
   }
   .meta-label {
-    font-size: 10.5px !important;
+    font-size: 10px !important;
     font-weight: 500 !important;
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
     color: #1e293b !important;
   }
   .meta-value {
-    font-size: 11px !important;
+    font-size: 10.5px !important;
     font-weight: 700 !important;
     color: #0f172a !important;
+    text-align: right !important;
+    line-height: 1.22 !important;
   }
 
   /* Panel syarat pengiriman & pembayaran */
