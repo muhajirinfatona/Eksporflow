@@ -206,6 +206,12 @@ export function DocumentsModule({
 
   const amountInWords = numberToWords(totalAmount, currency, isId ? "id" : "en");
 
+  const effectiveContractLayout: "1-page" | "2-page" =
+    (typeof window !== "undefined" &&
+      (new URLSearchParams(window.location.search).get("contractLayout") as "1-page" | "2-page")) ||
+    shipment.contractLayout ||
+    "1-page";
+
   return (
     <div className="doc-center-root">
       <style>{`
@@ -319,7 +325,7 @@ export function DocumentsModule({
       {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-desk">
         <div
-          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${shipment.contractLayout === "2-page" ? "2page" : "1page"}` : ""}`}
+          className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""}`}
         >
           {/* Official Letterhead Header */}
           <OfficialLetterhead
@@ -367,7 +373,7 @@ export function DocumentsModule({
           {selectedDocument === "Sales Contract" && (
             <SalesContractDoc
               shipment={shipment}
-              contractLayout={shipment.contractLayout || "1-page"}
+              contractLayout={effectiveContractLayout}
               exporterName={exporterName}
               exporterAddress={exporterAddress}
               buyerName={buyerName}
