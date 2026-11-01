@@ -1293,7 +1293,7 @@ function ProformaInvoiceDoc({
         <div className="doc-box">
           <div className="meta-pair">
             <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>
-            <b className="meta-value font-mono">PI/IEI-DXB/X/2026/001</b>
+            <b className="meta-value">PI/IEI-DXB/X/2026/001</b>
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>
@@ -1305,7 +1305,7 @@ function ProformaInvoiceDoc({
           </div>
           <div className="meta-pair">
             <span className="meta-label">{isId ? "Ref. Pembeli:" : "Buyer Ref:"}</span>
-            <b className="meta-value font-mono">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</b>
+            <b className="meta-value">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</b>
           </div>
         </div>
       </div>
@@ -1379,7 +1379,7 @@ function ProformaInvoiceDoc({
                 </li>
               </ul>
             </td>
-            <td className="font-mono text-center font-normal">{hsCode}</td>
+            <td className="text-center font-normal">{hsCode}</td>
             <td className="text-right font-normal">{formatNumber(netWeightMT, 2)} MT</td>
             <td className="text-right font-normal">{formatMoney(unitPricePerMT, currency)} / MT</td>
             <td className="text-right font-bold text-slate-900">{formatMoney(totalAmount, currency)}</td>
@@ -1390,7 +1390,7 @@ function ProformaInvoiceDoc({
             <td colSpan={4} className="text-right font-bold">
               TOTAL {incoterm} MAKASSAR (INCOTERMS 2020)
             </td>
-            <td colSpan={2} className="text-right font-bold text-lg text-blue-900">
+            <td colSpan={2} className="text-right font-bold text-blue-900">
               {currency} {formatNumber(totalAmount, 2)}
             </td>
           </tr>
@@ -1421,11 +1421,11 @@ function ProformaInvoiceDoc({
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Nomor Rekening:" : "Account Number:"}</td>
-              <td className="bank-val font-mono font-bold">{bankAccountNo || "152-00-9876543-2"} {isId ? "(Rekening Valas USD)" : "(USD Account)"}</td>
+              <td className="bank-val font-bold">{bankAccountNo || "152-00-9876543-2"} {isId ? "(Rekening Valas USD)" : "(USD Account)"}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Kode SWIFT / BIC:" : "SWIFT Code:"}</td>
-              <td className="bank-val font-mono font-bold">{bankSwift || "BMRIIDJA"}</td>
+              <td className="bank-val font-bold">{bankSwift || "BMRIIDJA"}</td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Mata Uang:" : "Currency:"}</td>
@@ -2110,7 +2110,7 @@ function CommercialInvoiceDoc({
           <div className="doc-box">
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>{" "}
-              <b className="meta-value font-mono">INV/IEI-DXB/XI/2026/001</b>
+              <b className="meta-value">INV/IEI-DXB/XI/2026/001</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
@@ -2118,12 +2118,12 @@ function CommercialInvoiceDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
-              <b className="meta-value font-mono">SC/IEI-ABF/XI/2026/001</b>
+              <b className="meta-value">SC/IEI-ABF/XI/2026/001</b>
             </div>
             {poNumber && (
               <div className="meta-pair">
                 <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
-                <b className="meta-value font-mono">{poNumber}</b>
+                <b className="meta-value">{poNumber}</b>
               </div>
             )}
             <div className="meta-pair">
@@ -2150,11 +2150,11 @@ function CommercialInvoiceDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
+              <b className="meta-value">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
-              <b className="meta-value font-mono">KMTC-MKS0091827</b>
+              <b className="meta-value">KMTC-MKS0091827</b>
             </div>
           </div>
         </div>
@@ -2172,7 +2172,7 @@ function CommercialInvoiceDoc({
         </thead>
         <tbody>
           <tr>
-            <td className="font-mono text-xs">
+            <td>
               <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
               DUBAI - UAE<br />
               BATCH: 11/26<br />
@@ -2182,31 +2182,31 @@ function CommercialInvoiceDoc({
             </td>
             <td>
               <b className="table-product-title">{productName.toUpperCase()}</b>
-              <p className="text-xs font-semibold text-slate-800 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
-              <p className="text-xs text-slate-800">
+              <p className="font-semibold text-slate-800 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
+              <p className="text-slate-800">
                 {isId ? "Kemasan: Karung Kertas Kraft Multiwall 20 Kg Neto" : "Packing: 20 Kg Net / Multiwall Kraft Paper Bag"}
               </p>
-              <p className="text-xs text-slate-800">
+              <p className="text-slate-800">
                 {isId ? `Total Kemasan: ${formatNumber(bagsCount)} Karung` : `Total Packages: ${formatNumber(bagsCount)} Bags`}
               </p>
-              <p className="text-xs font-bold text-slate-900 mt-1">
+              <p className="font-bold text-slate-900 mt-1">
                 {isId
                   ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kg | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kg`
                   : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs`}
               </p>
-              <p className="text-xs font-semibold text-slate-800">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
+              <p className="font-semibold text-slate-800">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
             </td>
             <td className="text-right font-normal">
               {formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}<br />
-              <span className="text-xs text-slate-700">
+              <span className="text-slate-700">
                 ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : "Net"})
               </span>
             </td>
             <td className="text-right font-normal">
               {currency} {formatNumber(unitPricePerMT, 2)}<br />
-              <span className="text-xs text-slate-700">/ MT</span>
+              <span className="text-slate-700">/ MT</span>
             </td>
-            <td className="text-right font-bold text-slate-900 text-base">
+            <td className="text-right font-bold text-slate-900">
               {currency} {formatNumber(totalAmount, 2)}
             </td>
           </tr>
@@ -2216,7 +2216,7 @@ function CommercialInvoiceDoc({
             <td colSpan={4} className="text-right font-bold">
               TOTAL {incoterm} MAKASSAR (INCOTERMS 2020)
             </td>
-            <td className="text-right font-bold text-lg text-blue-900">
+            <td className="text-right font-bold text-blue-900">
               {currency} {formatNumber(totalAmount, 2)}
             </td>
           </tr>
@@ -2353,11 +2353,11 @@ function PackingListDoc({
           <div className="doc-box">
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Daftar Kemasan:" : "Packing List No.:"}</span>{" "}
-              <b className="meta-value font-mono">PL/IEI-DXB/XI/2026/001</b>
+              <b className="meta-value">PL/IEI-DXB/XI/2026/001</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>{" "}
-              <b className="meta-value font-mono">INV/IEI-DXB/XI/2026/001</b>
+              <b className="meta-value">INV/IEI-DXB/XI/2026/001</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
@@ -2365,12 +2365,12 @@ function PackingListDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
-              <b className="meta-value font-mono">SC/IEI-ABF/XI/2026/001</b>
+              <b className="meta-value">SC/IEI-ABF/XI/2026/001</b>
             </div>
             {poNumber && (
               <div className="meta-pair">
                 <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
-                <b className="meta-value font-mono">{poNumber}</b>
+                <b className="meta-value">{poNumber}</b>
               </div>
             )}
           </div>
@@ -2393,11 +2393,11 @@ function PackingListDoc({
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <b className="meta-value font-mono">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
+              <b className="meta-value">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</b>
             </div>
             <div className="meta-pair">
               <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
-              <b className="meta-value font-mono">KMTC-MKS0091827</b>
+              <b className="meta-value">KMTC-MKS0091827</b>
             </div>
           </div>
         </div>
@@ -2416,7 +2416,7 @@ function PackingListDoc({
         </thead>
         <tbody>
           <tr>
-            <td className="font-mono text-xs">
+            <td>
               <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
               DUBAI - UAE<br />
               BATCH: 11/26<br />
@@ -2425,8 +2425,8 @@ function PackingListDoc({
             </td>
             <td>
               <b className="table-product-title">{productName}</b>
-              <p className="text-xs font-semibold text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
-              <div className="text-xs text-slate-800 mt-2">
+              <p className="font-semibold text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
+              <div className="text-slate-800 mt-2">
                 <b>{isId ? "Spesifikasi Kemasan:" : "Packing Specification:"}</b>
                 <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
                   <li>{isId ? "@ 20,00 Kg Berat Neto / Karung" : "@ 20.00 Kg Net Weight / Bag"}</li>
@@ -2440,13 +2440,13 @@ function PackingListDoc({
             <td className="text-right font-bold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
             <td className="text-right font-bold">
               {formatNumber(netWeightKgs, 2)} Kgs<br />
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="font-semibold text-slate-700">
                 ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : ""})
               </span>
             </td>
             <td className="text-right font-bold">
               {formatNumber(grossWeightKgs, 2)} Kgs<br />
-              <span className="text-xs font-semibold text-slate-700">
+              <span className="font-semibold text-slate-700">
                 ({formatNumber(grossWeightMT, 3)} MT {isId ? "Bruto" : ""})
               </span>
             </td>
@@ -2544,7 +2544,7 @@ function ShippingInstructionDoc({
       <div className="doc-si-header-grid">
         <div>
           <span className="si-lbl">{isId ? "No. SI:" : "SI Number:"}</span>{" "}
-          <b className="font-mono">SI/IEI/XI/2026/001</b>
+          <b>SI/IEI/XI/2026/001</b>
         </div>
         <div>
           <span className="si-lbl">{isId ? "Kepada (Forwarder/Pelayaran):" : "To (Forwarder/Line):"}</span>{" "}
@@ -2560,11 +2560,11 @@ function ShippingInstructionDoc({
         </div>
         <div>
           <span className="si-lbl">{isId ? "Ref. Kontrak:" : "Contract Ref:"}</span>{" "}
-          <b className="font-mono">SC/IEI-ABF/XI/2026/001</b>
+          <b>SC/IEI-ABF/XI/2026/001</b>
         </div>
         <div>
           <span className="si-lbl">{isId ? "Ref. Faktur:" : "Invoice Ref:"}</span>{" "}
-          <b className="font-mono">INV/IEI-DXB/XI/2026/001</b>
+          <b>INV/IEI-DXB/XI/2026/001</b>
         </div>
       </div>
 
@@ -2638,7 +2638,7 @@ function ShippingInstructionDoc({
         </thead>
         <tbody>
           <tr>
-            <td className="font-mono text-xs">
+            <td>
               <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
               DUBAI - UAE<br />
               BATCH: 11/26<br />
@@ -2648,30 +2648,30 @@ function ShippingInstructionDoc({
             </td>
             <td>
               <b>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</b><br />
-              <span className="text-xs font-semibold text-slate-800">
+              <span className="font-semibold text-slate-800">
                 {isId ? "(Sembilan Ratus Karung Kertas Kraft Multiwall)" : "(Nine Hundred Multiwall Kraft Paper Bags)"}
               </span>
             </td>
             <td>
               <b className="table-product-title">{productName.toUpperCase()}</b>
-              <p className="text-xs text-slate-800 mt-1">
+              <p className="text-slate-800 mt-1">
                 {isId
                   ? "Dikemas dalam Karung Kertas Kraft Multiwall 20 Kg Neto dengan Lapisan Dalam Plastik PE Food-Grade."
                   : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
               </p>
-              <p className="text-xs font-mono font-semibold text-slate-800 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
-              <p className="text-xs font-mono font-bold text-slate-900">
+              <p className="font-semibold text-slate-800 mt-1">{isId ? "KODE HS:" : "HS CODE:"} {hsCode}</p>
+              <p className="font-bold text-slate-900">
                 {isId ? "NO. KONTAINER / SEGEL:" : "CONT / SEAL NO.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
               </p>
-              <p className="text-xs font-bold text-slate-900">
+              <p className="font-bold text-slate-900">
                 {isId ? "NEGARA ASAL: INDONESIA" : "COUNTRY OF ORIGIN: INDONESIA"}
               </p>
             </td>
             <td className="text-right">
-              <div className="text-xs font-bold text-slate-800">{isId ? "NETO:" : "NET:"}</div>
-              <b className="text-sm">{formatNumber(netWeightKgs, 2)}</b> KGS
-              <div className="text-xs font-bold text-slate-800 mt-2">{isId ? "BRUTO:" : "GROSS:"}</div>
-              <b className="text-sm">{formatNumber(grossWeightKgs, 2)}</b> KGS
+              <div className="font-bold text-slate-800">{isId ? "NETO:" : "NET:"}</div>
+              <b>{formatNumber(netWeightKgs, 2)}</b> KGS
+              <div className="font-bold text-slate-800 mt-2">{isId ? "BRUTO:" : "GROSS:"}</div>
+              <b>{formatNumber(grossWeightKgs, 2)}</b> KGS
             </td>
             <td className="text-right font-bold text-slate-900 text-sm">
               {formatNumber(totalCBM, 3)} CBM
