@@ -14675,6 +14675,74 @@ textarea:focus-visible {
   color: #b91c1c;
 }
 
+/* Table Shading & Color Scope Selector Pills */
+.doc-ribbon-scope-pill {
+  padding: 1px 5px;
+  height: 18px;
+  font-size: 9px;
+  font-weight: 700;
+  border-radius: 3px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  line-height: 1;
+}
+
+.doc-ribbon-scope-pill:hover {
+  background: #f8fafc;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.doc-ribbon-scope-pill.active {
+  background: #0284c7;
+  border-color: #0284c7;
+  color: #ffffff;
+}
+
+/* Custom Color Spectrum Trigger */
+.doc-color-picker-native-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.doc-color-picker-native-wrap input[type="color"] {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.doc-color-picker-custom-btn {
+  height: 18px;
+  padding: 0 5px;
+  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  border: 1px solid #94a3b8;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #1e293b;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+}
+
+.doc-color-picker-custom-btn:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  border-color: #0284c7;
+  color: #0369a1;
+}
+
 /* Table Insert Popover Modal/Dropdown */
 .doc-table-popover {
   position: absolute;

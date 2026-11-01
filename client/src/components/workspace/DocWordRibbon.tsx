@@ -41,6 +41,7 @@ import {
   Maximize2,
   TableProperties,
   PaintBucket,
+  Palette,
   Grid,
   ArrowDown,
   ArrowUp,
@@ -130,6 +131,13 @@ export function DocWordRibbon({
   const [hoverGrid, setHoverGrid] = useState<{ r: number; c: number }>({ r: 0, c: 0 });
   const tableMenuRef = useRef<HTMLDivElement>(null);
   const marginMenuRef = useRef<HTMLDivElement>(null);
+
+  // Table Shading & Border Customization
+  const [tableColorTarget, setTableColorTarget] = useState<"header" | "cell" | "row" | "table">("header");
+  const [customTableColor, setCustomTableColor] = useState("#0f2942");
+  const [tableBorderColor, setTableBorderColor] = useState("#cbd5e1");
+  const [showCustomHexPopover, setShowCustomHexPopover] = useState(false);
+  const [customHexInput, setCustomHexInput] = useState("#0f2942");
 
   // Live dynamic selection tracking inside .paper-document (Microsoft Word Fidelity)
   const [selectedFontSize, setSelectedFontSize] = useState<number | null>(null);
@@ -792,22 +800,101 @@ export function DocWordRibbon({
     }
   };
 
-  const setCellBackground = (bgColor: string) => {
-    const { cell } = getTargetTableAndCell();
-    if (!cell) {
-      toast.error("Pilih sel terlebih dahulu");
-      return;
+  // Contrast calculation ensuring high readability (black on light, white on dark)
+  const getContrastColor = (hex: string): string => {
+    if (!hex || hex === "transparent") return "#0f172a";
+    let color = hex.replace("#", "");
+    if (color.length === 3) {
+      color = color.split("").map((c) => c + c).join("");
     }
-    cell.style.backgroundColor = bgColor;
-    if (bgColor === "#0f2942") {
-      cell.style.color = "#ffffff";
-    } else if (bgColor === "#ffffff" || bgColor === "transparent" || bgColor === "#f8fafc") {
-      cell.style.color = "#0f172a";
-    }
-    toast.success("Warna latar sel diterapkan.");
+    if (color.length !== 6) return "#0f172a";
+    const r = parseInt(color.substring(0, 2), 16);
+    const g = parseInt(color.substring(2, 4), 16);
+    const b = parseInt(color.substring(4, 6), 16);
+    const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+    return yiq >= 145 ? "#0f172a" : "#ffffff";
   };
 
-  const setTablePreset = (preset: "corporate" | "zebra" | "minimal") => {
+  const applyTableColor = (bgColor: string, target = tableColorTarget) => {
+    const { table, cell, row } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Pilih atau klik salah satu sel tabel terlebih dahulu");
+      return;
+    }
+
+    const textColor = getContrastColor(bgColor);
+
+    if (target === "cell") {
+      if (!cell) {
+        toast.error("Klik sel tabel yang ingin diwarnai terlebih dahulu");
+        return;
+      }
+      cell.style.backgroundColor = bgColor;
+      if (bgColor !== "transparent") {
+        cell.style.color = textColor;
+      }
+      toast.success("Warna sel tabel berhasil diubah.");
+    } else if (target === "row") {
+      const targetRow = row || (cell ? (cell.parentElement as HTMLTableRowElement) : null);
+      if (!targetRow) {
+        toast.error("Klik baris tabel yang ingin diwarnai terlebih dahulu");
+        return;
+      }
+      targetRow.style.backgroundColor = bgColor;
+      targetRow.querySelectorAll("td, th").forEach((c) => {
+        (c as HTMLElement).style.backgroundColor = bgColor;
+        if (bgColor !== "transparent") {
+          (c as HTMLElement).style.color = textColor;
+        }
+      });
+      toast.success("Warna baris tabel berhasil diubah.");
+    } else if (target === "header") {
+      const headers = table.querySelectorAll("thead th, tr:first-child th");
+      if (headers.length > 0) {
+        headers.forEach((th) => {
+          (th as HTMLElement).style.backgroundColor = bgColor;
+          if (bgColor !== "transparent") {
+            (th as HTMLElement).style.color = textColor;
+          }
+        });
+      } else {
+        const firstRow = table.querySelector("tr");
+        if (firstRow) {
+          firstRow.querySelectorAll("td, th").forEach((c) => {
+            (c as HTMLElement).style.backgroundColor = bgColor;
+            if (bgColor !== "transparent") {
+              (c as HTMLElement).style.color = textColor;
+            }
+          });
+        }
+      }
+      toast.success("Warna header tabel berhasil diubah.");
+    } else if (target === "table") {
+      table.querySelectorAll("tbody td, tbody th, td").forEach((c) => {
+        (c as HTMLElement).style.backgroundColor = bgColor;
+        if (bgColor !== "transparent") {
+          (c as HTMLElement).style.color = textColor;
+        }
+      });
+      toast.success("Warna seluruh tabel berhasil diubah.");
+    }
+  };
+
+  const applyTableBorderColor = (color: string) => {
+    const { table } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Pilih tabel terlebih dahulu");
+      return;
+    }
+    setTableBorderColor(color);
+    table.style.borderColor = color;
+    table.querySelectorAll("th, td").forEach((c) => {
+      (c as HTMLElement).style.borderColor = color;
+    });
+    toast.success("Warna garis border tabel berhasil diubah.");
+  };
+
+  const applyTableThemePreset = (theme: "corporate" | "zebra" | "minimal" | "emerald" | "royal" | "slate" | "burgundy") => {
     const { table } = getTargetTableAndCell();
     if (!table) {
       toast.error("Pilih tabel terlebih dahulu");
@@ -816,34 +903,36 @@ export function DocWordRibbon({
     const tbody = table.querySelector("tbody") || table;
     const rows = tbody.querySelectorAll("tr:not(.doc-table-total-row)");
 
-    if (preset === "corporate") {
-      table.querySelectorAll("thead th").forEach((th) => {
-        (th as HTMLElement).style.background = "#0f2942";
-        (th as HTMLElement).style.color = "#ffffff";
+    const configs: Record<string, { headerBg: string; headerColor: string; altBg?: string; border: string; label: string }> = {
+      corporate: { headerBg: "#0f2942", headerColor: "#ffffff", border: "#cbd5e1", label: "Corporate Navy" },
+      zebra: { headerBg: "#1e293b", headerColor: "#ffffff", altBg: "#f8fafc", border: "#e2e8f0", label: "Zebra Striping" },
+      minimal: { headerBg: "#f1f5f9", headerColor: "#0f172a", border: "#e2e8f0", label: "Minimalis Bersih" },
+      emerald: { headerBg: "#065f46", headerColor: "#ffffff", altBg: "#f0fdf4", border: "#a7f3d0", label: "Emerald Green" },
+      royal: { headerBg: "#1e40af", headerColor: "#ffffff", altBg: "#eff6ff", border: "#bfdbfe", label: "Royal Blue" },
+      slate: { headerBg: "#334155", headerColor: "#ffffff", altBg: "#f8fafc", border: "#cbd5e1", label: "Modern Slate" },
+      burgundy: { headerBg: "#881337", headerColor: "#ffffff", altBg: "#fff1f2", border: "#fecdd3", label: "Burgundy Wine" },
+    };
+
+    const cfg = configs[theme];
+    if (!cfg) return;
+
+    table.querySelectorAll("thead th, tr:first-child th").forEach((th) => {
+      (th as HTMLElement).style.backgroundColor = cfg.headerBg;
+      (th as HTMLElement).style.color = cfg.headerColor;
+      (th as HTMLElement).style.borderColor = cfg.border;
+    });
+
+    rows.forEach((r, idx) => {
+      const bg = cfg.altBg && idx % 2 === 1 ? cfg.altBg : "#ffffff";
+      (r as HTMLElement).style.backgroundColor = bg;
+      r.querySelectorAll("td").forEach((td) => {
+        (td as HTMLElement).style.backgroundColor = bg;
+        (td as HTMLElement).style.borderColor = cfg.border;
       });
-      rows.forEach((r) => {
-        (r as HTMLElement).style.backgroundColor = "#ffffff";
-      });
-      toast.success("Gaya Tabel: Standar Ekspor Corporate");
-    } else if (preset === "zebra") {
-      table.querySelectorAll("thead th").forEach((th) => {
-        (th as HTMLElement).style.background = "#1e293b";
-        (th as HTMLElement).style.color = "#ffffff";
-      });
-      rows.forEach((r, idx) => {
-        (r as HTMLElement).style.backgroundColor = idx % 2 === 1 ? "#f8fafc" : "#ffffff";
-      });
-      toast.success("Gaya Tabel: Zebra Striping");
-    } else if (preset === "minimal") {
-      table.querySelectorAll("thead th").forEach((th) => {
-        (th as HTMLElement).style.background = "#f1f5f9";
-        (th as HTMLElement).style.color = "#0f172a";
-      });
-      rows.forEach((r) => {
-        (r as HTMLElement).style.backgroundColor = "#ffffff";
-      });
-      toast.success("Gaya Tabel: Minimalis Bersih");
-    }
+    });
+
+    table.style.borderColor = cfg.border;
+    toast.success(`Tema tabel diubah: ${cfg.label}`);
   };
 
   return (
@@ -2283,7 +2372,7 @@ export function DocWordRibbon({
 
               {/* 4. Garis & Border Tabel */}
               <div className="doc-ribbon-group group-table-border">
-                <div className="doc-ribbon-row-top">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
@@ -2302,9 +2391,6 @@ export function DocWordRibbon({
                     <Rows size={11} />
                     <span>Horizontal</span>
                   </button>
-                </div>
-
-                <div className="doc-ribbon-row-bottom">
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
@@ -2324,99 +2410,276 @@ export function DocWordRibbon({
                   </button>
                 </div>
 
-                <span className="doc-ribbon-group-label">Gaya Garis</span>
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                  <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b" }}>Garis:</span>
+                  {[
+                    { color: "#cbd5e1", title: "Abu Lembut (Standar)" },
+                    { color: "#0f2942", title: "Navy Formal" },
+                    { color: "#000000", title: "Hitam Tegas" },
+                    { color: "#2563eb", title: "Biru Aksen" },
+                  ].map((b) => (
+                    <button
+                      key={b.color}
+                      type="button"
+                      className="doc-color-swatch-mini"
+                      style={{
+                        width: "15px",
+                        height: "15px",
+                        borderRadius: "2px",
+                        background: b.color,
+                        border: tableBorderColor === b.color ? "2px solid #0284c7" : "1px solid #94a3b8",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => applyTableBorderColor(b.color)}
+                      title={b.title}
+                    />
+                  ))}
+                  {/* Custom Border Color Picker */}
+                  <label
+                    className="doc-color-picker-native-wrap"
+                    title="Pilih Warna Garis Kustom (Color Picker Spectrum & HEX)"
+                    style={{ cursor: "pointer" }}
+                  >
+                    <input
+                      type="color"
+                      value={tableBorderColor}
+                      onChange={(e) => applyTableBorderColor(e.target.value)}
+                    />
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "2px",
+                        background: tableBorderColor,
+                        border: "1px dashed #475569",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "9px",
+                      }}
+                    >
+                      🎨
+                    </div>
+                  </label>
+                </div>
+
+                <span className="doc-ribbon-group-label">Gaya & Warna Garis</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
-              {/* 5. Warna Shading Sel (Cell Background Color) */}
+              {/* 5. Warna Shading Sel & Tabel (Custom Colors) */}
               <div className="doc-ribbon-group group-table-color">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "3px" }}>
                   <PaintBucket size={12} style={{ color: "#475569" }} />
-                  <span style={{ fontSize: "9.5px", fontWeight: 700, color: "#334155" }}>Warna Sel:</span>
+                  <span style={{ fontSize: "9px", fontWeight: 700, color: "#334155" }}>Target:</span>
+                  {(["header", "cell", "row", "table"] as const).map((t) => {
+                    const labels = { header: "Header", cell: "Sel", row: "Baris", table: "Tabel" };
+                    const isActive = tableColorTarget === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        className={`doc-ribbon-scope-pill ${isActive ? "active" : ""}`}
+                        onClick={() => setTableColorTarget(t)}
+                        title={`Terapkan warna ke ${labels[t]}`}
+                      >
+                        {labels[t]}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
                   <button
                     type="button"
                     className="doc-color-swatch-mini swatch-clear"
-                    onClick={() => setCellBackground("transparent")}
-                    title="Bening / Hapus Warna"
+                    onClick={() => applyTableColor("transparent")}
+                    title="Bening / Hapus Warna Latar"
                     style={{ width: "16px", height: "16px", borderRadius: "3px", border: "1px solid #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", cursor: "pointer" }}
                   >
                     ✕
                   </button>
-                  <button
-                    type="button"
-                    className="doc-color-swatch-mini"
-                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#ffffff", border: "1px solid #94a3b8", cursor: "pointer" }}
-                    onClick={() => setCellBackground("#ffffff")}
-                    title="Putih Bersih"
-                  />
-                  <button
-                    type="button"
-                    className="doc-color-swatch-mini"
-                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#f8fafc", border: "1px solid #cbd5e1", cursor: "pointer" }}
-                    onClick={() => setCellBackground("#f8fafc")}
-                    title="Abu Sangat Muda"
-                  />
-                  <button
-                    type="button"
-                    className="doc-color-swatch-mini"
-                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#e0f2fe", border: "1px solid #93c5fd", cursor: "pointer" }}
-                    onClick={() => setCellBackground("#e0f2fe")}
-                    title="Biru Muda Lembut"
-                  />
-                  <button
-                    type="button"
-                    className="doc-color-swatch-mini"
-                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#fef9c3", border: "1px solid #fde047", cursor: "pointer" }}
-                    onClick={() => setCellBackground("#fef9c3")}
-                    title="Kuning Sorot"
-                  />
-                  <button
-                    type="button"
-                    className="doc-color-swatch-mini"
-                    style={{ width: "16px", height: "16px", borderRadius: "3px", background: "#0f2942", border: "1px solid #0f2942", cursor: "pointer" }}
-                    onClick={() => setCellBackground("#0f2942")}
-                    title="Navy Resmi Ekspor"
-                  />
+                  {[
+                    { color: "#ffffff", title: "Putih Bersih" },
+                    { color: "#f8fafc", title: "Abu Lembut" },
+                    { color: "#0f2942", title: "Navy Resmi Ekspor" },
+                    { color: "#1e40af", title: "Biru Royal" },
+                    { color: "#0284c7", title: "Biru Langit" },
+                    { color: "#065f46", title: "Hijau Zamrud" },
+                    { color: "#854d0e", title: "Kuning Emas" },
+                    { color: "#881337", title: "Merah Marun" },
+                    { color: "#1e293b", title: "Slate Gelap" },
+                  ].map((sw) => (
+                    <button
+                      key={sw.color}
+                      type="button"
+                      className="doc-color-swatch-mini"
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "3px",
+                        background: sw.color,
+                        border: "1px solid rgba(0,0,0,0.15)",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => applyTableColor(sw.color)}
+                      title={sw.title}
+                    />
+                  ))}
+
+                  {/* Native HTML5 Color Spectrum Picker */}
+                  <label
+                    className="doc-color-picker-native-wrap"
+                    title={`Pilih Warna Kustom Bebas (Spectrum & HEX) untuk ${tableColorTarget}`}
+                  >
+                    <input
+                      type="color"
+                      value={customTableColor}
+                      onChange={(e) => {
+                        setCustomTableColor(e.target.value);
+                        setCustomHexInput(e.target.value);
+                        applyTableColor(e.target.value);
+                      }}
+                    />
+                    <div className="doc-color-picker-custom-btn">
+                      <Palette size={11} />
+                      <span>Kustom</span>
+                    </div>
+                  </label>
+
+                  {/* Direct HEX Code Input Popover */}
+                  <div style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className="doc-ribbon-scope-pill"
+                      style={{ height: "18px", padding: "0 4px", fontSize: "9px" }}
+                      onClick={() => setShowCustomHexPopover((p) => !p)}
+                      title="Ketik Kode Warna HEX Langsung (misal: #0055aa)"
+                    >
+                      #HEX
+                    </button>
+                    {showCustomHexPopover && (
+                      <div
+                        style={{
+                          position: "absolute",
+                          bottom: "calc(100% + 4px)",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+                          padding: "8px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                          zIndex: 140,
+                          width: "160px",
+                        }}
+                      >
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: "#1e293b" }}>Kode Warna HEX:</span>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          <input
+                            type="text"
+                            value={customHexInput}
+                            onChange={(e) => setCustomHexInput(e.target.value)}
+                            placeholder="#0f2942"
+                            style={{
+                              width: "80px",
+                              padding: "2px 4px",
+                              fontSize: "11px",
+                              border: "1px solid #cbd5e1",
+                              borderRadius: "3px",
+                              fontFamily: "monospace",
+                            }}
+                          />
+                          <div
+                            style={{
+                              width: "20px",
+                              height: "20px",
+                              borderRadius: "3px",
+                              background: customHexInput,
+                              border: "1px solid #94a3b8",
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="doc-ribbon-table-subbtn"
+                          style={{ background: "#0284c7", color: "#ffffff", borderColor: "#0284c7", width: "100%", height: "22px" }}
+                          onClick={() => {
+                            applyTableColor(customHexInput);
+                            setShowCustomHexPopover(false);
+                          }}
+                        >
+                          Terapkan
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                <span className="doc-ribbon-group-label">Shading Sel</span>
+                <span className="doc-ribbon-group-label">
+                  Warna {tableColorTarget === "header" ? "Header" : tableColorTarget === "cell" ? "Sel" : tableColorTarget === "row" ? "Baris" : "Tabel"} (Kustom)
+                </span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
               {/* 6. Desain Cepat & Hapus Tabel */}
               <div className="doc-ribbon-group group-table-presets">
-                <div className="doc-ribbon-row-top">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
-                    onClick={() => setTablePreset("corporate")}
-                    title="Gaya Standar Ekspor: Header Navy & Garis Abu"
+                    onClick={() => applyTableThemePreset("corporate")}
+                    title="Tema Standar Ekspor: Header Navy & Garis Abu"
                   >
                     Standar Ekspor
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
-                    onClick={() => setTablePreset("zebra")}
+                    onClick={() => applyTableThemePreset("zebra")}
                     title="Zebra Striping: Baris Selang-Seling"
                   >
                     Zebra
                   </button>
-                </div>
-
-                <div className="doc-ribbon-row-bottom">
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
-                    onClick={() => setTablePreset("minimal")}
+                    onClick={() => applyTableThemePreset("minimal")}
                     title="Gaya Minimalis: Header Abu & Garis Tipis"
                   >
                     Minimalis
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => applyTableThemePreset("emerald")}
+                    title="Tema Hijau Zamrud (Pertanian / Pangan Organik)"
+                  >
+                    Zamrud
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => applyTableThemePreset("royal")}
+                    title="Tema Biru Royal Modern"
+                  >
+                    Royal Blue
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => applyTableThemePreset("burgundy")}
+                    title="Tema Merah Marun Eksklusif"
+                  >
+                    Marun
                   </button>
                   <button
                     type="button"
@@ -2425,11 +2688,11 @@ export function DocWordRibbon({
                     title="Hapus Seluruh Tabel Ini"
                   >
                     <Trash2 size={11} />
-                    <span>Hapus Tabel</span>
+                    <span>Hapus</span>
                   </button>
                 </div>
 
-                <span className="doc-ribbon-group-label">Desain Cepat</span>
+                <span className="doc-ribbon-group-label">Tema Desain Cepat</span>
               </div>
             </>
           )}
