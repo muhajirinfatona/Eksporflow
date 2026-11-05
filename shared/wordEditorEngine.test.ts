@@ -35,6 +35,7 @@ describe("Word Editor Engine - Microsoft Word Selection & Formatting", () => {
     expect(applyLineSpacingToSelection(1.5)).toEqual({
       applied: false,
       isLetterhead: false,
+      allLetterheadSelected: false,
       mappedSpacingPx: 8,
     });
   });

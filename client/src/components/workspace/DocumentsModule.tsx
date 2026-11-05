@@ -66,6 +66,7 @@ import {
   performEditorRedo,
   resetEditorHistory,
   saveActiveSelection,
+  stepSelectedBlockSpacingPx,
 } from "@/lib/wordEditorEngine";
 
 export function DocumentsModule({
@@ -1260,6 +1261,7 @@ function OfficialLetterhead({
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const [isSelected, setIsSelected] = useState(false);
+  const [selectedLineGapPx, setSelectedLineGapPx] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [showLayoutMenu, setShowLayoutMenu] = useState(false);
@@ -1563,19 +1565,41 @@ function OfficialLetterhead({
             <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginRight: "1px" }}>Spasi</span>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => update && update("letterheadSpacing", Math.max(0, lineSpacing - 1))}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                saveActiveSelection();
+              }}
+              onClick={() => {
+                const res = stepSelectedBlockSpacingPx(-1, selectedLineGapPx ?? lineSpacing);
+                if (res.applied && !res.allLetterheadSelected) {
+                  setSelectedLineGapPx(res.nextPx);
+                  return;
+                }
+                setSelectedLineGapPx(null);
+                if (update) update("letterheadSpacing", Math.max(0, lineSpacing - 1));
+              }}
               style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
             >
               −
             </button>
             <span style={{ fontWeight: 600, color: "#475569", padding: "0 2px" }}>
-              {lineSpacing}px
+              {selectedLineGapPx ?? lineSpacing}px
             </span>
             <button
               type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => update && update("letterheadSpacing", Math.min(20, lineSpacing + 1))}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                saveActiveSelection();
+              }}
+              onClick={() => {
+                const res = stepSelectedBlockSpacingPx(1, selectedLineGapPx ?? lineSpacing);
+                if (res.applied && !res.allLetterheadSelected) {
+                  setSelectedLineGapPx(res.nextPx);
+                  return;
+                }
+                setSelectedLineGapPx(null);
+                if (update) update("letterheadSpacing", Math.min(20, lineSpacing + 1));
+              }}
               style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
             >
               +
@@ -2040,7 +2064,7 @@ function OfficialLetterhead({
                 <p
                   className="company-details"
                   style={{
-                    margin: `${lineSpacing}px 0 0`,
+                    margin: `0 0 ${lineSpacing}px 0`,
                     lineHeight: kopLineHeight,
                   }}
                   onBlur={(e) => {
@@ -2055,7 +2079,7 @@ function OfficialLetterhead({
                 <p
                   className="company-contact"
                   style={{
-                    margin: `${lineSpacing}px 0 0`,
+                    margin: 0,
                     lineHeight: kopLineHeight,
                   }}
                   onBlur={(e) => {

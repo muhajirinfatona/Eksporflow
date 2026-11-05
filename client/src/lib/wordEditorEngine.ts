@@ -102,11 +102,27 @@ function getTextNodesInRange(range: Range): Text[] {
           return NodeFilter.FILTER_REJECT;
         }
         try {
+          if (node === range.startContainer && range.startOffset >= (node.textContent?.length || 0)) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          if (node === range.endContainer && range.endOffset <= 0) {
+            return NodeFilter.FILTER_REJECT;
+          }
           const nodeRange = document.createRange();
           nodeRange.selectNodeContents(node);
           const isAfterStart = range.compareBoundaryPoints(Range.START_TO_END, nodeRange) > 0;
           const isBeforeEnd = range.compareBoundaryPoints(Range.END_TO_START, nodeRange) < 0;
-          return isAfterStart && isBeforeEnd ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+          if (!isAfterStart || !isBeforeEnd) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          const start = node === range.startContainer ? range.startOffset : 0;
+          const end = node === range.endContainer ? range.endOffset : (node.textContent?.length || 0);
+          if (start >= end) return NodeFilter.FILTER_REJECT;
+          const selectedSlice = node.textContent.slice(start, end);
+          if (selectedSlice.trim().length === 0 && range.startContainer !== range.endContainer) {
+            return NodeFilter.FILTER_REJECT;
+          }
+          return NodeFilter.FILTER_ACCEPT;
         } catch {
           return NodeFilter.FILTER_REJECT;
         }
@@ -414,17 +430,18 @@ export function mapLineHeightToGapPx(lh: number): number {
 export function applyLineSpacingToSelection(lh: number): {
   applied: boolean;
   isLetterhead: boolean;
+  allLetterheadSelected: boolean;
   mappedSpacingPx: number;
 } {
   const mappedSpacingPx = mapLineHeightToGapPx(lh);
   const range = getEffectiveSelectionRange();
   if (!range || range.collapsed) {
-    return { applied: false, isLetterhead: false, mappedSpacingPx };
+    return { applied: false, isLetterhead: false, allLetterheadSelected: false, mappedSpacingPx };
   }
 
   const paper = document.querySelector(".paper-document");
   if (!paper || !paper.contains(range.commonAncestorContainer)) {
-    return { applied: false, isLetterhead: false, mappedSpacingPx };
+    return { applied: false, isLetterhead: false, allLetterheadSelected: false, mappedSpacingPx };
   }
 
   pushEditorHistory("line-spacing");
@@ -454,57 +471,120 @@ export function applyLineSpacingToSelection(lh: number): {
       }
     } else {
       addNodeBlocks(range.startContainer);
-      addNodeBlocks(range.endContainer);
-    }
-
-    // If selection is inside letterhead, include all selected letterhead lines
-    if (isLetterhead) {
-      const kopWrap = paper.querySelector(".letterhead-text");
-      if (kopWrap) {
-        const kopBlocks = kopWrap.querySelectorAll<HTMLElement>(".company-name, .company-details, .company-contact");
-        kopBlocks.forEach((kb) => {
-          try {
-            if (range.intersectsNode(kb)) {
-              blockSet.add(kb);
-            }
-          } catch {
-            blockSet.add(kb);
-          }
-        });
-      }
     }
 
     if (blockSet.size === 0) {
       const ok = applyInlineStyleToSelection({ "line-height": String(lh) });
-      return { applied: ok, isLetterhead, mappedSpacingPx };
+      return { applied: ok, isLetterhead, allLetterheadSelected: false, mappedSpacingPx };
     }
 
+    let kopSelectedCount = 0;
     blockSet.forEach((blockEl) => {
       blockEl.setAttribute("data-custom-lh", String(lh));
+      blockEl.setAttribute("data-custom-gap-px", String(mappedSpacingPx));
       blockEl.style.setProperty("line-height", String(lh), "important");
 
-      if (blockEl.classList.contains("company-name")) {
-        blockEl.style.setProperty("margin-top", "0px", "important");
-        blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
-      } else if (
+      if (
+        blockEl.classList.contains("company-name") ||
         blockEl.classList.contains("company-details") ||
         blockEl.classList.contains("company-contact")
       ) {
-        blockEl.style.setProperty("margin-top", `${mappedSpacingPx}px`, "important");
-        blockEl.style.setProperty("margin-bottom", "0px", "important");
+        kopSelectedCount++;
+        blockEl.style.setProperty("margin-top", "0px", "important");
+        blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
       } else if (blockEl.tagName !== "TD" && blockEl.tagName !== "TH") {
-        blockEl.style.setProperty("margin-top", `${Math.max(0, Math.round(mappedSpacingPx * 0.5))}px`, "important");
+        blockEl.style.setProperty("margin-top", "0px", "important");
         blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
       }
     });
 
     // Restore selection so highlight stays active
     restoreActiveSelection();
-    return { applied: true, isLetterhead, mappedSpacingPx };
+    return {
+      applied: true,
+      isLetterhead,
+      allLetterheadSelected: kopSelectedCount >= 3,
+      mappedSpacingPx,
+    };
   } catch (err) {
     console.warn("applyLineSpacingToSelection error:", err);
-    return { applied: false, isLetterhead: false, mappedSpacingPx };
+    return { applied: false, isLetterhead: false, allLetterheadSelected: false, mappedSpacingPx };
   }
+}
+
+/**
+ * Steps the vertical spacing (in px) ONLY on the currently blocked/selected block(s)
+ * without affecting unselected sibling lines below or above.
+ */
+export function stepSelectedBlockSpacingPx(deltaPx: number, fallbackPx = 2): {
+  applied: boolean;
+  allLetterheadSelected: boolean;
+  nextPx: number;
+} {
+  const range = getEffectiveSelectionRange();
+  if (!range || range.collapsed) {
+    return { applied: false, allLetterheadSelected: false, nextPx: fallbackPx };
+  }
+
+  const paper = document.querySelector(".paper-document");
+  if (!paper || !paper.contains(range.commonAncestorContainer)) {
+    return { applied: false, allLetterheadSelected: false, nextPx: fallbackPx };
+  }
+
+  const textNodes = getTextNodesInRange(range);
+  const blockSet = new Set<HTMLElement>();
+  for (const tn of textNodes) {
+    const el = tn.parentElement;
+    if (!el) continue;
+    const block = el.closest(BLOCK_SELECTOR) as HTMLElement | null;
+    if (block && paper.contains(block)) {
+      blockSet.add(block);
+    }
+  }
+
+  if (blockSet.size === 0) {
+    return { applied: false, allLetterheadSelected: false, nextPx: fallbackPx };
+  }
+
+  pushEditorHistory("block-gap-px");
+
+  let nextPx = fallbackPx;
+  let kopCount = 0;
+
+  Array.from(blockSet).forEach((blockEl, idx) => {
+    const customGap = blockEl.getAttribute("data-custom-gap-px");
+    const currentMb = parseFloat(blockEl.style.marginBottom || "");
+    const basePx =
+      customGap !== null && !isNaN(parseFloat(customGap))
+        ? parseFloat(customGap)
+        : !isNaN(currentMb)
+          ? currentMb
+          : fallbackPx;
+    const computedNext = Math.max(0, Math.min(28, Math.round(basePx + deltaPx)));
+    if (idx === 0) nextPx = computedNext;
+
+    const lh = Number((1.1 + computedNext * 0.05).toFixed(2));
+    blockEl.setAttribute("data-custom-gap-px", String(computedNext));
+    blockEl.setAttribute("data-custom-lh", String(lh));
+    blockEl.style.setProperty("line-height", String(lh), "important");
+    blockEl.style.setProperty("margin-top", "0px", "important");
+    blockEl.style.setProperty("margin-bottom", `${computedNext}px`, "important");
+
+    if (
+      blockEl.classList.contains("company-name") ||
+      blockEl.classList.contains("company-details") ||
+      blockEl.classList.contains("company-contact")
+    ) {
+      kopCount++;
+    }
+  });
+
+  restoreActiveSelection();
+  return {
+    applied: true,
+    allLetterheadSelected: kopCount >= 3,
+    nextPx,
+  };
 }
 
 /**

@@ -674,11 +674,11 @@ export function DocWordRibbon({
     if (isTextSelected()) {
       const res = applyLineSpacingToSelection(cleanLh);
       setSelectedLineHeight(cleanLh);
-      if (res.isLetterhead) {
+      if (res.isLetterhead && res.allLetterheadSelected) {
         update("letterheadSpacing", res.mappedSpacingPx);
       }
       if (res.applied) {
-        toast.success(`Spasi baris teks terpilih diubah ke ${cleanLh}`);
+        toast.success(`Spasi baris teks terpilih diubah ke ${cleanLh} (baris lain tidak berubah)`);
         return;
       }
     }
