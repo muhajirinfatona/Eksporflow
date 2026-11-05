@@ -468,15 +468,13 @@ export function DocumentsModule({
       ? "PT. INDICO EXPORT INDONESIA"
       : rawExporterName;
   const defaultAddress =
-    "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia";
+    "Head Office: Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia";
   const exporterAddress =
     shipment.letterheadText &&
     shipment.letterheadText.trim().toLowerCase() !== rawExporterName.trim().toLowerCase() &&
     shipment.letterheadText.trim().toLowerCase() !== exporterName.trim().toLowerCase() &&
     shipment.letterheadText.trim() !==
       "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia" &&
-    shipment.letterheadText.trim() !==
-      "Head Office: Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia" &&
     shipment.letterheadText.length > 15
       ? shipment.letterheadText
       : defaultAddress;
@@ -1305,14 +1303,14 @@ function OfficialLetterhead({
   const rawExporterContact = shipment.exporterContact || "";
   const exporterContact =
     !rawExporterContact ||
-    rawExporterContact.trim() === "Telp: +62 812 3456 7890 · Email: official@indicoexport.com" ||
-    rawExporterContact.trim() ===
-      "Tel: +62 812-3456-7890  |  Email: official@indicoexport.com  |  Web: www.indicoexport.com"
-      ? "Phone: +62 812-3456-7890   •   Email: official@indicoexport.com   •   Website: www.indicoexport.com"
+    rawExporterContact.trim() === "Telp: +62 812 3456 7890 · Email: official@indicoexport.com"
+      ? "Tel: +62 812-3456-7890  |  Email: official@indicoexport.com  |  Web: www.indicoexport.com"
       : rawExporterContact;
-  const exporterTagline = isId
+  const defaultTagline = isId
     ? "EKSPORTIR & PEMASOK KOMODITAS PERTANIAN & KELAPA INDONESIA"
-    : "INDONESIAN AGRICULTURAL & COCONUT COMMODITIES EXPORTER";
+    : "EXPORTER & SUPPLIER OF INDONESIAN AGRICULTURAL & COCONUT COMMODITIES";
+  const [customTagline, setCustomTagline] = useState<string | null>(null);
+  const exporterTagline = customTagline !== null ? customTagline : defaultTagline;
 
   const currentX = dragMoveOffset ? dragMoveOffset.x : (shipment.letterheadLogoX || 0);
   const currentY = dragMoveOffset ? dragMoveOffset.y : (shipment.letterheadLogoY || 0);
@@ -1551,6 +1549,8 @@ function OfficialLetterhead({
       style={{
         marginBottom: `${Math.max(4, dividerGap + 4)}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
+        ["--kop-line-height" as any]: `${kopLineHeight}`,
+        ["--kop-line-spacing" as any]: `${lineSpacing}px`,
       }}
     >
       {/* Floating Quick Kop Surat Toolbar in Edit Mode (Appears on Hover, Text Selection, or Logo Selection) */}
@@ -2076,11 +2076,6 @@ function OfficialLetterhead({
               >
                 <h1
                   className="company-name"
-                  style={{
-                    margin: 0,
-                    lineHeight: kopLineHeight,
-                    marginBottom: `${Math.max(1, lineSpacing)}px`,
-                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (update && text && text !== exporterName) {
@@ -2092,9 +2087,11 @@ function OfficialLetterhead({
                 </h1>
                 <p
                   className="company-tagline"
-                  style={{
-                    margin: `0 0 ${Math.max(2, lineSpacing + 1)}px 0`,
-                    lineHeight: kopLineHeight,
+                  onBlur={(e) => {
+                    const text = e.currentTarget.innerText.trim();
+                    if (text !== exporterTagline) {
+                      setCustomTagline(text);
+                    }
                   }}
                 >
                   {exporterTagline}
@@ -2113,10 +2110,6 @@ function OfficialLetterhead({
               >
                 <p
                   className="company-details"
-                  style={{
-                    margin: `0 0 ${lineSpacing}px 0`,
-                    lineHeight: kopLineHeight,
-                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (update && text && text !== exporterAddress) {
@@ -2128,10 +2121,6 @@ function OfficialLetterhead({
                 </p>
                 <p
                   className="company-contact"
-                  style={{
-                    margin: 0,
-                    lineHeight: kopLineHeight,
-                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (update && text && text !== exporterContact) {

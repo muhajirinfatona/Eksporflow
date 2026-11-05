@@ -6506,53 +6506,51 @@ textarea:focus-visible {
 }
 
 .letterhead-logo-divider {
-  width: 2px;
-  align-self: stretch;
-  min-height: 60px;
-  background: linear-gradient(180deg, #0f2942 0%, #047857 100%);
+  width: 1.5px;
+  height: 58px;
+  background: #cbd5e1;
   border-radius: 2px;
-  opacity: 0.75;
   flex-shrink: 0;
 }
 
 .company-name,
 .paper-document .company-name:not([style*="font-size"]) {
-  font-size: 16pt;
+  font-size: 15pt;
   font-weight: 800;
   color: #0f2942;
-  letter-spacing: 0.03em;
-  margin: 0;
-  line-height: 1.15;
+  letter-spacing: 0.025em;
+  margin: 0 0 var(--kop-line-spacing, 2px) 0;
+  line-height: var(--kop-line-height, 1.15);
   text-transform: uppercase;
 }
 
 .company-tagline,
 .paper-document .company-tagline:not([style*="font-size"]) {
-  font-size: 8pt;
+  font-size: 7.5pt;
   font-weight: 700;
   color: #047857;
-  letter-spacing: 0.085em;
-  margin: 1px 0 3px 0;
-  line-height: 1.25;
+  letter-spacing: 0.08em;
+  margin: 0 0 var(--kop-line-spacing, 2px) 0;
+  line-height: var(--kop-line-height, 1.25);
   text-transform: uppercase;
 }
 
 .company-details,
 .paper-document .company-details:not([style*="font-size"]) {
-  font-size: 9pt;
-  font-weight: 500;
+  font-size: 8.5pt;
+  font-weight: 400;
   color: #1e293b;
-  margin: 1px 0 0;
-  line-height: 1.35;
+  margin: 0 0 var(--kop-line-spacing, 2px) 0;
+  line-height: var(--kop-line-height, 1.35);
 }
 
 .company-contact,
 .paper-document .company-contact:not([style*="font-size"]) {
   font-size: 8.5pt;
-  font-weight: 600;
-  color: #334155;
-  margin: 1px 0 0;
-  line-height: 1.35;
+  font-weight: 500;
+  color: #1e293b;
+  margin: 0;
+  line-height: var(--kop-line-height, 1.35);
 }
 
 .letterhead-divider-line {
