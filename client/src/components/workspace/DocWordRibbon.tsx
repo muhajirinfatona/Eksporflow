@@ -2508,15 +2508,15 @@ export function DocWordRibbon({
                   background: "#eff6ff",
                   border: "1px solid #bfdbfe",
                   borderRadius: "6px",
-                  padding: "3px 6px",
+                  padding: "2px 5px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
-                  maxWidth: "105px",
+                  maxWidth: "82px",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#1d4ed8", fontWeight: 700, fontSize: "10px" }}>
-                  <Table size={12} className="shrink-0" />
+                <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#1d4ed8", fontWeight: 700, fontSize: "9.5px" }}>
+                  <Table size={11} className="shrink-0" />
                   <span className="truncate">{activeTableTitle}</span>
                 </div>
                 <span className="doc-ribbon-group-label" style={{ color: "#2563eb" }}>Tabel Aktif</span>
@@ -2643,56 +2643,56 @@ export function DocWordRibbon({
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "24px", height: "22px" }}
+                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellAlign("left")}
                     title="Rata Kiri Sel (Align Left)"
                   >
-                    <AlignLeft size={12} />
+                    <AlignLeft size={11} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "24px", height: "22px" }}
+                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellAlign("center")}
                     title="Rata Tengah Sel (Align Center)"
                   >
-                    <AlignCenter size={12} />
+                    <AlignCenter size={11} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "24px", height: "22px" }}
+                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellAlign("right")}
                     title="Rata Kanan Sel (Align Right)"
                   >
-                    <AlignRight size={12} />
+                    <AlignRight size={11} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "24px", height: "22px" }}
+                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellVAlign("top")}
                     title="Perataan Vertikal: Atas (Top)"
                   >
-                    <AlignVerticalJustifyStart size={12} />
+                    <AlignVerticalJustifyStart size={11} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "24px", height: "22px" }}
+                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellVAlign("middle")}
                     title="Perataan Vertikal: Tengah (Middle)"
                   >
-                    <AlignVerticalJustifyCenter size={12} />
+                    <AlignVerticalJustifyCenter size={11} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "24px", height: "22px" }}
+                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellVAlign("bottom")}
                     title="Perataan Vertikal: Bawah (Bottom)"
                   >
-                    <AlignVerticalJustifyEnd size={12} />
+                    <AlignVerticalJustifyEnd size={11} />
                   </button>
                 </div>
 

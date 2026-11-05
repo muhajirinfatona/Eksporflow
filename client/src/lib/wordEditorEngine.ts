@@ -406,7 +406,7 @@ export function clearFormattingFromSelection(): boolean {
 }
 
 const BLOCK_SELECTOR =
-  "h1, h2, h3, h4, h5, h6, p, li, div.company-details, div.company-contact, div.doc-entity-name, div.doc-entity-address, div.doc-entity-contact, div.party-name, div.party-address, div.party-phone, div.party-tax, b.table-product-title, td, th";
+  "h1, h2, h3, h4, h5, h6, p, li, div.company-tagline, div.company-details, div.company-contact, div.reg-block-title, div.reg-block-row, div.doc-entity-name, div.doc-entity-address, div.doc-entity-contact, div.party-name, div.party-address, div.party-phone, div.party-tax, b.table-product-title, td, th";
 
 /**
  * Maps a line-height multiplier (e.g., 1.0, 1.15, 1.5, 2.0) to a vertical gap in px.
@@ -486,6 +486,7 @@ export function applyLineSpacingToSelection(lh: number): {
 
       if (
         blockEl.classList.contains("company-name") ||
+        blockEl.classList.contains("company-tagline") ||
         blockEl.classList.contains("company-details") ||
         blockEl.classList.contains("company-contact")
       ) {
@@ -503,7 +504,7 @@ export function applyLineSpacingToSelection(lh: number): {
     return {
       applied: true,
       isLetterhead,
-      allLetterheadSelected: kopSelectedCount >= 3,
+      allLetterheadSelected: kopSelectedCount >= 4,
       mappedSpacingPx,
     };
   } catch (err) {
@@ -572,6 +573,7 @@ export function stepSelectedBlockSpacingPx(deltaPx: number, fallbackPx = 2): {
 
     if (
       blockEl.classList.contains("company-name") ||
+      blockEl.classList.contains("company-tagline") ||
       blockEl.classList.contains("company-details") ||
       blockEl.classList.contains("company-contact")
     ) {
@@ -582,7 +584,7 @@ export function stepSelectedBlockSpacingPx(deltaPx: number, fallbackPx = 2): {
   restoreActiveSelection();
   return {
     applied: true,
-    allLetterheadSelected: kopCount >= 3,
+    allLetterheadSelected: kopCount >= 4,
     nextPx,
   };
 }
@@ -649,8 +651,10 @@ export interface EditorHistorySnapshot {
 
 const HISTORY_TRACKED_SELECTOR = [
   ".company-name",
+  ".company-tagline",
   ".company-details",
   ".company-contact",
+  ".letterhead-reg-block",
   ".doc-title-bar",
   ".doc-title-bar h2",
   ".doc-two-col-grid",

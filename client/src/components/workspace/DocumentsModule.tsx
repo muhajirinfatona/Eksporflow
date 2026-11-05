@@ -462,12 +462,19 @@ export function DocumentsModule({
   };
 
   // Kalkulasi data turunan terpadu
-  const exporterName = shipment.exporter || "PT. INDICO EXPORT INDONESIA";
+  const rawExporterName = shipment.exporter || "PT. INDICO EXPORT INDONESIA";
+  const exporterName =
+    rawExporterName.trim().toLowerCase() === "indico export indonesia"
+      ? "PT. INDICO EXPORT INDONESIA"
+      : rawExporterName;
   const defaultAddress =
-    "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia";
+    "Head Office: Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia";
   const exporterAddress =
     shipment.letterheadText &&
+    shipment.letterheadText.trim().toLowerCase() !== rawExporterName.trim().toLowerCase() &&
     shipment.letterheadText.trim().toLowerCase() !== exporterName.trim().toLowerCase() &&
+    shipment.letterheadText.trim() !==
+      "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia" &&
     shipment.letterheadText.length > 15
       ? shipment.letterheadText
       : defaultAddress;
@@ -1293,8 +1300,15 @@ function OfficialLetterhead({
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const dividerColor = shipment.letterheadDividerColor || "#0f2942";
   const layoutMode = shipment.letterheadLayout || "left";
+  const rawExporterContact = shipment.exporterContact || "";
   const exporterContact =
-    shipment.exporterContact || "Telp: +62 812 3456 7890 · Email: official@indicoexport.com";
+    !rawExporterContact ||
+    rawExporterContact.trim() === "Telp: +62 812 3456 7890 · Email: official@indicoexport.com"
+      ? "Tel: +62 812-3456-7890  |  Email: official@indicoexport.com  |  Web: www.indicoexport.com"
+      : rawExporterContact;
+  const exporterTagline = isId
+    ? "PERUSAHAAN EKSPOR KOMODITAS PERTANIAN & KELAPA INDONESIA"
+    : "EXPORTER & SUPPLIER OF INDONESIAN AGRICULTURAL & COCONUT COMMODITIES";
 
   const currentX = dragMoveOffset ? dragMoveOffset.x : (shipment.letterheadLogoX || 0);
   const currentY = dragMoveOffset ? dragMoveOffset.y : (shipment.letterheadLogoY || 0);
@@ -2034,33 +2048,53 @@ function OfficialLetterhead({
               </div>
             )}
 
+            {layoutMode !== "center" && (
+              <div className="letterhead-logo-divider" contentEditable={false} />
+            )}
+
             <div
               className="letterhead-text"
               style={{
                 flex: 1,
-                display: layoutMode === "split" ? "flex" : "block",
-                justifyContent: layoutMode === "split" ? "space-between" : undefined,
-                alignItems: layoutMode === "split" ? "center" : undefined,
-                gap: layoutMode === "split" ? "16px" : undefined,
+                display: layoutMode === "center" ? "block" : "flex",
+                justifyContent: layoutMode === "center" ? undefined : "space-between",
+                alignItems: layoutMode === "center" ? undefined : "center",
+                gap: layoutMode === "center" ? undefined : "14px",
               }}
             >
-              <h1
-                className="company-name"
+              <div
+                className="letterhead-identity-col"
                 style={{
-                  margin: 0,
-                  lineHeight: kopLineHeight,
-                  marginBottom: layoutMode === "split" ? 0 : `${lineSpacing}px`,
-                }}
-                onBlur={(e) => {
-                  const text = e.currentTarget.innerText.trim();
-                  if (update && text && text !== exporterName) {
-                    update("exporter", text);
-                  }
+                  flex: 1,
+                  minWidth: 0,
+                  textAlign: layoutMode === "center" ? "center" : "left",
                 }}
               >
-                {exporterName}
-              </h1>
-              <div style={{ textAlign: layoutMode === "split" ? "right" : layoutMode === "center" ? "center" : "left" }}>
+                <h1
+                  className="company-name"
+                  style={{
+                    margin: 0,
+                    lineHeight: kopLineHeight,
+                    marginBottom: `${Math.max(1, lineSpacing - 1)}px`,
+                  }}
+                  onBlur={(e) => {
+                    const text = e.currentTarget.innerText.trim();
+                    if (update && text && text !== exporterName) {
+                      update("exporter", text);
+                    }
+                  }}
+                >
+                  {exporterName}
+                </h1>
+                <p
+                  className="company-tagline"
+                  style={{
+                    margin: `0 0 ${lineSpacing}px 0`,
+                    lineHeight: kopLineHeight,
+                  }}
+                >
+                  {exporterTagline}
+                </p>
                 <p
                   className="company-details"
                   style={{
@@ -2091,7 +2125,40 @@ function OfficialLetterhead({
                 >
                   {exporterContact}
                 </p>
+                {layoutMode === "center" && (
+                  <div className="letterhead-reg-strip-center">
+                    <span>NIB / NIK: 9120301842910</span>
+                    <span>•</span>
+                    <span>NPWP (TAX ID): 02.845.619.3-805.000</span>
+                    <span>•</span>
+                    <span>ORIGIN: REPUBLIC OF INDONESIA</span>
+                  </div>
+                )}
               </div>
+
+              {layoutMode !== "center" && (
+                <div className="letterhead-reg-block">
+                  <div className="reg-block-title">
+                    {isId ? "LEGALITAS EKSPORTIR TERDAFTAR" : "REGISTERED EXPORT ENTITY"}
+                  </div>
+                  <div className="reg-block-row">
+                    <span className="reg-lbl">NIB / NIK:</span>
+                    <span className="reg-val">9120301842910</span>
+                  </div>
+                  <div className="reg-block-row">
+                    <span className="reg-lbl">NPWP (TAX ID):</span>
+                    <span className="reg-val">02.845.619.3-805.000</span>
+                  </div>
+                  <div className="reg-block-row">
+                    <span className="reg-lbl">{isId ? "KADIN / SKA:" : "CHAMBER / COO:"}</span>
+                    <span className="reg-val">KADIN SULSEL · ID-MKS</span>
+                  </div>
+                  <div className="reg-block-row">
+                    <span className="reg-lbl">{isId ? "NEGARA ASAL:" : "ORIGIN:"}</span>
+                    <span className="reg-val">INDONESIA</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
