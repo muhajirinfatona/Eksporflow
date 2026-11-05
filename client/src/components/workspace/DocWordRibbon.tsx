@@ -267,6 +267,17 @@ export function DocWordRibbon({
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [isRibbonCollapsed, setIsRibbonCollapsed] = useState(false);
   const [showMarginPopover, setShowMarginPopover] = useState(false);
+  const [popoverAnchor, setPopoverAnchor] = useState<{ top: number; left: number }>({
+    top: 130,
+    left: 160,
+  });
+
+  const captureAnchor = (el: HTMLElement | null, popoverWidth = 240) => {
+    if (!el || typeof window === "undefined") return;
+    const r = el.getBoundingClientRect();
+    const clampedLeft = Math.max(8, Math.min(r.left, window.innerWidth - popoverWidth - 12));
+    setPopoverAnchor({ top: Math.round(r.bottom + 4), left: Math.round(clampedLeft) });
+  };
 
   // Table creator state
   const [showTableMenu, setShowTableMenu] = useState(false);
@@ -1431,7 +1442,14 @@ export function DocWordRibbon({
 
       {/* 3. Main Ribbon Tools Strip */}
       {!isRibbonCollapsed && (
-        <div className="doc-ribbon-tools-strip">
+        <div
+          className="doc-ribbon-tools-strip"
+          onWheel={(e) => {
+            if (e.deltaY !== 0 && Math.abs(e.deltaX) === 0) {
+              e.currentTarget.scrollLeft += e.deltaY;
+            }
+          }}
+        >
           {/* ================= TAB 1: BERANDA (HOME) ================= */}
           {activeRibbonTab === "home" && (
             <>
@@ -1654,14 +1672,26 @@ export function DocWordRibbon({
                         e.preventDefault();
                         saveActiveSelection();
                       }}
-                      onClick={() => setShowHighlightPicker((prev) => !prev)}
+                      onClick={(e) => {
+                        captureAnchor(e.currentTarget, 160);
+                        setShowHighlightPicker((prev) => !prev);
+                        setShowColorPicker(false);
+                      }}
                       title="Warna Sorotan Teks (Highlighter)"
                     >
                       <Highlighter size={13} />
                       <div className="doc-color-bar highlight" />
                     </button>
                     {showHighlightPicker && (
-                      <div className="doc-color-dropdown">
+                      <div
+                        className="doc-color-dropdown"
+                        style={{
+                          position: "fixed",
+                          top: `${popoverAnchor.top}px`,
+                          left: `${popoverAnchor.left}px`,
+                          zIndex: 9999,
+                        }}
+                      >
                         <button type="button" className="color-swatch swatch-yellow" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#fef08a")} />
                         <button type="button" className="color-swatch swatch-green" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#bbf7d0")} />
                         <button type="button" className="color-swatch swatch-cyan" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#bae6fd")} />
@@ -1680,14 +1710,26 @@ export function DocWordRibbon({
                         e.preventDefault();
                         saveActiveSelection();
                       }}
-                      onClick={() => setShowColorPicker((prev) => !prev)}
+                      onClick={(e) => {
+                        captureAnchor(e.currentTarget, 160);
+                        setShowColorPicker((prev) => !prev);
+                        setShowHighlightPicker(false);
+                      }}
                       title="Warna Font Huruf (Text Color)"
                     >
                       <Baseline size={13} />
                       <div className="doc-color-bar text-color" />
                     </button>
                     {showColorPicker && (
-                      <div className="doc-color-dropdown">
+                      <div
+                        className="doc-color-dropdown"
+                        style={{
+                          position: "fixed",
+                          top: `${popoverAnchor.top}px`,
+                          left: `${popoverAnchor.left}px`,
+                          zIndex: 9999,
+                        }}
+                      >
                         <button type="button" className="color-swatch swatch-black" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#0f172a")} />
                         <button type="button" className="color-swatch swatch-navy" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#0f2942")} />
                         <button type="button" className="color-swatch swatch-blue" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#1d4ed8")} />
@@ -1937,7 +1979,10 @@ export function DocWordRibbon({
                   <button
                     type="button"
                     className={`doc-ribbon-table-trigger ${showTableMenu ? "active" : ""}`}
-                    onClick={() => setShowTableMenu((prev) => !prev)}
+                    onClick={(e) => {
+                      captureAnchor(e.currentTarget, 220);
+                      setShowTableMenu((prev) => !prev);
+                    }}
                     title="Sisipkan Tabel Baru"
                   >
                     <Table size={13} />
@@ -1981,7 +2026,17 @@ export function DocWordRibbon({
 
                 {/* Table Insert Popover Modal/Dropdown */}
                 {showTableMenu && (
-                  <div className="doc-table-popover" role="dialog">
+                  <div
+                    className="doc-table-popover"
+                    role="dialog"
+                    style={{
+                      position: "fixed",
+                      top: `${popoverAnchor.top}px`,
+                      left: `${popoverAnchor.left}px`,
+                      right: "auto",
+                      zIndex: 9999,
+                    }}
+                  >
                     <div className="doc-table-popover-header">
                       <span className="popover-title">SISIPKAN TABEL</span>
                       <span className="popover-sub">
@@ -2183,7 +2238,10 @@ export function DocWordRibbon({
                   <button
                     type="button"
                     className={`doc-ribbon-table-trigger ${showTableMenu ? "active" : ""}`}
-                    onClick={() => setShowTableMenu((prev) => !prev)}
+                    onClick={(e) => {
+                      captureAnchor(e.currentTarget, 220);
+                      setShowTableMenu((prev) => !prev);
+                    }}
                     title="Sisipkan Tabel Baru (Seperti di Microsoft Word)"
                   >
                     <Table size={13} />
@@ -2243,7 +2301,17 @@ export function DocWordRibbon({
 
                 {/* Table Insert Popover Modal/Dropdown */}
                 {showTableMenu && (
-                  <div className="doc-table-popover" role="dialog">
+                  <div
+                    className="doc-table-popover"
+                    role="dialog"
+                    style={{
+                      position: "fixed",
+                      top: `${popoverAnchor.top}px`,
+                      left: `${popoverAnchor.left}px`,
+                      right: "auto",
+                      zIndex: 9999,
+                    }}
+                  >
                     <div className="doc-table-popover-header">
                       <span className="popover-title">SISIPKAN TABEL</span>
                       <span className="popover-sub">
@@ -2508,18 +2576,20 @@ export function DocWordRibbon({
                   background: "#eff6ff",
                   border: "1px solid #bfdbfe",
                   borderRadius: "6px",
-                  padding: "2px 5px",
+                  padding: "4px 8px",
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "center",
-                  maxWidth: "82px",
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: "3px", color: "#1d4ed8", fontWeight: 700, fontSize: "9.5px" }}>
-                  <Table size={11} className="shrink-0" />
-                  <span className="truncate">{activeTableTitle}</span>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", color: "#1d4ed8", fontWeight: 700, fontSize: "11px" }}>
+                  <Table size={13} />
+                  <span>{activeTableTitle}</span>
                 </div>
-                <span className="doc-ribbon-group-label" style={{ color: "#2563eb" }}>Tabel Aktif</span>
+                <div style={{ fontSize: "9px", color: "#60a5fa", marginTop: "2px" }}>
+                  Target pengaturan tabel
+                </div>
+                <span className="doc-ribbon-group-label" style={{ color: "#2563eb" }}>Tabel Terpilih</span>
               </div>
 
               <div className="doc-ribbon-divider" />
@@ -2533,8 +2603,8 @@ export function DocWordRibbon({
                     onClick={() => insertTableRow("above")}
                     title="Sisipkan 1 Baris di Atas baris terpilih"
                   >
-                    <ArrowUp size={10} />
-                    <span>+ Atas</span>
+                    <ArrowUp size={11} />
+                    <span>+ Baris Atas</span>
                   </button>
                   <button
                     type="button"
@@ -2542,8 +2612,8 @@ export function DocWordRibbon({
                     onClick={() => insertTableRow("below")}
                     title="Sisipkan 1 Baris di Bawah baris terpilih"
                   >
-                    <ArrowDown size={10} />
-                    <span>+ Bawah</span>
+                    <ArrowDown size={11} />
+                    <span>+ Baris Bawah</span>
                   </button>
                   <button
                     type="button"
@@ -2551,7 +2621,7 @@ export function DocWordRibbon({
                     onClick={deleteTableRow}
                     title="Hapus Baris yang Sedang Dipilih"
                   >
-                    <Trash2 size={10} />
+                    <Trash2 size={11} />
                     <span>- Baris</span>
                   </button>
                 </div>
@@ -2563,8 +2633,8 @@ export function DocWordRibbon({
                     onClick={() => insertTableCol("left")}
                     title="Sisipkan 1 Kolom di Sebelah Kiri"
                   >
-                    <ArrowLeft size={10} />
-                    <span>+ Kiri</span>
+                    <ArrowLeft size={11} />
+                    <span>+ Kolom Kiri</span>
                   </button>
                   <button
                     type="button"
@@ -2572,8 +2642,8 @@ export function DocWordRibbon({
                     onClick={() => insertTableCol("right")}
                     title="Sisipkan 1 Kolom di Sebelah Kanan"
                   >
-                    <ArrowRight size={10} />
-                    <span>+ Kanan</span>
+                    <ArrowRight size={11} />
+                    <span>+ Kolom Kanan</span>
                   </button>
                   <button
                     type="button"
@@ -2581,7 +2651,7 @@ export function DocWordRibbon({
                     onClick={deleteTableCol}
                     title="Hapus Kolom yang Sedang Dipilih"
                   >
-                    <Trash2 size={10} />
+                    <Trash2 size={11} />
                     <span>- Kolom</span>
                   </button>
                 </div>
@@ -2600,7 +2670,7 @@ export function DocWordRibbon({
                     onClick={() => adjustColWidth(-20)}
                     title="Persempit Lebar Kolom Terpilih (-20px)"
                   >
-                    <span>◀ Sempit</span>
+                    <span>Kolom ◀-</span>
                   </button>
                   <button
                     type="button"
@@ -2608,7 +2678,7 @@ export function DocWordRibbon({
                     onClick={() => adjustColWidth(20)}
                     title="Perlebar Lebar Kolom Terpilih (+20px)"
                   >
-                    <span>Lebar ▶</span>
+                    <span>-+ Kolom ▶</span>
                   </button>
                 </div>
 
@@ -2619,8 +2689,8 @@ export function DocWordRibbon({
                     onClick={distributeColumnsEvenly}
                     title="Ratakan Lebar Seluruh Kolom Sama Rata (Distribute Columns Evenly)"
                   >
-                    <MoveHorizontal size={10} />
-                    <span>Ratakan</span>
+                    <MoveHorizontal size={11} />
+                    <span>Ratakan Kolom</span>
                   </button>
                   <button
                     type="button"
@@ -2643,60 +2713,55 @@ export function DocWordRibbon({
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellAlign("left")}
                     title="Rata Kiri Sel (Align Left)"
                   >
-                    <AlignLeft size={11} />
+                    <AlignLeft size={13} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellAlign("center")}
                     title="Rata Tengah Sel (Align Center)"
                   >
-                    <AlignCenter size={11} />
+                    <AlignCenter size={13} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellAlign("right")}
                     title="Rata Kanan Sel (Align Right)"
                   >
-                    <AlignRight size={11} />
+                    <AlignRight size={13} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellVAlign("top")}
                     title="Perataan Vertikal: Atas (Top)"
                   >
-                    <AlignVerticalJustifyStart size={11} />
+                    <AlignVerticalJustifyStart size={13} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellVAlign("middle")}
                     title="Perataan Vertikal: Tengah (Middle)"
                   >
-                    <AlignVerticalJustifyCenter size={11} />
+                    <AlignVerticalJustifyCenter size={13} />
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-btn-icon"
-                    style={{ width: "21px", height: "21px" }}
                     onClick={() => setCellVAlign("bottom")}
                     title="Perataan Vertikal: Bawah (Bottom)"
                   >
-                    <AlignVerticalJustifyEnd size={11} />
+                    <AlignVerticalJustifyEnd size={13} />
                   </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom">
+                  <span style={{ fontSize: "9.5px", color: "#64748b", fontWeight: 700, marginRight: "2px" }}>Padding:</span>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
@@ -2730,15 +2795,15 @@ export function DocWordRibbon({
 
               {/* 4. Garis & Border Tabel */}
               <div className="doc-ribbon-group group-table-border">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "2px", alignItems: "center" }}>
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => setTableBorderPreset("all")}
                     title="Semua Garis (Grid Kotak Lengkap)"
                   >
-                    <Grid size={10} />
-                    <span>Semua</span>
+                    <Grid size={11} />
+                    <span>Semua Garis</span>
                   </button>
                   <button
                     type="button"
@@ -2746,8 +2811,8 @@ export function DocWordRibbon({
                     onClick={() => setTableBorderPreset("horizontal")}
                     title="Garis Horizontal Saja (Standar Faktur)"
                   >
-                    <Rows size={10} />
-                    <span>Horiz</span>
+                    <Rows size={11} />
+                    <span>Horizontal</span>
                   </button>
                   <button
                     type="button"
@@ -2755,8 +2820,8 @@ export function DocWordRibbon({
                     onClick={() => setTableBorderPreset("outer")}
                     title="Garis Bingkai Luar Saja"
                   >
-                    <Square size={10} />
-                    <span>Luar</span>
+                    <Square size={11} />
+                    <span>Garis Luar</span>
                   </button>
                   <button
                     type="button"
@@ -2764,11 +2829,11 @@ export function DocWordRibbon({
                     onClick={() => setTableBorderPreset("none")}
                     title="Tanpa Garis / Borderless"
                   >
-                    <span>Tanpa</span>
+                    <span>Tanpa Garis</span>
                   </button>
                 </div>
 
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
                   <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b" }}>Garis:</span>
                   {[
                     { color: "#cbd5e1", title: "Abu Lembut (Standar)" },
@@ -2781,8 +2846,8 @@ export function DocWordRibbon({
                       type="button"
                       className="doc-color-swatch-mini"
                       style={{
-                        width: "14px",
-                        height: "14px",
+                        width: "15px",
+                        height: "15px",
                         borderRadius: "2px",
                         background: b.color,
                         border: tableBorderColor === b.color ? "2px solid #0284c7" : "1px solid #94a3b8",
@@ -2795,7 +2860,7 @@ export function DocWordRibbon({
                   {/* Custom Border Color Picker */}
                   <label
                     className="doc-color-picker-native-wrap"
-                    title="Pilih Warna Garis Kustom"
+                    title="Pilih Warna Garis Kustom (Color Picker Spectrum & HEX)"
                     style={{ cursor: "pointer" }}
                   >
                     <input
@@ -2805,30 +2870,32 @@ export function DocWordRibbon({
                     />
                     <div
                       style={{
-                        width: "15px",
-                        height: "15px",
+                        width: "16px",
+                        height: "16px",
                         borderRadius: "2px",
                         background: tableBorderColor,
                         border: "1px dashed #475569",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
+                        fontSize: "9px",
                       }}
                     >
-                      <Palette size={9} className="text-white drop-shadow" />
+                      🎨
                     </div>
                   </label>
                 </div>
 
-                <span className="doc-ribbon-group-label">Gaya & Garis</span>
+                <span className="doc-ribbon-group-label">Gaya & Warna Garis</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
               {/* 5. Warna Shading Sel & Tabel (Custom Colors) */}
               <div className="doc-ribbon-group group-table-color">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "2px" }}>
-                  <PaintBucket size={11} style={{ color: "#475569" }} />
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                  <PaintBucket size={12} style={{ color: "#475569" }} />
+                  <span style={{ fontSize: "9px", fontWeight: 700, color: "#334155" }}>Target:</span>
                   {(["header", "cell", "row", "table"] as const).map((t) => {
                     const labels = { header: "Header", cell: "Sel", row: "Baris", table: "Tabel" };
                     const isActive = tableColorTarget === t;
@@ -2846,13 +2913,13 @@ export function DocWordRibbon({
                   })}
                 </div>
 
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "2.5px", alignItems: "center" }}>
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
                   <button
                     type="button"
                     className="doc-color-swatch-mini swatch-clear"
                     onClick={() => applyTableColor("transparent")}
                     title="Bening / Hapus Warna Latar"
-                    style={{ width: "15px", height: "15px", borderRadius: "3px", border: "1px solid #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", cursor: "pointer" }}
+                    style={{ width: "16px", height: "16px", borderRadius: "3px", border: "1px solid #cbd5e1", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px", cursor: "pointer" }}
                   >
                     ✕
                   </button>
@@ -2861,7 +2928,9 @@ export function DocWordRibbon({
                     { color: "#f8fafc", title: "Abu Lembut" },
                     { color: "#0f2942", title: "Navy Resmi Ekspor" },
                     { color: "#1e40af", title: "Biru Royal" },
+                    { color: "#0284c7", title: "Biru Langit" },
                     { color: "#065f46", title: "Hijau Zamrud" },
+                    { color: "#854d0e", title: "Kuning Emas" },
                     { color: "#881337", title: "Merah Marun" },
                     { color: "#1e293b", title: "Slate Gelap" },
                   ].map((sw) => (
@@ -2870,8 +2939,8 @@ export function DocWordRibbon({
                       type="button"
                       className="doc-color-swatch-mini"
                       style={{
-                        width: "15px",
-                        height: "15px",
+                        width: "16px",
+                        height: "16px",
                         borderRadius: "3px",
                         background: sw.color,
                         border: "1px solid rgba(0,0,0,0.15)",
@@ -2885,7 +2954,7 @@ export function DocWordRibbon({
                   {/* Native HTML5 Color Spectrum Picker */}
                   <label
                     className="doc-color-picker-native-wrap"
-                    title={`Pilih Warna Kustom untuk ${tableColorTarget}`}
+                    title={`Pilih Warna Kustom Bebas (Spectrum & HEX) untuk ${tableColorTarget}`}
                   >
                     <input
                       type="color"
@@ -2897,14 +2966,87 @@ export function DocWordRibbon({
                       }}
                     />
                     <div className="doc-color-picker-custom-btn">
-                      <Palette size={10} />
+                      <Palette size={11} />
                       <span>Kustom</span>
                     </div>
                   </label>
+
+                  {/* Direct HEX Code Input Popover */}
+                  <div style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className="doc-ribbon-scope-pill"
+                      style={{ height: "18px", padding: "0 4px", fontSize: "9px" }}
+                      onClick={(e) => {
+                        captureAnchor(e.currentTarget, 170);
+                        setShowCustomHexPopover((p) => !p);
+                      }}
+                      title="Ketik Kode Warna HEX Langsung (misal: #0055aa)"
+                    >
+                      #HEX
+                    </button>
+                    {showCustomHexPopover && (
+                      <div
+                        style={{
+                          position: "fixed",
+                          top: `${popoverAnchor.top}px`,
+                          left: `${popoverAnchor.left}px`,
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          boxShadow: "0 8px 20px rgba(0,0,0,0.18)",
+                          padding: "8px",
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "6px",
+                          zIndex: 9999,
+                          width: "160px",
+                        }}
+                      >
+                        <span style={{ fontSize: "10px", fontWeight: 700, color: "#1e293b" }}>Kode Warna HEX:</span>
+                        <div style={{ display: "flex", gap: "4px" }}>
+                          <input
+                            type="text"
+                            value={customHexInput}
+                            onChange={(e) => setCustomHexInput(e.target.value)}
+                            placeholder="#0f2942"
+                            style={{
+                              width: "80px",
+                              padding: "2px 4px",
+                              fontSize: "11px",
+                              border: "1px solid #cbd5e1",
+                              borderRadius: "3px",
+                              fontFamily: "monospace",
+                            }}
+                          />
+                          <div
+                            style={{
+                              width: "20px",
+                              height: "20px",
+                              borderRadius: "3px",
+                              background: customHexInput,
+                              border: "1px solid #94a3b8",
+                            }}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          className="doc-ribbon-table-subbtn"
+                          style={{ background: "#0284c7", color: "#ffffff", borderColor: "#0284c7", width: "100%", height: "22px" }}
+                          onClick={() => {
+                            applyTableColor(customHexInput);
+                            setShowCustomHexPopover(false);
+                          }}
+                        >
+                          Terapkan
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 <span className="doc-ribbon-group-label">
-                  Warna {tableColorTarget === "header" ? "Header" : tableColorTarget === "cell" ? "Sel" : tableColorTarget === "row" ? "Baris" : "Tabel"}
+                  Warna {tableColorTarget === "header" ? "Header" : tableColorTarget === "cell" ? "Sel" : tableColorTarget === "row" ? "Baris" : "Tabel"} (Kustom)
                 </span>
               </div>
 
@@ -2912,14 +3054,14 @@ export function DocWordRibbon({
 
               {/* 6. Desain Cepat & Hapus Tabel */}
               <div className="doc-ribbon-group group-table-presets">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "2px" }}>
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => applyTableThemePreset("corporate")}
                     title="Tema Standar Ekspor: Header Navy & Garis Abu"
                   >
-                    Navy
+                    Standar Ekspor
                   </button>
                   <button
                     type="button"
@@ -2939,12 +3081,12 @@ export function DocWordRibbon({
                   </button>
                 </div>
 
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "2px" }}>
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => applyTableThemePreset("emerald")}
-                    title="Tema Hijau Zamrud"
+                    title="Tema Hijau Zamrud (Pertanian / Pangan Organik)"
                   >
                     Zamrud
                   </button>
@@ -2952,9 +3094,17 @@ export function DocWordRibbon({
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => applyTableThemePreset("royal")}
-                    title="Tema Biru Royal"
+                    title="Tema Biru Royal Modern"
                   >
-                    Royal
+                    Royal Blue
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => applyTableThemePreset("burgundy")}
+                    title="Tema Merah Marun Eksklusif"
+                  >
+                    Marun
                   </button>
                   <button
                     type="button"
@@ -2962,12 +3112,12 @@ export function DocWordRibbon({
                     onClick={deleteTable}
                     title="Hapus Seluruh Tabel Ini"
                   >
-                    <Trash2 size={10} />
+                    <Trash2 size={11} />
                     <span>Hapus</span>
                   </button>
                 </div>
 
-                <span className="doc-ribbon-group-label">Tema Cepat</span>
+                <span className="doc-ribbon-group-label">Tema Desain Cepat</span>
               </div>
             </>
           )}
@@ -2977,7 +3127,7 @@ export function DocWordRibbon({
             <>
               {/* 1. SESUAIKAN (ADJUST) */}
               <div className="doc-ribbon-group group-pic-adjust">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
@@ -2987,8 +3137,8 @@ export function DocWordRibbon({
                     <Upload size={11} />
                     <span>Ganti Logo</span>
                   </button>
-                  <div style={{ display: "flex", alignItems: "center", gap: "3px", background: "#f8fafc", padding: "2px 5px", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
-                    <SunMedium size={11} className="text-amber-600" />
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "#f8fafc", padding: "2px 6px", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                    <SunMedium size={12} className="text-amber-600" />
                     <input
                       type="range"
                       min="10"
@@ -2997,9 +3147,9 @@ export function DocWordRibbon({
                       value={shipment.letterheadLogoOpacity ?? 100}
                       onChange={(e) => update("letterheadLogoOpacity", Number(e.target.value))}
                       title={`Transparansi / Opasitas Gambar: ${shipment.letterheadLogoOpacity ?? 100}%`}
-                      style={{ width: "54px", accentColor: "#2563eb", cursor: "pointer" }}
+                      style={{ width: "68px", accentColor: "#2563eb", cursor: "pointer" }}
                     />
-                    <span style={{ fontSize: "9.5px", fontWeight: 700, minWidth: "24px", color: "#1e293b" }}>
+                    <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "28px", color: "#1e293b" }}>
                       {shipment.letterheadLogoOpacity ?? 100}%
                     </span>
                   </div>
@@ -3039,27 +3189,27 @@ export function DocWordRibbon({
                     title="Reset Gambar (Reset Picture & Size)"
                   >
                     <RotateCcw size={11} />
-                    <span>Reset</span>
+                    <span>Reset Gambar</span>
                   </button>
                 </div>
-                <span className="doc-ribbon-group-label">Adjust</span>
+                <span className="doc-ribbon-group-label">Adjust (Sesuaikan)</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
               {/* 2. GAYA GAMBAR (PICTURE STYLES GALLERY - MICROSOFT WORD FIDELITY) */}
               <div className="doc-ribbon-group group-pic-styles">
-                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                   {/* Word-style framed thumbnail gallery container */}
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: "4px",
+                      gap: "5px",
                       background: "#ffffff",
                       border: "1px solid #cbd5e1",
                       borderRadius: "6px",
-                      padding: "3px 5px",
+                      padding: "4px 6px",
                       boxShadow: "inset 0 1px 2px rgba(15, 23, 42, 0.04)",
                     }}
                   >
@@ -3131,9 +3281,9 @@ export function DocWordRibbon({
                           }}
                           title={frame.label}
                           style={{
-                            width: "38px",
-                            height: "32px",
-                            padding: "2.5px",
+                            width: "44px",
+                            height: "36px",
+                            padding: "3px",
                             background: isActive ? "#dbeafe" : "#f8fafc",
                             border: isActive ? "2px solid #2563eb" : "1px solid transparent",
                             borderRadius: "5px",
@@ -3198,7 +3348,7 @@ export function DocWordRibbon({
                     <button
                       type="button"
                       className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoShadow ? "active" : ""}`}
-                      style={{ height: "19px", padding: "0 6px", fontSize: "10px", justifyContent: "flex-start" }}
+                      style={{ height: "20px", padding: "0 8px", fontSize: "10.5px", justifyContent: "flex-start" }}
                       onClick={() => {
                         const next = !shipment.letterheadLogoShadow;
                         update("letterheadLogoShadow", next);
@@ -3207,12 +3357,12 @@ export function DocWordRibbon({
                       title="Picture Effects: Efek Bayangan (Drop Shadow)"
                     >
                       <Square size={10} />
-                      <span>Effects {shipment.letterheadLogoShadow ? "✓" : ""}</span>
+                      <span>Picture Effects {shipment.letterheadLogoShadow ? "✓" : ""}</span>
                     </button>
                     <button
                       type="button"
                       className="doc-ribbon-table-subbtn"
-                      style={{ height: "19px", padding: "0 6px", fontSize: "10px", justifyContent: "flex-start" }}
+                      style={{ height: "20px", padding: "0 8px", fontSize: "10.5px", justifyContent: "flex-start" }}
                       onClick={() => {
                         setLetterheadModalTab("spacing");
                         setShowLetterheadModal(true);
@@ -3220,7 +3370,7 @@ export function DocWordRibbon({
                       title="Atur Tata Letak Kop Surat & Jarak Garis"
                     >
                       <Layout size={10} />
-                      <span>Layout</span>
+                      <span>Picture Layout</span>
                     </button>
                   </div>
                 </div>
@@ -3245,7 +3395,8 @@ export function DocWordRibbon({
                         borderColor: showPositionMenu ? "#2563eb" : "#cbd5e1",
                         color: "#1e3a8a",
                       }}
-                      onClick={() => {
+                      onClick={(e) => {
+                        captureAnchor(e.currentTarget, 248);
                         setShowPositionMenu((prev) => !prev);
                         setShowWrapTextMenu(false);
                       }}
@@ -3260,9 +3411,9 @@ export function DocWordRibbon({
                       <div
                         className="no-print"
                         style={{
-                          position: "absolute",
-                          top: "calc(100% + 4px)",
-                          left: 0,
+                          position: "fixed",
+                          top: `${popoverAnchor.top}px`,
+                          left: `${popoverAnchor.left}px`,
                           width: "248px",
                           background: "#ffffff",
                           border: "1px solid #cbd5e1",
@@ -3413,7 +3564,8 @@ export function DocWordRibbon({
                         borderColor: showWrapTextMenu ? "#2563eb" : "#cbd5e1",
                         color: "#1e3a8a",
                       }}
-                      onClick={() => {
+                      onClick={(e) => {
+                        captureAnchor(e.currentTarget, 215);
                         setShowWrapTextMenu((prev) => !prev);
                         setShowPositionMenu(false);
                       }}
@@ -3428,9 +3580,9 @@ export function DocWordRibbon({
                       <div
                         className="no-print"
                         style={{
-                          position: "absolute",
-                          top: "calc(100% + 4px)",
-                          left: 0,
+                          position: "fixed",
+                          top: `${popoverAnchor.top}px`,
+                          left: `${popoverAnchor.left}px`,
                           width: "215px",
                           background: "#ffffff",
                           border: "1px solid #cbd5e1",
