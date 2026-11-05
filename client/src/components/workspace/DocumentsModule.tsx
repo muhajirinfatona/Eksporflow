@@ -1281,7 +1281,7 @@ function OfficialLetterhead({
   const imgRef = useRef<HTMLImageElement | null>(null);
 
   const activeScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
-  const baseLogoHeight = 76;
+  const baseLogoHeight = 68;
   const scaledHeight = Math.round(baseLogoHeight * (activeScale / 100));
 
   const wrapMode = shipment.letterheadLogoWrap || "inline";
@@ -1548,7 +1548,10 @@ function OfficialLetterhead({
   return (
     <div
       className="paper-letterhead-wrap group/kop relative"
-      style={{ marginBottom: `${ Math.max(4, dividerGap + 4) }px` }}
+      style={{
+        marginBottom: `${Math.max(4, dividerGap + 4)}px`,
+        ["--logo-scale" as any]: `${activeScale / 100}`,
+      }}
     >
       {/* Floating Quick Kop Surat Toolbar in Edit Mode (Appears on Hover, Text Selection, or Logo Selection) */}
       {isEditMode && (
