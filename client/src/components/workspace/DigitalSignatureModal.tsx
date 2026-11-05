@@ -10,7 +10,6 @@ import {
   Trash2,
   RotateCcw,
   ShieldCheck,
-  Calendar,
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -24,31 +23,505 @@ interface DigitalSignatureModalProps {
   initialParty?: "seller" | "buyer";
 }
 
+export interface SignatureStyleSpec {
+  id: number;
+  label: string;
+  badge: string;
+  fontFamily: string;
+  fontSizePx: number;
+  canvasFontPx: number;
+  slantDeg: number;
+  letterSpacing: string;
+  mode: "full" | "initial-last" | "monogram-full" | "paraf-surname";
+  flourishType:
+    | "sweep-hook"
+    | "diplomat-dots"
+    | "slash-tail"
+    | "loop-under"
+    | "figure-eight"
+    | "rising-arc"
+    | "double-rail"
+    | "vertical-strike"
+    | "wrap-loop"
+    | "tapered-wave"
+    | "z-paraph"
+    | "parabolic-bold";
+}
+
+export const SIGNATURE_STYLES: SignatureStyleSpec[] = [
+  {
+    id: 1,
+    label: "Executive Wet-Ink",
+    badge: "Direktur Utama",
+    fontFamily: "'Mrs Saint Delafield', cursive",
+    fontSizePx: 34,
+    canvasFontPx: 64,
+    slantDeg: -7,
+    letterSpacing: "-0.02em",
+    mode: "full",
+    flourishType: "sweep-hook",
+  },
+  {
+    id: 2,
+    label: "Diplomat Aristocrat",
+    badge: "Pejabat Ekspor",
+    fontFamily: "'Herr Von Muellerhoff', cursive",
+    fontSizePx: 33,
+    canvasFontPx: 62,
+    slantDeg: -9,
+    letterSpacing: "-0.01em",
+    mode: "full",
+    flourishType: "diplomat-dots",
+  },
+  {
+    id: 3,
+    label: "Rapid CEO Paraf",
+    badge: "Goresan Cepat",
+    fontFamily: "'Reenie Beanie', cursive",
+    fontSizePx: 33,
+    canvasFontPx: 62,
+    slantDeg: -10,
+    letterSpacing: "-0.03em",
+    mode: "initial-last",
+    flourishType: "slash-tail",
+  },
+  {
+    id: 4,
+    label: "Notary Legal Script",
+    badge: "Kontrak Dagang",
+    fontFamily: "'Pinyon Script', cursive",
+    fontSizePx: 29,
+    canvasFontPx: 54,
+    slantDeg: -6,
+    letterSpacing: "0em",
+    mode: "full",
+    flourishType: "loop-under",
+  },
+  {
+    id: 5,
+    label: "Banker Fountain Pen",
+    badge: "Bank Devisa / L/C",
+    fontFamily: "'Alex Brush', cursive",
+    fontSizePx: 31,
+    canvasFontPx: 58,
+    slantDeg: -8,
+    letterSpacing: "-0.01em",
+    mode: "monogram-full",
+    flourishType: "figure-eight",
+  },
+  {
+    id: 6,
+    label: "Founder Dynamic",
+    badge: "Otentik Natural",
+    fontFamily: "'Nothing You Could Do', cursive",
+    fontSizePx: 26,
+    canvasFontPx: 48,
+    slantDeg: -8,
+    letterSpacing: "-0.02em",
+    mode: "full",
+    flourishType: "rising-arc",
+  },
+  {
+    id: 7,
+    label: "Presidential Calligraphy",
+    badge: "Resmi Korporat",
+    fontFamily: "'Great Vibes', cursive",
+    fontSizePx: 29,
+    canvasFontPx: 54,
+    slantDeg: -6,
+    letterSpacing: "0em",
+    mode: "full",
+    flourishType: "double-rail",
+  },
+  {
+    id: 8,
+    label: "Minimalist Monoline",
+    badge: "Paraf Modern",
+    fontFamily: "'Sacramento', cursive",
+    fontSizePx: 31,
+    canvasFontPx: 58,
+    slantDeg: -7,
+    letterSpacing: "-0.01em",
+    mode: "initial-last",
+    flourishType: "vertical-strike",
+  },
+  {
+    id: 9,
+    label: "Swift Ballpoint",
+    badge: "Tanda Tangan Asli",
+    fontFamily: "'La Belle Aurore', cursive",
+    fontSizePx: 27,
+    canvasFontPx: 50,
+    slantDeg: -9,
+    letterSpacing: "-0.02em",
+    mode: "paraf-surname",
+    flourishType: "wrap-loop",
+  },
+  {
+    id: 10,
+    label: "Corporate Rollerball",
+    badge: "Faktur Komersial",
+    fontFamily: "'Allura', cursive",
+    fontSizePx: 31,
+    canvasFontPx: 58,
+    slantDeg: -6,
+    letterSpacing: "0em",
+    mode: "full",
+    flourishType: "tapered-wave",
+  },
+  {
+    id: 11,
+    label: "Merchant Captain",
+    badge: "Shipping / B/L",
+    fontFamily: "'Cedarville Cursive', cursive",
+    fontSizePx: 26,
+    canvasFontPx: 48,
+    slantDeg: -10,
+    letterSpacing: "-0.03em",
+    mode: "initial-last",
+    flourishType: "z-paraph",
+  },
+  {
+    id: 12,
+    label: "Bold Nib Signatory",
+    badge: "Pena Kaligrafi",
+    fontFamily: "'Marck Script', cursive",
+    fontSizePx: 28,
+    canvasFontPx: 52,
+    slantDeg: -7,
+    letterSpacing: "-0.01em",
+    mode: "full",
+    flourishType: "parabolic-bold",
+  },
+];
+
+function formatSignatureDisplayText(rawName: string, mode: SignatureStyleSpec["mode"]): string {
+  const clean = (rawName || "Muhajirin Fatona").trim().replace(/\s+/g, " ");
+  const parts = clean.split(" ").filter(Boolean);
+  if (parts.length <= 1) return clean;
+
+  if (mode === "initial-last") {
+    const firstInitial = parts[0].charAt(0).toUpperCase();
+    const rest = parts.slice(1).join(" ");
+    return `${firstInitial}. ${rest}`;
+  }
+  if (mode === "monogram-full") {
+    return clean;
+  }
+  if (mode === "paraf-surname") {
+    const initials = parts
+      .slice(0, -1)
+      .map((p) => p.charAt(0).toUpperCase())
+      .join("");
+    const surname = parts[parts.length - 1];
+    return `${initials} ${surname}`;
+  }
+  return clean;
+}
+
+function renderFlourishSvgPath(type: SignatureStyleSpec["flourishType"]): React.ReactNode {
+  switch (type) {
+    case "sweep-hook":
+      return (
+        <path
+          d="M 28 52 C 85 45, 165 38, 225 41 C 205 46, 130 55, 95 60 C 82 62, 92 67, 118 64"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      );
+    case "diplomat-dots":
+      return (
+        <>
+          <path
+            d="M 35 54 Q 125 38 215 49"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+          />
+          <circle cx="118" cy="57" r="1.4" fill="currentColor" />
+          <circle cx="132" cy="56" r="1.4" fill="currentColor" />
+        </>
+      );
+    case "slash-tail":
+      return (
+        <path
+          d="M 52 14 L 34 58 M 30 52 C 95 44, 175 36, 232 30"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
+      );
+    case "loop-under":
+      return (
+        <path
+          d="M 40 52 C 105 46, 185 44, 218 48 C 228 50, 212 58, 175 56 C 145 55, 128 51, 148 45"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+      );
+    case "figure-eight":
+      return (
+        <path
+          d="M 48 53 C 88 42, 168 42, 204 51 C 220 55, 190 62, 145 54 C 105 47, 85 57, 132 61"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.45"
+          strokeLinecap="round"
+        />
+      );
+    case "rising-arc":
+      return (
+        <path
+          d="M 38 56 C 95 48, 165 39, 224 33"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+        />
+      );
+    case "double-rail":
+      return (
+        <>
+          <path
+            d="M 34 51 C 100 44, 170 42, 222 45"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+          <path
+            d="M 58 57 C 115 52, 168 50, 202 52"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.1"
+            strokeLinecap="round"
+          />
+        </>
+      );
+    case "vertical-strike":
+      return (
+        <path
+          d="M 64 12 L 54 60 M 42 50 L 218 42"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.4"
+          strokeLinecap="round"
+        />
+      );
+    case "wrap-loop":
+      return (
+        <path
+          d="M 210 38 C 235 46, 175 63, 95 57 C 32 52, 18 32, 58 18"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.45"
+          strokeLinecap="round"
+        />
+      );
+    case "tapered-wave":
+      return (
+        <path
+          d="M 32 53 C 78 44, 125 56, 175 46 C 198 42, 215 41, 228 44"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+      );
+    case "z-paraph":
+      return (
+        <path
+          d="M 42 49 L 212 42 L 78 58 L 222 53"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.45"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      );
+    case "parabolic-bold":
+    default:
+      return (
+        <path
+          d="M 30 55 Q 125 36 226 48"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.9"
+          strokeLinecap="round"
+        />
+      );
+  }
+}
+
+function drawCanvasFlourish(
+  ctx: CanvasRenderingContext2D,
+  type: SignatureStyleSpec["flourishType"],
+  inkColor: string
+) {
+  ctx.save();
+  ctx.strokeStyle = inkColor;
+  ctx.fillStyle = inkColor;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+
+  // Scale from 250x68 SVG space to 560x190 Canvas space
+  const sx = 560 / 250;
+  const sy = 190 / 68;
+  ctx.scale(sx, sy);
+
+  switch (type) {
+    case "sweep-hook": {
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(28, 52);
+      ctx.bezierCurveTo(85, 45, 165, 38, 225, 41);
+      ctx.bezierCurveTo(205, 46, 130, 55, 95, 60);
+      ctx.bezierCurveTo(82, 62, 92, 67, 118, 64);
+      ctx.stroke();
+      break;
+    }
+    case "diplomat-dots": {
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(35, 54);
+      ctx.quadraticCurveTo(125, 38, 215, 49);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(118, 57, 1.4, 0, Math.PI * 2);
+      ctx.arc(132, 56, 1.4, 0, Math.PI * 2);
+      ctx.fill();
+      break;
+    }
+    case "slash-tail": {
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      ctx.moveTo(52, 14);
+      ctx.lineTo(34, 58);
+      ctx.moveTo(30, 52);
+      ctx.bezierCurveTo(95, 44, 175, 36, 232, 30);
+      ctx.stroke();
+      break;
+    }
+    case "loop-under": {
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(40, 52);
+      ctx.bezierCurveTo(105, 46, 185, 44, 218, 48);
+      ctx.bezierCurveTo(228, 50, 212, 58, 175, 56);
+      ctx.bezierCurveTo(145, 55, 128, 51, 148, 45);
+      ctx.stroke();
+      break;
+    }
+    case "figure-eight": {
+      ctx.lineWidth = 1.45;
+      ctx.beginPath();
+      ctx.moveTo(48, 53);
+      ctx.bezierCurveTo(88, 42, 168, 42, 204, 51);
+      ctx.bezierCurveTo(220, 55, 190, 62, 145, 54);
+      ctx.bezierCurveTo(105, 47, 85, 57, 132, 61);
+      ctx.stroke();
+      break;
+    }
+    case "rising-arc": {
+      ctx.lineWidth = 1.75;
+      ctx.beginPath();
+      ctx.moveTo(38, 56);
+      ctx.bezierCurveTo(95, 48, 165, 39, 224, 33);
+      ctx.stroke();
+      break;
+    }
+    case "double-rail": {
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(34, 51);
+      ctx.bezierCurveTo(100, 44, 170, 42, 222, 45);
+      ctx.stroke();
+      ctx.lineWidth = 1.1;
+      ctx.beginPath();
+      ctx.moveTo(58, 57);
+      ctx.bezierCurveTo(115, 52, 168, 50, 202, 52);
+      ctx.stroke();
+      break;
+    }
+    case "vertical-strike": {
+      ctx.lineWidth = 1.4;
+      ctx.beginPath();
+      ctx.moveTo(64, 12);
+      ctx.lineTo(54, 60);
+      ctx.moveTo(42, 50);
+      ctx.lineTo(218, 42);
+      ctx.stroke();
+      break;
+    }
+    case "wrap-loop": {
+      ctx.lineWidth = 1.45;
+      ctx.beginPath();
+      ctx.moveTo(210, 38);
+      ctx.bezierCurveTo(235, 46, 175, 63, 95, 57);
+      ctx.bezierCurveTo(32, 52, 18, 32, 58, 18);
+      ctx.stroke();
+      break;
+    }
+    case "tapered-wave": {
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(32, 53);
+      ctx.bezierCurveTo(78, 44, 125, 56, 175, 46);
+      ctx.bezierCurveTo(198, 42, 215, 41, 228, 44);
+      ctx.stroke();
+      break;
+    }
+    case "z-paraph": {
+      ctx.lineWidth = 1.45;
+      ctx.beginPath();
+      ctx.moveTo(42, 49);
+      ctx.lineTo(212, 42);
+      ctx.lineTo(78, 58);
+      ctx.lineTo(222, 53);
+      ctx.stroke();
+      break;
+    }
+    case "parabolic-bold":
+    default: {
+      ctx.lineWidth = 1.9;
+      ctx.beginPath();
+      ctx.moveTo(30, 55);
+      ctx.quadraticCurveTo(125, 36, 226, 48);
+      ctx.stroke();
+      break;
+    }
+  }
+
+  ctx.restore();
+}
+
 export function DigitalSignatureModal({
   isOpen,
   onClose,
   shipment,
   update,
-  initialParty = "seller",
 }: DigitalSignatureModalProps) {
-  const [selectedParty, setSelectedParty] = useState<"seller" | "buyer">(initialParty);
-  const [activeTab, setActiveTab] = useState<"draw" | "upload" | "font" | "stamp">("draw");
+  const [activeTab, setActiveTab] = useState<"font" | "draw" | "upload" | "stamp">("font");
 
   // Canvas drawing state
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  const [penColor, setPenColor] = useState("#0f172a");
-  const [penWidth, setPenWidth] = useState(3);
+  const [penColor, setPenColor] = useState("#0f2942");
+  const [penWidth, setPenWidth] = useState(2.5);
   const [hasDrawn, setHasDrawn] = useState(false);
   const [drawingHistory, setDrawingHistory] = useState<ImageData[]>([]);
 
-  // Font signature state
+  // Font signature state (Strictly Exporter / Seller)
   const defaultSellerName = shipment.signatoryName || "Muhajirin Fatona";
-  const defaultBuyerName = shipment.buyerPicName || "Mr. Tariq Al-Mansoor";
-  const [typedName, setTypedName] = useState(
-    selectedParty === "seller" ? defaultSellerName : defaultBuyerName
-  );
+  const [typedName, setTypedName] = useState(defaultSellerName);
   const [selectedFontStyle, setSelectedFontStyle] = useState<number>(1);
+  const [fontInkColor, setFontInkColor] = useState<string>("#0f2942");
 
   // Upload state
   const [uploadedImage, setUploadedImage] = useState<string>("");
@@ -60,12 +533,13 @@ export function DigitalSignatureModal({
     shipment.officialStampColor || "red"
   );
 
-  // Sync typed name when party changes
   useEffect(() => {
-    setTypedName(selectedParty === "seller" ? defaultSellerName : defaultBuyerName);
-  }, [selectedParty, defaultSellerName, defaultBuyerName]);
+    if (isOpen) {
+      setTypedName(shipment.signatoryName || "Muhajirin Fatona");
+    }
+  }, [isOpen, shipment.signatoryName]);
 
-  // Canvas setup
+  // Canvas setup for manual drawing tab
   useEffect(() => {
     if (!isOpen || activeTab !== "draw") return;
     const canvas = canvasRef.current;
@@ -73,20 +547,16 @@ export function DigitalSignatureModal({
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // High DPI scaling
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
     canvas.height = rect.height * dpr;
     ctx.scale(dpr, dpr);
 
-    // Initial white clear
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, rect.width, rect.height);
     ctx.lineCap = "round";
     ctx.lineJoin = "round";
 
-    // Save initial state for history
     const initialData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     setDrawingHistory([initialData]);
     setHasDrawn(false);
@@ -95,7 +565,9 @@ export function DigitalSignatureModal({
   if (!isOpen) return null;
 
   // Drawing event handlers
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const startDrawing = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -116,7 +588,9 @@ export function DigitalSignatureModal({
     ctx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  const draw = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>
+  ) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -153,8 +627,7 @@ export function DigitalSignatureModal({
     if (!ctx) return;
 
     const rect = canvas.getBoundingClientRect();
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, rect.width, rect.height);
+    ctx.clearRect(0, 0, rect.width, rect.height);
     setHasDrawn(false);
     setDrawingHistory([]);
   };
@@ -192,56 +665,47 @@ export function DigitalSignatureModal({
     const reader = new FileReader();
     reader.onload = () => {
       setUploadedImage(String(reader.result));
-      toast.success("Foto tanda tangan berhasil dimuat");
+      toast.success("Gambar tanda tangan berhasil dimuat");
     };
     reader.readAsDataURL(file);
   };
 
-  // Generate Font Signature as Image Data URL
-  const generateFontSignatureImage = (name: string, styleIndex: number): string => {
+  // Generate Realistic Handwritten Signature as Transparent PNG Data URL
+  const generateFontSignatureImage = (name: string, styleId: number, inkColor: string): string => {
+    const spec = SIGNATURE_STYLES.find((s) => s.id === styleId) || SIGNATURE_STYLES[0];
+    const displayText = formatSignatureDisplayText(name, spec.mode);
+
     const offCanvas = document.createElement("canvas");
-    offCanvas.width = 480;
-    offCanvas.height = 160;
+    offCanvas.width = 560;
+    offCanvas.height = 190;
     const ctx = offCanvas.getContext("2d");
     if (!ctx) return "";
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, 480, 160);
+    // Transparent background so signature overlaps corporate seal naturally
+    ctx.clearRect(0, 0, 560, 190);
 
-    ctx.fillStyle = "#0f2942";
+    // Draw slanted handwritten text
+    ctx.save();
+    ctx.translate(280, 92);
+    ctx.rotate((spec.slantDeg * Math.PI) / 180);
+    ctx.fillStyle = inkColor;
+    ctx.strokeStyle = inkColor;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
+    ctx.font = `${spec.canvasFontPx}px ${spec.fontFamily}`;
+    ctx.fillText(displayText, 0, 0);
+    // Subtle wet-ink stroke weight
+    ctx.lineWidth = 0.65;
+    ctx.strokeText(displayText, 0, 0);
+    ctx.restore();
 
-    switch (styleIndex) {
-      case 1:
-        ctx.font = "italic 44px 'Brush Script MT', 'Segoe Script', cursive";
-        break;
-      case 2:
-        ctx.font = "italic 38px 'Segoe Script', cursive";
-        break;
-      case 3:
-        ctx.font = "italic 40px 'Lucida Handwriting', cursive";
-        break;
-      case 4:
-      default:
-        ctx.font = "italic 42px 'Dancing Script', 'Snell Roundhand', cursive";
-        break;
-    }
-
-    ctx.fillText(name, 240, 75);
-
-    // Subtle flourish underline
-    ctx.strokeStyle = "#0f2942";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(80, 115);
-    ctx.bezierCurveTo(180, 125, 300, 105, 400, 120);
-    ctx.stroke();
+    // Draw authentic fountain-pen flourish
+    drawCanvasFlourish(ctx, spec.flourishType, inkColor);
 
     return offCanvas.toDataURL("image/png");
   };
 
-  // Save Signature
+  // Save Signature (Strictly Exporter / Seller)
   const handleApplySignature = () => {
     let finalSignatureUrl = "";
     const signatureDate = new Date().toLocaleDateString("id-ID", {
@@ -252,7 +716,7 @@ export function DigitalSignatureModal({
 
     if (activeTab === "draw") {
       if (!hasDrawn || !canvasRef.current) {
-        toast.error("Silakan goreskan tanda tangan terlebih dahulu pada canvas.");
+        toast.error("Silakan goreskan tanda tangan terlebih dahulu pada area kanvas.");
         return;
       }
       finalSignatureUrl = canvasRef.current.toDataURL("image/png");
@@ -263,63 +727,55 @@ export function DigitalSignatureModal({
       }
       finalSignatureUrl = uploadedImage;
     } else if (activeTab === "font") {
-      finalSignatureUrl = generateFontSignatureImage(typedName, selectedFontStyle);
+      finalSignatureUrl = generateFontSignatureImage(typedName, selectedFontStyle, fontInkColor);
     } else if (activeTab === "stamp") {
-      finalSignatureUrl = generateFontSignatureImage(typedName, 1);
+      finalSignatureUrl =
+        shipment.sellerSignatureImage ||
+        generateFontSignatureImage(typedName, selectedFontStyle, fontInkColor);
     }
 
-    if (selectedParty === "seller") {
-      update("sellerSignatureImage", finalSignatureUrl);
-      update("sellerSignatureType", activeTab);
-      update("sellerSignatureDate", signatureDate);
-      update("includeOfficialStamp", includeStamp);
-      update("officialStampColor", stampColor);
-      toast.success("Tanda Tangan Eksportir Berhasil Diterapkan!", {
-        description: "Tanda tangan resmi kini tercetak di semua dokumen dan kontrak.",
-      });
-    } else {
-      update("buyerSignatureImage", finalSignatureUrl);
-      update("buyerSignatureType", activeTab);
-      update("buyerSignatureDate", signatureDate);
-      toast.success("Tanda Tangan Pembeli (Buyer) Berhasil Diterapkan!", {
-        description: "Tanda tangan pihak buyer kini tercetak di Sales Contract.",
-      });
+    if (typedName.trim() && typedName.trim() !== shipment.signatoryName) {
+      update("signatoryName", typedName.trim());
     }
+    update("sellerSignatureImage", finalSignatureUrl);
+    update("sellerSignatureType", activeTab);
+    update("sellerSignatureDate", signatureDate);
+    update("includeOfficialStamp", includeStamp);
+    update("officialStampColor", stampColor);
+
+    toast.success("Tanda Tangan & Stempel Eksportir Diterapkan", {
+      description: "Tanda tangan resmi telah terpasang pada dokumen ekspor.",
+    });
 
     onClose();
   };
 
   const handleRemoveSignature = () => {
-    if (selectedParty === "seller") {
-      update("sellerSignatureImage", "");
-      update("sellerSignatureDate", "");
-      toast.info("Tanda tangan eksportir dihapus dari dokumen.");
-    } else {
-      update("buyerSignatureImage", "");
-      update("buyerSignatureDate", "");
-      toast.info("Tanda tangan buyer dihapus dari dokumen.");
-    }
+    update("sellerSignatureImage", "");
+    update("sellerSignatureDate", "");
+    toast.info("Tanda tangan dihapus dari dokumen.");
     onClose();
   };
 
-  const currentPartySigned =
-    selectedParty === "seller"
-      ? !!shipment.sellerSignatureImage
-      : !!shipment.buyerSignatureImage;
+  const hasExistingSignature = !!shipment.sellerSignatureImage;
 
   return (
     <div className="doc-sig-modal-backdrop" onClick={onClose}>
-      <div className="doc-sig-modal-card" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="doc-sig-modal-card"
+        style={{ maxWidth: "740px" }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Modal Header */}
         <div className="doc-sig-modal-header">
           <div className="doc-sig-modal-header-left">
             <div className="doc-sig-icon-box">
-              <FileSignature size={20} />
+              <FileSignature size={18} />
             </div>
             <div>
-              <h3 className="doc-sig-modal-title">Tanda Tangan Digital & Stempel Legal</h3>
+              <h3 className="doc-sig-modal-title">Tanda Tangan Digital & Stempel Resmi Eksportir</h3>
               <p className="doc-sig-modal-subtitle">
-                Standar Keabsahan Dokumen Ekspor Global (ICC Incoterms & UNCITRAL Model Law)
+                Otorisasi Pejabat Eksportir ({shipment.exporter || "PT. INDICO EXPORT INDONESIA"})
               </p>
             </div>
           </div>
@@ -333,46 +789,23 @@ export function DigitalSignatureModal({
           </button>
         </div>
 
-        {/* Party Selector (The Seller vs The Buyer) */}
-        <div className="doc-sig-party-bar">
-          <span className="doc-sig-party-label">Pihak Penandatangan:</span>
-          <div className="doc-sig-party-buttons">
-            <button
-              type="button"
-              className={`doc-party-btn ${selectedParty === "seller" ? "active" : ""}`}
-              onClick={() => setSelectedParty("seller")}
-            >
-              <div className="doc-party-badge">Eksportir</div>
-              <span>The Seller ({shipment.signatoryName || "Muhajirin Fatona"})</span>
-            </button>
-            <button
-              type="button"
-              className={`doc-party-btn ${selectedParty === "buyer" ? "active" : ""}`}
-              onClick={() => setSelectedParty("buyer")}
-            >
-              <div className="doc-party-badge buyer">Buyer</div>
-              <span>The Buyer ({shipment.buyerPicName || "Mr. Tariq Al-Mansoor"})</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Switcher */}
+        {/* Single-Line Tab Switcher */}
         <div className="doc-sig-tabs-nav">
-          <button
-            type="button"
-            className={`doc-sig-tab-item ${activeTab === "draw" ? "active" : ""}`}
-            onClick={() => setActiveTab("draw")}
-          >
-            <PenTool size={14} />
-            <span>1. Gores Tangan</span>
-          </button>
           <button
             type="button"
             className={`doc-sig-tab-item ${activeTab === "font" ? "active" : ""}`}
             onClick={() => setActiveTab("font")}
           >
             <Type size={14} />
-            <span>2. Ketik Kaligrafi</span>
+            <span>1. Pilih Gaya Tanda Tangan (12 Gaya)</span>
+          </button>
+          <button
+            type="button"
+            className={`doc-sig-tab-item ${activeTab === "draw" ? "active" : ""}`}
+            onClick={() => setActiveTab("draw")}
+          >
+            <PenTool size={14} />
+            <span>2. Gores Tangan Manual</span>
           </button>
           <button
             type="button"
@@ -388,58 +821,201 @@ export function DigitalSignatureModal({
             onClick={() => setActiveTab("stamp")}
           >
             <Stamp size={14} />
-            <span>4. Stempel Resmi & E-Seal</span>
+            <span>4. Stempel Perusahaan</span>
           </button>
         </div>
 
         {/* Tab Body */}
         <div className="doc-sig-tab-content">
-          {/* TAB 1: DRAW CANVAS */}
+          {/* TAB 1: 12 REALISTIC HANDWRITTEN SIGNATURE STYLES */}
+          {activeTab === "font" && (
+            <div className="doc-sig-font-pane">
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-end",
+                  justifyContent: "space-between",
+                  gap: "14px",
+                  marginBottom: "12px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div style={{ flex: 1, minWidth: "240px" }}>
+                  <label className="doc-font-label">Nama Pejabat Penandatangan (Eksportir):</label>
+                  <input
+                    type="text"
+                    className="doc-font-input"
+                    value={typedName}
+                    onChange={(e) => setTypedName(e.target.value)}
+                    placeholder="Ketik nama lengkap pejabat penandatangan..."
+                  />
+                </div>
+
+                {/* Ink Color Selector */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "4px",
+                  }}
+                >
+                  <span className="doc-font-label" style={{ marginBottom: 0 }}>
+                    Warna Tinta Pena:
+                  </span>
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      background: "#f8fafc",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "6px",
+                      padding: "5px 8px",
+                    }}
+                  >
+                    {[
+                      { color: "#0f2942", label: "Navy Wet-Ink" },
+                      { color: "#1d4ed8", label: "Biru Pulpen" },
+                      { color: "#0f172a", label: "Hitam Pekat" },
+                    ].map((ink) => {
+                      const active = fontInkColor === ink.color;
+                      return (
+                        <button
+                          key={ink.color}
+                          type="button"
+                          onClick={() => setFontInkColor(ink.color)}
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "5px",
+                            padding: "3px 8px",
+                            borderRadius: "4px",
+                            border: active ? "1.5px solid #0284c7" : "1px solid transparent",
+                            background: active ? "#e0f2fe" : "transparent",
+                            fontSize: "11px",
+                            fontWeight: active ? 700 : 600,
+                            color: "#1e293b",
+                            cursor: "pointer",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: "12px",
+                              height: "12px",
+                              borderRadius: "50%",
+                              background: ink.color,
+                              display: "inline-block",
+                              boxShadow: "0 0 0 1px rgba(0,0,0,0.15)",
+                            }}
+                          />
+                          <span>{ink.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* 12 Signature Cards Grid (3 Columns, Scrollable Container) */}
+              <div className="doc-font-styles-grid-12">
+                {SIGNATURE_STYLES.map((style) => {
+                  const isSelected = selectedFontStyle === style.id;
+                  const displayTxt = formatSignatureDisplayText(typedName, style.mode);
+                  return (
+                    <button
+                      key={style.id}
+                      type="button"
+                      className={`doc-font-card-pro ${isSelected ? "selected" : ""}`}
+                      onClick={() => setSelectedFontStyle(style.id)}
+                    >
+                      <div className="doc-font-card-header">
+                        <span className="doc-font-card-title">{style.label}</span>
+                        <span className="doc-font-card-badge">{style.badge}</span>
+                      </div>
+
+                      <div
+                        className="doc-font-sample-stage"
+                        style={{ color: fontInkColor }}
+                      >
+                        <div
+                          className="doc-font-sample-text"
+                          style={{
+                            fontFamily: style.fontFamily,
+                            fontSize: `${style.fontSizePx}px`,
+                            letterSpacing: style.letterSpacing,
+                            transform: `rotate(${style.slantDeg}deg)`,
+                            color: fontInkColor,
+                          }}
+                        >
+                          {displayTxt}
+                        </div>
+                        <svg
+                          viewBox="0 0 250 68"
+                          className="doc-font-flourish-svg"
+                          style={{ color: fontInkColor }}
+                          preserveAspectRatio="none"
+                        >
+                          {renderFlourishSvgPath(style.flourishType)}
+                        </svg>
+                      </div>
+
+                      <div className="doc-font-card-footer-line">
+                        <span>Authorized Signature</span>
+                        {isSelected && <Check size={13} className="check-icon" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: DRAW CANVAS */}
           {activeTab === "draw" && (
             <div className="doc-sig-draw-pane">
               <div className="doc-canvas-toolbar">
                 <div className="doc-pen-colors">
-                  <span className="doc-tool-label">Tinta:</span>
+                  <span className="doc-tool-label">Warna Tinta:</span>
+                  <button
+                    type="button"
+                    className={`pen-color-dot dot-navy ${penColor === "#0f2942" ? "active" : ""}`}
+                    onClick={() => setPenColor("#0f2942")}
+                    title="Navy Wet-Ink"
+                  />
+                  <button
+                    type="button"
+                    className={`pen-color-dot dot-blue ${penColor === "#1d4ed8" ? "active" : ""}`}
+                    onClick={() => setPenColor("#1d4ed8")}
+                    title="Biru Pulpen Resmi"
+                  />
                   <button
                     type="button"
                     className={`pen-color-dot dot-black ${penColor === "#0f172a" ? "active" : ""}`}
                     onClick={() => setPenColor("#0f172a")}
-                    title="Hitam Resmi"
-                  />
-                  <button
-                    type="button"
-                    className={`pen-color-dot dot-blue ${penColor === "#1e40af" ? "active" : ""}`}
-                    onClick={() => setPenColor("#1e40af")}
-                    title="Biru Tinta Diplomat"
-                  />
-                  <button
-                    type="button"
-                    className={`pen-color-dot dot-navy ${penColor === "#1d4ed8" ? "active" : ""}`}
-                    onClick={() => setPenColor("#1d4ed8")}
-                    title="Biru Klasik"
+                    title="Hitam Pekat"
                   />
                 </div>
 
                 <div className="doc-pen-thickness">
-                  <span className="doc-tool-label">Tebal:</span>
+                  <span className="doc-tool-label">Ketebalan Pena:</span>
                   <button
                     type="button"
-                    className={`thickness-btn ${penWidth === 2 ? "active" : ""}`}
-                    onClick={() => setPenWidth(2)}
+                    className={`thickness-btn ${penWidth === 1.8 ? "active" : ""}`}
+                    onClick={() => setPenWidth(1.8)}
                   >
                     Halus
                   </button>
                   <button
                     type="button"
-                    className={`thickness-btn ${penWidth === 3 ? "active" : ""}`}
-                    onClick={() => setPenWidth(3)}
+                    className={`thickness-btn ${penWidth === 2.5 ? "active" : ""}`}
+                    onClick={() => setPenWidth(2.5)}
                   >
-                    Sedang
+                    Standar
                   </button>
                   <button
                     type="button"
-                    className={`thickness-btn ${penWidth === 4 ? "active" : ""}`}
-                    onClick={() => setPenWidth(4)}
+                    className={`thickness-btn ${penWidth === 3.6 ? "active" : ""}`}
+                    onClick={() => setPenWidth(3.6)}
                   >
                     Tebal
                   </button>
@@ -450,7 +1026,7 @@ export function DigitalSignatureModal({
                     type="button"
                     className="doc-canvas-mini-btn"
                     onClick={undoCanvas}
-                    title="Undo goresan terakhir"
+                    title="Urungkan goresan terakhir"
                   >
                     <RotateCcw size={12} /> Undo
                   </button>
@@ -458,14 +1034,13 @@ export function DigitalSignatureModal({
                     type="button"
                     className="doc-canvas-mini-btn btn-clear"
                     onClick={clearCanvas}
-                    title="Bersihkan seluruh pad"
+                    title="Bersihkan seluruh kanvas"
                   >
                     <Trash2 size={12} /> Bersihkan
                   </button>
                 </div>
               </div>
 
-              {/* Canvas Area */}
               <div className="doc-canvas-wrapper">
                 <canvas
                   ref={canvasRef}
@@ -481,50 +1056,12 @@ export function DigitalSignatureModal({
                 {!hasDrawn && (
                   <div className="doc-canvas-guide">
                     <PenTool size={20} />
-                    <span>Goreskan tanda tangan Anda di sini menggunakan mouse, pen tablet, atau layar sentuh</span>
+                    <span>
+                      Goreskan tanda tangan Anda di area ini menggunakan mouse, stylus, atau layar sentuh
+                    </span>
                   </div>
                 )}
                 <div className="doc-canvas-baseline" />
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: FONT CALIGRAPHY */}
-          {activeTab === "font" && (
-            <div className="doc-sig-font-pane">
-              <div className="doc-font-input-wrap">
-                <label className="doc-font-label">Nama yang Ditandatangani:</label>
-                <input
-                  type="text"
-                  className="doc-font-input"
-                  value={typedName}
-                  onChange={(e) => setTypedName(e.target.value)}
-                  placeholder="Ketik nama lengkap penandatangan"
-                />
-              </div>
-
-              <div className="doc-font-styles-grid">
-                {[
-                  { id: 1, name: "Gaya 1 · Formal Cursive", font: "'Brush Script MT', cursive" },
-                  { id: 2, name: "Gaya 2 · Executive Fountain", font: "'Segoe Script', cursive" },
-                  { id: 3, name: "Gaya 3 · Modern Diplomat", font: "'Lucida Handwriting', cursive" },
-                  { id: 4, name: "Gaya 4 · Legal Flourish", font: "'Dancing Script', cursive, serif" },
-                ].map((style) => (
-                  <div
-                    key={style.id}
-                    className={`doc-font-card ${selectedFontStyle === style.id ? "selected" : ""}`}
-                    onClick={() => setSelectedFontStyle(style.id)}
-                  >
-                    <div className="doc-font-card-header">
-                      <span className="doc-font-card-title">{style.name}</span>
-                      {selectedFontStyle === style.id && <Check size={14} className="check-icon" />}
-                    </div>
-                    <div className="doc-font-sample" style={{ fontFamily: style.font }}>
-                      {typedName || "Muhajirin Fatona"}
-                    </div>
-                    <div className="doc-font-card-line" />
-                  </div>
-                ))}
               </div>
             </div>
           )}
@@ -545,9 +1082,9 @@ export function DigitalSignatureModal({
                   className="doc-upload-dropzone"
                   onClick={() => fileInputRef.current?.click()}
                 >
-                  <Upload size={32} />
-                  <h4>Pilih atau Tarik Foto Tanda Tangan ke Sini</h4>
-                  <p>Mendukung format PNG (transparan disarankan), JPG, atau WEBP (Maksimal 2 MB).</p>
+                  <Upload size={30} />
+                  <h4>Unggah Berkas Gambar Tanda Tangan</h4>
+                  <p>Mendukung format PNG transparan, JPG, atau WEBP (Maks. 2 MB).</p>
                   <button type="button" className="doc-upload-browse-btn">
                     Pilih Berkas dari Komputer
                   </button>
@@ -555,13 +1092,13 @@ export function DigitalSignatureModal({
               ) : (
                 <div className="doc-upload-preview-card">
                   <div className="doc-upload-preview-header">
-                    <span className="doc-upload-preview-title">Foto Tanda Tangan Terunggah:</span>
+                    <span className="doc-upload-preview-title">Pratinjau Tanda Tangan Terunggah:</span>
                     <button
                       type="button"
                       className="doc-upload-change-btn"
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      Ganti Foto
+                      Ganti Berkas
                     </button>
                   </div>
                   <div className="doc-upload-img-box">
@@ -582,7 +1119,7 @@ export function DigitalSignatureModal({
                     checked={includeStamp}
                     onChange={(e) => setIncludeStamp(e.target.checked)}
                   />
-                  <span>Bubuhkan Stempel Basah Digital Resmi Perusahaan (Corporate Seal)</span>
+                  <span>Sertakan Stempel Resmi Perusahaan (Official Corporate Seal)</span>
                 </label>
 
                 {includeStamp && (
@@ -595,7 +1132,7 @@ export function DigitalSignatureModal({
                         checked={stampColor === "red"}
                         onChange={() => setStampColor("red")}
                       />
-                      <span className="stamp-pill red">Stempel Merah Marun Resmi</span>
+                      <span className="stamp-pill red">Merah Marun Korporat</span>
                     </label>
                     <label className="stamp-radio-label">
                       <input
@@ -604,15 +1141,14 @@ export function DigitalSignatureModal({
                         checked={stampColor === "blue"}
                         onChange={() => setStampColor("blue")}
                       />
-                      <span className="stamp-pill blue">Stempel Biru Pabean Diplomat</span>
+                      <span className="stamp-pill blue">Biru Kepabeanan Ekspor</span>
                     </label>
                   </div>
                 )}
               </div>
 
-              {/* Stamped Seal Preview */}
               <div className="doc-stamp-preview-box">
-                <div className="doc-stamp-preview-label">Pratinjau Stempel Resmi:</div>
+                <div className="doc-stamp-preview-label">Pratinjau Stempel Perusahaan:</div>
                 <div className={`official-corporate-seal seal-${stampColor}`}>
                   <div className="seal-outer-circle">
                     <div className="seal-inner-circle">
@@ -629,13 +1165,12 @@ export function DigitalSignatureModal({
                 </div>
               </div>
 
-              {/* Legal Standards Note */}
               <div className="doc-stamp-security-card">
                 <ShieldCheck size={18} className="shield-icon" />
                 <div>
-                  <b>Keabsahan Hukum Internasional:</b>
+                  <b>Otorisasi Dokumen Ekspor Resmi:</b>
                   <p>
-                    Dokumen ini dilengkapi dengan identitas penandatangan, nomor rujukan kontrak, dan stempel digital yang memenuhi standar UNCITRAL Model Law on Electronic Commerce serta ketentuan ICC Uniform Customs and Practice.
+                    Tanda tangan dan stempel perusahaan diterapkan langsung pada blok pengesahan Eksportir di seluruh dokumen (*Proforma Invoice*, *Sales Contract*, *Commercial Invoice*, *Packing List*, dan *Shipping Instruction*).
                   </p>
                 </div>
               </div>
@@ -646,19 +1181,19 @@ export function DigitalSignatureModal({
         {/* Modal Footer */}
         <div className="doc-sig-modal-footer">
           <div className="doc-sig-footer-left">
-            {currentPartySigned && (
+            {hasExistingSignature && (
               <button
                 type="button"
                 className="doc-sig-btn-delete"
                 onClick={handleRemoveSignature}
               >
                 <Trash2 size={13} />
-                <span>Hapus Tanda Tangan Saat Ini</span>
+                <span>Hapus Tanda Tangan</span>
               </button>
             )}
             <div className="doc-sig-security-tag">
               <Lock size={12} />
-              <span>Verifikasi SHA-256 E-Sign</span>
+              <span>Otorisasi Resmi Eksportir</span>
             </div>
           </div>
 

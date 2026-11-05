@@ -3097,40 +3097,7 @@ function SalesContractDoc({
             {isId ? "PIHAK PEMBELI (THE BUYER)" : "THE BUYER"}
           </span>
           <b className="sig-company-name">{isId ? `Untuk ${buyerName}` : `For ${buyerName}`}</b>
-          <div className="sig-box-space">
-            {shipment?.buyerSignatureImage ? (
-              <div className="sig-rendered-wrap">
-                <img
-                  src={shipment.buyerSignatureImage}
-                  alt="Buyer Signature"
-                  className="doc-rendered-signature"
-                />
-                <div className="sig-verify-badge">
-                  <span className="sig-verify-check">✓</span>
-                  <span>E-Signed by Buyer ({shipment.buyerSignatureDate || "2026"})</span>
-                </div>
-                {onOpenSignatureModal && (
-                  <button
-                    type="button"
-                    className="sig-edit-hover-btn"
-                    onClick={() => onOpenSignatureModal("buyer")}
-                  >
-                    Ubah
-                  </button>
-                )}
-              </div>
-            ) : onOpenSignatureModal ? (
-              <button
-                type="button"
-                className="doc-btn-click-sign buyer-sign-btn"
-                onClick={() => onOpenSignatureModal("buyer")}
-                title="Pasang tanda tangan digital pihak pembeli"
-              >
-                <PenTool size={12} />
-                <span>+ Tanda Tangan Buyer</span>
-              </button>
-            ) : null}
-          </div>
+          <div className="sig-box-space" />
           <b className="sig-name">{buyerPicName || "Mr. Tariq Al-Mansoor"}</b>
           <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
         </div>
