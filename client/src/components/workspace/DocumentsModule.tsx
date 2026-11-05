@@ -254,21 +254,42 @@ export function DocumentsModule({
             resizer.title = "Tarik (drag) untuk mengatur lebar kolom ini";
 
             let startX = 0;
-            let startWidth = 0;
+            let startWidths: number[] = [];
+            let startTableWidth = 0;
+            let colIndex = 0;
+            let isLastCol = false;
+            const MIN_COL = 30;
+
+            // Terapkan lebar ke satu kolom (header + semua baris yang tidak di-colspan)
+            const setColWidth = (idx: number, w: number) => {
+              const head = headerCells[idx] as HTMLElement | undefined;
+              if (head) head.style.width = `${w}px`;
+              table.querySelectorAll("tbody tr").forEach((row) => {
+                const cells = Array.from(row.children) as HTMLTableCellElement[];
+                if (cells[idx] && (cells[idx].colSpan || 1) === 1) {
+                  cells[idx].style.width = `${w}px`;
+                }
+              });
+            };
 
             const onMouseMove = (moveEvent: MouseEvent) => {
               const dx = moveEvent.clientX - startX;
-              const newWidth = Math.max(30, startWidth + dx);
-              (th as HTMLElement).style.width = `${newWidth}px`;
-              const cellIndex = (th as HTMLTableCellElement).cellIndex;
-              // Resize only cells in THIS table that match the column index and aren't colSpanned
-              const rows = table.querySelectorAll("tbody tr");
-              rows.forEach((row) => {
-                const cells = Array.from(row.children) as HTMLTableCellElement[];
-                if (cells[cellIndex] && (cells[cellIndex].colSpan || 1) === 1) {
-                  cells[cellIndex].style.width = `${newWidth}px`;
-                }
-              });
+              const leftW = startWidths[colIndex];
+
+              if (isLastCol) {
+                // Garis paling kanan: hanya kolom terakhir & lebar tabel yang berubah
+                const newLeft = Math.max(MIN_COL, leftW + dx);
+                setColWidth(colIndex, newLeft);
+                (table as HTMLElement).style.width = `${startTableWidth + (newLeft - leftW)}px`;
+                return;
+              }
+
+              // Garis di antara 2 kolom: hanya kolom kiri & kanan garis yang berubah,
+              // total lebar tetap sehingga garis-garis lain tidak ikut bergeser.
+              const rightW = startWidths[colIndex + 1];
+              const clampedDx = Math.max(MIN_COL - leftW, Math.min(rightW - MIN_COL, dx));
+              setColWidth(colIndex, leftW + clampedDx);
+              setColWidth(colIndex + 1, rightW - clampedDx);
             };
 
             const onMouseUp = () => {
@@ -281,7 +302,19 @@ export function DocumentsModule({
               mdEvent.preventDefault();
               mdEvent.stopPropagation();
               startX = mdEvent.clientX;
-              startWidth = (th as HTMLElement).offsetWidth;
+              colIndex = Array.prototype.indexOf.call(headerCells, th);
+              isLastCol = colIndex === headerCells.length - 1;
+
+              // Kunci lebar semua kolom dalam px agar browser tidak membagi ulang lebar
+              // ke kolom lain saat satu garis ditarik.
+              startWidths = Array.from(headerCells).map(
+                (c) => (c as HTMLElement).getBoundingClientRect().width
+              );
+              startTableWidth = (table as HTMLElement).getBoundingClientRect().width;
+              (table as HTMLElement).style.tableLayout = "fixed";
+              (table as HTMLElement).style.width = `${startTableWidth}px`;
+              startWidths.forEach((w, i) => setColWidth(i, w));
+
               resizer.classList.add("is-resizing");
 
               // Immediately lock THIS table & cell as active
