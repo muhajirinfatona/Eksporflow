@@ -3127,78 +3127,182 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
-              {/* 2. GAYA GAMBAR (PICTURE STYLES GALLERY) */}
+              {/* 2. GAYA GAMBAR (PICTURE STYLES GALLERY - MICROSOFT WORD FIDELITY) */}
               <div className="doc-ribbon-group group-pic-styles">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                  {[
-                    { id: "none", label: "Polos", style: { border: "1px solid #cbd5e1", borderRadius: "2px" } },
-                    { id: "solid", label: "Bingkai", style: { border: "2px solid #1e293b", borderRadius: "2px" } },
-                    { id: "double", label: "Ganda", style: { border: "3px double #1e293b", borderRadius: "2px", background: "#f8fafc" } },
-                    { id: "rounded", label: "Bulat", style: { border: "2px solid #334155", borderRadius: "6px" } },
-                    { id: "oval", label: "Oval", style: { border: "2px solid #2563eb", borderRadius: "999px" } },
-                    { id: "dashed", label: "Putus", style: { border: "1.5px dashed #475569", borderRadius: "3px" } },
-                  ].map((frame) => {
-                    const isActive = (shipment.letterheadLogoBorder || "none") === frame.id;
-                    return (
-                      <button
-                        key={frame.id}
-                        type="button"
-                        onClick={() => {
-                          update("letterheadLogoBorder", frame.id as any);
-                          toast.success(`Gaya Bingkai Gambar: ${frame.label}`);
-                        }}
-                        title={`Gaya Bingkai: ${frame.label}`}
-                        style={{
-                          width: "34px",
-                          height: "26px",
-                          padding: "3px",
-                          background: isActive ? "#dbeafe" : "#ffffff",
-                          border: isActive ? "2px solid #2563eb" : "1px solid #cbd5e1",
-                          borderRadius: "4px",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            background: "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 55%, #86efac 55%, #4ade80 100%)",
-                            ...frame.style,
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {/* Word-style framed thumbnail gallery container */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      background: "#ffffff",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "6px",
+                      padding: "4px 6px",
+                      boxShadow: "inset 0 1px 2px rgba(15, 23, 42, 0.04)",
+                    }}
+                  >
+                    {[
+                      {
+                        id: "none",
+                        label: "Simple Frame, White (Polos Standar)",
+                        frameStyle: {
+                          border: "2px solid #ffffff",
+                          boxShadow: "0 1px 3px rgba(15, 23, 42, 0.25)",
+                          borderRadius: "2px",
+                        },
+                      },
+                      {
+                        id: "solid",
+                        label: "Moderate Frame, Black (Bingkai Tegas)",
+                        frameStyle: {
+                          border: "2.5px solid #1e293b",
+                          borderRadius: "2px",
+                          boxShadow: "0 1px 2px rgba(15, 23, 42, 0.2)",
+                        },
+                      },
+                      {
+                        id: "double",
+                        label: "Compound Frame (Bingkai Ganda)",
+                        frameStyle: {
+                          border: "3px double #0f172a",
+                          borderRadius: "2px",
+                          padding: "1px",
+                          background: "#ffffff",
+                        },
+                      },
+                      {
+                        id: "rounded",
+                        label: "Rounded Diagonal Corner (Sudut Membulat)",
+                        frameStyle: {
+                          border: "2px solid #334155",
+                          borderRadius: "7px",
+                          boxShadow: "0 2px 4px rgba(15, 23, 42, 0.22)",
+                        },
+                      },
+                      {
+                        id: "oval",
+                        label: "Soft Edge Oval (Bingkai Oval)",
+                        frameStyle: {
+                          border: "2px solid #1d4ed8",
+                          borderRadius: "999px",
+                          boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)",
+                        },
+                      },
+                      {
+                        id: "dashed",
+                        label: "Reflected Dashed Frame (Garis Putus)",
+                        frameStyle: {
+                          border: "1.5px dashed #334155",
+                          borderRadius: "3px",
+                          boxShadow: "0 2px 4px rgba(15, 23, 42, 0.14)",
+                        },
+                      },
+                    ].map((frame) => {
+                      const isActive = (shipment.letterheadLogoBorder || "none") === frame.id;
+                      return (
+                        <button
+                          key={frame.id}
+                          type="button"
+                          onClick={() => {
+                            update("letterheadLogoBorder", frame.id as any);
+                            toast.success(`Picture Style: ${frame.label}`);
                           }}
-                        />
-                      </button>
-                    );
-                  })}
-                </div>
+                          title={frame.label}
+                          style={{
+                            width: "44px",
+                            height: "36px",
+                            padding: "3px",
+                            background: isActive ? "#dbeafe" : "#f8fafc",
+                            border: isActive ? "2px solid #2563eb" : "1px solid transparent",
+                            borderRadius: "5px",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          <div
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              overflow: "hidden",
+                              position: "relative",
+                              ...frame.frameStyle,
+                            }}
+                          >
+                            {/* Crisp MS Word Landscape Picture Icon SVG */}
+                            <svg
+                              viewBox="0 0 40 28"
+                              width="100%"
+                              height="100%"
+                              preserveAspectRatio="none"
+                              style={{ display: "block" }}
+                            >
+                              <defs>
+                                <linearGradient id={`sky-${frame.id}`} x1="0" y1="0" x2="0" y2="1">
+                                  <stop offset="0%" stopColor="#60a5fa" />
+                                  <stop offset="65%" stopColor="#bfdbfe" />
+                                  <stop offset="100%" stopColor="#dbeafe" />
+                                </linearGradient>
+                              </defs>
+                              {/* Sky backdrop */}
+                              <rect width="40" height="28" fill={`url(#sky-${frame.id})`} />
+                              {/* Soft white cloud */}
+                              <path
+                                d="M10 11 C10 8.8, 13.5 8.5, 14.5 10.2 C15.8 8.2, 19.5 8.5, 20.2 10.8 C22 10.8, 22.8 13.2, 20.8 14 L9.5 14 C7.8 14, 8.2 11.2, 10 11 Z"
+                                fill="#ffffff"
+                                opacity="0.92"
+                              />
+                              {/* Back mountain */}
+                              <path
+                                d="M0 28 L0 19 Q10 14 21 19 T40 16 L40 28 Z"
+                                fill="#4ade80"
+                              />
+                              {/* Foreground rolling hill */}
+                              <path
+                                d="M0 28 L0 21 Q14 17 26 21 T40 19 L40 28 Z"
+                                fill="#16a34a"
+                              />
+                            </svg>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
 
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoShadow ? "active" : ""}`}
-                    onClick={() => {
-                      const next = !shipment.letterheadLogoShadow;
-                      update("letterheadLogoShadow", next);
-                      toast.success(next ? "Picture Effects: Bayangan Diaktifkan" : "Picture Effects: Bayangan Dinonaktifkan");
-                    }}
-                    title="Picture Effects: Efek Bayangan (Drop Shadow)"
-                  >
-                    <span>Picture Effects: Bayangan {shipment.letterheadLogoShadow ? "✓" : ""}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="doc-ribbon-table-subbtn"
-                    onClick={() => {
-                      setLetterheadModalTab("spacing");
-                      setShowLetterheadModal(true);
-                    }}
-                    title="Atur Tata Letak Kop Surat & Jarak Garis"
-                  >
-                    <Layout size={11} />
-                    <span>Picture Layout Kop</span>
-                  </button>
+                  {/* Side Actions: Picture Effects & Picture Layout */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                    <button
+                      type="button"
+                      className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoShadow ? "active" : ""}`}
+                      style={{ height: "20px", padding: "0 8px", fontSize: "10.5px", justifyContent: "flex-start" }}
+                      onClick={() => {
+                        const next = !shipment.letterheadLogoShadow;
+                        update("letterheadLogoShadow", next);
+                        toast.success(next ? "Picture Effects: Bayangan Aktif" : "Picture Effects: Bayangan Nonaktif");
+                      }}
+                      title="Picture Effects: Efek Bayangan (Drop Shadow)"
+                    >
+                      <Square size={10} />
+                      <span>Picture Effects {shipment.letterheadLogoShadow ? "✓" : ""}</span>
+                    </button>
+                    <button
+                      type="button"
+                      className="doc-ribbon-table-subbtn"
+                      style={{ height: "20px", padding: "0 8px", fontSize: "10.5px", justifyContent: "flex-start" }}
+                      onClick={() => {
+                        setLetterheadModalTab("spacing");
+                        setShowLetterheadModal(true);
+                      }}
+                      title="Atur Tata Letak Kop Surat & Jarak Garis"
+                    >
+                      <Layout size={10} />
+                      <span>Picture Layout</span>
+                    </button>
+                  </div>
                 </div>
                 <span className="doc-ribbon-group-label">Picture Styles</span>
               </div>
