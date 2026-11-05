@@ -276,9 +276,23 @@ export function getSelectionFontSize(): number {
   if (!range) return 11;
 
   try {
-    const el = (range.startContainer.nodeType === Node.TEXT_NODE
-      ? range.startContainer.parentElement
-      : range.startContainer) as HTMLElement | null;
+    // Gunakan elemen induk dari teks pertama yang benar-benar terpilih.
+    // Setelah format diterapkan, range dimulai SEBELUM span baru (startContainer = <p> induk),
+    // sehingga membaca startContainer langsung akan mengembalikan ukuran lama (mis. 7.5 pt).
+    let el: HTMLElement | null = null;
+    if (!range.collapsed) {
+      const firstText = getTextNodesInRange(range)[0];
+      if (firstText) el = firstText.parentElement;
+    }
+    if (!el) {
+      const sc = range.startContainer;
+      if (sc.nodeType === Node.TEXT_NODE) {
+        el = sc.parentElement;
+      } else {
+        const child = sc.childNodes[range.startOffset];
+        el = (child && child.nodeType === Node.ELEMENT_NODE ? child : sc) as HTMLElement;
+      }
+    }
 
     if (el) {
       // Check inline style first
@@ -310,9 +324,16 @@ export function getSelectionFontFamily(): string {
   if (!range) return "Calibri";
 
   try {
-    const el = (range.startContainer.nodeType === Node.TEXT_NODE
-      ? range.startContainer.parentElement
-      : range.startContainer) as HTMLElement | null;
+    let el: HTMLElement | null = null;
+    if (!range.collapsed) {
+      const firstText = getTextNodesInRange(range)[0];
+      if (firstText) el = firstText.parentElement;
+    }
+    if (!el) {
+      el = (range.startContainer.nodeType === Node.TEXT_NODE
+        ? range.startContainer.parentElement
+        : range.startContainer) as HTMLElement | null;
+    }
 
     if (el) {
       if (el.style.fontFamily) {
