@@ -599,7 +599,7 @@ export function DocumentsModule({
         }
       `}</style>
 
-      {/* 1. Document Selector Cards (5 Documents) - Always Visible */}
+      {/* 1. Executive Document Selector Tabs (5 Documents - Compact & Clean) */}
       <div className="doc-tabs-grid five-cols no-print" role="tablist">
         {documents.map((doc) => {
           const isActive = selectedDocument === doc.type;
@@ -611,92 +611,49 @@ export function DocumentsModule({
               aria-selected={isActive}
               className={`doc-tab-card ${isActive ? "active" : ""}`}
               onClick={() => setSelectedDocument(doc.type)}
+              title={doc.desc}
             >
               {isActive && <div className="doc-tab-active-indicator" />}
-              <div className="doc-tab-top">
-                <div className="doc-tab-icon-box">{doc.icon}</div>
-                <div className="doc-tab-badges">
-                  <span className="doc-code-badge">{doc.code}</span>
-                  <span className="doc-ready-badge">● Siap Terbit</span>
-                </div>
-              </div>
+              <div className="doc-tab-icon-box">{doc.icon}</div>
               <div className="doc-tab-body">
                 <h3 className="doc-tab-name">{doc.type}</h3>
-                <p className="doc-tab-desc">{doc.desc}</p>
               </div>
+              <span className="doc-code-badge">{doc.code}</span>
             </button>
           );
         })}
       </div>
 
-      {/* 1.5 Document Action & Overview Bar (2-Row Layout) - Always Visible */}
+      {/* 1.5 Compact Single-Row Executive Action Bar */}
       <div className="doc-action-bar no-print">
-        {/* Row 1: Document Active Info & Specs Strip */}
-        <div className="doc-action-top-row">
+        <div className="doc-action-controls-row">
+          {/* Left: Active Document Identity & Status */}
           <div className="doc-active-name-wrap">
-            <span className="doc-active-eyebrow">DOKUMEN AKTIF</span>
             <h2 className="doc-active-title">{selectedDocument}</h2>
             <span className="doc-active-ref">{getDocumentNumber(selectedDocument, isId)}</span>
-          </div>
-
-          <div className="doc-active-meta-strip">
-            <span className="spec-badge-paper">
-              {getPaperSizeSpec(shipment.paperSize).label} · {shipment.documentOrientation}
-            </span>
-            <span className="spec-badge-template">{shipment.documentTemplate}</span>
             <span className={`spec-badge-status ${shipment.documentReviewed ? "status-verified" : "status-draft"}`}>
-              {shipment.documentReviewed ? "✓ Terverifikasi Ekspor" : "● Draft Transaksi"}
+              {shipment.documentReviewed ? "✓ Terverifikasi" : "Draft"}
             </span>
           </div>
-        </div>
 
-        {/* Row 2: Workflow & Action Controls */}
-        <div className="doc-action-controls-row">
-          {/* Left Cluster: Workflow Review & Verification */}
-          <div className="doc-workflow-cluster">
-            {/* 1. Review Dropdown: Pilih Review Bahasa Indonesia / English */}
+          {/* Right: Streamlined Executive Actions */}
+          <div className="doc-actions-cluster">
+            {/* Language Switcher (Compact) */}
             <div className="doc-review-dropdown-wrap" ref={reviewMenuRef}>
               <button
                 type="button"
                 className={`doc-btn-review-trigger ${isReviewMenuOpen ? "active" : ""} ${shipment.previewLanguage === "Bahasa Indonesia" ? "review-id-active" : ""}`}
                 onClick={() => setIsReviewMenuOpen((prev) => !prev)}
-                title="Pilih bahasa review dokumen: Bahasa Indonesia atau English"
+                title="Pilih bahasa dokumen: English atau Bahasa Indonesia"
               >
                 <Languages size={14} />
-                <span>
-                  {shipment.previewLanguage === "Bahasa Indonesia"
-                    ? "Review: Indonesia"
-                    : "Review: English"}
-                </span>
-                <ChevronDown
-                  size={12}
-                  style={{
-                    transform: isReviewMenuOpen ? "rotate(180deg)" : "none",
-                    transition: "transform 0.2s ease",
-                  }}
-                />
+                <span>{shipment.previewLanguage === "Bahasa Indonesia" ? "ID" : "EN"}</span>
+                <ChevronDown size={11} />
               </button>
 
               {isReviewMenuOpen && (
                 <div className="doc-review-menu-panel" role="menu">
-                  <div className="doc-review-menu-header">
-                    <span className="doc-review-menu-title">PILIH BAHASA REVIEW</span>
-                    <span className="doc-review-menu-subtitle">Telaah Naskah</span>
-                  </div>
                   <div className="doc-review-menu-items">
-                    <button
-                      type="button"
-                      className={`doc-review-menu-item ${shipment.previewLanguage === "Bahasa Indonesia" ? "selected" : ""}`}
-                      onClick={handleStartReviewId}
-                    >
-                      <div className="doc-lang-flag">🇮🇩</div>
-                      <div className="doc-lang-info">
-                        <span className="doc-lang-name">Review Bahasa Indonesia</span>
-                        <span className="doc-lang-desc">Telaah internal pasal, klausul & data perbankan</span>
-                      </div>
-                      {shipment.previewLanguage === "Bahasa Indonesia" && <Check size={14} className="doc-lang-check" />}
-                    </button>
-
                     <button
                       type="button"
                       className={`doc-review-menu-item ${shipment.previewLanguage === "English" ? "selected" : ""}`}
@@ -704,111 +661,81 @@ export function DocumentsModule({
                     >
                       <div className="doc-lang-flag">🇬🇧</div>
                       <div className="doc-lang-info">
-                        <span className="doc-lang-name">Review English</span>
-                        <span className="doc-lang-desc">Standar bahasa resmi naskah ekspor internasional</span>
+                        <span className="doc-lang-name">English (Standar Ekspor)</span>
                       </div>
                       {shipment.previewLanguage === "English" && <Check size={14} className="doc-lang-check" />}
+                    </button>
+                    <button
+                      type="button"
+                      className={`doc-review-menu-item ${shipment.previewLanguage === "Bahasa Indonesia" ? "selected" : ""}`}
+                      onClick={handleStartReviewId}
+                    >
+                      <div className="doc-lang-flag">🇮🇩</div>
+                      <div className="doc-lang-info">
+                        <span className="doc-lang-name">Bahasa Indonesia (Telaah)</span>
+                      </div>
+                      {shipment.previewLanguage === "Bahasa Indonesia" && <Check size={14} className="doc-lang-check" />}
                     </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* 2. Tombol Verifikasi: Lolos Review -> Otomatis kembali ke English! */}
+            {/* Verify Button */}
             {shipment.documentReviewed ? (
               <button
                 type="button"
                 className="doc-btn-verified-status"
                 onClick={handleReopenReview}
-                title="Dokumen telah lolos review & diverifikasi resmi. Klik jika ingin membuka kembali untuk revisi."
+                title="Dokumen telah diverifikasi. Klik untuk membuka revisi."
               >
                 <CheckCircle2 size={14} className="icon-check-green" />
-                <span>Terverifikasi (English)</span>
+                <span>Terverifikasi</span>
               </button>
             ) : (
               <button
                 type="button"
                 className="doc-btn-verify-action"
                 onClick={handleVerifyDocument}
-                title="Verifikasi dokumen (otomatis kembali ke bahasa Inggris standar ekspor)"
+                title="Verifikasi dokumen resmi ekspor"
               >
                 <ShieldCheck size={14} />
-                <span>Verifikasi Dokumen</span>
+                <span>Verifikasi</span>
               </button>
             )}
 
-            {/* 3. AI Advisor Screening & Deteksi Kesalahan */}
+            {/* AI Screening */}
             <button
               type="button"
               className="doc-btn-ai-screen"
               onClick={() => setIsAiScreeningOpen(true)}
-              title="Screening kepatuhan, kalkulasi finansial, dan deteksi typo/kesalahan penulisan dokumen sebelum & sesudah diedit"
+              title="AI Audit & Deteksi Kesalahan Dokumen"
             >
               <Sparkles size={14} className="icon-sparkle-amber" />
-              <span>AI Screening</span>
-            </button>
-          </div>
-
-          {/* Right Cluster: Settings & Export Operations */}
-          <div className="doc-actions-cluster">
-            {/* Scan Foto Kartu Nama Buyer (OCR) */}
-            <button
-              type="button"
-              className="doc-btn-ocr-card"
-              onClick={() => setIsBusinessCardOcrOpen(true)}
-              title="Scan foto kartu nama buyer untuk mengekstrak nama perusahaan, PIC, jabatan, dan alamat ke surat"
-            >
-              <CreditCard size={14} />
-              <span>Scan Kartu Nama</span>
+              <span>AI Audit</span>
             </button>
 
-            {/* Setelan Kop Drawer Toggle */}
+            {/* Setelan Drawer */}
             <button
               type="button"
               className={`doc-btn-toggle-settings ${isSettingsOpen ? "active" : ""}`}
               onClick={() => setIsSettingsOpen(!isSettingsOpen)}
-              title="Ubah data surat, permintaan buyer, kop, format kertas, dan penandatangan"
+              title="Buka panel pengaturan data & kop surat"
             >
               <SlidersHorizontal size={14} />
-              <span>Setelan Kop</span>
+              <span>Setelan</span>
               {isSettingsOpen ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
             </button>
 
-            {/* Word Ribbon Toolbar Toggle */}
-            <button
-              type="button"
-              className={`doc-btn-word-toggle ${isWordRibbonOpen ? "active" : ""}`}
-              onClick={() => setIsWordRibbonOpen((prev) => !prev)}
-              title="Tampilkan / sembunyikan toolbar editor format gaya Microsoft Word"
-            >
-              <Edit3 size={14} />
-              <span>Toolbar Word</span>
-            </button>
-
-            {/* Word Ruler Toggle (Tampilkan / Sembunyikan Penggaris) */}
-            <button
-              type="button"
-              className={`doc-btn-word-toggle ${shipment.docShowRuler !== false ? "active" : ""}`}
-              onClick={() => {
-                const next = shipment.docShowRuler === false;
-                update("docShowRuler", next);
-                toast.info(next ? "Penggaris Word ditampilkan" : "Penggaris Word disembunyikan");
-              }}
-              title="Tampilkan / sembunyikan Penggaris Margin (Ruler) seperti di Microsoft Word"
-            >
-              <Ruler size={14} />
-              <span>Penggaris</span>
-              {shipment.docShowRuler !== false && <Check size={11} className="ml-0.5 text-emerald-600" />}
-            </button>
-
+            {/* Print PDF */}
             <button
               type="button"
               className="doc-btn-print"
               onClick={handlePrint}
-              title="Cetak atau simpan dokumen dalam format PDF"
+              title="Cetak atau simpan PDF"
             >
-              <Printer size={15} />
-              <span>Cetak PDF</span>
+              <Printer size={14} />
+              <span>Cetak</span>
             </button>
 
             {/* Multi-Format Download Dropdown Menu */}
@@ -817,18 +744,12 @@ export function DocumentsModule({
                 type="button"
                 className={`doc-btn-download-trigger ${isDownloadMenuOpen ? "active" : ""}`}
                 onClick={() => setIsDownloadMenuOpen((prev) => !prev)}
-                title="Pilih format unduhan file (PDF, Word, Excel, HTML, Text)"
+                title="Unduh dokumen (PDF, Word, Excel, HTML, TXT)"
                 disabled={isExporting}
               >
-                <FileDown size={15} />
-                <span>Unduh File</span>
-                <ChevronDown
-                  size={13}
-                  style={{
-                    transform: isDownloadMenuOpen ? "rotate(180deg)" : "none",
-                    transition: "transform 0.2s ease",
-                  }}
-                />
+                <FileDown size={14} />
+                <span>Unduh</span>
+                <ChevronDown size={12} />
               </button>
 
               {isDownloadMenuOpen && (
@@ -1204,41 +1125,10 @@ function WordRuler({
   const totalCm = Math.max(5, Math.floor(paperWidthMm / 10));
 
   return (
-    <div className="doc-word-ruler-container no-print" title="Penggaris Margin Microsoft Word">
-      <div className="doc-ruler-meta-bar" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Ruler size={12} className="text-blue-600" />
-          <span style={{ fontWeight: 700, color: "#1e3a8a" }}>Penggaris Margin Microsoft Word</span>
-          <span style={{ color: "#94a3b8" }}>·</span>
-          <span style={{ color: "#334155" }}>
-            Margin Kiri: {(leftMarginMm / 10).toFixed(2)} cm · Area Teks: {(printableMm / 10).toFixed(2)} cm · Margin Kanan: {(rightMarginMm / 10).toFixed(2)} cm
-          </span>
-        </div>
-        {onClose && (
-          <button
-            type="button"
-            onClick={onClose}
-            className="doc-ruler-close-btn"
-            style={{
-              background: "#f1f5f9",
-              border: "1px solid #cbd5e1",
-              borderRadius: "4px",
-              padding: "1px 6px",
-              fontSize: "10.5px",
-              color: "#475569",
-              cursor: "pointer",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "3px",
-              fontWeight: 600,
-            }}
-            title="Sembunyikan Penggaris Margin (dapat ditampilkan kembali lewat tombol Penggaris di toolbar atas)"
-          >
-            <X size={11} />
-            <span>Sembunyikan</span>
-          </button>
-        )}
-      </div>
+    <div
+      className="doc-word-ruler-container no-print"
+      title={`Margin Kiri: ${(leftMarginMm / 10).toFixed(2)} cm · Area Cetak: ${(printableMm / 10).toFixed(2)} cm · Margin Kanan: ${(rightMarginMm / 10).toFixed(2)} cm`}
+    >
       <div className="doc-ruler-track">
         {/* Left Margin Gray Zone */}
         <div
@@ -1566,14 +1456,14 @@ function OfficialLetterhead({
       className="paper-letterhead-wrap group/kop relative"
       style={{ marginBottom: `${ Math.max(4, dividerGap + 4) }px` }}
     >
-      {/* Floating Quick Kop Surat Toolbar in Edit Mode */}
+      {/* Floating Quick Kop Surat Toolbar in Edit Mode (Appears on Hover or Selection) */}
       {isEditMode && (
         <div
-          className="letterhead-quick-toolbar no-print"
+          className={`letterhead-quick-toolbar no-print transition-opacity duration-150 ${isSelected ? "opacity-100" : "opacity-0 group-hover/kop:opacity-100"}`}
           contentEditable={false}
           style={{
             position: "absolute",
-            top: "-26px",
+            top: "-24px",
             right: "0",
             display: "flex",
             alignItems: "center",
@@ -1585,34 +1475,31 @@ function OfficialLetterhead({
             style={{
               display: "inline-flex",
               alignItems: "center",
-              gap: "3px",
-              background: "#f8fafc",
+              gap: "2px",
+              background: "#ffffff",
               border: "1px solid #cbd5e1",
-              borderRadius: "5px",
-              padding: "2px 6px",
+              borderRadius: "4px",
+              padding: "1px 5px",
               fontSize: "10px",
               color: "#334155",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
             }}
-            title="Atur jarak renggang antara teks kop surat dan garis pembatas"
+            title="Atur jarak ke garis bawah kop surat"
           >
-            <span style={{ fontWeight: 600 }}>Jarak Garis:</span>
             <button
               type="button"
               onClick={() => update && update("letterheadDividerGap", Math.max(0, dividerGap - 2))}
-              style={{ padding: "0 4px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
-              title="Rapatkan jarak ke garis (-2px)"
+              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
             >
               −
             </button>
-            <span style={{ fontWeight: 700, color: "#0284c7", minWidth: "22px", textAlign: "center" }}>
+            <span style={{ fontWeight: 600, color: "#475569", padding: "0 2px" }}>
               {dividerGap}px
             </span>
             <button
               type="button"
               onClick={() => update && update("letterheadDividerGap", Math.min(28, dividerGap + 2))}
-              style={{ padding: "0 4px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
-              title="Renggangkan jarak ke garis (+2px)"
+              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
             >
               +
             </button>
@@ -1625,20 +1512,20 @@ function OfficialLetterhead({
               display: "inline-flex",
               alignItems: "center",
               gap: "4px",
-              background: "#eff6ff",
-              border: "1px solid #93c5fd",
-              color: "#1d4ed8",
-              borderRadius: "5px",
+              background: "#1e3a8a",
+              border: "1px solid #1e3a8a",
+              color: "#ffffff",
+              borderRadius: "4px",
               padding: "2px 8px",
               fontSize: "10px",
-              fontWeight: 700,
+              fontWeight: 600,
               cursor: "pointer",
-              boxShadow: "0 1px 3px rgba(37, 99, 235, 0.1)",
+              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.12)",
             }}
-            title="Impor kop surat perusahaan lain atau atur format spasi & garis kop surat"
+            title="Impor kop surat perusahaan lain atau atur format kop"
           >
-            <SlidersHorizontal size={11} />
-            <span>📥 Impor & Atur Kop Surat</span>
+            <SlidersHorizontal size={10} />
+            <span>Atur Kop</span>
           </button>
         </div>
       )}

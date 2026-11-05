@@ -4581,11 +4581,11 @@ textarea:focus-visible {
   border-color: #94a3b8;
 }
 
-/* 7.2 Horizontal Document Tabs */
+/* 7.2 Executive Segmented Document Tabs */
 .doc-tabs-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
+  gap: 8px;
 }
 
 .doc-tabs-grid.five-cols {
@@ -4595,36 +4595,36 @@ textarea:focus-visible {
 .doc-tab-card {
   position: relative;
   background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  padding: 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 9px 12px;
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
   text-align: left;
   cursor: pointer;
-  transition: all 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease;
   overflow: hidden;
 }
 
 .doc-tab-card:hover {
   border-color: #93c5fd;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.05);
+  background: #f8fafc;
 }
 
 .doc-tab-card.active {
-  background: #f8faff;
-  border-color: #3b82f6;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.1);
+  background: #eff6ff;
+  border-color: #2563eb;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
 }
 
 .doc-tab-active-indicator {
   position: absolute;
-  top: 0;
+  bottom: 0;
   left: 0;
   right: 0;
-  height: 3px;
+  height: 2.5px;
   background: #2563eb;
 }
 
@@ -4636,13 +4636,14 @@ textarea:focus-visible {
 }
 
 .doc-tab-icon-box {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   background: #f1f5f9;
   color: #475569;
   display: grid;
   place-items: center;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 }
 
@@ -4663,13 +4664,15 @@ textarea:focus-visible {
 }
 
 .doc-code-badge {
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 700;
-  padding: 2px 6px;
+  padding: 1.5px 5px;
   border-radius: 4px;
   background: #f1f5f9;
   color: #64748b;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .doc-tab-card.active .doc-code-badge {
@@ -4678,51 +4681,45 @@ textarea:focus-visible {
 }
 
 .doc-ready-badge {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 1.5px 6px;
-  border-radius: 4px;
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
-  white-space: nowrap;
+  display: none;
 }
 
 .doc-tab-body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  min-width: 0;
+  flex: 1;
 }
 
 .doc-tab-name {
-  font-size: 14.5px;
+  font-size: 12.5px;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
-  line-height: 1.3;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .doc-tab-card.active .doc-tab-name {
-  color: #1d4ed8;
+  color: #1e3a8a;
 }
 
 .doc-tab-desc {
-  font-size: 11.5px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
+  display: none;
 }
 
-/* 7.3 Action & Status Control Bar */
+/* 7.3 Compact Single-Row Action & Status Control Bar */
 .doc-action-bar {
   background: #ffffff;
   border: 1px solid #cbd5e1;
-  border-radius: 12px;
-  padding: 12px 18px;
+  border-radius: 9px;
+  padding: 8px 14px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.05);
+  gap: 8px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 .doc-action-top-row {

@@ -1262,8 +1262,7 @@ export function DocWordRibbon({
       <div className="doc-ribbon-top-bar">
         <div className="doc-ribbon-brand">
           <div className="doc-word-icon-badge">W</div>
-          <span className="doc-ribbon-title">EksporFlow Word Editor</span>
-          <span className="doc-ribbon-subtitle">Format & Tata Letak Resmi</span>
+          <span className="doc-ribbon-title">Word Editor</span>
         </div>
 
         <div className="doc-ribbon-top-actions">
@@ -1276,19 +1275,15 @@ export function DocWordRibbon({
               setIsEditMode(next);
               update("docEditorMode", next);
               if (next) {
-                toast.success("Mode Edit Word Aktif", {
-                  description: "Anda kini dapat mengeklik dan mengetik langsung isi surat/kontrak di kertas dokumen.",
-                });
+                toast.success("Mode Edit Aktif");
               } else {
-                toast.info("Mode Pratinjau Terkunci", {
-                  description: "Teks terkunci untuk pratinjau cetak dan ekspor resmi.",
-                });
+                toast.info("Mode Pratinjau Terkunci");
               }
             }}
             title="Aktifkan atau kunci mode pengetikan langsung di kertas"
           >
-            <Edit3 size={13} />
-            <span>{isEditMode ? "Mode Edit Aktif" : "Mode Pratinjau"}</span>
+            <Edit3 size={12} />
+            <span>{isEditMode ? "Mode Edit" : "Pratinjau"}</span>
             <div className={`doc-mode-dot ${isEditMode ? "on" : "off"}`} />
           </button>
 
@@ -1297,14 +1292,14 @@ export function DocWordRibbon({
             type="button"
             className="doc-ribbon-collapse-btn"
             onClick={() => setIsRibbonCollapsed((prev) => !prev)}
-            title={isRibbonCollapsed ? "Tampilkan Ribbon Penuh" : "Ciutkan Ribbon"}
+            title={isRibbonCollapsed ? "Tampilkan Ribbon" : "Ciutkan Ribbon"}
           >
-            {isRibbonCollapsed ? "▼ Buka" : "▲ Ciutkan"}
+            {isRibbonCollapsed ? "▼" : "▲"}
           </button>
         </div>
       </div>
 
-      {/* 2. Word Ribbon Tab Navigation (Beranda · Tata Letak · Sisipkan · Alat Tabel) */}
+      {/* 2. Word Ribbon Tab Navigation */}
       {!isRibbonCollapsed && (
         <div className="doc-ribbon-tab-nav">
           <button
@@ -1312,39 +1307,39 @@ export function DocWordRibbon({
             className={`doc-ribbon-tab-btn ${activeRibbonTab === "home" ? "active" : ""}`}
             onClick={() => setActiveRibbonTab("home")}
           >
-            Beranda (Home)
-          </button>
-          <button
-            type="button"
-            className={`doc-ribbon-tab-btn ${activeRibbonTab === "layout" ? "active" : ""}`}
-            onClick={() => setActiveRibbonTab("layout")}
-          >
-            Tata Letak (Layout & Margin)
+            Beranda
           </button>
           <button
             type="button"
             className={`doc-ribbon-tab-btn ${activeRibbonTab === "insert" ? "active" : ""}`}
             onClick={() => setActiveRibbonTab("insert")}
           >
-            Sisipkan (Insert & Header)
+            Sisipkan
+          </button>
+          <button
+            type="button"
+            className={`doc-ribbon-tab-btn ${activeRibbonTab === "layout" ? "active" : ""}`}
+            onClick={() => setActiveRibbonTab("layout")}
+          >
+            Tata Letak
           </button>
           <button
             type="button"
             className={`doc-ribbon-tab-btn doc-ribbon-tab-table ${activeRibbonTab === "table" ? "active" : ""} ${isTableSelected ? "highlighted" : ""}`}
             onClick={() => setActiveRibbonTab("table")}
-            title="Alat Tabel Word: Desain, Baris, Kolom, Lebar, Garis & Perataan"
+            title="Alat Tabel: Baris, Kolom, Lebar, Garis & Warna"
           >
             <TableProperties size={13} className="mr-1 inline" />
-            <span>Alat Tabel {isTableSelected && "●"}</span>
+            <span>Tabel {isTableSelected && "●"}</span>
           </button>
           <button
             type="button"
             className={`doc-ribbon-tab-btn doc-ribbon-tab-picture ${activeRibbonTab === "picture" ? "active" : ""} ${isImageSelected ? "highlighted" : ""}`}
             onClick={() => setActiveRibbonTab("picture")}
-            title="Alat Format Gambar: Posisi, Bungkus Teks (Di Belakang/Depan/Kotak), Opasitas, Rotasi & Bingkai"
+            title="Format Gambar: Posisi, Bungkus Teks, Opasitas, Rotasi & Bingkai"
           >
             <ImageIcon size={13} className="mr-1 inline" />
-            <span>Format Gambar 🖼️ {isImageSelected && "●"}</span>
+            <span>Format Gambar {isImageSelected && "●"}</span>
           </button>
         </div>
       )}
@@ -1394,48 +1389,48 @@ export function DocWordRibbon({
                     onFocus={() => saveActiveSelection()}
                     onMouseDown={() => saveActiveSelection()}
                     onChange={(e) => handleFontFamilyChange(e.target.value)}
-                    title="Pilih Jenis Huruf (Font Family)"
+                    title="Jenis Huruf (Font Family)"
                   >
                     <option value="Calibri">Calibri</option>
                     <option value="Arial">Arial</option>
                     <option value="Times New Roman">Times New Roman</option>
-                    <option value="Inter">Inter (Modern Clean)</option>
-                    <option value="Georgia">Georgia (Serif Formal)</option>
-                    <option value="Garamond">Garamond (Klasik Legal)</option>
+                    <option value="Inter">Inter</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Garamond">Garamond</option>
                     <option value="Trebuchet MS">Trebuchet MS</option>
-                    <option value="Courier New">Courier New (Monospace Pabean)</option>
+                    <option value="Courier New">Courier New</option>
                   </select>
 
-                  {/* Font Size Dropdown (Word Standar Point pt) */}
+                  {/* Font Size Dropdown */}
                   <select
                     className="doc-ribbon-select font-size-select"
                     value={activeFontSize}
                     onFocus={() => saveActiveSelection()}
                     onMouseDown={() => saveActiveSelection()}
                     onChange={(e) => handleFontSizeChange(Number(e.target.value))}
-                    title="Ukuran Huruf Dokumen (Font Size dalam pt)"
+                    title="Ukuran Huruf (pt)"
                   >
-                    <option value="7">7 pt (Sangat Kecil)</option>
-                    <option value="8">8 pt</option>
-                    <option value="8.5">8.5 pt</option>
-                    <option value="9">9 pt (Word Ringkas / Kecil)</option>
-                    <option value="9.5">9.5 pt</option>
-                    <option value="10">10 pt</option>
-                    <option value="10.5">10.5 pt (Standar Calibri/Arial)</option>
-                    <option value="11">11 pt (Standar Word Modern)</option>
-                    <option value="11.5">11.5 pt</option>
-                    <option value="12">12 pt (Standar Ekspor Formal)</option>
-                    <option value="12.5">12.5 pt</option>
-                    <option value="13">13 pt</option>
-                    <option value="14">14 pt (Subheading)</option>
-                    <option value="16">16 pt (Heading)</option>
-                    <option value="18">18 pt (Judul Besar)</option>
-                    <option value="20">20 pt</option>
-                    <option value="24">24 pt (Judul Utama)</option>
-                    <option value="28">28 pt</option>
-                    <option value="36">36 pt</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="8.5">8.5</option>
+                    <option value="9">9</option>
+                    <option value="9.5">9.5</option>
+                    <option value="10">10</option>
+                    <option value="10.5">10.5</option>
+                    <option value="11">11</option>
+                    <option value="11.5">11.5</option>
+                    <option value="12">12</option>
+                    <option value="12.5">12.5</option>
+                    <option value="13">13</option>
+                    <option value="14">14</option>
+                    <option value="16">16</option>
+                    <option value="18">18</option>
+                    <option value="20">20</option>
+                    <option value="24">24</option>
+                    <option value="28">28</option>
+                    <option value="36">36</option>
                     {!["7", "8", "8.5", "9", "9.5", "10", "10.5", "11", "11.5", "12", "12.5", "13", "14", "16", "18", "20", "24", "28", "36"].includes(String(activeFontSize)) && (
-                      <option value={activeFontSize}>{activeFontSize} pt</option>
+                      <option value={activeFontSize}>{activeFontSize}</option>
                     )}
                   </select>
 
@@ -1622,9 +1617,7 @@ export function DocWordRibbon({
                   </div>
                 </div>
 
-                <span className="doc-ribbon-group-label">
-                  Font ({activeFontSize} pt{hasBlockedText ? " · Teks Terpilih" : ""})
-                </span>
+                <span className="doc-ribbon-group-label">Font</span>
               </div>
 
               <div className="doc-ribbon-divider" />
@@ -1697,30 +1690,19 @@ export function DocWordRibbon({
                       }
                     }}
                     title="Spasi Antar Baris (Line Spacing)"
+                    style={{ minWidth: "68px" }}
                   >
-                    <option value="1">1.00 Spasi Tunggal (Single)</option>
-                    <option value="1.15">1.15 Spasi Rapat</option>
-                    <option value="1.25">1.25 Spasi Formal</option>
-                    <option value="1.35">1.35 Spasi Standar Ekspor</option>
-                    <option value="1.5">1.50 Spasi 1.5 Baris</option>
-                    <option value="1.75">1.75 Spasi Longgar</option>
-                    <option value="2">2.00 Spasi Ganda (Double)</option>
-                    <option value="2.5">2.50 Spasi Ekstra Lebar</option>
-                    <option value="3">3.00 Spasi Maksimum</option>
-                    <option value="custom">⚙️ Kustom Spasi Baris...</option>
+                    <option value="1">↕ 1.0</option>
+                    <option value="1.15">↕ 1.15</option>
+                    <option value="1.25">↕ 1.25</option>
+                    <option value="1.35">↕ 1.35</option>
+                    <option value="1.5">↕ 1.5</option>
+                    <option value="1.75">↕ 1.75</option>
+                    <option value="2">↕ 2.0</option>
+                    <option value="2.5">↕ 2.5</option>
+                    <option value="3">↕ 3.0</option>
+                    <option value="custom">Kustom...</option>
                   </select>
-                  <button
-                    type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => {
-                      setCustomLineHeightInput(activeLineHeight);
-                      setShowCustomLineHeightModal(true);
-                    }}
-                    title="Buka dialog pengaturan kustom spasi baris"
-                    style={{ padding: "3px 6px" }}
-                  >
-                    <Sliders size={12} className="text-slate-600" />
-                  </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom">
@@ -1786,78 +1768,107 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
-              {/* Quick Table Group on Home Tab (Word standard) */}
+              {/* Quick Kop Surat & Tabel Shortcuts on Home Tab */}
+              <div className="doc-ribbon-group group-kop-shortcut">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ fontWeight: 700, color: "#1e3a8a" }}
+                    onClick={() => {
+                      setLetterheadModalTab("import");
+                      setShowLetterheadModal(true);
+                    }}
+                    title="Impor Kop Surat Perusahaan Lain atau Pilih Profil Kop"
+                  >
+                    <Upload size={11} />
+                    <span>Impor Kop</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      setLetterheadModalTab("spacing");
+                      setShowLetterheadModal(true);
+                    }}
+                    title="Atur Spasi & Garis Kop Surat"
+                  >
+                    <Sliders size={11} />
+                    <span>Spasi Kop</span>
+                  </button>
+                </div>
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setActiveRibbonTab("picture")}
+                    title="Buka Alat Format Gambar / Logo"
+                  >
+                    <ImageIcon size={11} />
+                    <span>Format Gambar</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => onOpenSignatureModal("seller")}
+                    title="Tanda Tangan & Stempel"
+                  >
+                    <FileSignature size={11} />
+                    <span>Tanda Tangan</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Kop & Stempel</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* Quick Table & View Group on Home Tab */}
               <div className="doc-ribbon-group group-table" ref={tableMenuRef}>
                 <div className="doc-ribbon-row-top">
                   <button
                     type="button"
                     className={`doc-ribbon-table-trigger ${showTableMenu ? "active" : ""}`}
                     onClick={() => setShowTableMenu((prev) => !prev)}
-                    title="Sisipkan Tabel Baru (Seperti di Microsoft Word)"
+                    title="Sisipkan Tabel Baru"
                   >
                     <Table size={13} />
                     <span>Tabel</span>
                     <ChevronDown size={11} />
                   </button>
-
                   <button
                     type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => insertTableRow("below")}
-                    title="Tambah 1 Baris ke Bawah pada Tabel yang Dipilih"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => setActiveRibbonTab("table")}
+                    title="Buka Pengaturan Tabel"
                   >
-                    <Rows size={13} />
-                    <span style={{ fontSize: "9px", fontWeight: 800, marginLeft: "1px" }}>+</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => insertTableCol("right")}
-                    title="Tambah 1 Kolom ke Kanan pada Tabel yang Dipilih"
-                  >
-                    <Columns size={13} />
-                    <span style={{ fontSize: "9px", fontWeight: 800, marginLeft: "1px" }}>+</span>
+                    <span>Alat Tabel</span>
                   </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom">
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
-                    onClick={deleteTableRow}
-                    title="Hapus Baris Tabel Aktif"
+                    className={`doc-ribbon-table-subbtn ${shipment.docShowRuler !== false ? "active" : ""}`}
+                    onClick={toggleRuler}
+                    title="Tampilkan / Sembunyikan Penggaris"
                   >
-                    - Baris
+                    <Ruler size={11} />
+                    <span>Penggaris</span>
                   </button>
-                  <button
-                    type="button"
-                    className="doc-ribbon-table-subbtn"
-                    onClick={deleteTableCol}
-                    title="Hapus Kolom Tabel Aktif"
-                  >
-                    - Kolom
-                  </button>
-                  <button
-                    type="button"
-                    className="doc-ribbon-table-subbtn danger"
-                    onClick={deleteTable}
-                    title="Hapus Seluruh Tabel Aktif"
-                  >
-                    <Trash2 size={11} />
-                  </button>
-                  <button
-                    type="button"
-                    className="doc-ribbon-table-subbtn"
-                    style={{ color: "#0284c7", fontWeight: 700 }}
-                    onClick={() => setActiveRibbonTab("table")}
-                    title="Buka Pengaturan Tabel Lengkap (Lebar, Garis, Perataan & Shading)"
-                  >
-                    Alat Tabel »
-                  </button>
+                  {onOpenBusinessCardOcr && (
+                    <button
+                      type="button"
+                      className="doc-ribbon-table-subbtn"
+                      onClick={onOpenBusinessCardOcr}
+                      title="Scan Kartu Nama Buyer (OCR)"
+                    >
+                      <CreditCard size={11} />
+                      <span>Scan Kartu</span>
+                    </button>
+                  )}
                 </div>
 
-                <span className="doc-ribbon-group-label">Tabel Word</span>
+                <span className="doc-ribbon-group-label">Tabel & Alat</span>
 
                 {/* Table Insert Popover Modal/Dropdown */}
                 {showTableMenu && (
@@ -1865,7 +1876,7 @@ export function DocWordRibbon({
                     <div className="doc-table-popover-header">
                       <span className="popover-title">SISIPKAN TABEL</span>
                       <span className="popover-sub">
-                        {hoverGrid.r > 0 && hoverGrid.c > 0 ? `Tabel ${hoverGrid.r} × ${hoverGrid.c}` : "Pilih Ukuran Grid"}
+                        {hoverGrid.r > 0 && hoverGrid.c > 0 ? `${hoverGrid.r} × ${hoverGrid.c}` : "Pilih Grid"}
                       </span>
                     </div>
 
@@ -1888,7 +1899,6 @@ export function DocWordRibbon({
                     </div>
 
                     <div className="doc-table-custom-form">
-                      <span className="custom-form-title">Ukuran Kustom:</span>
                       <div className="custom-form-inputs">
                         <label>
                           <span>Baris:</span>
@@ -1917,35 +1927,11 @@ export function DocWordRibbon({
                         onClick={() => insertTable(customRows, customCols)}
                       >
                         <Plus size={13} />
-                        <span>Sisipkan Tabel</span>
+                        <span>Sisipkan</span>
                       </button>
                     </div>
                   </div>
                 )}
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* VIEW / PENGGARIS GROUP (Tab 1 shortcut) */}
-              <div className="doc-ribbon-group group-ruler-shortcut">
-                <div className="doc-ribbon-row-top">
-                  <button
-                    type="button"
-                    className={`doc-ribbon-toggle-chip ${shipment.docShowRuler !== false ? "active" : ""}`}
-                    onClick={toggleRuler}
-                    title="Tampilkan / sembunyikan Penggaris Horizontal Microsoft Word di atas kertas"
-                  >
-                    <Ruler size={13} />
-                    <span>Penggaris</span>
-                    {shipment.docShowRuler !== false && <Check size={12} />}
-                  </button>
-                </div>
-                <div className="doc-ribbon-row-bottom">
-                  <span className="doc-ruler-stat-txt">
-                    {shipment.docShowRuler !== false ? "Aktif" : "Sembunyi"}
-                  </span>
-                </div>
-                <span className="doc-ribbon-group-label">Penggaris</span>
               </div>
             </>
           )}
@@ -1953,10 +1939,10 @@ export function DocWordRibbon({
           {/* ================= TAB 2: TATA LETAK (LAYOUT & MARGIN) ================= */}
           {activeRibbonTab === "layout" && (
             <>
-              {/* PAGE MARGINS GROUP (Word Margins) */}
+              {/* PAGE MARGINS GROUP */}
               <div className="doc-ribbon-group group-margins">
                 <div className="doc-ribbon-row-top">
-                  <div className="doc-ribbon-field-with-icon" title="Pilih Preset Margin Sesuai Microsoft Word">
+                  <div className="doc-ribbon-field-with-icon" title="Preset Margin">
                     <Maximize2 size={13} className="doc-field-prefix-icon" />
                     <select
                       className="doc-ribbon-select doc-margin-preset-select"
@@ -1975,19 +1961,20 @@ export function DocWordRibbon({
                           handleMarginPresetChange(val);
                         }
                       }}
-                      title="Pilih Preset Margin Halaman Microsoft Word"
                     >
-                      <option value="Normal">Normal (2.54 cm / 1 in)</option>
-                      <option value="Sempit">Sempit (1.27 cm / 0.5 in)</option>
-                      <option value="Sedang">Sedang (1.91 cm / 0.75 in)</option>
-                      <option value="Lebar">Lebar (5.08 cm / 2.0 in)</option>
-                      <option value="Kustom">⚙️ Margin Kustom...</option>
+                      <option value="Normal">Normal (2.54 cm)</option>
+                      <option value="Sempit">Sempit (1.27 cm)</option>
+                      <option value="Sedang">Sedang (1.91 cm)</option>
+                      <option value="Lebar">Lebar (5.08 cm)</option>
+                      <option value="Kustom">Margin Kustom...</option>
                     </select>
                   </div>
+                </div>
 
+                <div className="doc-ribbon-row-bottom">
                   <button
                     type="button"
-                    className="doc-ribbon-margin-toggle-btn"
+                    className="doc-ribbon-table-subbtn"
                     onClick={() => {
                       setCustomMarginInputs({
                         top: docMargins.top,
@@ -1997,23 +1984,13 @@ export function DocWordRibbon({
                       });
                       setShowMarginModal(true);
                     }}
-                    title="Buka pop-up dialog pengaturan margin kustom (Atas, Bawah, Kiri, Kanan)"
                   >
-                    <SlidersHorizontal size={12} />
-                    <span>Margin Kustom...</span>
+                    <SlidersHorizontal size={11} />
+                    <span>Atur Margin Kustom...</span>
                   </button>
                 </div>
 
-                <div className="doc-ribbon-row-bottom">
-                  <div className="doc-margin-spec-badge">
-                    <span>Atas: {(docMargins.top / 10).toFixed(2)}cm</span>
-                    <span>Bawah: {(docMargins.bottom / 10).toFixed(2)}cm</span>
-                    <span>Kiri: {(docMargins.left / 10).toFixed(2)}cm</span>
-                    <span>Kanan: {(docMargins.right / 10).toFixed(2)}cm</span>
-                  </div>
-                </div>
-
-                <span className="doc-ribbon-group-label">Margin Halaman</span>
+                <span className="doc-ribbon-group-label">Margin</span>
               </div>
 
               <div className="doc-ribbon-divider" />
@@ -2021,25 +1998,20 @@ export function DocWordRibbon({
               {/* PAGE SETUP / UKURAN KERTAS & ORIENTASI GROUP */}
               <div className="doc-ribbon-group group-pagesetup">
                 <div className="doc-ribbon-row-top">
-                  <div className="doc-ribbon-field-with-icon" title="Pilih Ukuran Kertas Sesuai Standar Microsoft Word">
+                  <div className="doc-ribbon-field-with-icon" title="Ukuran Kertas">
                     <FileText size={13} className="doc-field-prefix-icon" />
                     <select
                       className="doc-ribbon-select paper-size-select"
                       value={activePaperSize}
                       onChange={(e) => handlePaperSizeChange(e.target.value as PaperSize)}
-                      title="Pilih Ukuran Kertas Sesuai Standar Word"
                     >
                       <option value="A4">A4 (210 × 297 mm)</option>
                       <option value="Letter">Letter (8.5 × 11 in)</option>
                       <option value="Legal">Legal (8.5 × 14 in)</option>
-                      <option value="Folio">Folio / F4 (8.5 × 13 in)</option>
-                      <option value="Executive">Executive (7.25 × 10.5 in)</option>
-                      <option value="A3">A3 (297 × 420 mm)</option>
-                      <option value="A5">A5 (148 × 210 mm)</option>
-                      <option value="B4">B4 JIS (257 × 364 mm)</option>
-                      <option value="B5">B5 JIS (182 × 257 mm)</option>
-                      <option value="Tabloid">Tabloid (11 × 17 in)</option>
-                      <option value="Statement">Statement (5.5 × 8.5 in)</option>
+                      <option value="Folio">Folio / F4</option>
+                      <option value="Executive">Executive</option>
+                      <option value="A3">A3</option>
+                      <option value="A5">A5</option>
                     </select>
                   </div>
                 </div>
@@ -2051,61 +2023,44 @@ export function DocWordRibbon({
                       className="doc-ribbon-select doc-orientation-select"
                       value={activeOrientation}
                       onChange={(e) => handleOrientationChange(e.target.value as DocumentOrientation)}
-                      title="Orientasi Kertas"
                     >
-                      <option value="Portrait">Potret (Tegak)</option>
-                      <option value="Landscape">Lanskap (Mendatar)</option>
+                      <option value="Portrait">Portrait (Tegak)</option>
+                      <option value="Landscape">Landscape (Mendatar)</option>
                     </select>
                   </div>
                 </div>
 
-                <span className="doc-ribbon-group-label">Kertas & Orientasi</span>
+                <span className="doc-ribbon-group-label">Kertas</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
-              {/* RULER & VIEW GROUP */}
+              {/* RULER & RESET GROUP */}
               <div className="doc-ribbon-group group-view">
                 <div className="doc-ribbon-row-top">
                   <button
                     type="button"
-                    className={`doc-ribbon-toggle-chip ${shipment.docShowRuler !== false ? "active" : ""}`}
+                    className={`doc-ribbon-table-subbtn ${shipment.docShowRuler !== false ? "active" : ""}`}
                     onClick={toggleRuler}
-                    title="Tampilkan / sembunyikan Penggaris Horizontal Microsoft Word di atas kertas"
                   >
-                    <Ruler size={13} />
-                    <span>Penggaris Word</span>
-                    {shipment.docShowRuler !== false && <Check size={12} />}
+                    <Ruler size={12} />
+                    <span>Penggaris {shipment.docShowRuler !== false ? "✓" : ""}</span>
                   </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom">
-                  <span className="doc-ruler-stat-txt">
-                    {shipment.docShowRuler !== false ? "Penggaris Aktif" : "Penggaris Disembunyikan"}
-                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={onResetDocument}
+                    title="Kembalikan teks ke template standar"
+                  >
+                    <RotateCcw size={11} />
+                    <span>Reset Dokumen</span>
+                  </button>
                 </div>
 
                 <span className="doc-ribbon-group-label">Tampilan</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* Reset to ICC Standard */}
-              <div className="doc-ribbon-group group-status">
-                <button
-                  type="button"
-                  className="doc-ribbon-reset-btn"
-                  onClick={onResetDocument}
-                  title="Kembalikan semua teks editan ke template bawaan sistem"
-                >
-                  <RotateCcw size={12} />
-                  <span>Reset Teks Asli</span>
-                </button>
-                <div className="doc-ribbon-status-tag">
-                  <Sparkles size={11} />
-                  <span>Format Standar ICC 2026</span>
-                </div>
-                <span className="doc-ribbon-group-label">Status</span>
               </div>
             </>
           )}
@@ -2390,78 +2345,47 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
-              {/* DIGITAL SIGNATURE GROUP */}
+              {/* DIGITAL SIGNATURE & TOOLS GROUP */}
               <div className="doc-ribbon-group group-signature">
-                <div className="doc-ribbon-row-top">
+                <div className="doc-ribbon-row-top" style={{ gap: "4px" }}>
                   <button
                     type="button"
-                    className="doc-ribbon-sig-btn"
+                    className="doc-ribbon-table-subbtn"
                     onClick={() => onOpenSignatureModal("seller")}
-                    title="Buka panel Tanda Tangan Digital & Stempel Resmi"
+                    title="Tanda Tangan Digital & Stempel Resmi"
                   >
-                    <FileSignature size={14} />
-                    <span>Tanda Tangan & Stempel</span>
+                    <FileSignature size={12} />
+                    <span>Tanda Tangan</span>
                   </button>
-                </div>
-
-                <div className="doc-ribbon-row-bottom">
-                  <span className="doc-sig-stat-txt">
-                    {shipment.sellerSignatureImage ? "✓ Tertandatangani" : "Belum Ditandatangani"}
-                  </span>
-                </div>
-
-                <span className="doc-ribbon-group-label">Otorisasi Resmi</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* BUYER BUSINESS CARD OCR GROUP */}
-              {onOpenBusinessCardOcr && (
-                <div className="doc-ribbon-group group-ocr">
-                  <div className="doc-ribbon-row-top">
+                  {onOpenBusinessCardOcr && (
                     <button
                       type="button"
-                      className="doc-ribbon-sig-btn"
+                      className="doc-ribbon-table-subbtn"
                       onClick={onOpenBusinessCardOcr}
-                      title="Scan foto kartu nama buyer untuk mengekstrak nama perusahaan, PIC, jabatan, dan alamat ke surat"
+                      title="Scan Kartu Nama Buyer (OCR)"
                     >
-                      <CreditCard size={14} />
-                      <span>Scan Kartu Nama</span>
+                      <CreditCard size={12} />
+                      <span>Scan Kartu</span>
                     </button>
-                  </div>
-                  <div className="doc-ribbon-row-bottom">
-                    <span className="doc-sig-stat-txt">
-                      OCR Gambar ke Teks
-                    </span>
-                  </div>
-                  <span className="doc-ribbon-group-label">Data Buyer (OCR)</span>
+                  )}
                 </div>
-              )}
 
-              <div className="doc-ribbon-divider" />
-
-              {/* AI ADVISOR SCREENING GROUP */}
-              {onOpenAiScreening && (
-                <div className="doc-ribbon-group group-ai-screen">
-                  <div className="doc-ribbon-row-top">
+                <div className="doc-ribbon-row-bottom" style={{ gap: "4px" }}>
+                  {onOpenAiScreening && (
                     <button
                       type="button"
-                      className="doc-ribbon-sig-btn"
+                      className="doc-ribbon-table-subbtn"
                       onClick={onOpenAiScreening}
-                      title="Screening kepatuhan, kalkulasi finansial, dan deteksi typo/kesalahan penulisan dokumen sebelum & sesudah diedit"
+                      title="AI Audit & Deteksi Kesalahan Dokumen"
                     >
-                      <Sparkles size={14} />
-                      <span>AI Screening</span>
+                      <Sparkles size={12} />
+                      <span>AI Audit</span>
                     </button>
-                  </div>
-                  <div className="doc-ribbon-row-bottom">
-                    <span className="doc-sig-stat-txt">
-                      Deteksi Typo & Audit
-                    </span>
-                  </div>
-                  <span className="doc-ribbon-group-label">AI Advisor</span>
+                  )}
                 </div>
-              )}
+
+                <span className="doc-ribbon-group-label">Otorisasi & Alat</span>
+              </div>
             </>
           )}
 
@@ -3504,105 +3428,97 @@ export function DocWordRibbon({
                     className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoWrap === "front" ? "active" : ""}`}
                     onClick={() => {
                       update("letterheadLogoWrap", "front");
-                      toast.success("Bring Forward: Gambar ditempatkan di Depan Teks");
+                      toast.success("Bring Forward: Di Depan Teks");
                     }}
                     title="Bring Forward (Bawa ke Depan Teks)"
                   >
                     <ArrowUp size={11} />
-                    <span>Bring Forward</span>
+                    <span>Maju</span>
                   </button>
                   <button
                     type="button"
                     className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoWrap === "behind" ? "active" : ""}`}
                     onClick={() => {
                       update("letterheadLogoWrap", "behind");
-                      toast.success("Send Backward: Gambar ditempatkan di Belakang Teks");
+                      toast.success("Send Backward: Di Belakang Teks");
                     }}
                     title="Send Backward (Kirim ke Belakang Teks)"
                   >
                     <ArrowDown size={11} />
-                    <span>Send Backward</span>
+                    <span>Mundur</span>
                   </button>
                 </div>
 
-                {/* ROW BOTTOM: ALIGN + ROTATE + FLIP */}
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                {/* ROW BOTTOM: ALIGN + ROTATE + FLIP (CLEAN ICON BUTTONS) */}
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px", alignItems: "center" }}>
                   <button
                     type="button"
-                    className={`doc-ribbon-table-subbtn ${(shipment.letterheadLogoAlign || "left") === "left" ? "active" : ""}`}
+                    className={`doc-ribbon-btn-icon ${(shipment.letterheadLogoAlign || "left") === "left" ? "active" : ""}`}
                     onClick={() => {
                       update("letterheadLogoAlign", "left");
                       update("letterheadLogoX", 0);
                       update("letterheadLogoY", 0);
                     }}
-                    title="Align Left (Rata Kiri)"
+                    title="Rata Kiri (Align Left)"
                   >
-                    <AlignLeft size={11} />
-                    <span>Kiri</span>
+                    <AlignLeft size={13} />
                   </button>
                   <button
                     type="button"
-                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoAlign === "center" ? "active" : ""}`}
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "center" ? "active" : ""}`}
                     onClick={() => update("letterheadLogoAlign", "center")}
-                    title="Align Center (Rata Tengah)"
+                    title="Rata Tengah (Align Center)"
                   >
-                    <AlignCenter size={11} />
-                    <span>Tengah</span>
+                    <AlignCenter size={13} />
                   </button>
                   <button
                     type="button"
-                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoAlign === "right" ? "active" : ""}`}
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "right" ? "active" : ""}`}
                     onClick={() => update("letterheadLogoAlign", "right")}
-                    title="Align Right (Rata Kanan)"
+                    title="Rata Kanan (Align Right)"
                   >
-                    <AlignRight size={11} />
-                    <span>Kanan</span>
+                    <AlignRight size={13} />
                   </button>
 
-                  <span style={{ color: "#cbd5e1" }}>|</span>
+                  <span style={{ color: "#cbd5e1", margin: "0 2px" }}>|</span>
 
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
+                    className="doc-ribbon-btn-icon"
                     onClick={() => {
                       const cur = shipment.letterheadLogoRotate || 0;
                       const next = (cur + 90) % 360;
                       update("letterheadLogoRotate", next);
-                      toast.success(`Rotate Right 90° (${next}°)`);
+                      toast.success(`Rotasi ${next}°`);
                     }}
-                    title="Rotate Right 90°"
+                    title="Putar 90° Searah Jarum Jam"
                   >
-                    <RotateCw size={11} />
-                    <span>+90°</span>
+                    <RotateCw size={13} />
                   </button>
                   <button
                     type="button"
-                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoFlipH ? "active" : ""}`}
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoFlipH ? "active" : ""}`}
                     onClick={() => {
                       const next = !shipment.letterheadLogoFlipH;
                       update("letterheadLogoFlipH", next);
-                      toast.success(next ? "Flip Horizontal Aktif" : "Flip Horizontal Normal");
                     }}
-                    title="Flip Horizontal (Balik Kiri-Kanan)"
+                    title="Balik Horizontal (Flip Horizontal)"
                   >
-                    <FlipHorizontal size={11} />
-                    <span>Flip H</span>
+                    <FlipHorizontal size={13} />
                   </button>
                   <button
                     type="button"
-                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoFlipV ? "active" : ""}`}
+                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoFlipV ? "active" : ""}`}
                     onClick={() => {
                       const next = !shipment.letterheadLogoFlipV;
                       update("letterheadLogoFlipV", next);
-                      toast.success(next ? "Flip Vertical Aktif" : "Flip Vertical Normal");
                     }}
-                    title="Flip Vertical (Balik Atas-Bawah)"
+                    title="Balik Vertikal (Flip Vertical)"
                   >
-                    <FlipVertical size={11} />
-                    <span>Flip V</span>
+                    <FlipVertical size={13} />
                   </button>
                 </div>
-                <span className="doc-ribbon-group-label">Arrange (Susun & Posisi)</span>
+                <span className="doc-ribbon-group-label">Arrange</span>
               </div>
 
               <div className="doc-ribbon-divider" />
@@ -4368,7 +4284,7 @@ export function DocWordRibbon({
             {/* Footer */}
             <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
               <span className="text-[11px] text-slate-500">
-                💡 Anda juga dapat mengedit teks nama PT, alamat, dan telepon langsung di atas kertas dokumen.
+                💡 Teks kop surat juga dapat diketik langsung di atas kertas.
               </span>
               <button
                 type="button"
@@ -4376,20 +4292,10 @@ export function DocWordRibbon({
                 className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
               >
                 <Check size={14} />
-                Selesai & Terapkan
+                Selesai
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Editing Notification Banner when in Edit Mode */}
-      {isEditMode && (
-        <div className="doc-ribbon-edit-hint">
-          <Edit3 size={13} />
-          <span>
-            <b>Mode Edit Word Aktif:</b> Anda dapat mengeklik bagian manapun pada surat/dokumen (artikel, nama buyer, rincian koli, syarat bayar, header & footer) untuk mengedit langsung di kertas dokumen.
-          </span>
         </div>
       )}
     </div>
