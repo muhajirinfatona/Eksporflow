@@ -2918,7 +2918,7 @@ export function DocWordRibbon({
                       <div
                         style={{
                           position: "absolute",
-                          bottom: "calc(100% + 4px)",
+                          top: "calc(100% + 4px)",
                           left: "50%",
                           transform: "translateX(-50%)",
                           background: "#ffffff",
