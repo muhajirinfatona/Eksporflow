@@ -30,7 +30,7 @@ export function AssistantModule({
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
-      content: `Saya **AI Advisor EksporFlow**. Saya siap membantu membaca transaksi **${shipment.reference}**${shipment.buyer ? ` untuk ${shipment.buyer}` : ""}. Tanyakan tentang skenario Incoterms® 2020, struktur harga, kelengkapan dokumen, rencana muatan, atau temuan risiko yang perlu ditangani terlebih dahulu.`,
+      content: `Halo! Saya **AI Advisor EksporFlow** untuk transaksi **${shipment.reference}**${shipment.buyer ? ` (${shipment.buyer})` : ""}. Silakan pilih topik analisis atau ketik pertanyaan Anda.`,
     },
   ]);
 
@@ -38,7 +38,7 @@ export function AssistantModule({
     setMessages([
       {
         role: "assistant",
-        content: `Saya **AI Advisor EksporFlow**. Konteks aktif saat ini: **${shipment.reference}** (${shipment.buyer || "Buyer belum diisi"} · ${shipment.incoterm}). Apa yang ingin Anda periksa hari ini?`,
+        content: `Konteks aktif: **${shipment.reference}** (${shipment.buyer || "Buyer belum diisi"} · ${shipment.incoterm}). Apa yang ingin Anda analisis?`,
       },
     ]);
   }, [shipment.reference]);
@@ -122,10 +122,7 @@ export function AssistantModule({
         <div className="panel-head">
           <div>
             <span className="eyebrow">ADVISOR · MODE BELAJAR &amp; TRANSAKSI</span>
-            <h2 className="ops-title">AI Advisor berbasis konteks transaksi</h2>
-            <p className="ops-description">
-              Jawaban mengacu pada data transaksi yang sedang dibuka dan memperlihatkan ketidakpastian bila data belum tersedia. Bukan opini hukum atau penetapan bea cukai resmi.
-            </p>
+            <h2 className="ops-title">AI Advisor Konteks Transaksi</h2>
           </div>
           <StatusPill tone="blue">
             <Bot size={11} /> {mode === "transaction" ? `Transaksi · ${shipment.reference}` : "Mode Belajar"}
@@ -254,12 +251,6 @@ export function AssistantModule({
                 <BookOpen size={12} /> {sop.title}
               </button>
             ))}
-          </div>
-          <div className="copilot-disclaimer">
-            <ShieldCheck size={14} />
-            <span>
-              Jika sumber konflik, kedaluwarsa, atau belum spesifik untuk komoditas ini, Advisor akan meminta verifikasi tim/ahli kepabeanan. Bukan nasihat hukum.
-            </span>
           </div>
         </section>
       </aside>

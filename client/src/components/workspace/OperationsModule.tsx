@@ -63,9 +63,6 @@ export function OperationsModule({
             <h2 className="ops-title">
               {shipment.reference} · {shipment.buyer || "Buyer belum diisi"}
             </h2>
-            <p className="ops-description">
-              Satu timeline untuk menjaga shipment bergerak dan memastikan setiap handoff memiliki bukti. Milestone dicatat oleh tim operasional (bukan live carrier tracking).
-            </p>
           </div>
           <StatusPill tone={shipment.shipmentStatus === "Completed" ? "green" : "amber"}>
             {shipment.shipmentStatus}
@@ -129,25 +126,16 @@ export function OperationsModule({
               onChange={(value) => update("destination", value)}
             />
           </div>
-          <div className="handoff-note">
-            <Check size={15} />
-            <span>
-              <b>Buyer, produk, Incoterm, harga, dan dokumen terhubung.</b>
-              <small>
-                Setiap perubahan pada workspace tercermin otomatis di invoice, Packing List, B/L draft, dan pemeriksaan Risk Center.
-              </small>
-            </span>
-          </div>
         </section>
 
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
               <span className="eyebrow">DOCUMENT ARCHIVE</span>
-              <h3>Lampiran & bukti shipment</h3>
+              <h3>Lampiran &amp; Bukti Shipment</h3>
             </div>
             <label className="upload-button">
-              <UploadCloud size={15} /> Tambah bukti
+              <UploadCloud size={15} /> Unggah Berkas
               <input
                 type="file"
                 onChange={(event) => {
@@ -164,7 +152,7 @@ export function OperationsModule({
                   <FileText size={15} />
                   <span>
                     {attachment}
-                    <small>Terhubung ke {shipment.reference}</small>
+                    <small>{shipment.reference}</small>
                   </span>
                   <button
                     type="button"
@@ -177,7 +165,7 @@ export function OperationsModule({
               ))
             ) : (
               <div className="empty-attachment">
-                <FileDown size={17} /> Belum ada lampiran. Tambahkan nama berkas PO, booking confirmation, atau foto stuffing.
+                <FileDown size={17} /> Belum ada berkas lampiran tercatat.
               </div>
             )}
           </div>
@@ -188,9 +176,8 @@ export function OperationsModule({
         <div className="panel-head">
           <div>
             <span className="eyebrow">HANDOFF CHECKLIST</span>
-            <h3>Kontrol sebelum berangkat</h3>
+            <h3>Kontrol Sebelum Berangkat</h3>
           </div>
-          <span className="muted-note">Klik tahapan di atas untuk memperbarui fase shipment</span>
         </div>
         <div className="ops-checks">
           <OpsCheck

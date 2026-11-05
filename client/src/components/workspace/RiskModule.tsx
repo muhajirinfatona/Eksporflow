@@ -27,22 +27,22 @@ const LEGAL_ITEMS: { key: keyof LegalChecklist; label: string; detail: string }[
   {
     key: "hsCodeReviewed",
     label: "HS Code dikonfirmasi",
-    detail: "Konfirmasi dengan customs/broker berwenang, bukan hanya mengandalkan referensi input.",
+    detail: "Verifikasi tarif & klasifikasi bersama PPJK / Bea Cukai.",
   },
   {
     key: "originEvidence",
-    label: "Bukti asal barang tersedia",
-    detail: "Siapkan COO, supplier declaration, atau dokumen asal yang relevan untuk negara tujuan.",
+    label: "Bukti asal barang (COO / e-SKA)",
+    detail: "Dokumen asal barang & sertifikat mutu telah disiapkan.",
   },
   {
     key: "paymentTermsReviewed",
     label: "Terms pembayaran direview",
-    detail: "Pastikan DP, jatuh tempo, bank charges, dan pemicu release dokumen dipahami tim.",
+    detail: "Klausul DP, jatuh tempo, dan syarat rilis dokumen terverifikasi.",
   },
   {
     key: "sanctionsScreened",
-    label: "Screening buyer & negara dilakukan",
-    detail: "Catat hasil pemeriksaan internal dan eskalasi bila ada keraguan atau data kurang.",
+    label: "Screening buyer & negara tujuan",
+    detail: "Pemeriksaan daftar sanksi dan pembatasan perdagangan selesai.",
   },
 ];
 
@@ -100,12 +100,12 @@ export function RiskModule({
           <span className="eyebrow light">EXPORT RISK CONTROL · REVIEW &amp; EVIDENCE</span>
           <h2>{riskLevel}</h2>
           <p>
-            {passed} dari {total} kontrol internal terpenuhi; status ini bukan legal clearance, bukan klaim &ldquo;buyer aman&rdquo;, dan keputusan release tetap oleh tim berwenang untuk {shipment.reference}.
+            {passed} dari {total} kontrol internal terpenuhi untuk transaksi {shipment.reference}.
           </p>
         </div>
         <div className="risk-score">
           <strong>{readinessPercent}%</strong>
-          <span>review check</span>
+          <span>Skor Kontrol</span>
         </div>
       </div>
 
@@ -151,28 +151,20 @@ export function RiskModule({
           </div>
           <div className="guardrail-list">
             <div>
-              <b>Jangan terbitkan dokumen tanpa 3-way check</b>
-              <p>
-                Invoice, Packing List, dan B/L draft harus memakai quantity, HS Code referensi, dan tujuan yang konsisten.
-              </p>
+              <b>Konsistensi Dokumen (3-Way Check)</b>
+              <p>Pastikan kuantitas, HS Code, dan pelabuhan tujuan identik di Invoice, Packing List, dan B/L.</p>
             </div>
             <div>
-              <b>Konfirmasi seal number saat stuffing</b>
-              <p>
-                Foto stuffing dan nomor seal menjadi bukti penting jika terjadi klaim asuransi atau selisih bongkar.
-              </p>
+              <b>Dokumentasi Stuffing &amp; Segel</b>
+              <p>Simpan foto kontainer dan nomor seal resmi untuk perlindungan klaim asuransi.</p>
             </div>
             <div>
-              <b>Konfirmasi HS Code pada otoritas resmi</b>
-              <p>
-                Validasi klasifikasi tarif dan ketentuan negara tujuan dengan PPJK/broker atau bea cukai sebelum final.
-              </p>
+              <b>Validasi Kepabeanan &amp; Lartas</b>
+              <p>Konfirmasi HS Code dan regulasi impor negara tujuan bersama PPJK sebelum pengajuan PEB.</p>
             </div>
             <div>
-              <b>Gunakan persetujuan berjenjang</b>
-              <p>
-                Perubahan harga, Incoterm, atau diskon di atas batas organisasi wajib direview approver terpisah.
-              </p>
+              <b>Otorisasi Harga &amp; Margin</b>
+              <p>Perubahan Incoterm atau diskon di atas batas standar wajib disetujui manajemen.</p>
             </div>
           </div>
         </section>
@@ -183,10 +175,7 @@ export function RiskModule({
           <div className="panel-head">
             <div>
               <span className="eyebrow">LEGAL REVIEW GATE</span>
-              <h3>Checklist verifikasi internal</h3>
-              <p className="profile-description">
-                Checklist ini membantu tim mendokumentasikan pemeriksaan; bukan pengganti review customs, bank, atau penasihat hukum.
-              </p>
+              <h3>Checklist Verifikasi Internal</h3>
             </div>
             <ShieldCheck size={18} className="panel-spark" />
           </div>
@@ -214,10 +203,7 @@ export function RiskModule({
           <div className="panel-head">
             <div>
               <span className="eyebrow">BUYER / PO EVIDENCE</span>
-              <h3>Bukti transaksi yang dapat diaudit</h3>
-              <p className="profile-description">
-                Sistem hanya mencatat bukti yang Anda unggah; tidak memberikan skor &ldquo;buyer aman&rdquo; atau jaminan bebas sanksi.
-              </p>
+              <h3>Bukti Dokumen Transaksi</h3>
             </div>
             <FileSearch size={18} className="panel-spark" />
           </div>

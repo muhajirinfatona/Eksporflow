@@ -492,9 +492,6 @@ export function ReadinessView({
                 {readiness.certReady ? "Siap" : "Belum ditandai"}
               </StatusPill>
             </div>
-            <div className="clean-notice warn" style={{ marginTop: 12 }}>
-              Asesmen ini panduan kesiapan awal, bukan penetapan kepatuhan hukum atau izin ekspor resmi.
-            </div>
           </div>
         </div>
       </section>
@@ -1466,9 +1463,6 @@ export function ApprovalsView({
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>
                 Matriks Divisi &amp; Peran Tim Ekspor
               </h3>
-              <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#64748b" }}>
-                Pengaturan hak akses dan pembagian tugas operasional ekspor terstruktur layaknya ERP korporat.
-              </p>
             </div>
 
             <button
@@ -1685,15 +1679,12 @@ export function ApprovalsView({
               padding: "20px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
               <ShieldCheck size={20} style={{ color: "#0284c7" }} />
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>
-                Matriks Batas Wewenang &amp; Kebijakan Otorisasi (Enterprise Governance)
+                Matriks Batas Wewenang &amp; Kebijakan Otorisasi (SoD)
               </h3>
             </div>
-            <p style={{ margin: "2px 0 16px", fontSize: 13, color: "#64748b" }}>
-              Parameter aturan otomatis untuk memisahkan wewenang staf penjualan dengan persetujuan pimpinan / direksi sebelum kontrak mengikat.
-            </p>
 
             <div className="clean-table-wrap">
               <table className="clean-table" style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -2342,12 +2333,6 @@ export function KnowledgeView({
               <Plus size={14} /> Simpan &amp; Hubungkan ke Advisor
             </button>
           </div>
-          <div className="guardrail-list" style={{ marginTop: 16 }}>
-            <div>
-              <b>Hanya sumber Published yang dipakai Advisor</b>
-              <p>Dokumen berstatus In review langsung dikecualikan dari konteks tanya-jawab AI Advisor.</p>
-            </div>
-          </div>
         </section>
       </div>
     </div>
@@ -2399,10 +2384,7 @@ export function PartnersView({
           <div className="panel-head">
             <div>
               <span className="eyebrow">DATA UTAMA · BUYER &amp; KONTAK</span>
-              <h3>Direktori mitra transaksi ({flow.partners.length})</h3>
-              <p className="profile-description">
-                Pilih mitra agar nama, negara, pelabuhan tujuan, dan terms pembayaran mengisi transaksi aktif secara konsisten.
-              </p>
+              <h3>Direktori Mitra Transaksi ({flow.partners.length})</h3>
             </div>
             <div className="row-actions">
               <button
@@ -2424,7 +2406,7 @@ export function PartnersView({
           <div className="master-list">
             {flow.partners.length === 0 ? (
               <div className="empty-attachment">
-                Direktori mitra masih kosong. Silakan isi formulir profil buyer baru di sebelah kanan untuk memulai pengujian.
+                Direktori mitra masih kosong. Tambahkan profil buyer di sebelah kanan.
               </div>
             ) : (
               flow.partners.map((buyer) => (
@@ -2448,9 +2430,6 @@ export function PartnersView({
                 </div>
               ))
             )}
-          </div>
-          <div className="clean-notice" style={{ marginTop: 12 }}>
-            Profil master data tidak menilai apakah buyer aman. Bukti PO dan screening ditampilkan terpisah pada Risk Center.
           </div>
         </section>
 
@@ -2523,10 +2502,7 @@ export function ProductsView({
           <div className="panel-head">
             <div>
               <span className="eyebrow">DATA UTAMA · SPESIFIKASI PRODUK</span>
-              <h3>Katalog produk ekspor ({flow.products.length})</h3>
-              <p className="profile-description">
-                Tambahkan produk katalog langsung ke transaksi aktif ({shipment.lineItems.length} line item saat ini).
-              </p>
+              <h3>Katalog Produk Ekspor ({flow.products.length})</h3>
             </div>
             <div className="row-actions">
               <button type="button" className="ghost-button" onClick={() => navigate("cargo")}>
@@ -2540,7 +2516,7 @@ export function ProductsView({
           <div className="master-list">
             {flow.products.length === 0 ? (
               <div className="empty-attachment">
-                Katalog produk masih kosong. Tambahkan spesifikasi produk pertama Anda di sebelah kanan, lalu klik &ldquo;+ Tambah ke Transaksi&rdquo;.
+                Katalog produk masih kosong. Tambahkan spesifikasi produk di sebelah kanan.
               </div>
             ) : (
               flow.products.map((prod) => (
@@ -2553,7 +2529,7 @@ export function ProductsView({
                       {prod.name} · <span className="mono-code">{prod.sku}</span>
                     </b>
                     <small>
-                      HS ref. {prod.hsCode || "belum diisi"}* · {prod.packagingType} ({prod.weight} kg)
+                      HS {prod.hsCode || "—"} · {prod.packagingType} ({prod.weight} kg)
                     </small>
                     <em>
                       {formatMoney(prod.unitPrice, shipment.currency)} / {prod.unit}
@@ -2565,9 +2541,6 @@ export function ProductsView({
                 </div>
               ))
             )}
-          </div>
-          <div className="clean-notice warn" style={{ marginTop: 12 }}>
-            *HS Code hanya referensi input dan wajib dikonfirmasi dengan PPJK/bea cukai yang berwenang. Sistem tidak melakukan klasifikasi resmi otomatis.
           </div>
         </section>
 
@@ -2597,32 +2570,6 @@ export function ProductsView({
           </div>
         </section>
       </div>
-
-      <section className="panel panel-padding">
-        <div className="governance-grid">
-          <div>
-            <Check size={15} />
-            <span>
-              <b>Satu sumber data</b>
-              <small>Line item produk langsung mengalir ke invoice, Packing List, dan simulasi 3D.</small>
-            </span>
-          </div>
-          <div>
-            <ShieldAlert size={15} />
-            <span>
-              <b>Verifikasi klasifikasi</b>
-              <small>Tarif bea masuk tujuan bergantung pada konfirmasi resmi broker/customs.</small>
-            </span>
-          </div>
-          <div>
-            <History size={15} />
-            <span>
-              <b>Snapshot terisolasi</b>
-              <small>Perubahan katalog di masa depan tidak menimpa dokumen shipment lama.</small>
-            </span>
-          </div>
-        </div>
-      </section>
     </div>
   );
 }
@@ -2641,12 +2588,6 @@ export function FinanceView({
   return (
     <div className="module-stack">
       <FinanceSubNav active="finance" navigate={navigate} />
-
-      <div className="clean-notice">
-        <div>
-          <b>Kontrol Akuntansi Inti:</b> Commercial Invoice perdagangan tidak membuat jurnal pendapatan otomatis. Konfirmasi penerimaan bank di <b>Rekonsiliasi Bank</b> dan posting AR oleh Finance terhubung langsung di bawah ini.
-        </div>
-      </div>
 
       <div className="clean-grid-4">
         <section className="panel panel-padding clean-stat-card">
@@ -2801,10 +2742,6 @@ export function BankView({
   return (
     <div className="module-stack">
       <FinanceSubNav active="bank" navigate={navigate} />
-
-      <div className="clean-notice warn">
-        Konfirmasi mutasi bank di bawah ini langsung memperbarui <b>Sisa Piutang AR</b> di halaman Keuangan, baris kas di <b>Jurnal &amp; Bagan Akun</b>, serta realisasi di <b>Laporan Margin</b>.
-      </div>
       <div className="content-grid two-thirds">
         <section className="panel panel-padding">
           <span className="eyebrow">BANK MATCHING · {shipment.reference}</span>
@@ -3027,9 +2964,6 @@ export function JournalsView({
               </tbody>
             </table>
           </div>
-          <div className="clean-notice" style={{ marginTop: 12 }}>
-            Debit = Kredit selalu seimbang. Jurnal berstatus Posted bersifat immutable dan dikoreksi melalui jurnal pembalik (Reversal) ber-audit log.
-          </div>
         </section>
 
         <section className="panel panel-padding">
@@ -3201,9 +3135,6 @@ export function ReportsView({
             </tbody>
           </table>
         </div>
-        <div className="clean-notice warn" style={{ marginTop: 12 }}>
-          Estimasi quotation dipisahkan secara tegas dari kas aktual yang terkonfirmasi di Rekonsiliasi Bank dan jurnal berstatus Posted.
-        </div>
       </section>
     </div>
   );
@@ -3294,37 +3225,28 @@ export function SettingsView({
               Kelola Daftar Transaksi →
             </button>
           </div>
-          <p className="profile-description" style={{ marginTop: 12 }}>
-            Sesuai prinsip portabilitas data EksporFlow, Anda selalu dapat mengunduh snapshot data transaksi kapan saja tanpa dikunci oleh status paket.
-          </p>
         </section>
 
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
               <span className="eyebrow">KEAMANAN &amp; HAK AKSES</span>
-              <h3>Perlindungan workspace</h3>
+              <h3>Perlindungan Workspace</h3>
             </div>
             <ShieldCheck size={18} className="panel-spark" />
           </div>
           <div className="guardrail-list">
             <div>
-              <b>Row Level Security (RLS) aktif di seluruh tabel</b>
-              <p>
-                Akses publik PostgREST ditutup secara default; seluruh pembacaan dan penulisan transaksi diverifikasi melalui keanggotaan workspace di server.
-              </p>
+              <b>Row Level Security (RLS) Aktif</b>
+              <p>Seluruh akses database diverifikasi melalui keanggotaan workspace di server.</p>
             </div>
             <div>
-              <b>Optimistic locking &amp; transaksi database atomik</b>
-              <p>
-                Header shipment, line item, dan audit log ditulis dalam satu transaksi database sehingga tidak meninggalkan data setengah tersimpan.
-              </p>
+              <b>Transaksi Database Atomik</b>
+              <p>Header pesanan, item barang, dan log audit disimpan secara konsisten dalam satu transaksi.</p>
             </div>
             <div>
-              <b>Proteksi endpoint AI Advisor</b>
-              <p>
-                AI Advisor mewajibkan sesi terautentikasi dan pembatasan kuota per jam untuk mencegah penyalahgunaan.
-              </p>
+              <b>Proteksi Kuota AI Advisor</b>
+              <p>Akses AI Advisor dilindungi autentikasi sesi dan batas kuota per pengguna.</p>
             </div>
           </div>
         </section>

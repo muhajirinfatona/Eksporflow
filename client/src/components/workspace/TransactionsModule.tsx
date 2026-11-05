@@ -747,12 +747,12 @@ export function TransactionsModule({
     <div className="module-stack">
       {/* Notifikasi Mode Draft Lokal (Jika belum masuk akun) */}
       {!user && (
-        <div className="clean-notice warn" style={{ marginBottom: "14px" }}>
+        <div className="clean-notice warn" style={{ marginBottom: "14px", padding: "8px 14px" }}>
           <div>
-            <b>Mode Draft Lokal Aktif</b> — Data transaksi disimpan sementara di browser ini. Masuk akun agar transaksi tersimpan aman di database cloud PostgreSQL beserta riwayat versi.
+            <b>Mode Draft Lokal</b> — Masuk akun untuk sinkronisasi database cloud.
           </div>
           <button type="button" className="save-button" onClick={() => void login()}>
-            <Cloud size={14} /> Masuk &amp; Hubungkan Cloud
+            <Cloud size={14} /> Hubungkan Cloud
           </button>
         </div>
       )}
@@ -1257,9 +1257,6 @@ export function TransactionsModule({
                       </span>
                     </div>
                     <div className="trans-compliance-actions">
-                      <span className="trans-compliance-note">
-                        Konfirmasi tarif resmi ke freight forwarder Anda
-                      </span>
                       <button
                         type="button"
                         className="trans-compliance-relink"
@@ -1322,14 +1319,11 @@ export function TransactionsModule({
                 type="button"
                 className="ghost-button"
                 onClick={() => navigate("transactions")}
-                style={{ fontSize: "12px", padding: "4px 8px", marginBottom: "8px", display: "inline-flex", alignItems: "center", gap: "5px" }}
+                style={{ fontSize: "12px", padding: "4px 8px", marginBottom: "6px", display: "inline-flex", alignItems: "center", gap: "5px" }}
               >
                 <ArrowLeft size={13} /> Kembali ke Pesanan Ekspor
               </button>
-              <h3 style={{ margin: "2px 0 4px", fontSize: "18px", color: "var(--navy)" }}>Input Purchase Order (PO) Baru</h3>
-              <p style={{ margin: 0, fontSize: "13px", color: "var(--muted)" }}>
-                Catat pesanan ekspor baru atau gunakan pemindaian AI untuk mengekstrak data dari dokumen PO/LOI buyer.
-              </p>
+              <h3 style={{ margin: "2px 0 0", fontSize: "18px", color: "var(--navy)" }}>Input Purchase Order (PO) Baru</h3>
             </div>
 
             <div className="active-order-header-actions" style={{ display: "flex", alignItems: "center", gap: "8px" }}>

@@ -145,7 +145,6 @@ export function MetricCard({
 export function SectionTitle({
   eyebrow,
   title,
-  description,
   action,
 }: {
   eyebrow: string;
@@ -158,7 +157,6 @@ export function SectionTitle({
       <div>
         <span className="eyebrow">{eyebrow}</span>
         <h2>{title}</h2>
-        {description && <p>{description}</p>}
       </div>
       {action}
     </div>
@@ -303,20 +301,17 @@ export function TransactionProfile({
     <section className="panel panel-padding connected-profile">
       <div className="panel-head">
         <div>
-          <span className="eyebrow">SINGLE SOURCE OF TRUTH</span>
-          <h3>Data transaksi terhubung</h3>
-          <p className="profile-description">
-            Perubahan di sini otomatis dipakai oleh kalkulator harga, invoice, Packing List, B/L draft, dan rencana muatan.
-          </p>
+          <span className="eyebrow">DATA UTAMA TRANSAKSI</span>
+          <h3>Parameter Transaksi Terhubung</h3>
         </div>
         <div className="row-actions">
           {navigate && (
             <button type="button" className="ghost-button" onClick={() => navigate("partners")}>
-              <Users size={13} /> Pilih Mitra Tersimpan
+              <Users size={13} /> Pilih Mitra
             </button>
           )}
           <StatusPill tone="blue">
-            <Check size={11} /> Semua modul sinkron
+            <Check size={11} /> Sinkron
           </StatusPill>
         </div>
       </div>
@@ -453,19 +448,16 @@ export function LineItemsEditor({
     <div className="line-items-editor">
       <div className="line-items-head">
         <div className="line-items-info">
-          <b>Line items transaksi</b>
-          <small>
-            {items.length} produk · otomatis masuk ke invoice, Packing List, dan simulasi muatan
-          </small>
+          <b>Daftar Produk ({items.length} item)</b>
         </div>
         <div className="line-items-actions">
           {onOpenCatalog && (
             <button type="button" className="catalog-pick-btn" onClick={onOpenCatalog}>
-              <Package size={13} /> Pilih dari Katalog
+              <Package size={13} /> Katalog
             </button>
           )}
           <button type="button" className="add-line-item" onClick={addItem}>
-            <Plus size={13} /> Tambah item
+            <Plus size={13} /> Tambah Item
           </button>
         </div>
       </div>

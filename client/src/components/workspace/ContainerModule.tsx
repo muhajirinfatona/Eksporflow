@@ -92,15 +92,6 @@ export function ContainerModule({
               onChange={(value) => updateNumber("cartonQty", value)}
             />
           </div>
-          <div className="container-input-note">
-            <Package size={15} />
-            <span>
-              <b>Per produk bisa berbeda</b>
-              <small>
-                Edit langsung di bawah ini; perubahan mengalir ke kalkulator harga, invoice, Packing List, dan simulasi 3D.
-              </small>
-            </span>
-          </div>
           <LineItemsEditor
             items={shipment.lineItems}
             updateItems={updateLineItems}
@@ -223,12 +214,12 @@ export function ContainerModule({
             {overload ? <ArrowDownRight size={17} /> : <Check size={17} />}
             <span>
               <b>
-                {overload ? "Muatan melebihi batas rekomendasi" : "Estimasi dalam batas input"}
+                {overload ? "Kapasitas melebihi 1 kontainer" : "Kapasitas muatan aman"}
               </b>
               <small>
                 {overload
-                  ? "Kurangi quantity, ubah kemasan, atau gunakan lebih dari satu kontainer."
-                  : "Susut ditampilkan terpisah; berat kotor tetap memasukkan paket dan pallet kayu jika dipilih. Stacking, lashing, dan distribusi beban wajib direview warehouse."}
+                  ? "Sesuaikan kuantitas atau gunakan lebih dari 1 kontainer."
+                  : "Berat kotor dan volume berada dalam batas aman kontainer."}
               </small>
             </span>
           </div>
@@ -237,29 +228,23 @@ export function ContainerModule({
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">PACKING NOTES</span>
-              <h3>Catatan operasional</h3>
+              <span className="eyebrow">STANDAR STUFFING</span>
+              <h3>Checklist Pemuatan</h3>
             </div>
             <PenLine size={16} className="panel-spark" />
           </div>
           <div className="packing-notes">
             <div>
               <span className="note-number">01</span>
-              <p>
-                Jenis kemasan dan pallet menentukan footprint aktual; konfirmasi stacking dengan warehouse.
-              </p>
+              <p>Verifikasi pola susun (stacking) dan lashing kontainer di gudang.</p>
             </div>
             <div>
               <span className="note-number">02</span>
-              <p>
-                Susut ditampilkan sebagai metrik terpisah dan tidak otomatis mengurangi berat kotor, volume kemasan, atau jumlah koli.
-              </p>
+              <p>Pastikan kemasan/pallet kayu memiliki cap fumigasi ISPM-15.</p>
             </div>
             <div>
               <span className="note-number">03</span>
-              <p>
-                Gunakan desiccant dan corner protection untuk rute laut dengan transit panjang.
-              </p>
+              <p>Pasang desiccant dan pelindung sudut untuk pelayaran jarak jauh.</p>
             </div>
           </div>
         </section>
@@ -480,7 +465,7 @@ function Container3DSimulator({
           <span className="eyebrow">3D LOAD SIMULATOR</span>
           <h3>Simulasi tata letak kontainer</h3>
           <small>
-            {previewUnits} unit divisualkan · orbit dengan drag · zoom dengan scroll · alat bantu estimasi, bukan sertifikasi keselamatan atau optimizer stuffing
+            {previewUnits} unit divisualkan · Drag untuk memutar · Scroll untuk zoom
           </small>
         </div>
         <div className="view-switcher">

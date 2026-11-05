@@ -844,7 +844,6 @@ export function PricingModule({
                 <span className="calc-sheet-badge">BAGIAN A</span>
                 <div className="calc-sheet-titles">
                   <h3>Biaya Modal Produk Siap Ekspor (HPP)</h3>
-                  <p>Bebas tentukan satuan tiap biaya (/kilo, /MT, /dokumen, /order) dan hapus biaya yang tidak diperlukan.</p>
                 </div>
               </div>
 
@@ -1014,7 +1013,6 @@ export function PricingModule({
                 <span className="calc-sheet-badge accent">BAGIAN B</span>
                 <div className="calc-sheet-titles">
                   <h3>Biaya Pengiriman &amp; Dokumen Ekspor</h3>
-                  <p>Truk pelabuhan, izin Bea Cukai, ocean freight, dan asuransi laut. Satuan bebas disesuaikan.</p>
                 </div>
               </div>
 
@@ -1151,9 +1149,6 @@ export function PricingModule({
                 </span>
                 <div className="calc-sheet-titles">
                   <h3>Daftar Harga Incoterms &amp; Simulasi Keuntungan</h3>
-                  <p>
-                    Perbandingan harga modal impas, rekomendasi harga jual target (+keuntungan {markupPercent}%), dan keuntungan bersih.
-                  </p>
                 </div>
               </div>
 
@@ -1457,18 +1452,6 @@ export function PricingModule({
             <span>
               Kurs: {shipment.exchangeRateSource || "Bank Indonesia"} · {shipment.exchangeRateDate || "Realtime"}
             </span>
-          </div>
-
-          <div className="tip-card">
-            <Sparkles size={17} />
-            <div>
-              <b>Tips untuk Eksportir Pemula</b>
-              <p>
-                {shipment.currency === "IDR"
-                  ? "Transaksi dihitung dalam Rupiah. Pembeli luar negeri umumnya meminta penawaran resmi dalam mata uang valas (seperti USD atau EUR)."
-                  : `Transaksi dihitung dalam ${shipment.currency}. Ekuivalen Rupiah dihitung dengan kurs acuan resmi Bank Indonesia Rp ${formatNumber(currentFxRate)}.`}
-              </p>
-            </div>
           </div>
         </aside>
       </div>
