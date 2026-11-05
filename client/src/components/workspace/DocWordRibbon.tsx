@@ -4017,40 +4017,37 @@ export function DocWordRibbon({
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-md w-full overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <AlignJustify size={18} className="text-blue-300" />
-                <div>
-                  <h3 className="font-bold text-sm">Pengaturan Spasi Antar Baris</h3>
-                  <p className="text-xs text-blue-200">Line Spacing Sesuai Microsoft Word</p>
-                </div>
+            <div className="px-5 py-3 bg-[#0f2942] text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <AlignJustify size={16} className="text-blue-300" />
+                <h3 className="font-bold text-sm tracking-tight">Spasi Antar Baris</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowCustomLineHeightModal(false)}
                 className="text-slate-300 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
             {/* Body */}
-            <div className="p-5 space-y-4">
+            <div className="p-4 space-y-3.5">
               {/* Quick Presets Pills */}
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
-                  Pilihan Cepat Standar Spasi Word
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">
+                  Preset Standar
                 </label>
-                <div className="flex flex-wrap gap-1.5">
+                <div className="grid grid-cols-5 gap-1.5">
                   {[1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].map((val) => (
                     <button
                       key={val}
                       type="button"
                       onClick={() => setCustomLineHeightInput(val)}
-                      className={`px-3 py-1.5 text-xs font-semibold rounded-md border transition-all ${
+                      className={`py-1.5 text-xs font-semibold rounded-md border transition-all ${
                         Math.abs(customLineHeightInput - val) < 0.01
-                          ? "bg-blue-600 text-white border-blue-600 shadow-xs"
-                          : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200"
+                          ? "bg-[#0f2942] text-white border-[#0f2942] shadow-2xs"
+                          : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                       }`}
                     >
                       {val.toFixed(2)}
@@ -4061,14 +4058,14 @@ export function DocWordRibbon({
 
               {/* Numeric Input with +/- buttons */}
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5 block">
-                  Nilai Kelipatan Spasi (Multiplier)
+                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">
+                  Kelipatan Kustom
                 </label>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setCustomLineHeightInput((prev) => Math.max(0.8, Math.round((prev - 0.05) * 100) / 100))}
-                    className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center text-base"
+                    className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center text-sm"
                   >
                     -
                   </button>
@@ -4079,48 +4076,45 @@ export function DocWordRibbon({
                     step="0.05"
                     value={customLineHeightInput}
                     onChange={(e) => setCustomLineHeightInput(Number(e.target.value))}
-                    className="flex-1 h-10 px-3 border border-slate-300 rounded-lg text-center font-bold text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="flex-1 h-9 px-3 border border-slate-200 rounded-lg text-center font-bold text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                   <button
                     type="button"
                     onClick={() => setCustomLineHeightInput((prev) => Math.min(4.0, Math.round((prev + 0.05) * 100) / 100))}
-                    className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-300 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center text-base"
+                    className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 text-slate-700 font-bold hover:bg-slate-200 flex items-center justify-center text-sm"
                   >
                     +
                   </button>
                 </div>
-                <span className="text-[11px] text-slate-500 mt-1 block">
-                  Contoh: 1.15 (rapat modern), 1.35 (standar ekspor resmi), 1.50 (satu setengah baris), 2.0 (ganda).
-                </span>
               </div>
 
               {/* Live Preview Box */}
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                  Pratinjau Teks (Live Preview)
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                  Pratinjau ({customLineHeightInput.toFixed(2)}x)
                 </span>
                 <div
                   style={{
                     lineHeight: customLineHeightInput,
-                    fontSize: "12px",
+                    fontSize: "11.5px",
                     fontFamily: shipment.docEditorFontFamily || "Calibri",
                     color: "#334155",
                   }}
-                  className="p-3 bg-white border border-slate-200 rounded"
+                  className="p-2.5 bg-white border border-slate-200 rounded"
                 >
-                  <div>Ini adalah baris pertama naskah resmi surat ekspor internasional.</div>
-                  <div>Jarak antar baris teks ini diatur sebesar {customLineHeightInput.toFixed(2)}x kelipatan spasi.</div>
-                  <div>Format ini diterapkan langsung ke dokumen sesuai standar Microsoft Word.</div>
+                  <div>PT. INDICO EXPORT INDONESIA</div>
+                  <div>Jl. Adiyaksa Baru No. 1B, Kota Makassar, Sulawesi Selatan</div>
+                  <div>Telp: +62 812 3456 7890 · official@indicoexport.com</div>
                 </div>
               </div>
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end gap-2.5">
+            <div className="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setShowCustomLineHeightModal(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+                className="px-3.5 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
               >
                 Batal
               </button>
@@ -4136,10 +4130,10 @@ export function DocWordRibbon({
                   }
                   setShowCustomLineHeightModal(false);
                 }}
-                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+                className="px-4 py-1.5 text-xs font-bold text-white bg-[#0f2942] hover:bg-slate-800 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5"
               >
-                <Check size={14} />
-                Terapkan Spasi
+                <Check size={13} />
+                Terapkan
               </button>
             </div>
           </div>
@@ -4168,247 +4162,339 @@ export function DocWordRibbon({
         style={{ display: "none" }}
       />
 
-      {/* Pop-up Modal: Impor Kop Surat & Pengaturan Spasi / Garis Kop */}
+      {/* Pop-up Modal: Pengaturan Kop Surat Perusahaan */}
       {showLetterheadModal && (
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 text-white flex items-center justify-between">
+            <div className="px-5 py-3 bg-[#0f2942] text-white flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <Building2 size={19} className="text-blue-300" />
-                <div>
-                  <h3 className="font-bold text-sm">Impor & Pengaturan Format Kop Surat Perusahaan</h3>
-                  <p className="text-xs text-blue-200">
-                    Impor kop surat dari dokumen perusahaan lain, simpan profil kop, atau atur spasi & jarak garis
-                  </p>
+                <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
+                  <Building2 size={15} className="text-blue-200" />
                 </div>
+                <h3 className="font-bold text-sm tracking-tight">Pengaturan Kop Surat</h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowLetterheadModal(false)}
-                className="text-slate-300 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+                className="text-slate-300 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
 
-            {/* Tab Bar */}
-            <div className="flex border-b border-slate-200 bg-slate-50 px-5 pt-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setLetterheadModalTab("import")}
-                className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition-all flex items-center gap-1.5 ${
-                  letterheadModalTab === "import"
-                    ? "border-blue-600 text-blue-700 bg-white"
-                    : "border-transparent text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Upload size={13} />
-                <span>1. Impor Kop Surat & Profil Perusahaan</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setLetterheadModalTab("spacing")}
-                className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition-all flex items-center gap-1.5 ${
-                  letterheadModalTab === "spacing"
-                    ? "border-blue-600 text-blue-700 bg-white"
-                    : "border-transparent text-slate-600 hover:text-slate-900"
-                }`}
-              >
-                <Sliders size={13} />
-                <span>2. Atur Spasi, Jarak Garis & Tata Letak Kop</span>
-              </button>
+            {/* Segmented Tab Bar */}
+            <div className="px-5 pt-3 pb-2 bg-slate-50/80 border-b border-slate-200">
+              <div className="grid grid-cols-2 gap-1 p-1 bg-slate-200/70 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setLetterheadModalTab("import")}
+                  className={`py-1.5 px-3 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                    letterheadModalTab === "import"
+                      ? "bg-white text-[#0f2942] shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Building2 size={13} />
+                  <span>Mode & Profil Kop</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setLetterheadModalTab("spacing")}
+                  className={`py-1.5 px-3 text-xs font-semibold rounded-md transition-all flex items-center justify-center gap-1.5 ${
+                    letterheadModalTab === "spacing"
+                      ? "bg-white text-[#0f2942] shadow-2xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Sliders size={13} />
+                  <span>Tata Letak & Spasi</span>
+                </button>
+              </div>
             </div>
 
             {/* Body */}
-            <div className="p-5 space-y-4 overflow-y-auto text-slate-700">
+            <div className="p-5 space-y-4 text-slate-700">
               {letterheadModalTab === "import" ? (
                 <>
                   {/* Mode Selector: Standard vs Full Banner Image */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div
-                      onClick={() => update("letterheadMode", "standard")}
-                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                        (shipment.letterheadMode || "standard") === "standard"
-                          ? "border-blue-600 bg-blue-50/60"
-                          : "border-slate-200 hover:border-slate-300 bg-white"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-slate-900">📝 Mode Kop Teks + Logo (Bisa Diedit)</span>
-                        {(shipment.letterheadMode || "standard") === "standard" && (
-                          <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded-full">Aktif</span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-600">
-                        Logo di samping/tengah dengan nama perusahaan, alamat, dan kontak yang bisa diketik & diatur spasinya langsung.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          logoUploadRef.current?.click();
-                        }}
-                        className="mt-2.5 px-3 py-1.5 bg-white border border-blue-300 text-blue-700 hover:bg-blue-50 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 shadow-2xs"
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                      Mode Kop Surat
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div
+                        onClick={() => update("letterheadMode", "standard")}
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                          (shipment.letterheadMode || "standard") === "standard"
+                            ? "border-blue-600 bg-blue-50/40 ring-1 ring-blue-600/20"
+                            : "border-slate-200 hover:border-slate-300 bg-white"
+                        }`}
                       >
-                        <Upload size={12} />
-                        <span>Impor / Ganti Logo Perusahaan...</span>
-                      </button>
-                    </div>
+                        <div>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-blue-100 text-blue-700 flex items-center justify-center shrink-0">
+                                <FileText size={13} />
+                              </div>
+                              <span className="text-xs font-bold text-slate-900">Teks & Logo</span>
+                            </div>
+                            {(shipment.letterheadMode || "standard") === "standard" && (
+                              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                                Aktif
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-snug">
+                            Logo, nama perusahaan, dan alamat dapat diedit langsung.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            logoUploadRef.current?.click();
+                          }}
+                          className="mt-3 w-full py-1.5 px-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 rounded-lg text-[11px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+                        >
+                          <Upload size={12} />
+                          <span>Ganti Logo Perusahaan</span>
+                        </button>
+                      </div>
 
-                    <div
-                      onClick={() => {
-                        if (shipment.letterheadBannerImage) {
-                          update("letterheadMode", "banner");
-                        } else {
-                          bannerUploadRef.current?.click();
-                        }
-                      }}
-                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
-                        shipment.letterheadMode === "banner"
-                          ? "border-blue-600 bg-blue-50/60"
-                          : "border-slate-200 hover:border-slate-300 bg-white"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-slate-900">🖼️ Mode Gambar Kop Surat Utuh (Banner)</span>
-                        {shipment.letterheadMode === "banner" && (
-                          <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded-full">Aktif</span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-600">
-                        Punya desain kop surat siap pakai dari Word/Canva/Corel? Unggah gambar kop utuh (PNG/JPG) untuk dipasang penuh di atas kertas.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          bannerUploadRef.current?.click();
+                      <div
+                        onClick={() => {
+                          if (shipment.letterheadBannerImage) {
+                            update("letterheadMode", "banner");
+                          } else {
+                            bannerUploadRef.current?.click();
+                          }
                         }}
-                        className="mt-2.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 shadow-2xs"
+                        className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                          shipment.letterheadMode === "banner"
+                            ? "border-blue-600 bg-blue-50/40 ring-1 ring-blue-600/20"
+                            : "border-slate-200 hover:border-slate-300 bg-white"
+                        }`}
                       >
-                        <Upload size={12} />
-                        <span>Impor Gambar Kop Surat Utuh (PNG/JPG)...</span>
-                      </button>
+                        <div>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-md bg-indigo-100 text-indigo-700 flex items-center justify-center shrink-0">
+                                <ImageIcon size={13} />
+                              </div>
+                              <span className="text-xs font-bold text-slate-900">Gambar Banner Utuh</span>
+                            </div>
+                            {shipment.letterheadMode === "banner" && (
+                              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                                Aktif
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-[11px] text-slate-500 leading-snug">
+                            Pasang gambar kop surat penuh (PNG/JPG) di bagian atas kertas.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            bannerUploadRef.current?.click();
+                          }}
+                          className="mt-3 w-full py-1.5 px-2.5 bg-[#0f2942] text-white hover:bg-slate-800 rounded-lg text-[11px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+                        >
+                          <Upload size={12} />
+                          <span>Unggah Gambar Kop</span>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
                   {/* Saved Company Profiles (Multi-Company Letterhead Templates) */}
-                  <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70">
-                    <div className="flex items-center justify-between mb-2.5">
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                          🏢 Daftar Profil Kop Surat Perusahaan (Multi-Perusahaan)
-                        </h4>
-                        <p className="text-[11px] text-slate-500">
-                          Klik salah satu profil perusahaan di bawah untuk langsung menerapkan format kop suratnya ke dokumen ini:
-                        </p>
-                      </div>
+                  <div className="border border-slate-200 rounded-xl bg-slate-50/50 overflow-hidden">
+                    <div className="px-3.5 py-2.5 border-b border-slate-200 bg-white flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                        Profil Kop Tersimpan ({savedKopProfiles.length})
+                      </span>
                       <button
                         type="button"
                         onClick={handleSaveCurrentKopProfile}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-2xs flex items-center gap-1"
+                        className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold rounded-md transition-colors inline-flex items-center gap-1 whitespace-nowrap shrink-0"
                       >
                         <Plus size={12} />
-                        <span>Simpan Kop Saat Ini</span>
+                        <span>Simpan Kop Aktif</span>
                       </button>
                     </div>
 
-                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                      {savedKopProfiles.map((prof) => (
-                        <div
-                          key={prof.id}
-                          className="bg-white border border-slate-200 hover:border-blue-400 rounded-lg p-2.5 flex items-center justify-between gap-3 transition-all"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-xs text-slate-900 truncate">{prof.exporter || prof.name}</span>
-                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">
-                                {prof.layout === "center" ? "Tengah" : prof.layout === "split" ? "Kiri-Kanan" : "Rata Kiri"}
-                              </span>
+                    <div className="p-2.5 space-y-1.5 max-h-52 overflow-y-auto">
+                      {savedKopProfiles.map((prof) => {
+                        const isActiveProfile =
+                          (shipment.exporter || "").trim().toLowerCase() ===
+                          (prof.exporter || prof.name || "").trim().toLowerCase();
+                        return (
+                          <div
+                            key={prof.id}
+                            className={`bg-white border rounded-lg px-3 py-2 flex items-center justify-between gap-3 transition-all ${
+                              isActiveProfile
+                                ? "border-blue-300 bg-blue-50/20"
+                                : "border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-bold text-xs text-slate-900 truncate">
+                                  {prof.exporter || prof.name}
+                                </span>
+                                <span className="text-[10px] px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-medium shrink-0">
+                                  {prof.layout === "center" ? "Tengah" : prof.layout === "split" ? "Split" : "Rata Kiri"}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-slate-500 truncate mt-0.5">{prof.address}</div>
                             </div>
-                            <div className="text-[11px] text-slate-500 truncate">{prof.address}</div>
-                            <div className="text-[10px] text-slate-400 truncate">{prof.contact}</div>
-                          </div>
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                applyKopProfile(prof);
-                                setShowLetterheadModal(false);
-                              }}
-                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-md transition-colors"
-                            >
-                              Gunakan Kop Ini
-                            </button>
-                            {!prof.id.startsWith("kop-") && (
+                            <div className="flex items-center gap-1 shrink-0">
                               <button
                                 type="button"
                                 onClick={() => {
-                                  const next = savedKopProfiles.filter((p) => p.id !== prof.id);
-                                  setSavedKopProfiles(next);
-                                  try {
-                                    localStorage.setItem("eksporflow_saved_kop_profiles", JSON.stringify(next));
-                                  } catch {
-                                    // ignore
-                                  }
-                                  toast.info("Profil kop surat dihapus");
+                                  applyKopProfile(prof);
+                                  setShowLetterheadModal(false);
                                 }}
-                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded"
-                                title="Hapus profil ini"
+                                className={`px-2.5 py-1 text-[11px] font-semibold rounded-md transition-colors whitespace-nowrap ${
+                                  isActiveProfile
+                                    ? "bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100"
+                                    : "bg-[#0f2942] hover:bg-slate-800 text-white"
+                                }`}
                               >
-                                <Trash2 size={13} />
+                                {isActiveProfile ? "Terapkan Ulang" : "Terapkan"}
                               </button>
-                            )}
+                              {!prof.id.startsWith("kop-") && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = savedKopProfiles.filter((p) => p.id !== prof.id);
+                                    setSavedKopProfiles(next);
+                                    try {
+                                      localStorage.setItem("eksporflow_saved_kop_profiles", JSON.stringify(next));
+                                    } catch {
+                                      // ignore
+                                    }
+                                    toast.info("Profil kop surat dihapus");
+                                  }}
+                                  className="p-1 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded transition-colors"
+                                  title="Hapus profil"
+                                >
+                                  <Trash2 size={13} />
+                                </button>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 </>
               ) : (
                 <>
-                  {/* Tab 2: Spacing, Divider Gap, Layout & Divider Style */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Jarak Teks Kop ke Garis Pembatas */}
-                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-bold text-slate-800">
-                          📏 Jarak Kop ke Garis Bawah (Divider Gap)
-                        </label>
-                        <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
-                          {shipment.letterheadDividerGap ?? 4} px
-                        </span>
-                      </div>
-                      <input
-                        type="range"
-                        min="0"
-                        max="24"
-                        step="1"
-                        value={shipment.letterheadDividerGap ?? 4}
-                        onChange={(e) => update("letterheadDividerGap", Number(e.target.value))}
-                        className="w-full accent-blue-600 cursor-pointer"
-                      />
-                      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                        <button type="button" onClick={() => update("letterheadDividerGap", 0)} className="hover:text-blue-600 font-semibold">
-                          0px (Sangat Rapat)
-                        </button>
-                        <button type="button" onClick={() => update("letterheadDividerGap", 4)} className="hover:text-blue-600 font-semibold">
-                          4px (Standar Rapi)
-                        </button>
-                        <button type="button" onClick={() => update("letterheadDividerGap", 10)} className="hover:text-blue-600 font-semibold">
-                          10px (Sedang)
-                        </button>
+                  {/* Tab 2: Layout, Divider Style & Spacing */}
+                  <div>
+                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      Tata Letak Kop Surat
+                    </label>
+                    <div className="grid grid-cols-3 gap-2.5">
+                      {[
+                        { id: "left", label: "Rata Kiri", desc: "Logo kiri, teks rata kiri" },
+                        { id: "center", label: "Simetris Tengah", desc: "Teks terpusat di tengah" },
+                        { id: "split", label: "Split Kiri-Kanan", desc: "Nama kiri, alamat kanan" },
+                      ].map((ly) => {
+                        const active = (shipment.letterheadLayout || "left") === ly.id;
+                        return (
+                          <button
+                            key={ly.id}
+                            type="button"
+                            onClick={() => update("letterheadLayout", ly.id as any)}
+                            className={`p-2.5 rounded-xl border text-left transition-all ${
+                              active
+                                ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20"
+                                : "border-slate-200 bg-white hover:border-slate-300"
+                            }`}
+                          >
+                            <div className="text-xs font-bold text-slate-900">{ly.label}</div>
+                            <div className="text-[10px] text-slate-500 mt-0.5">{ly.desc}</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Gaya & Warna Garis Pembatas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl border border-slate-200 bg-white">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Gaya Garis Pembatas
+                      </label>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        {[
+                          { id: "double", label: "Garis Ganda" },
+                          { id: "thick-thin", label: "Tebal-Tipis" },
+                          { id: "single", label: "Garis Tunggal" },
+                          { id: "none", label: "Tanpa Garis" },
+                        ].map((st) => (
+                          <button
+                            key={st.id}
+                            type="button"
+                            onClick={() => update("letterheadDividerStyle", st.id as any)}
+                            className={`py-1.5 px-2 text-[11px] font-semibold rounded-lg border transition-all ${
+                              (shipment.letterheadDividerStyle || "double") === st.id
+                                ? "bg-[#0f2942] text-white border-[#0f2942]"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {st.label}
+                          </button>
+                        ))}
                       </div>
                     </div>
 
-                    {/* Spasi Antar Baris Teks Kop Surat */}
-                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
+                    <div className="p-3 rounded-xl border border-slate-200 bg-white">
+                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                        Warna Garis & Aksen Kop
+                      </label>
+                      <div className="flex items-center gap-2 pt-1">
+                        {[
+                          { color: "#0f2942", label: "Navy" },
+                          { color: "#1e40af", label: "Biru" },
+                          { color: "#065f46", label: "Hijau" },
+                          { color: "#334155", label: " Abu Tua" },
+                          { color: "#991b1b", label: "Marun" },
+                        ].map((sw) => {
+                          const activeColor = (shipment.letterheadDividerColor || "#0f2942").toLowerCase() === sw.color;
+                          return (
+                            <button
+                              key={sw.color}
+                              type="button"
+                              onClick={() => update("letterheadDividerColor", sw.color)}
+                              className={`flex-1 py-1.5 rounded-lg border flex flex-col items-center gap-1 transition-all ${
+                                activeColor
+                                  ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20"
+                                  : "border-slate-200 hover:border-slate-300"
+                              }`}
+                            >
+                              <span
+                                className="w-4 h-4 rounded-full border border-black/10"
+                                style={{ backgroundColor: sw.color }}
+                              />
+                              <span className="text-[10px] font-medium text-slate-600">{sw.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Sliders: Spasi Baris & Jarak Garis */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60">
                       <div className="flex items-center justify-between mb-1.5">
-                        <label className="text-xs font-bold text-slate-800">
-                          ↕️ Spasi Antar Baris Teks Kop Surat
-                        </label>
-                        <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                        <label className="text-xs font-semibold text-slate-700">Spasi Antar Baris Kop</label>
+                        <span className="text-[11px] font-bold text-[#0f2942] bg-white border border-slate-200 px-2 py-0.5 rounded">
                           {shipment.letterheadSpacing ?? 2} px
                         </span>
                       </div>
@@ -4419,74 +4505,47 @@ export function DocWordRibbon({
                         step="1"
                         value={shipment.letterheadSpacing ?? 2}
                         onChange={(e) => update("letterheadSpacing", Number(e.target.value))}
-                        className="w-full accent-blue-600 cursor-pointer"
+                        className="w-full accent-[#0f2942] cursor-pointer"
                       />
                       <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                        <button type="button" onClick={() => update("letterheadSpacing", 0)} className="hover:text-blue-600 font-semibold">
+                        <button type="button" onClick={() => update("letterheadSpacing", 0)} className="hover:text-slate-900 font-medium">
                           0px (Rapat)
                         </button>
-                        <button type="button" onClick={() => update("letterheadSpacing", 2)} className="hover:text-blue-600 font-semibold">
-                          2px (Ideal)
+                        <button type="button" onClick={() => update("letterheadSpacing", 2)} className="hover:text-slate-900 font-medium">
+                          2px (Standar)
                         </button>
-                        <button type="button" onClick={() => update("letterheadSpacing", 6)} className="hover:text-blue-600 font-semibold">
-                          6px (Renggang)
+                        <button type="button" onClick={() => update("letterheadSpacing", 6)} className="hover:text-slate-900 font-medium">
+                          6px (Lega)
                         </button>
                       </div>
                     </div>
-                  </div>
 
-                  {/* Tata Letak Kop & Gaya Garis Pembatas */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Tata Letak Kop Surat (Layout)
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {[
-                          { id: "left", label: "Kiri Standar" },
-                          { id: "center", label: "Tengah Simetris" },
-                          { id: "split", label: "Kiri & Kanan" },
-                        ].map((ly) => (
-                          <button
-                            key={ly.id}
-                            type="button"
-                            onClick={() => update("letterheadLayout", ly.id as any)}
-                            className={`py-2 px-2.5 text-xs font-bold rounded-lg border transition-all ${
-                              (shipment.letterheadLayout || "left") === ly.id
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                            }`}
-                          >
-                            {ly.label}
-                          </button>
-                        ))}
+                    <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/60">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-semibold text-slate-700">Jarak ke Garis Bawah</label>
+                        <span className="text-[11px] font-bold text-[#0f2942] bg-white border border-slate-200 px-2 py-0.5 rounded">
+                          {shipment.letterheadDividerGap ?? 4} px
+                        </span>
                       </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Gaya Garis Bawah Kop Surat
-                      </label>
-                      <div className="grid grid-cols-4 gap-1.5">
-                        {[
-                          { id: "double", label: "Ganda" },
-                          { id: "thick-thin", label: "Tebal-Tipis" },
-                          { id: "single", label: "Tunggal" },
-                          { id: "none", label: "Tanpa Garis" },
-                        ].map((st) => (
-                          <button
-                            key={st.id}
-                            type="button"
-                            onClick={() => update("letterheadDividerStyle", st.id as any)}
-                            className={`py-2 px-2 text-[11px] font-bold rounded-lg border transition-all ${
-                              (shipment.letterheadDividerStyle || "double") === st.id
-                                ? "bg-blue-600 text-white border-blue-600"
-                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
-                            }`}
-                          >
-                            {st.label}
-                          </button>
-                        ))}
+                      <input
+                        type="range"
+                        min="0"
+                        max="24"
+                        step="1"
+                        value={shipment.letterheadDividerGap ?? 4}
+                        onChange={(e) => update("letterheadDividerGap", Number(e.target.value))}
+                        className="w-full accent-[#0f2942] cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <button type="button" onClick={() => update("letterheadDividerGap", 0)} className="hover:text-slate-900 font-medium">
+                          0px (Rapat)
+                        </button>
+                        <button type="button" onClick={() => update("letterheadDividerGap", 4)} className="hover:text-slate-900 font-medium">
+                          4px (Standar)
+                        </button>
+                        <button type="button" onClick={() => update("letterheadDividerGap", 10)} className="hover:text-slate-900 font-medium">
+                          10px (Lega)
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -4495,16 +4554,13 @@ export function DocWordRibbon({
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
-              <span className="text-[11px] text-slate-500">
-                💡 Teks kop surat juga dapat diketik langsung di atas kertas.
-              </span>
+            <div className="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end items-center">
               <button
                 type="button"
                 onClick={() => setShowLetterheadModal(false)}
-                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+                className="px-4 py-1.5 text-xs font-bold text-white bg-[#0f2942] hover:bg-slate-800 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5"
               >
-                <Check size={14} />
+                <Check size={13} />
                 Selesai
               </button>
             </div>
