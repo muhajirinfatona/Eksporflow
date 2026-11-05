@@ -321,15 +321,37 @@ export type Shipment = {
   letterheadText: string;
   letterheadImage: string;
   letterheadLogoScale?: number;
-  letterheadLogoWrap?: "inline" | "square" | "behind" | "front" | "topBottom";
+  letterheadLogoWrap?: "inline" | "square" | "tight" | "through" | "behind" | "front" | "topBottom";
   letterheadLogoAlign?: "left" | "center" | "right" | "custom";
+  letterheadLogoPositionPreset?:
+    | "inline"
+    | "top-left"
+    | "top-center"
+    | "top-right"
+    | "middle-left"
+    | "middle-center"
+    | "middle-right"
+    | "bottom-left"
+    | "bottom-center"
+    | "bottom-right";
   letterheadLogoX?: number;
   letterheadLogoY?: number;
   letterheadLogoOpacity?: number;
   letterheadLogoRotate?: number;
-  letterheadLogoBorder?: "none" | "solid" | "dashed" | "rounded";
+  letterheadLogoFlipH?: boolean;
+  letterheadLogoFlipV?: boolean;
+  letterheadLogoBorder?: "none" | "solid" | "dashed" | "rounded" | "double" | "oval";
   letterheadLogoBorderColor?: string;
   letterheadLogoShadow?: boolean;
+  letterheadMode?: "standard" | "banner";
+  letterheadBannerImage?: string;
+  letterheadBannerHeight?: number;
+  letterheadSpacing?: number;
+  letterheadDividerGap?: number;
+  letterheadDividerStyle?: "single" | "double" | "thick-thin" | "none";
+  letterheadDividerColor?: string;
+  letterheadLayout?: "left" | "center" | "split";
+  exporterContact?: string;
   poNumber: string;
   bookingNumber: string;
   containerNumber: string;
@@ -343,6 +365,7 @@ export type Shipment = {
   buyerEmail?: string;
   vesselName?: string;
   bankName?: string;
+  bankAddress?: string;
   bankAccountNo?: string;
   bankSwift?: string;
   shipmentStatus: ShipmentStatus;
@@ -455,7 +478,7 @@ export const initialShipment: Shipment = {
   docEditorFontSize: 12,
   docEditorLineHeight: 1.35,
   docEditorTextAlign: "left",
-  docEditorMode: false,
+  docEditorMode: true,
   docMarginPreset: "Normal",
   docMarginTop: 25.4,
   docMarginBottom: 25.4,
@@ -473,13 +496,25 @@ export const initialShipment: Shipment = {
   letterheadLogoScale: 100,
   letterheadLogoWrap: "inline",
   letterheadLogoAlign: "left",
+  letterheadLogoPositionPreset: "inline",
   letterheadLogoX: 0,
   letterheadLogoY: 0,
   letterheadLogoOpacity: 100,
   letterheadLogoRotate: 0,
+  letterheadLogoFlipH: false,
+  letterheadLogoFlipV: false,
   letterheadLogoBorder: "none",
   letterheadLogoBorderColor: "#cbd5e1",
   letterheadLogoShadow: false,
+  letterheadMode: "standard",
+  letterheadBannerImage: "",
+  letterheadBannerHeight: 110,
+  letterheadSpacing: 2,
+  letterheadDividerGap: 4,
+  letterheadDividerStyle: "double",
+  letterheadDividerColor: "#0f2942",
+  letterheadLayout: "left",
+  exporterContact: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
   poNumber: "ABF/LOI/2026/108",
   bookingNumber: "KMTC SHIMIZU V.2611N",
   containerNumber: "TGHU 2468135",
@@ -493,6 +528,7 @@ export const initialShipment: Shipment = {
   buyerEmail: "procurement@albarakahfoods.ae",
   vesselName: "KMTC SHIMIZU V.2611N",
   bankName: "PT. Bank Mandiri (Persero) Tbk",
+  bankAddress: "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia",
   bankAccountNo: "152-00-9876543-2",
   bankSwift: "BMRIIDJA",
   shipmentStatus: "Quotation",
@@ -587,13 +623,25 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     letterheadLogoScale: 100,
     letterheadLogoWrap: "inline",
     letterheadLogoAlign: "left",
+    letterheadLogoPositionPreset: "inline",
     letterheadLogoX: 0,
     letterheadLogoY: 0,
     letterheadLogoOpacity: 100,
     letterheadLogoRotate: 0,
+    letterheadLogoFlipH: false,
+    letterheadLogoFlipV: false,
     letterheadLogoBorder: "none",
     letterheadLogoBorderColor: "#cbd5e1",
     letterheadLogoShadow: false,
+    letterheadMode: "standard",
+    letterheadBannerImage: "",
+    letterheadBannerHeight: 110,
+    letterheadSpacing: 2,
+    letterheadDividerGap: 4,
+    letterheadDividerStyle: "double",
+    letterheadDividerColor: "#0f2942",
+    letterheadLayout: "left",
+    exporterContact: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
     poNumber: "",
     bookingNumber: "",
     containerNumber: "",
@@ -607,6 +655,7 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     buyerEmail: "",
     vesselName: "",
     bankName: "PT. Bank Mandiri (Persero) Tbk",
+    bankAddress: "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia",
     bankAccountNo: "152-00-9876543-2",
     bankSwift: "BMRIIDJA",
     shipmentStatus: "Draft",
@@ -665,13 +714,25 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "letterheadLogoScale",
   "letterheadLogoWrap",
   "letterheadLogoAlign",
+  "letterheadLogoPositionPreset",
   "letterheadLogoX",
   "letterheadLogoY",
   "letterheadLogoOpacity",
   "letterheadLogoRotate",
+  "letterheadLogoFlipH",
+  "letterheadLogoFlipV",
   "letterheadLogoBorder",
   "letterheadLogoBorderColor",
   "letterheadLogoShadow",
+  "letterheadMode",
+  "letterheadBannerImage",
+  "letterheadBannerHeight",
+  "letterheadSpacing",
+  "letterheadDividerGap",
+  "letterheadDividerStyle",
+  "letterheadDividerColor",
+  "letterheadLayout",
+  "exporterContact",
   "signatoryName",
   "signatoryRole",
   "buyerAddress",
@@ -684,6 +745,7 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "sealNumber",
   "poNumber",
   "bankName",
+  "bankAddress",
   "bankAccountNo",
   "bankSwift",
 ];

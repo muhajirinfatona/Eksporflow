@@ -61,6 +61,10 @@ import {
   ZoomOut,
   X,
   Sliders,
+  Upload,
+  Building2,
+  FlipHorizontal,
+  FlipVertical,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
@@ -118,6 +122,86 @@ export function DocWordRibbon({
     right: docMargins.right,
   });
 
+  // Microsoft Word Picture Format Dropdowns & Kop Surat Import Modal
+  const [showPositionMenu, setShowPositionMenu] = useState(false);
+  const [showWrapTextMenu, setShowWrapTextMenu] = useState(false);
+  const [showLetterheadModal, setShowLetterheadModal] = useState(false);
+  const [letterheadModalTab, setLetterheadModalTab] = useState<"import" | "spacing">("import");
+  const positionMenuRef = useRef<HTMLDivElement>(null);
+  const wrapTextMenuRef = useRef<HTMLDivElement>(null);
+  const bannerUploadRef = useRef<HTMLInputElement>(null);
+  const logoUploadRef = useRef<HTMLInputElement>(null);
+
+  const [savedKopProfiles, setSavedKopProfiles] = useState<
+    Array<{
+      id: string;
+      name: string;
+      exporter: string;
+      address: string;
+      contact: string;
+      layout: "left" | "center" | "split";
+      dividerStyle: "double" | "thick-thin" | "single" | "none";
+      dividerColor: string;
+      dividerGap: number;
+      spacing: number;
+      logoImage?: string;
+      bannerImage?: string;
+      mode?: "standard" | "banner";
+    }>
+  >(() => {
+    const defaults = [
+      {
+        id: "kop-indico",
+        name: "PT. Indico Export Indonesia (Standar Ekspor)",
+        exporter: "PT. INDICO EXPORT INDONESIA",
+        address: "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia",
+        contact: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
+        layout: "left" as const,
+        dividerStyle: "double" as const,
+        dividerColor: "#0f2942",
+        dividerGap: 4,
+        spacing: 2,
+        mode: "standard" as const,
+      },
+      {
+        id: "kop-nusantara",
+        name: "CV. Nusantara Spice & Coco (Kop Rata Tengah)",
+        exporter: "CV. NUSANTARA SPICE & COCO GLOBAL",
+        address: "Kawasan Industri Makassar (KIMA) Kav. B-14, Sulawesi Selatan, Indonesia",
+        contact: "Telp: +62 411 512 889 · Email: export@nusantaraspice.co.id · Web: www.nusantaraspice.co.id",
+        layout: "center" as const,
+        dividerStyle: "thick-thin" as const,
+        dividerColor: "#065f46",
+        dividerGap: 4,
+        spacing: 2,
+        mode: "standard" as const,
+      },
+      {
+        id: "kop-celebes",
+        name: "PT. Celebes Agro Marine (Format Split Kiri-Kanan)",
+        exporter: "PT. CELEBES AGRO MARINE",
+        address: "Soekarno Hatta Port Boulevard No. 88, Makassar 90173, Indonesia",
+        contact: "Phone: +62 411 361 7700 · Email: trade@celebesagro.com",
+        layout: "split" as const,
+        dividerStyle: "single" as const,
+        dividerColor: "#1e40af",
+        dividerGap: 5,
+        spacing: 2,
+        mode: "standard" as const,
+      },
+    ];
+    try {
+      const raw = localStorage.getItem("eksporflow_saved_kop_profiles");
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // ignore
+    }
+    return defaults;
+  });
+
   // Keep modal margin inputs in sync when shipment changes
   useEffect(() => {
     setCustomMarginInputs({
@@ -158,11 +242,17 @@ export function DocWordRibbon({
       }
     };
 
+    const handleOpenLetterheadModal = () => {
+      setShowLetterheadModal(true);
+    };
+
     window.addEventListener("eksporflow:table-focus", handleTableFocus);
     window.addEventListener("eksporflow:image-focus", handleImageFocus);
+    window.addEventListener("eksporflow:open-letterhead-modal", handleOpenLetterheadModal);
     return () => {
       window.removeEventListener("eksporflow:table-focus", handleTableFocus);
       window.removeEventListener("eksporflow:image-focus", handleImageFocus);
+      window.removeEventListener("eksporflow:open-letterhead-modal", handleOpenLetterheadModal);
     };
   }, []);
   const [showColorPicker, setShowColorPicker] = useState(false);
@@ -279,7 +369,7 @@ export function DocWordRibbon({
     toast.info(next ? "Penggaris Word ditampilkan" : "Penggaris Word disembunyikan");
   };
 
-  // Click outside to close table and margin popovers
+  // Click outside to close table, margin, position, and wrap text popovers
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (tableMenuRef.current && !tableMenuRef.current.contains(event.target as Node)) {
@@ -288,14 +378,178 @@ export function DocWordRibbon({
       if (marginMenuRef.current && !marginMenuRef.current.contains(event.target as Node)) {
         setShowMarginPopover(false);
       }
+      if (positionMenuRef.current && !positionMenuRef.current.contains(event.target as Node)) {
+        setShowPositionMenu(false);
+      }
+      if (wrapTextMenuRef.current && !wrapTextMenuRef.current.contains(event.target as Node)) {
+        setShowWrapTextMenu(false);
+      }
     }
-    if (showTableMenu || showMarginPopover) {
+    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showTableMenu, showMarginPopover]);
+  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu]);
+
+  // Microsoft Word 9-Grid Position Preset Handler
+  const applyWordPositionPreset = (
+    preset:
+      | "inline"
+      | "top-left"
+      | "top-center"
+      | "top-right"
+      | "middle-left"
+      | "middle-center"
+      | "middle-right"
+      | "bottom-left"
+      | "bottom-center"
+      | "bottom-right"
+  ) => {
+    update("letterheadLogoPositionPreset", preset);
+    if (preset === "inline") {
+      update("letterheadLogoWrap", "inline");
+      update("letterheadLogoAlign", "left");
+      update("letterheadLogoX", 0);
+      update("letterheadLogoY", 0);
+      toast.success("Posisi gambar: In Line with Text (Sejajar dengan Teks)");
+    } else if (preset === "top-left") {
+      update("letterheadLogoWrap", "square");
+      update("letterheadLogoAlign", "left");
+      update("letterheadLogoX", 0);
+      update("letterheadLogoY", 0);
+      toast.success("Posisi gambar: Kiri Atas dengan Bungkus Teks (Top Left)");
+    } else if (preset === "top-center") {
+      update("letterheadLogoWrap", "topBottom");
+      update("letterheadLogoAlign", "center");
+      update("letterheadLogoX", 0);
+      update("letterheadLogoY", 0);
+      toast.success("Posisi gambar: Tengah Atas dengan Bungkus Teks (Top Center)");
+    } else if (preset === "top-right") {
+      update("letterheadLogoWrap", "square");
+      update("letterheadLogoAlign", "right");
+      update("letterheadLogoX", 0);
+      update("letterheadLogoY", 0);
+      toast.success("Posisi gambar: Kanan Atas dengan Bungkus Teks (Top Right)");
+    } else if (preset === "middle-left") {
+      update("letterheadLogoWrap", "front");
+      update("letterheadLogoAlign", "custom");
+      update("letterheadLogoX", 20);
+      update("letterheadLogoY", 260);
+      toast.success("Posisi gambar: Kiri Tengah Halaman (Middle Left)");
+    } else if (preset === "middle-center") {
+      update("letterheadLogoWrap", "behind");
+      update("letterheadLogoAlign", "custom");
+      update("letterheadLogoX", 220);
+      update("letterheadLogoY", 260);
+      if (!shipment.letterheadLogoOpacity || shipment.letterheadLogoOpacity === 100) {
+        update("letterheadLogoOpacity", 25);
+      }
+      toast.success("Posisi gambar: Pusat Halaman / Watermark Tengah (Middle Center)");
+    } else if (preset === "middle-right") {
+      update("letterheadLogoWrap", "front");
+      update("letterheadLogoAlign", "custom");
+      update("letterheadLogoX", 450);
+      update("letterheadLogoY", 260);
+      toast.success("Posisi gambar: Kanan Tengah Halaman (Middle Right)");
+    } else if (preset === "bottom-left") {
+      update("letterheadLogoWrap", "front");
+      update("letterheadLogoAlign", "custom");
+      update("letterheadLogoX", 20);
+      update("letterheadLogoY", 520);
+      toast.success("Posisi gambar: Kiri Bawah Halaman (Bottom Left)");
+    } else if (preset === "bottom-center") {
+      update("letterheadLogoWrap", "front");
+      update("letterheadLogoAlign", "custom");
+      update("letterheadLogoX", 220);
+      update("letterheadLogoY", 520);
+      toast.success("Posisi gambar: Tengah Bawah Halaman (Bottom Center)");
+    } else if (preset === "bottom-right") {
+      update("letterheadLogoWrap", "front");
+      update("letterheadLogoAlign", "custom");
+      update("letterheadLogoX", 450);
+      update("letterheadLogoY", 520);
+      toast.success("Posisi gambar: Kanan Bawah Halaman (Bottom Right)");
+    }
+    setShowPositionMenu(false);
+  };
+
+  // Kop Surat Banner & Logo Upload Handlers
+  const handleBannerFileUpload = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("File kop surat harus berupa gambar (PNG, JPG, atau WEBP)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      update("letterheadBannerImage", String(reader.result));
+      update("letterheadMode", "banner");
+      toast.success("Kop surat perusahaan berhasil diimpor dan dipasang!");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogoFileUpload = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("File logo harus berupa gambar (PNG, JPG, atau WEBP)");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      update("letterheadImage", String(reader.result));
+      update("letterheadMode", "standard");
+      toast.success("Logo kop surat perusahaan berhasil diperbarui!");
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSaveCurrentKopProfile = () => {
+    const profileName = `${shipment.exporter || "Perusahaan Baru"} (${new Date().toLocaleDateString("id-ID")})`;
+    const newProfile = {
+      id: `kop-${Date.now()}`,
+      name: profileName,
+      exporter: shipment.exporter || "PT. INDICO EXPORT INDONESIA",
+      address:
+        shipment.letterheadText ||
+        "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia",
+      contact:
+        shipment.exporterContact || "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
+      layout: (shipment.letterheadLayout || "left") as "left" | "center" | "split",
+      dividerStyle: (shipment.letterheadDividerStyle || "double") as "double" | "thick-thin" | "single" | "none",
+      dividerColor: shipment.letterheadDividerColor || "#0f2942",
+      dividerGap: shipment.letterheadDividerGap ?? 4,
+      spacing: shipment.letterheadSpacing ?? 2,
+      logoImage: shipment.letterheadImage,
+      bannerImage: shipment.letterheadBannerImage,
+      mode: (shipment.letterheadMode || "standard") as "standard" | "banner",
+    };
+    const nextList = [newProfile, ...savedKopProfiles];
+    setSavedKopProfiles(nextList);
+    try {
+      localStorage.setItem("eksporflow_saved_kop_profiles", JSON.stringify(nextList));
+    } catch {
+      // ignore storage quota
+    }
+    toast.success(`Format kop surat "${profileName}" disimpan ke daftar profil!`);
+  };
+
+  const applyKopProfile = (p: (typeof savedKopProfiles)[number]) => {
+    update("exporter", p.exporter);
+    update("letterheadText", p.address);
+    update("exporterContact", p.contact);
+    update("letterheadLayout", p.layout);
+    update("letterheadDividerStyle", p.dividerStyle);
+    update("letterheadDividerColor", p.dividerColor);
+    update("letterheadDividerGap", p.dividerGap);
+    update("letterheadSpacing", p.spacing);
+    if (p.logoImage !== undefined) update("letterheadImage", p.logoImage);
+    if (p.bannerImage !== undefined) update("letterheadBannerImage", p.bannerImage);
+    update("letterheadMode", p.mode || "standard");
+    toast.success(`Kop surat "${p.name}" berhasil diterapkan ke dokumen!`);
+  };
 
   // Execute formatting command while preserving selection
   const runCommand = (command: string, value: string | undefined = undefined) => {
@@ -549,17 +803,26 @@ export function DocWordRibbon({
     newRow.style.borderBottom = "1px solid #e2e8f0";
 
     const isDocTablePro = table.classList.contains("doc-table-pro");
+    const isBankTable = table.classList.contains("bank-card-table");
     const existingBodyRows = tbody.querySelectorAll("tr:not(.doc-table-total-row)");
     const nextItemNo = existingBodyRows.length + 1;
 
     for (let c = 0; c < colCount; c++) {
       const newCell = document.createElement("td");
-      newCell.style.padding = "8px 10px";
-      newCell.style.border = "1px solid #e2e8f0";
-      newCell.style.verticalAlign = "top";
-      newCell.style.color = "#0f172a";
 
-      if (isDocTablePro) {
+      if (isBankTable) {
+        if (c === 0) {
+          newCell.className = "bank-lbl";
+          newCell.innerText = "Keterangan Baru:";
+        } else {
+          newCell.className = "bank-val font-bold";
+          newCell.innerText = "Isi Rincian Bank";
+        }
+      } else if (isDocTablePro) {
+        newCell.style.padding = "8px 10px";
+        newCell.style.border = "1px solid #e2e8f0";
+        newCell.style.verticalAlign = "top";
+        newCell.style.color = "#0f172a";
         if (c === 0) {
           newCell.className = "text-center font-normal";
           newCell.innerText = String(nextItemNo);
@@ -579,6 +842,10 @@ export function DocWordRibbon({
           newCell.innerText = "$0.00";
         }
       } else {
+        newCell.style.padding = "8px 10px";
+        newCell.style.border = "1px solid #e2e8f0";
+        newCell.style.verticalAlign = "top";
+        newCell.style.color = "#0f172a";
         newCell.innerText = `Data ${nextItemNo}.${c + 1}`;
       }
       newRow.appendChild(newCell);
@@ -609,10 +876,6 @@ export function DocWordRibbon({
     }
     if (row.parentElement?.tagName === "THEAD") {
       toast.error("Baris header judul kolom tidak dapat dihapus");
-      return;
-    }
-    if (row.parentElement?.tagName === "TFOOT" || row.classList.contains("doc-table-total-row")) {
-      toast.error("Baris total faktur tidak dapat dihapus");
       return;
     }
     row.remove();
@@ -746,7 +1009,7 @@ export function DocWordRibbon({
       toast.error("Klik di dalam tabel terlebih dahulu");
       return;
     }
-    const thList = table.querySelectorAll("thead th");
+    const thList = table.querySelectorAll("thead th:not([colspan])");
     if (thList.length > 0) {
       const pct = (100 / thList.length).toFixed(1);
       thList.forEach((th) => {
@@ -756,6 +1019,19 @@ export function DocWordRibbon({
         (td as HTMLElement).style.width = "auto";
       });
       toast.success("Seluruh kolom telah diratakan sama rata.");
+    } else {
+      const firstBodyRow = table.querySelector("tbody tr");
+      const tdCount = firstBodyRow ? firstBodyRow.children.length : 0;
+      if (tdCount > 0) {
+        const pct = (100 / tdCount).toFixed(1);
+        table.querySelectorAll("tbody tr").forEach((r) => {
+          Array.from(r.children).forEach((td) => {
+            (td as HTMLElement).style.width = `${pct}%`;
+            (td as HTMLElement).style.maxWidth = "none";
+          });
+        });
+        toast.success("Seluruh kolom telah diratakan sama rata.");
+      }
     }
   };
 
@@ -2012,6 +2288,44 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
+              {/* KOP SURAT PERUSAHAAN (IMPORT & SPASI) */}
+              <div className="doc-ribbon-group group-letterhead-import">
+                <div className="doc-ribbon-row-top" style={{ gap: "4px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-sig-btn"
+                    style={{ background: "linear-gradient(135deg, #1e3a8a, #2563eb)", color: "#ffffff" }}
+                    onClick={() => {
+                      setLetterheadModalTab("import");
+                      setShowLetterheadModal(true);
+                    }}
+                    title="Impor Kop Surat dari Dokumen Perusahaan Lain (Gambar Banner / Profil Kop)"
+                  >
+                    <Upload size={13} />
+                    <span>Impor Kop Surat...</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ gap: "4px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      setLetterheadModalTab("spacing");
+                      setShowLetterheadModal(true);
+                    }}
+                    title="Atur Jarak Spasi Kop Surat, Tata Letak & Garis Pembatas"
+                  >
+                    <Sliders size={11} />
+                    <span>Atur Spasi & Garis Kop...</span>
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Format Kop Surat</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
               {/* LOGO SCALE GROUP */}
               <div className="doc-ribbon-group group-logo-scale">
                 <div className="doc-ribbon-row-top" style={{ gap: "4px", alignItems: "center" }}>
@@ -2705,325 +3019,656 @@ export function DocWordRibbon({
             </>
           )}
 
-          {/* ================= TAB 5: FORMAT GAMBAR (PICTURE TOOLS) ================= */}
+          {/* ================= TAB 5: FORMAT GAMBAR (MICROSOFT WORD PICTURE FORMAT) ================= */}
           {activeRibbonTab === "picture" && (
             <>
-              {/* 1. Bungkus Teks (Wrap Text - Sesuai Microsoft Word) */}
-              <div className="doc-ribbon-group group-wrap-text">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px" }}>
-                  <select
-                    className="doc-ribbon-select"
-                    value={shipment.letterheadLogoWrap || "inline"}
-                    onChange={(e) => {
-                      const wrap = e.target.value as any;
-                      update("letterheadLogoWrap", wrap);
-                      toast.success(`Bungkus teks diatur: ${wrap === "behind" ? "Di Belakang Teks (Watermark)" : wrap === "front" ? "Di Depan Teks" : wrap === "square" ? "Kotak (Square)" : wrap === "topBottom" ? "Atas & Bawah" : "Sejajar Teks"}`);
-                    }}
-                    title="Bungkus Teks (Wrap Text) sesuai Microsoft Word"
-                    style={{ fontWeight: 600, color: "#1e3a8a", minWidth: "140px" }}
-                  >
-                    <option value="inline">📄 Sejajar Teks (In Line)</option>
-                    <option value="square">🔲 Kotak (Square Wrap)</option>
-                    <option value="behind">📑 Di Belakang Teks (Watermark)</option>
-                    <option value="front">🏷️ Di Depan Teks (Floating)</option>
-                    <option value="topBottom">📜 Atas dan Bawah</option>
-                  </select>
-                </div>
-
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "2px" }}>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "inline" || !shipment.letterheadLogoWrap ? "active" : ""}`}
-                    onClick={() => update("letterheadLogoWrap", "inline")}
-                    title="Sejajar dengan Teks (In Line with Text)"
-                  >
-                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Sejajar</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "square" ? "active" : ""}`}
-                    onClick={() => update("letterheadLogoWrap", "square")}
-                    title="Kotak: Teks mengalir mengelilingi logo"
-                  >
-                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Kotak</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "behind" ? "active" : ""}`}
-                    onClick={() => {
-                      update("letterheadLogoWrap", "behind");
-                      if (!shipment.letterheadLogoOpacity || shipment.letterheadLogoOpacity === 100) {
-                        update("letterheadLogoOpacity", 30); // Default good watermark opacity
-                      }
-                    }}
-                    title="Di Belakang Teks (Watermark Resmi: Logo berada di bawah naskah)"
-                  >
-                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Belakang</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoWrap === "front" ? "active" : ""}`}
-                    onClick={() => update("letterheadLogoWrap", "front")}
-                    title="Di Depan Teks (Melayang di atas naskah/stempel)"
-                  >
-                    <span style={{ fontSize: "10px", fontWeight: 700 }}>Depan</span>
-                  </button>
-                </div>
-                <span className="doc-ribbon-group-label">Bungkus Teks (Wrap)</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* 2. Posisi & Perataan Gambar */}
-              <div className="doc-ribbon-group group-pic-position">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "left" || !shipment.letterheadLogoAlign ? "active" : ""}`}
-                    onClick={() => {
-                      update("letterheadLogoAlign", "left");
-                      update("letterheadLogoX", 0);
-                      update("letterheadLogoY", 0);
-                      toast.success("Posisi logo diatur: Rata Kiri");
-                    }}
-                    title="Posisi Kiri"
-                  >
-                    <AlignLeft size={13} />
-                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>Kiri</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "center" ? "active" : ""}`}
-                    onClick={() => {
-                      update("letterheadLogoAlign", "center");
-                      toast.success("Posisi logo diatur: Tengah");
-                    }}
-                    title="Posisi Tengah"
-                  >
-                    <AlignCenter size={13} />
-                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>Tengah</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-btn-icon ${shipment.letterheadLogoAlign === "right" ? "active" : ""}`}
-                    onClick={() => {
-                      update("letterheadLogoAlign", "right");
-                      toast.success("Posisi logo diatur: Rata Kanan");
-                    }}
-                    title="Posisi Kanan"
-                  >
-                    <AlignRight size={13} />
-                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>Kanan</span>
-                  </button>
-                </div>
-
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+              {/* 1. SESUAIKAN (ADJUST) */}
+              <div className="doc-ribbon-group group-pic-adjust">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "5px" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
-                    onClick={() => {
-                      update("letterheadLogoX", 0);
-                      update("letterheadLogoY", 0);
-                      toast.success("Koordinat posisi logo di-reset ke awal");
-                    }}
-                    title="Reset Posisi Koordinat X & Y"
+                    onClick={() => logoUploadRef.current?.click()}
+                    title="Ganti Gambar Logo dari Komputer"
                   >
-                    <Move size={11} />
-                    <span>Reset Posisi</span>
+                    <Upload size={11} />
+                    <span>Ganti Logo</span>
                   </button>
-                  <span style={{ fontSize: "10px", color: "#64748b", alignSelf: "center" }}>
-                    X: {shipment.letterheadLogoX || 0}px · Y: {shipment.letterheadLogoY || 0}px
-                  </span>
-                </div>
-                <span className="doc-ribbon-group-label">Posisi & Perataan</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* 3. Opasitas / Watermark Slider */}
-              <div className="doc-ribbon-group group-pic-opacity">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <SunMedium size={13} className="text-amber-600" />
-                  <input
-                    type="range"
-                    min="10"
-                    max="100"
-                    step="5"
-                    value={shipment.letterheadLogoOpacity ?? 100}
-                    onChange={(e) => update("letterheadLogoOpacity", Number(e.target.value))}
-                    title={`Transparansi / Opasitas Logo: ${shipment.letterheadLogoOpacity ?? 100}%`}
-                    style={{ width: "90px", accentColor: "#2563eb", cursor: "pointer" }}
-                  />
-                  <span style={{ fontSize: "11px", fontWeight: 700, minWidth: "32px", color: "#1e293b" }}>
-                    {shipment.letterheadLogoOpacity ?? 100}%
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "#f8fafc", padding: "2px 6px", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
+                    <SunMedium size={12} className="text-amber-600" />
+                    <input
+                      type="range"
+                      min="10"
+                      max="100"
+                      step="5"
+                      value={shipment.letterheadLogoOpacity ?? 100}
+                      onChange={(e) => update("letterheadLogoOpacity", Number(e.target.value))}
+                      title={`Transparansi / Opasitas Gambar: ${shipment.letterheadLogoOpacity ?? 100}%`}
+                      style={{ width: "68px", accentColor: "#2563eb", cursor: "pointer" }}
+                    />
+                    <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "28px", color: "#1e293b" }}>
+                      {shipment.letterheadLogoOpacity ?? 100}%
+                    </span>
+                  </div>
                 </div>
 
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px" }}>
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
+                    className={`doc-ribbon-table-subbtn ${(shipment.letterheadLogoOpacity ?? 100) <= 35 && shipment.letterheadLogoWrap === "behind" ? "active" : ""}`}
                     onClick={() => {
                       update("letterheadLogoOpacity", 30);
                       update("letterheadLogoWrap", "behind");
-                      toast.success("Mode Watermark Kop Surat Aktif (30% di Belakang Teks)");
+                      toast.success("Mode Watermark Aktif (30% di Belakang Teks)");
                     }}
-                    title="Atur otomatis sebagai Watermark Kop (30% transparan di belakang teks)"
+                    title="Atur gambar sebagai Watermark (30% transparan di belakang teks)"
                   >
-                    Watermark 30%
+                    <span>Watermark 30%</span>
                   </button>
-                  <button
-                    type="button"
-                    className="doc-ribbon-table-subbtn"
-                    onClick={() => {
-                      update("letterheadLogoOpacity", 100);
-                      toast.success("Opasitas logo solid 100%");
-                    }}
-                    title="Solid 100%"
-                  >
-                    Solid 100%
-                  </button>
-                </div>
-                <span className="doc-ribbon-group-label">Opasitas / Watermark</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* 4. Rotasi & Sudut Gambar */}
-              <div className="doc-ribbon-group group-pic-rotate">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
-                  <button
-                    type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => {
-                      const cur = shipment.letterheadLogoRotate || 0;
-                      const next = (cur + 90) % 360;
-                      update("letterheadLogoRotate", next);
-                      toast.success(`Logo diputar ke ${next}°`);
-                    }}
-                    title="Putar 90 Derajat Searah Jarum Jam"
-                  >
-                    <RotateCw size={13} />
-                    <span style={{ fontSize: "10px", marginLeft: "2px" }}>+90°</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => {
-                      update("letterheadLogoRotate", 0);
-                      toast.success("Rotasi logo di-reset ke 0° (tegak lurus)");
-                    }}
-                    title="Tegak Lurus (0°)"
-                  >
-                    <span style={{ fontSize: "10px", fontWeight: 700 }}>0° Normal</span>
-                  </button>
-                </div>
-
-                <div className="doc-ribbon-row-bottom">
-                  <span style={{ fontSize: "10px", color: "#64748b" }}>
-                    Sudut Rotasi: {shipment.letterheadLogoRotate || 0}°
-                  </span>
-                </div>
-                <span className="doc-ribbon-group-label">Rotasi Gambar</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* 5. Gaya Bingkai / Picture Style */}
-              <div className="doc-ribbon-group group-pic-style">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
-                  <select
-                    className="doc-ribbon-select"
-                    value={shipment.letterheadLogoBorder || "none"}
-                    onChange={(e) => {
-                      const b = e.target.value as any;
-                      update("letterheadLogoBorder", b);
-                      toast.success(`Bingkai logo: ${b}`);
-                    }}
-                    title="Bentuk Bingkai Logo"
-                    style={{ fontSize: "11px" }}
-                  >
-                    <option value="none">Tanpa Bingkai</option>
-                    <option value="solid">Bingkai Tipis Solid</option>
-                    <option value="dashed">Garis Putus (Dashed)</option>
-                    <option value="rounded">Sudut Bulat (Rounded)</option>
-                  </select>
-                </div>
-
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
-                  <button
-                    type="button"
-                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoShadow ? "active" : ""}`}
-                    onClick={() => {
-                      const next = !shipment.letterheadLogoShadow;
-                      update("letterheadLogoShadow", next);
-                      toast.success(next ? "Efek bayangan logo diaktifkan" : "Efek bayangan dinonaktifkan");
-                    }}
-                    title="Efek Bayangan Lembut (Soft Shadow)"
-                  >
-                    <span>Bayangan {shipment.letterheadLogoShadow ? "✓" : ""}</span>
-                  </button>
-                </div>
-                <span className="doc-ribbon-group-label">Gaya Bingkai & Efek</span>
-              </div>
-
-              <div className="doc-ribbon-divider" />
-
-              {/* 6. Skala & Ukuran Gambar */}
-              <div className="doc-ribbon-group group-pic-size">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
-                  <button
-                    type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => {
-                      const cur = shipment.letterheadLogoScale ?? 100;
-                      const next = Math.max(30, cur - 10);
-                      update("letterheadLogoScale", next);
-                    }}
-                    title="Perkecil Ukuran Logo (-10%)"
-                  >
-                    <ZoomOut size={13} />
-                  </button>
-                  <span style={{ fontSize: "11px", fontWeight: 700, padding: "2px 4px", minWidth: "38px", textAlign: "center" }}>
-                    {shipment.letterheadLogoScale ?? 100}%
-                  </span>
-                  <button
-                    type="button"
-                    className="doc-ribbon-btn-icon"
-                    onClick={() => {
-                      const cur = shipment.letterheadLogoScale ?? 100;
-                      const next = Math.min(300, cur + 10);
-                      update("letterheadLogoScale", next);
-                    }}
-                    title="Perbesar Ukuran Logo (+10%)"
-                  >
-                    <ZoomIn size={13} />
-                  </button>
-                </div>
-
-                <div className="doc-ribbon-row-bottom">
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => {
                       update("letterheadLogoScale", 100);
                       update("letterheadLogoWrap", "inline");
+                      update("letterheadLogoPositionPreset", "inline");
                       update("letterheadLogoAlign", "left");
                       update("letterheadLogoX", 0);
                       update("letterheadLogoY", 0);
                       update("letterheadLogoOpacity", 100);
                       update("letterheadLogoRotate", 0);
+                      update("letterheadLogoFlipH", false);
+                      update("letterheadLogoFlipV", false);
                       update("letterheadLogoBorder", "none");
                       update("letterheadLogoShadow", false);
-                      toast.success("Format gambar di-reset ke standar awal");
+                      toast.success("Seluruh pengaturan gambar di-reset ke standar awal");
                     }}
-                    title="Reset Seluruh Format Gambar ke Awal"
+                    title="Reset Gambar (Reset Picture & Size)"
                   >
                     <RotateCcw size={11} />
-                    <span>Reset Format</span>
+                    <span>Reset Gambar</span>
                   </button>
                 </div>
-                <span className="doc-ribbon-group-label">Ukuran Logo</span>
+                <span className="doc-ribbon-group-label">Adjust (Sesuaikan)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 2. GAYA GAMBAR (PICTURE STYLES GALLERY) */}
+              <div className="doc-ribbon-group group-pic-styles">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                  {[
+                    { id: "none", label: "Polos", style: { border: "1px solid #cbd5e1", borderRadius: "2px" } },
+                    { id: "solid", label: "Bingkai", style: { border: "2px solid #1e293b", borderRadius: "2px" } },
+                    { id: "double", label: "Ganda", style: { border: "3px double #1e293b", borderRadius: "2px", background: "#f8fafc" } },
+                    { id: "rounded", label: "Bulat", style: { border: "2px solid #334155", borderRadius: "6px" } },
+                    { id: "oval", label: "Oval", style: { border: "2px solid #2563eb", borderRadius: "999px" } },
+                    { id: "dashed", label: "Putus", style: { border: "1.5px dashed #475569", borderRadius: "3px" } },
+                  ].map((frame) => {
+                    const isActive = (shipment.letterheadLogoBorder || "none") === frame.id;
+                    return (
+                      <button
+                        key={frame.id}
+                        type="button"
+                        onClick={() => {
+                          update("letterheadLogoBorder", frame.id as any);
+                          toast.success(`Gaya Bingkai Gambar: ${frame.label}`);
+                        }}
+                        title={`Gaya Bingkai: ${frame.label}`}
+                        style={{
+                          width: "34px",
+                          height: "26px",
+                          padding: "3px",
+                          background: isActive ? "#dbeafe" : "#ffffff",
+                          border: isActive ? "2px solid #2563eb" : "1px solid #cbd5e1",
+                          borderRadius: "4px",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            background: "linear-gradient(180deg, #93c5fd 0%, #bfdbfe 55%, #86efac 55%, #4ade80 100%)",
+                            ...frame.style,
+                          }}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoShadow ? "active" : ""}`}
+                    onClick={() => {
+                      const next = !shipment.letterheadLogoShadow;
+                      update("letterheadLogoShadow", next);
+                      toast.success(next ? "Picture Effects: Bayangan Diaktifkan" : "Picture Effects: Bayangan Dinonaktifkan");
+                    }}
+                    title="Picture Effects: Efek Bayangan (Drop Shadow)"
+                  >
+                    <span>Picture Effects: Bayangan {shipment.letterheadLogoShadow ? "✓" : ""}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      setLetterheadModalTab("spacing");
+                      setShowLetterheadModal(true);
+                    }}
+                    title="Atur Tata Letak Kop Surat & Jarak Garis"
+                  >
+                    <Layout size={11} />
+                    <span>Picture Layout Kop</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Picture Styles</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 3. SUSUN (ARRANGE - POSITION 9-GRID & WRAP TEXT MENU PERSIS MS WORD) */}
+              <div className="doc-ribbon-group group-pic-arrange" style={{ position: "relative" }}>
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "6px", alignItems: "center" }}>
+                  {/* POSITION DROPDOWN BUTTON (9-GRID WORD POPOVER) */}
+                  <div ref={positionMenuRef} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className={`doc-ribbon-table-subbtn ${showPositionMenu ? "active" : ""}`}
+                      style={{
+                        height: "28px",
+                        padding: "0 10px",
+                        fontWeight: 700,
+                        background: showPositionMenu ? "#dbeafe" : "#f8fafc",
+                        borderColor: showPositionMenu ? "#2563eb" : "#cbd5e1",
+                        color: "#1e3a8a",
+                      }}
+                      onClick={() => {
+                        setShowPositionMenu((prev) => !prev);
+                        setShowWrapTextMenu(false);
+                      }}
+                      title="Position: Pilih posisi gambar di halaman (In Line with Text atau 9 titik posisi dengan Text Wrapping)"
+                    >
+                      <Layout size={13} />
+                      <span>Position</span>
+                      <ChevronDown size={12} />
+                    </button>
+
+                    {showPositionMenu && (
+                      <div
+                        className="no-print"
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          width: "248px",
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          boxShadow: "0 12px 28px rgba(15, 23, 42, 0.22)",
+                          zIndex: 9999,
+                          padding: "8px",
+                        }}
+                      >
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#475569", background: "#f1f5f9", padding: "4px 8px", borderRadius: "3px", marginBottom: "6px" }}>
+                          In Line with Text
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => applyWordPositionPreset("inline")}
+                          title="Sejajar dengan Teks (In Line with Text)"
+                          style={{
+                            width: "54px",
+                            height: "58px",
+                            border: (shipment.letterheadLogoPositionPreset || "inline") === "inline" ? "2px solid #2563eb" : "1px solid #94a3b8",
+                            background: (shipment.letterheadLogoPositionPreset || "inline") === "inline" ? "#eff6ff" : "#ffffff",
+                            borderRadius: "4px",
+                            padding: "5px",
+                            cursor: "pointer",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            marginBottom: "8px",
+                          }}
+                        >
+                          <div style={{ height: "2px", background: "#94a3b8", width: "100%" }} />
+                          <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                            <div style={{ width: "18px", height: "14px", background: "#3b82f6", borderRadius: "2px", border: "1px solid #1d4ed8" }} />
+                            <div style={{ flex: 1, height: "2px", background: "#94a3b8" }} />
+                          </div>
+                          <div style={{ height: "2px", background: "#94a3b8", width: "100%" }} />
+                          <div style={{ height: "2px", background: "#94a3b8", width: "80%" }} />
+                        </button>
+
+                        <div style={{ fontSize: "11px", fontWeight: 700, color: "#475569", background: "#f1f5f9", padding: "4px 8px", borderRadius: "3px", marginBottom: "6px" }}>
+                          With Text Wrapping
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "8px", marginBottom: "8px" }}>
+                          {(
+                            [
+                              { id: "top-left", label: "Kiri Atas (Top Left)", v: "flex-start", h: "flex-start" },
+                              { id: "top-center", label: "Tengah Atas (Top Center)", v: "flex-start", h: "center" },
+                              { id: "top-right", label: "Kanan Atas (Top Right)", v: "flex-start", h: "flex-end" },
+                              { id: "middle-left", label: "Kiri Tengah (Middle Left)", v: "center", h: "flex-start" },
+                              { id: "middle-center", label: "Tengah Halaman (Middle Center)", v: "center", h: "center" },
+                              { id: "middle-right", label: "Kanan Tengah (Middle Right)", v: "center", h: "flex-end" },
+                              { id: "bottom-left", label: "Kiri Bawah (Bottom Left)", v: "flex-end", h: "flex-start" },
+                              { id: "bottom-center", label: "Tengah Bawah (Bottom Center)", v: "flex-end", h: "center" },
+                              { id: "bottom-right", label: "Kanan Bawah (Bottom Right)", v: "flex-end", h: "flex-end" },
+                            ] as const
+                          ).map((pos) => {
+                            const active = shipment.letterheadLogoPositionPreset === pos.id;
+                            return (
+                              <button
+                                key={pos.id}
+                                type="button"
+                                onClick={() => applyWordPositionPreset(pos.id)}
+                                title={`Position in ${pos.label} with Square Text Wrapping`}
+                                style={{
+                                  height: "60px",
+                                  border: active ? "2px solid #2563eb" : "1px solid #94a3b8",
+                                  background: active ? "#eff6ff" : "#ffffff",
+                                  borderRadius: "4px",
+                                  padding: "5px",
+                                  cursor: "pointer",
+                                  position: "relative",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                {[0, 1, 2, 3, 4, 5].map((ln) => (
+                                  <div key={ln} style={{ height: "2px", background: "#cbd5e1", width: "100%" }} />
+                                ))}
+                                <div
+                                  style={{
+                                    position: "absolute",
+                                    inset: "5px",
+                                    display: "flex",
+                                    alignItems: pos.v,
+                                    justifyContent: pos.h,
+                                    pointerEvents: "none",
+                                  }}
+                                >
+                                  <div
+                                    style={{
+                                      width: "18px",
+                                      height: "14px",
+                                      background: "#2563eb",
+                                      border: "1.5px solid #ffffff",
+                                      boxShadow: "0 0 0 1px #1d4ed8",
+                                      borderRadius: "2px",
+                                    }}
+                                  />
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowPositionMenu(false);
+                              setLetterheadModalTab("spacing");
+                              setShowLetterheadModal(true);
+                            }}
+                            style={{
+                              width: "100%",
+                              textAlign: "left",
+                              padding: "5px 8px",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "#1e293b",
+                              background: "transparent",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                            }}
+                          >
+                            <SlidersHorizontal size={12} className="text-blue-600" />
+                            <span>More Layout Options...</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* WRAP TEXT DROPDOWN BUTTON (PERSIS MS WORD) */}
+                  <div ref={wrapTextMenuRef} style={{ position: "relative" }}>
+                    <button
+                      type="button"
+                      className={`doc-ribbon-table-subbtn ${showWrapTextMenu ? "active" : ""}`}
+                      style={{
+                        height: "28px",
+                        padding: "0 10px",
+                        fontWeight: 700,
+                        background: showWrapTextMenu ? "#dbeafe" : "#f8fafc",
+                        borderColor: showWrapTextMenu ? "#2563eb" : "#cbd5e1",
+                        color: "#1e3a8a",
+                      }}
+                      onClick={() => {
+                        setShowWrapTextMenu((prev) => !prev);
+                        setShowPositionMenu(false);
+                      }}
+                      title="Wrap Text: Pilih cara teks mengalir di sekitar gambar"
+                    >
+                      <Layers size={13} />
+                      <span>Wrap Text</span>
+                      <ChevronDown size={12} />
+                    </button>
+
+                    {showWrapTextMenu && (
+                      <div
+                        className="no-print"
+                        style={{
+                          position: "absolute",
+                          top: "calc(100% + 4px)",
+                          left: 0,
+                          width: "215px",
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "6px",
+                          boxShadow: "0 12px 28px rgba(15, 23, 42, 0.22)",
+                          zIndex: 9999,
+                          padding: "4px 0",
+                        }}
+                      >
+                        {(
+                          [
+                            { id: "inline", label: "In Line with Text", desc: "Sejajar dengan baris teks" },
+                            { id: "square", label: "Square", desc: "Teks mengelilingi kotak gambar" },
+                            { id: "tight", label: "Tight", desc: "Teks rapat mengelilingi gambar" },
+                            { id: "through", label: "Through", desc: "Teks mengalir menembus batas" },
+                            { id: "topBottom", label: "Top and Bottom", desc: "Teks di atas dan di bawah gambar" },
+                            { id: "behind", label: "Behind Text", desc: "Di belakang teks (Watermark)" },
+                            { id: "front", label: "In Front of Text", desc: "Bebas melayang di depan teks" },
+                          ] as const
+                        ).map((item, idx) => {
+                          const isCurrent = (shipment.letterheadLogoWrap || "inline") === item.id;
+                          return (
+                            <React.Fragment key={item.id}>
+                              {idx === 5 && <div style={{ borderTop: "1px solid #e2e8f0", margin: "3px 0" }} />}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  update("letterheadLogoWrap", item.id);
+                                  if (item.id === "inline") {
+                                    update("letterheadLogoPositionPreset", "inline");
+                                    update("letterheadLogoX", 0);
+                                    update("letterheadLogoY", 0);
+                                  }
+                                  setShowWrapTextMenu(false);
+                                  toast.success(`Wrap Text: ${item.label}`);
+                                }}
+                                style={{
+                                  width: "100%",
+                                  padding: "6px 12px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  background: isCurrent ? "#eff6ff" : "transparent",
+                                  color: isCurrent ? "#1d4ed8" : "#1e293b",
+                                  fontWeight: isCurrent ? 700 : 500,
+                                  fontSize: "12px",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  textAlign: "left",
+                                }}
+                              >
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <span
+                                    style={{
+                                      width: "18px",
+                                      height: "16px",
+                                      border: "1px solid #94a3b8",
+                                      borderRadius: "2px",
+                                      background: "#f8fafc",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      fontSize: "9px",
+                                      color: "#2563eb",
+                                      fontWeight: 800,
+                                    }}
+                                  >
+                                    ↷
+                                  </span>
+                                  <span>{item.label}</span>
+                                </div>
+                                {isCurrent && <Check size={13} className="text-blue-600" />}
+                              </button>
+                            </React.Fragment>
+                          );
+                        })}
+
+                        <div style={{ borderTop: "1px solid #e2e8f0", margin: "4px 0" }} />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            update("letterheadLogoX", 0);
+                            update("letterheadLogoY", 0);
+                            setShowWrapTextMenu(false);
+                            toast.success("Posisi gambar dikunci mengikuti teks kop surat");
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "5px 12px",
+                            fontSize: "11px",
+                            color: "#475569",
+                            background: "transparent",
+                            border: "none",
+                            textAlign: "left",
+                            cursor: "pointer",
+                          }}
+                        >
+                          ✓ Move with Text (Reset X/Y)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowWrapTextMenu(false);
+                            setLetterheadModalTab("spacing");
+                            setShowLetterheadModal(true);
+                          }}
+                          style={{
+                            width: "100%",
+                            padding: "6px 12px",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color: "#1e293b",
+                            background: "transparent",
+                            border: "none",
+                            textAlign: "left",
+                            cursor: "pointer",
+                          }}
+                        >
+                          More Layout Options...
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* BRING FORWARD & SEND BACKWARD */}
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoWrap === "front" ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoWrap", "front");
+                      toast.success("Bring Forward: Gambar ditempatkan di Depan Teks");
+                    }}
+                    title="Bring Forward (Bawa ke Depan Teks)"
+                  >
+                    <ArrowUp size={11} />
+                    <span>Bring Forward</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoWrap === "behind" ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoWrap", "behind");
+                      toast.success("Send Backward: Gambar ditempatkan di Belakang Teks");
+                    }}
+                    title="Send Backward (Kirim ke Belakang Teks)"
+                  >
+                    <ArrowDown size={11} />
+                    <span>Send Backward</span>
+                  </button>
+                </div>
+
+                {/* ROW BOTTOM: ALIGN + ROTATE + FLIP */}
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${(shipment.letterheadLogoAlign || "left") === "left" ? "active" : ""}`}
+                    onClick={() => {
+                      update("letterheadLogoAlign", "left");
+                      update("letterheadLogoX", 0);
+                      update("letterheadLogoY", 0);
+                    }}
+                    title="Align Left (Rata Kiri)"
+                  >
+                    <AlignLeft size={11} />
+                    <span>Kiri</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoAlign === "center" ? "active" : ""}`}
+                    onClick={() => update("letterheadLogoAlign", "center")}
+                    title="Align Center (Rata Tengah)"
+                  >
+                    <AlignCenter size={11} />
+                    <span>Tengah</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoAlign === "right" ? "active" : ""}`}
+                    onClick={() => update("letterheadLogoAlign", "right")}
+                    title="Align Right (Rata Kanan)"
+                  >
+                    <AlignRight size={11} />
+                    <span>Kanan</span>
+                  </button>
+
+                  <span style={{ color: "#cbd5e1" }}>|</span>
+
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      const cur = shipment.letterheadLogoRotate || 0;
+                      const next = (cur + 90) % 360;
+                      update("letterheadLogoRotate", next);
+                      toast.success(`Rotate Right 90° (${next}°)`);
+                    }}
+                    title="Rotate Right 90°"
+                  >
+                    <RotateCw size={11} />
+                    <span>+90°</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoFlipH ? "active" : ""}`}
+                    onClick={() => {
+                      const next = !shipment.letterheadLogoFlipH;
+                      update("letterheadLogoFlipH", next);
+                      toast.success(next ? "Flip Horizontal Aktif" : "Flip Horizontal Normal");
+                    }}
+                    title="Flip Horizontal (Balik Kiri-Kanan)"
+                  >
+                    <FlipHorizontal size={11} />
+                    <span>Flip H</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${shipment.letterheadLogoFlipV ? "active" : ""}`}
+                    onClick={() => {
+                      const next = !shipment.letterheadLogoFlipV;
+                      update("letterheadLogoFlipV", next);
+                      toast.success(next ? "Flip Vertical Aktif" : "Flip Vertical Normal");
+                    }}
+                    title="Flip Vertical (Balik Atas-Bawah)"
+                  >
+                    <FlipVertical size={11} />
+                    <span>Flip V</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Arrange (Susun & Posisi)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 4. UKURAN (SIZE IN CM & % PERSIS MS WORD) */}
+              <div className="doc-ribbon-group group-pic-size">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: "#475569", fontWeight: 600, minWidth: "34px" }}>Tinggi:</span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.6"
+                    max="7.0"
+                    value={(((shipment.letterheadLogoScale ?? 100) / 100) * 1.9).toFixed(2)}
+                    onChange={(e) => {
+                      const cm = parseFloat(e.target.value);
+                      if (!isNaN(cm) && cm > 0.3) {
+                        const pct = Math.round((cm / 1.9) * 100);
+                        update("letterheadLogoScale", Math.max(30, Math.min(350, pct)));
+                      }
+                    }}
+                    style={{
+                      width: "54px",
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      padding: "0 4px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "4px",
+                      textAlign: "right",
+                    }}
+                    title="Tinggi Gambar (cm)"
+                  />
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>cm</span>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: "#475569", fontWeight: 600, minWidth: "34px" }}>Lebar:</span>
+                  <input
+                    type="number"
+                    step="0.1"
+                    min="0.6"
+                    max="8.0"
+                    value={(((shipment.letterheadLogoScale ?? 100) / 100) * 2.22).toFixed(2)}
+                    onChange={(e) => {
+                      const cm = parseFloat(e.target.value);
+                      if (!isNaN(cm) && cm > 0.3) {
+                        const pct = Math.round((cm / 2.22) * 100);
+                        update("letterheadLogoScale", Math.max(30, Math.min(350, pct)));
+                      }
+                    }}
+                    style={{
+                      width: "54px",
+                      height: "22px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      padding: "0 4px",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "4px",
+                      textAlign: "right",
+                    }}
+                    title="Lebar Gambar (cm)"
+                  />
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>cm</span>
+                </div>
+                <span className="doc-ribbon-group-label">Size ({shipment.letterheadLogoScale ?? 100}%)</span>
               </div>
             </>
           )}
@@ -3366,6 +4011,372 @@ export function DocWordRibbon({
               >
                 <Check size={14} />
                 Terapkan Spasi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Hidden File Inputs for Importing Kop Surat Banner & Logo */}
+      <input
+        ref={bannerUploadRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          handleBannerFileUpload(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+        style={{ display: "none" }}
+      />
+      <input
+        ref={logoUploadRef}
+        type="file"
+        accept="image/*"
+        onChange={(e) => {
+          handleLogoFileUpload(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+        style={{ display: "none" }}
+      />
+
+      {/* Pop-up Modal: Impor Kop Surat & Pengaturan Spasi / Garis Kop */}
+      {showLetterheadModal && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
+          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="px-5 py-3.5 bg-gradient-to-r from-blue-950 via-blue-900 to-indigo-900 text-white flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <Building2 size={19} className="text-blue-300" />
+                <div>
+                  <h3 className="font-bold text-sm">Impor & Pengaturan Format Kop Surat Perusahaan</h3>
+                  <p className="text-xs text-blue-200">
+                    Impor kop surat dari dokumen perusahaan lain, simpan profil kop, atau atur spasi & jarak garis
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowLetterheadModal(false)}
+                className="text-slate-300 hover:text-white p-1 rounded hover:bg-white/10 transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Tab Bar */}
+            <div className="flex border-b border-slate-200 bg-slate-50 px-5 pt-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setLetterheadModalTab("import")}
+                className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition-all flex items-center gap-1.5 ${
+                  letterheadModalTab === "import"
+                    ? "border-blue-600 text-blue-700 bg-white"
+                    : "border-transparent text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Upload size={13} />
+                <span>1. Impor Kop Surat & Profil Perusahaan</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setLetterheadModalTab("spacing")}
+                className={`px-4 py-2 text-xs font-bold rounded-t-lg border-b-2 transition-all flex items-center gap-1.5 ${
+                  letterheadModalTab === "spacing"
+                    ? "border-blue-600 text-blue-700 bg-white"
+                    : "border-transparent text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                <Sliders size={13} />
+                <span>2. Atur Spasi, Jarak Garis & Tata Letak Kop</span>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 space-y-4 overflow-y-auto text-slate-700">
+              {letterheadModalTab === "import" ? (
+                <>
+                  {/* Mode Selector: Standard vs Full Banner Image */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div
+                      onClick={() => update("letterheadMode", "standard")}
+                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                        (shipment.letterheadMode || "standard") === "standard"
+                          ? "border-blue-600 bg-blue-50/60"
+                          : "border-slate-200 hover:border-slate-300 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-slate-900">📝 Mode Kop Teks + Logo (Bisa Diedit)</span>
+                        {(shipment.letterheadMode || "standard") === "standard" && (
+                          <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded-full">Aktif</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-600">
+                        Logo di samping/tengah dengan nama perusahaan, alamat, dan kontak yang bisa diketik & diatur spasinya langsung.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          logoUploadRef.current?.click();
+                        }}
+                        className="mt-2.5 px-3 py-1.5 bg-white border border-blue-300 text-blue-700 hover:bg-blue-50 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <Upload size={12} />
+                        <span>Impor / Ganti Logo Perusahaan...</span>
+                      </button>
+                    </div>
+
+                    <div
+                      onClick={() => {
+                        if (shipment.letterheadBannerImage) {
+                          update("letterheadMode", "banner");
+                        } else {
+                          bannerUploadRef.current?.click();
+                        }
+                      }}
+                      className={`p-3.5 rounded-xl border-2 cursor-pointer transition-all ${
+                        shipment.letterheadMode === "banner"
+                          ? "border-blue-600 bg-blue-50/60"
+                          : "border-slate-200 hover:border-slate-300 bg-white"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-xs font-bold text-slate-900">🖼️ Mode Gambar Kop Surat Utuh (Banner)</span>
+                        {shipment.letterheadMode === "banner" && (
+                          <span className="text-[10px] font-bold bg-blue-600 text-white px-2 py-0.5 rounded-full">Aktif</span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-slate-600">
+                        Punya desain kop surat siap pakai dari Word/Canva/Corel? Unggah gambar kop utuh (PNG/JPG) untuk dipasang penuh di atas kertas.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          bannerUploadRef.current?.click();
+                        }}
+                        className="mt-2.5 px-3 py-1.5 bg-blue-600 text-white hover:bg-blue-700 rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 shadow-2xs"
+                      >
+                        <Upload size={12} />
+                        <span>Impor Gambar Kop Surat Utuh (PNG/JPG)...</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Saved Company Profiles (Multi-Company Letterhead Templates) */}
+                  <div className="border border-slate-200 rounded-xl p-4 bg-slate-50/70">
+                    <div className="flex items-center justify-between mb-2.5">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                          🏢 Daftar Profil Kop Surat Perusahaan (Multi-Perusahaan)
+                        </h4>
+                        <p className="text-[11px] text-slate-500">
+                          Klik salah satu profil perusahaan di bawah untuk langsung menerapkan format kop suratnya ke dokumen ini:
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleSaveCurrentKopProfile}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded-lg shadow-2xs flex items-center gap-1"
+                      >
+                        <Plus size={12} />
+                        <span>Simpan Kop Saat Ini</span>
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                      {savedKopProfiles.map((prof) => (
+                        <div
+                          key={prof.id}
+                          className="bg-white border border-slate-200 hover:border-blue-400 rounded-lg p-2.5 flex items-center justify-between gap-3 transition-all"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-xs text-slate-900 truncate">{prof.exporter || prof.name}</span>
+                              <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">
+                                {prof.layout === "center" ? "Tengah" : prof.layout === "split" ? "Kiri-Kanan" : "Rata Kiri"}
+                              </span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 truncate">{prof.address}</div>
+                            <div className="text-[10px] text-slate-400 truncate">{prof.contact}</div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                applyKopProfile(prof);
+                                setShowLetterheadModal(false);
+                              }}
+                              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-[11px] font-bold rounded-md transition-colors"
+                            >
+                              Gunakan Kop Ini
+                            </button>
+                            {!prof.id.startsWith("kop-") && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const next = savedKopProfiles.filter((p) => p.id !== prof.id);
+                                  setSavedKopProfiles(next);
+                                  try {
+                                    localStorage.setItem("eksporflow_saved_kop_profiles", JSON.stringify(next));
+                                  } catch {
+                                    // ignore
+                                  }
+                                  toast.info("Profil kop surat dihapus");
+                                }}
+                                className="p-1.5 text-rose-500 hover:bg-rose-50 rounded"
+                                title="Hapus profil ini"
+                              >
+                                <Trash2 size={13} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <>
+                  {/* Tab 2: Spacing, Divider Gap, Layout & Divider Style */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Jarak Teks Kop ke Garis Pembatas */}
+                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-800">
+                          📏 Jarak Kop ke Garis Bawah (Divider Gap)
+                        </label>
+                        <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                          {shipment.letterheadDividerGap ?? 4} px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="24"
+                        step="1"
+                        value={shipment.letterheadDividerGap ?? 4}
+                        onChange={(e) => update("letterheadDividerGap", Number(e.target.value))}
+                        className="w-full accent-blue-600 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <button type="button" onClick={() => update("letterheadDividerGap", 0)} className="hover:text-blue-600 font-semibold">
+                          0px (Sangat Rapat)
+                        </button>
+                        <button type="button" onClick={() => update("letterheadDividerGap", 4)} className="hover:text-blue-600 font-semibold">
+                          4px (Standar Rapi)
+                        </button>
+                        <button type="button" onClick={() => update("letterheadDividerGap", 10)} className="hover:text-blue-600 font-semibold">
+                          10px (Sedang)
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Spasi Antar Baris Teks Kop Surat */}
+                    <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/60">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-800">
+                          ↕️ Spasi Antar Baris Teks Kop Surat
+                        </label>
+                        <span className="text-xs font-extrabold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                          {shipment.letterheadSpacing ?? 2} px
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min="0"
+                        max="12"
+                        step="1"
+                        value={shipment.letterheadSpacing ?? 2}
+                        onChange={(e) => update("letterheadSpacing", Number(e.target.value))}
+                        className="w-full accent-blue-600 cursor-pointer"
+                      />
+                      <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                        <button type="button" onClick={() => update("letterheadSpacing", 0)} className="hover:text-blue-600 font-semibold">
+                          0px (Rapat)
+                        </button>
+                        <button type="button" onClick={() => update("letterheadSpacing", 2)} className="hover:text-blue-600 font-semibold">
+                          2px (Ideal)
+                        </button>
+                        <button type="button" onClick={() => update("letterheadSpacing", 6)} className="hover:text-blue-600 font-semibold">
+                          6px (Renggang)
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Tata Letak Kop & Gaya Garis Pembatas */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Tata Letak Kop Surat (Layout)
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {[
+                          { id: "left", label: "Kiri Standar" },
+                          { id: "center", label: "Tengah Simetris" },
+                          { id: "split", label: "Kiri & Kanan" },
+                        ].map((ly) => (
+                          <button
+                            key={ly.id}
+                            type="button"
+                            onClick={() => update("letterheadLayout", ly.id as any)}
+                            className={`py-2 px-2.5 text-xs font-bold rounded-lg border transition-all ${
+                              (shipment.letterheadLayout || "left") === ly.id
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                            }`}
+                          >
+                            {ly.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Gaya Garis Bawah Kop Surat
+                      </label>
+                      <div className="grid grid-cols-4 gap-1.5">
+                        {[
+                          { id: "double", label: "Ganda" },
+                          { id: "thick-thin", label: "Tebal-Tipis" },
+                          { id: "single", label: "Tunggal" },
+                          { id: "none", label: "Tanpa Garis" },
+                        ].map((st) => (
+                          <button
+                            key={st.id}
+                            type="button"
+                            onClick={() => update("letterheadDividerStyle", st.id as any)}
+                            className={`py-2 px-2 text-[11px] font-bold rounded-lg border transition-all ${
+                              (shipment.letterheadDividerStyle || "double") === st.id
+                                ? "bg-blue-600 text-white border-blue-600"
+                                : "bg-white text-slate-700 border-slate-300 hover:bg-slate-100"
+                            }`}
+                          >
+                            {st.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Footer */}
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+              <span className="text-[11px] text-slate-500">
+                💡 Anda juga dapat mengedit teks nama PT, alamat, dan telepon langsung di atas kertas dokumen.
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowLetterheadModal(false)}
+                className="px-5 py-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                <Check size={14} />
+                Selesai & Terapkan
               </button>
             </div>
           </div>

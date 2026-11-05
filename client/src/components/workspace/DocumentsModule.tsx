@@ -85,7 +85,7 @@ export function DocumentsModule({
   const [isReviewMenuOpen, setIsReviewMenuOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [isWordRibbonOpen, setIsWordRibbonOpen] = useState(true);
-  const [isEditMode, setIsEditMode] = useState(shipment.docEditorMode ?? false);
+  const [isEditMode, setIsEditMode] = useState(shipment.docEditorMode ?? true);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [signatureParty, setSignatureParty] = useState<"seller" | "buyer">("seller");
   const [isAiScreeningOpen, setIsAiScreeningOpen] = useState(false);
@@ -109,16 +109,9 @@ export function DocumentsModule({
     toast.success("Dokumen berhasil di-reset ke template standar sistem!");
   };
 
-  // Freeze menus & isolate workspace scroll when Word edit mode is active (Request 10)
+  // Ensure body focus class is cleaned up so standard layout is never broken
   useEffect(() => {
-    if (isEditMode) {
-      document.body.classList.add("doc-word-focus-mode");
-    } else {
-      document.body.classList.remove("doc-word-focus-mode");
-    }
-    return () => {
-      document.body.classList.remove("doc-word-focus-mode");
-    };
+    document.body.classList.remove("doc-word-focus-mode");
   }, [isEditMode]);
 
   useEffect(() => {
@@ -176,8 +169,8 @@ export function DocumentsModule({
       const tables = paperEl.querySelectorAll("table");
       tables.forEach((table) => {
         const headerCells =
-          table.querySelectorAll("thead th, thead td").length > 0
-            ? table.querySelectorAll("thead th, thead td")
+          table.querySelectorAll("thead th:not([colspan]), thead td:not([colspan])").length > 0
+            ? table.querySelectorAll("thead th:not([colspan]), thead td:not([colspan])")
             : table.querySelectorAll("tbody tr:first-child > td, tbody tr:first-child > th");
 
         headerCells.forEach((th) => {
@@ -606,87 +599,38 @@ export function DocumentsModule({
         }
       `}</style>
 
-      {/* Frozen / Pinned Header Strip in Edit Mode (Request 10) */}
-      <div className={`doc-freeze-top-header ${isEditMode ? "doc-edit-mode-frozen" : ""}`}>
-        {/* Normal Mode: 5 Document Selector Cards */}
-        {!isEditMode && (
-          <div className="doc-tabs-grid five-cols" role="tablist">
-            {documents.map((doc) => {
-              const isActive = selectedDocument === doc.type;
-              return (
-                <button
-                  key={doc.type}
-                  type="button"
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`doc-tab-card ${isActive ? "active" : ""}`}
-                  onClick={() => setSelectedDocument(doc.type)}
-                >
-                  {isActive && <div className="doc-tab-active-indicator" />}
-                  <div className="doc-tab-top">
-                    <div className="doc-tab-icon-box">{doc.icon}</div>
-                    <div className="doc-tab-badges">
-                      <span className="doc-code-badge">{doc.code}</span>
-                      <span className="doc-ready-badge">● Siap Terbit</span>
-                    </div>
-                  </div>
-                  <div className="doc-tab-body">
-                    <h3 className="doc-tab-name">{doc.type}</h3>
-                    <p className="doc-tab-desc">{doc.desc}</p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Edit Mode: Sleek Compact Document Switcher Strip */}
-        {isEditMode && (
-          <div className="doc-edit-compact-bar no-print">
-            <div className="flex items-center gap-2 overflow-x-auto py-1">
-              <span className="text-[11px] font-bold text-blue-300 uppercase tracking-wider flex-shrink-0">DOKUMEN:</span>
-              <div className="flex items-center gap-1.5 flex-nowrap">
-                {documents.map((doc) => {
-                  const isActive = selectedDocument === doc.type;
-                  return (
-                    <button
-                      key={doc.type}
-                      type="button"
-                      onClick={() => setSelectedDocument(doc.type)}
-                      className={`px-3 py-1 rounded-md text-xs font-semibold transition-all flex items-center gap-1.5 whitespace-nowrap ${
-                        isActive
-                          ? "bg-blue-600 text-white shadow-xs"
-                          : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
-                      }`}
-                    >
-                      <span>{doc.type}</span>
-                      <span className="text-[9px] px-1 py-0.5 bg-white/20 rounded font-mono">{doc.code}</span>
-                    </button>
-                  );
-                })}
+      {/* 1. Document Selector Cards (5 Documents) - Always Visible */}
+      <div className="doc-tabs-grid five-cols no-print" role="tablist">
+        {documents.map((doc) => {
+          const isActive = selectedDocument === doc.type;
+          return (
+            <button
+              key={doc.type}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              className={`doc-tab-card ${isActive ? "active" : ""}`}
+              onClick={() => setSelectedDocument(doc.type)}
+            >
+              {isActive && <div className="doc-tab-active-indicator" />}
+              <div className="doc-tab-top">
+                <div className="doc-tab-icon-box">{doc.icon}</div>
+                <div className="doc-tab-badges">
+                  <span className="doc-code-badge">{doc.code}</span>
+                  <span className="doc-ready-badge">● Siap Terbit</span>
+                </div>
               </div>
-            </div>
+              <div className="doc-tab-body">
+                <h3 className="doc-tab-name">{doc.type}</h3>
+                <p className="doc-tab-desc">{doc.desc}</p>
+              </div>
+            </button>
+          );
+        })}
+      </div>
 
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-xs text-blue-200 font-mono hidden md:inline">
-                {getDocumentNumber(selectedDocument, isId)}
-              </span>
-              <button
-                type="button"
-                className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded text-xs font-semibold flex items-center gap-1 border border-slate-700 transition-colors"
-                onClick={handlePrint}
-                title="Cetak PDF Dokumen"
-              >
-                <Printer size={13} />
-                <span>Cetak PDF</span>
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Normal Mode: Document Action & Overview Bar (2-Row Layout) */}
-        {!isEditMode && (
-          <div className="doc-action-bar">
+      {/* 1.5 Document Action & Overview Bar (2-Row Layout) - Always Visible */}
+      <div className="doc-action-bar no-print">
         {/* Row 1: Document Active Info & Specs Strip */}
         <div className="doc-action-top-row">
           <div className="doc-active-name-wrap">
@@ -961,11 +905,10 @@ export function DocumentsModule({
                 </div>
               </div>
             )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-        )}
 
       {/* 2. Collapsible Settings Drawer (only rendered when toggled) */}
       {isSettingsOpen && (
@@ -977,22 +920,23 @@ export function DocumentsModule({
         />
       )}
 
-      {/* 2.5 Word-like Formatting Ribbon Toolbar */}
+      {/* 2.5 Word-like Formatting Ribbon Toolbar (Sticky on Scroll) */}
       {isWordRibbonOpen && (
-        <DocWordRibbon
-          shipment={shipment}
-          update={update}
-          isEditMode={isEditMode}
-          setIsEditMode={setIsEditMode}
-          onOpenSignatureModal={handleOpenSignatureModal}
-          onResetDocument={handleResetDocument}
-          onOpenAiScreening={() => setIsAiScreeningOpen(true)}
-          onOpenBusinessCardOcr={() => setIsBusinessCardOcrOpen(true)}
-        />
+        <div className="doc-sticky-ribbon-wrap no-print">
+          <DocWordRibbon
+            shipment={shipment}
+            update={update}
+            isEditMode={isEditMode}
+            setIsEditMode={setIsEditMode}
+            onOpenSignatureModal={handleOpenSignatureModal}
+            onResetDocument={handleResetDocument}
+            onOpenAiScreening={() => setIsAiScreeningOpen(true)}
+            onOpenBusinessCardOcr={() => setIsBusinessCardOcrOpen(true)}
+          />
+        </div>
       )}
-      </div>
 
-      {/* 3. Executive Desk Paper Preview - The ONLY Scrollable Area in Edit Mode (Request 10) */}
+      {/* 3. Executive Desk Paper Preview */}
       <div className="doc-paper-workspace-scroll">
         <div className="doc-paper-desk">
         {/* Word-like Horizontal Ruler (Penggaris Word) */}
@@ -1209,7 +1153,7 @@ export function DocumentsModule({
             />
           )}
         </div>
-      </div>
+        </div>
       </div>
 
       {/* Digital Signature & Official E-Seal Modal */}
@@ -1368,10 +1312,23 @@ function OfficialLetterhead({
 
   const wrapMode = shipment.letterheadLogoWrap || "inline";
   const alignMode = shipment.letterheadLogoAlign || "left";
+  const posPreset = shipment.letterheadLogoPositionPreset || "inline";
   const logoOpacity = (shipment.letterheadLogoOpacity ?? 100) / 100;
   const logoRotate = shipment.letterheadLogoRotate || 0;
+  const flipH = shipment.letterheadLogoFlipH ? -1 : 1;
+  const flipV = shipment.letterheadLogoFlipV ? -1 : 1;
   const logoBorder = shipment.letterheadLogoBorder || "none";
   const logoShadow = shipment.letterheadLogoShadow ?? false;
+
+  const letterheadMode = shipment.letterheadMode || "standard";
+  const bannerHeight = shipment.letterheadBannerHeight ?? 110;
+  const lineSpacing = shipment.letterheadSpacing ?? 2;
+  const dividerGap = shipment.letterheadDividerGap ?? 4;
+  const dividerStyle = shipment.letterheadDividerStyle || "double";
+  const dividerColor = shipment.letterheadDividerColor || "#0f2942";
+  const layoutMode = shipment.letterheadLayout || "left";
+  const exporterContact =
+    shipment.exporterContact || "Telp: +62 812 3456 7890 · Email: official@indicoexport.com";
 
   const currentX = dragMoveOffset ? dragMoveOffset.x : (shipment.letterheadLogoX || 0);
   const currentY = dragMoveOffset ? dragMoveOffset.y : (shipment.letterheadLogoY || 0);
@@ -1384,7 +1341,9 @@ function OfficialLetterhead({
     }
     window.dispatchEvent(new CustomEvent("eksporflow:image-focus", { detail: { hasImage: true } }));
     const handleClickOutside = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+      const target = e.target as HTMLElement;
+      if (target.closest(".doc-word-ribbon-container")) return;
+      if (containerRef.current && !containerRef.current.contains(target)) {
         setIsSelected(false);
         setShowLayoutMenu(false);
       }
@@ -1393,13 +1352,15 @@ function OfficialLetterhead({
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [isSelected]);
 
-  // Free Drag Move across Document Canvas (when wrap is behind, front, or square)
+  // Free Drag Move across Document Canvas
   const startDragMove = (e: React.MouseEvent) => {
     if (!isEditMode || !update) return;
-    if (wrapMode === "inline") return;
+    if ((e.target as HTMLElement).classList.contains("word-resize-handle")) return;
+    if ((e.target as HTMLElement).closest(".word-layout-floating-btn, .word-layout-popover")) return;
     e.preventDefault();
     e.stopPropagation();
 
+    setIsSelected(true);
     setIsMoving(true);
     const startClientX = e.clientX;
     const startClientY = e.clientY;
@@ -1407,13 +1368,17 @@ function OfficialLetterhead({
     const startLogoY = shipment.letterheadLogoY || 0;
     let finalX = startLogoX;
     let finalY = startLogoY;
+    let moved = false;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       const dx = moveEvent.clientX - startClientX;
       const dy = moveEvent.clientY - startClientY;
-      finalX = startLogoX + dx;
-      finalY = startLogoY + dy;
-      setDragMoveOffset({ x: finalX, y: finalY });
+      if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+        moved = true;
+        finalX = startLogoX + dx;
+        finalY = startLogoY + dy;
+        setDragMoveOffset({ x: finalX, y: finalY });
+      }
     };
 
     const onMouseUp = () => {
@@ -1421,16 +1386,18 @@ function OfficialLetterhead({
       window.removeEventListener("mouseup", onMouseUp);
       setIsMoving(false);
       setDragMoveOffset(null);
-      update("letterheadLogoX", finalX);
-      update("letterheadLogoY", finalY);
-      update("letterheadLogoAlign", "custom");
+      if (moved) {
+        update("letterheadLogoX", finalX);
+        update("letterheadLogoY", finalY);
+        update("letterheadLogoAlign", "custom");
+      }
     };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
   };
 
-  // Handle Dragging like in Microsoft Word (Anchored correctly per handle)
+  // Handle Dragging like in Microsoft Word (Anchored accurately per handle so opposite corner stays locked!)
   const startDragHandle = (
     e: React.MouseEvent,
     handle: "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w"
@@ -1445,55 +1412,56 @@ function OfficialLetterhead({
     const startRect = imgRef.current.getBoundingClientRect();
     const aspectRatio = (startRect.width || 1) / (startRect.height || 1);
     const startHeight = startRect.height;
+    const startLogoX = shipment.letterheadLogoX || 0;
+    const startLogoY = shipment.letterheadLogoY || 0;
     let latestScale = activeScale;
+    let latestShiftX = 0;
+    let latestShiftY = 0;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
       const dx = moveEvent.clientX - startX;
       const dy = moveEvent.clientY - startY;
 
-      let delta = 0;
-      let sx = 0;
-      let sy = 0;
+      let deltaH = 0;
 
       if (handle === "se") {
-        delta = (dx / aspectRatio + dy) / 2;
-        sx = 0;
-        sy = 0;
+        deltaH = (dx / aspectRatio + dy) / 2;
       } else if (handle === "nw") {
-        delta = (-dx / aspectRatio - dy) / 2;
-        sx = -delta * aspectRatio;
-        sy = -delta;
+        deltaH = (-dx / aspectRatio - dy) / 2;
       } else if (handle === "ne") {
-        delta = (dx / aspectRatio - dy) / 2;
-        sx = 0;
-        sy = -delta;
+        deltaH = (dx / aspectRatio - dy) / 2;
       } else if (handle === "sw") {
-        delta = (-dx / aspectRatio + dy) / 2;
-        sx = -delta * aspectRatio;
-        sy = 0;
+        deltaH = (-dx / aspectRatio + dy) / 2;
       } else if (handle === "e") {
-        delta = dx / aspectRatio;
-        sx = 0;
-        sy = 0;
+        deltaH = dx / aspectRatio;
       } else if (handle === "w") {
-        delta = -dx / aspectRatio;
-        sx = -delta * aspectRatio;
-        sy = 0;
+        deltaH = -dx / aspectRatio;
       } else if (handle === "s") {
-        delta = dy;
-        sx = 0;
-        sy = 0;
+        deltaH = dy;
       } else if (handle === "n") {
-        delta = -dy;
-        sx = 0;
-        sy = -delta;
+        deltaH = -dy;
       }
 
-      const newHeight = Math.max(20, startHeight + delta);
-      const computedScale = Math.min(300, Math.max(30, Math.round((newHeight / baseLogoHeight) * 100)));
+      const rawNewHeight = Math.max(20, startHeight + deltaH);
+      const computedScale = Math.min(300, Math.max(30, Math.round((rawNewHeight / baseLogoHeight) * 100)));
+      const actualNewHeight = Math.round(baseLogoHeight * (computedScale / 100));
+      const actualDeltaH = actualNewHeight - startHeight;
+      const actualDeltaW = actualDeltaH * aspectRatio;
+
+      let sx = 0;
+      let sy = 0;
+      if (handle === "nw" || handle === "w" || handle === "sw") {
+        sx = -actualDeltaW;
+      }
+      if (handle === "nw" || handle === "n" || handle === "ne") {
+        sy = -actualDeltaH;
+      }
+
       latestScale = computedScale;
+      latestShiftX = Math.round(sx);
+      latestShiftY = Math.round(sy);
       setDragScale(computedScale);
-      setDragShift({ x: sx, y: sy });
+      setDragShift({ x: latestShiftX, y: latestShiftY });
     };
 
     const onMouseUp = () => {
@@ -1503,6 +1471,10 @@ function OfficialLetterhead({
       setDragScale(null);
       setDragShift({ x: 0, y: 0 });
       update("letterheadLogoScale", latestScale);
+      if (latestShiftX !== 0 || latestShiftY !== 0) {
+        update("letterheadLogoX", startLogoX + latestShiftX);
+        update("letterheadLogoY", startLogoY + latestShiftY);
+      }
     };
 
     window.addEventListener("mousemove", onMouseMove);
@@ -1511,27 +1483,24 @@ function OfficialLetterhead({
 
   // Compute Word Wrap & Positioning CSS Styles
   let wrapStyles: React.CSSProperties = {};
-  if (wrapMode === "behind") {
+  const isFloatingWrap = wrapMode === "behind" || wrapMode === "front";
+  const isFlowWrap = wrapMode === "square" || wrapMode === "tight" || wrapMode === "through";
+
+  if (isFloatingWrap) {
     wrapStyles = {
       position: "absolute",
       left: `${currentX}px`,
       top: `${currentY}px`,
-      zIndex: 0,
+      zIndex: wrapMode === "behind" ? 0 : 25,
       opacity: logoOpacity,
       pointerEvents: isEditMode ? "auto" : "none",
     };
-  } else if (wrapMode === "front") {
-    wrapStyles = {
-      position: "absolute",
-      left: `${currentX}px`,
-      top: `${currentY}px`,
-      zIndex: 25,
-      opacity: logoOpacity,
-    };
-  } else if (wrapMode === "square") {
+  } else if (isFlowWrap) {
+    const gapMargin = wrapMode === "tight" || wrapMode === "through" ? "2px 10px 4px 0" : "2px 16px 6px 0";
+    const gapMarginRight = wrapMode === "tight" || wrapMode === "through" ? "2px 0 4px 10px" : "2px 0 6px 16px";
     wrapStyles = {
       float: alignMode === "right" ? "right" : "left",
-      margin: alignMode === "right" ? "4px 0 12px 20px" : "4px 20px 12px 0",
+      margin: alignMode === "right" ? gapMarginRight : gapMargin,
       display: "inline-block",
       position: "relative",
       opacity: logoOpacity,
@@ -1539,7 +1508,7 @@ function OfficialLetterhead({
   } else if (wrapMode === "topBottom") {
     wrapStyles = {
       display: "block",
-      margin: alignMode === "center" ? "0 auto 16px" : alignMode === "right" ? "0 0 16px auto" : "0 auto 16px 0",
+      margin: alignMode === "center" ? "0 auto 8px" : alignMode === "right" ? "0 0 8px auto" : "0 auto 8px 0",
       clear: "both",
       position: "relative",
       opacity: logoOpacity,
@@ -1555,307 +1524,555 @@ function OfficialLetterhead({
 
   let borderStyles: React.CSSProperties = {};
   if (logoBorder === "solid") {
-    borderStyles = { border: `1px solid ${shipment.letterheadLogoBorderColor || "#cbd5e1"}`, borderRadius: "4px", padding: "4px" };
+    borderStyles = { border: `1.5px solid ${shipment.letterheadLogoBorderColor || "#cbd5e1"}`, borderRadius: "4px", padding: "3px", background: "#ffffff" };
   } else if (logoBorder === "dashed") {
-    borderStyles = { border: `1.5px dashed ${shipment.letterheadLogoBorderColor || "#94a3b8"}`, borderRadius: "4px", padding: "4px" };
+    borderStyles = { border: `1.5px dashed ${shipment.letterheadLogoBorderColor || "#94a3b8"}`, borderRadius: "4px", padding: "3px" };
   } else if (logoBorder === "rounded") {
-    borderStyles = { borderRadius: "9999px", overflow: "hidden", padding: "4px" };
+    borderStyles = { border: `1.5px solid ${shipment.letterheadLogoBorderColor || "#cbd5e1"}`, borderRadius: "12px", overflow: "hidden", padding: "3px", background: "#ffffff" };
+  } else if (logoBorder === "double") {
+    borderStyles = { border: `4px double ${shipment.letterheadLogoBorderColor || "#0f2942"}`, borderRadius: "4px", padding: "3px", background: "#ffffff" };
+  } else if (logoBorder === "oval") {
+    borderStyles = { border: `2px solid ${shipment.letterheadLogoBorderColor || "#cbd5e1"}`, borderRadius: "9999px", overflow: "hidden", padding: "4px", background: "#ffffff" };
   }
 
-  let shadowStyles: React.CSSProperties = logoShadow
-    ? { boxShadow: "0 6px 18px rgba(15, 23, 42, 0.18)" }
+  const shadowStyles: React.CSSProperties = logoShadow
+    ? { boxShadow: "0 8px 20px rgba(15, 23, 42, 0.22)" }
     : {};
 
+  // Compute divider line style
+  let dividerLineStyles: React.CSSProperties = {
+    marginTop: `${dividerGap}px`,
+  };
+  if (dividerStyle === "none") {
+    dividerLineStyles.display = "none";
+  } else if (dividerStyle === "double") {
+    dividerLineStyles.borderTop = `2.5px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.height = "4px";
+  } else if (dividerStyle === "thick-thin") {
+    dividerLineStyles.borderTop = `3.5px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.height = "5px";
+  } else {
+    dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
+    dividerLineStyles.height = "0px";
+  }
+
+  const totalTranslateX = (!isFloatingWrap ? currentX : 0) + (isDragging ? dragShift.x : 0);
+  const totalTranslateY = (!isFloatingWrap ? currentY : 0) + (isDragging ? dragShift.y : 0);
+
   return (
-    <div className="paper-letterhead-wrap">
-      <div className="paper-letterhead-content">
-        <div className="letterhead-brand">
-          {shipment.letterheadImage ? (
-            <div
-              ref={containerRef}
-              className={`letterhead-logo-container ${isEditMode && isSelected ? "word-image-selected" : ""}`}
-              style={{
-                ...wrapStyles,
-                ...borderStyles,
-                ...shadowStyles,
-                transform: isDragging
-                  ? `translate(${dragShift.x}px, ${dragShift.y}px) rotate(${logoRotate}deg)`
-                  : `rotate(${logoRotate}deg)`,
-                outline: isEditMode && isSelected ? "1.5px solid #2563eb" : undefined,
-                outlineOffset: "2px",
-                cursor: isEditMode ? (wrapMode !== "inline" ? (isMoving ? "grabbing" : "grab") : "pointer") : "default",
-                userSelect: "none",
-              }}
-              onMouseDown={(e) => {
-                if (isEditMode && wrapMode !== "inline") {
-                  startDragMove(e);
-                }
-              }}
-              onClick={(e) => {
-                if (isEditMode) {
-                  e.stopPropagation();
-                  setIsSelected(true);
-                }
-              }}
-              onDoubleClick={(e) => {
-                if (isEditMode && update) {
-                  e.stopPropagation();
-                  update("letterheadLogoScale", 100);
-                  toast.success("Ukuran logo di-reset ke 100%");
-                }
-              }}
-              title={
-                isEditMode
-                  ? wrapMode !== "inline"
-                    ? "Klik untuk memilih, geser untuk memindahkan posisi logo, atau tarik sudutnya (Microsoft Word)"
-                    : "Klik untuk memilih logo & tarik titik sudutnya untuk mengubah ukuran (seperti di Word)"
-                  : undefined
-              }
+    <div
+      className="paper-letterhead-wrap group/kop relative"
+      style={{ marginBottom: `${ Math.max(4, dividerGap + 4) }px` }}
+    >
+      {/* Floating Quick Kop Surat Toolbar in Edit Mode */}
+      {isEditMode && (
+        <div
+          className="letterhead-quick-toolbar no-print"
+          contentEditable={false}
+          style={{
+            position: "absolute",
+            top: "-26px",
+            right: "0",
+            display: "flex",
+            alignItems: "center",
+            gap: "4px",
+            zIndex: 30,
+          }}
+        >
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "3px",
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
+              borderRadius: "5px",
+              padding: "2px 6px",
+              fontSize: "10px",
+              color: "#334155",
+              boxShadow: "0 1px 3px rgba(0,0,0,0.06)",
+            }}
+            title="Atur jarak renggang antara teks kop surat dan garis pembatas"
+          >
+            <span style={{ fontWeight: 600 }}>Jarak Garis:</span>
+            <button
+              type="button"
+              onClick={() => update && update("letterheadDividerGap", Math.max(0, dividerGap - 2))}
+              style={{ padding: "0 4px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+              title="Rapatkan jarak ke garis (-2px)"
             >
-              <img
-                ref={imgRef}
-                src={shipment.letterheadImage}
-                alt="Logo Resmi Perusahaan"
-                className="letterhead-logo"
-                draggable={false}
-                style={{
-                  height: `${scaledHeight}px`,
-                  maxHeight: `${Math.round(200 * (activeScale / 100))}px`,
-                  maxWidth: `${Math.round(400 * (activeScale / 100))}px`,
-                  width: "auto",
-                  objectFit: "contain",
-                  transition: isDragging || isMoving ? "none" : "height 0.1s ease",
-                  pointerEvents: isDragging || isMoving ? "none" : "auto",
-                }}
+              −
+            </button>
+            <span style={{ fontWeight: 700, color: "#0284c7", minWidth: "22px", textAlign: "center" }}>
+              {dividerGap}px
+            </span>
+            <button
+              type="button"
+              onClick={() => update && update("letterheadDividerGap", Math.min(28, dividerGap + 2))}
+              style={{ padding: "0 4px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+              title="Renggangkan jarak ke garis (+2px)"
+            >
+              +
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("eksporflow:open-letterhead-modal"))}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              background: "#eff6ff",
+              border: "1px solid #93c5fd",
+              color: "#1d4ed8",
+              borderRadius: "5px",
+              padding: "2px 8px",
+              fontSize: "10px",
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 1px 3px rgba(37, 99, 235, 0.1)",
+            }}
+            title="Impor kop surat perusahaan lain atau atur format spasi & garis kop surat"
+          >
+            <SlidersHorizontal size={11} />
+            <span>📥 Impor & Atur Kop Surat</span>
+          </button>
+        </div>
+      )}
+
+      {/* MODE 1: FULL BANNER KOP SURAT IMPORTED FROM ANOTHER DOCUMENT */}
+      {letterheadMode === "banner" && shipment.letterheadBannerImage ? (
+        <div className="letterhead-banner-wrap relative" contentEditable={false}>
+          <img
+            src={shipment.letterheadBannerImage}
+            alt="Kop Surat Resmi Perusahaan"
+            style={{
+              width: "100%",
+              height: `${bannerHeight}px`,
+              objectFit: "contain",
+              objectPosition: "center",
+              display: "block",
+            }}
+          />
+          {isEditMode && (
+            <div className="no-print flex items-center justify-end gap-2 mt-1">
+              <span className="text-[10px] text-slate-500">Tinggi Kop Banner: {bannerHeight}px</span>
+              <input
+                type="range"
+                min="50"
+                max="220"
+                value={bannerHeight}
+                onChange={(e) => update && update("letterheadBannerHeight", Number(e.target.value))}
+                style={{ width: "90px", accentColor: "#2563eb" }}
               />
+              <button
+                type="button"
+                onClick={() => update && update("letterheadMode", "standard")}
+                className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded border border-slate-300 font-semibold"
+              >
+                Kembali ke Kop Teks
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* MODE 2: STANDARD EDITABLE KOP SURAT (Left / Center / Split) */
+        <div className="paper-letterhead-content">
+          <div
+            className="letterhead-brand"
+            style={{
+              display: "flex",
+              flexDirection: layoutMode === "center" ? "column" : "row",
+              alignItems: "center",
+              justifyContent: layoutMode === "split" ? "space-between" : layoutMode === "center" ? "center" : "flex-start",
+              textAlign: layoutMode === "center" ? "center" : "left",
+              gap: layoutMode === "center" ? "6px" : "14px",
+              width: "100%",
+            }}
+          >
+            {shipment.letterheadImage ? (
+              <div
+                ref={containerRef}
+                contentEditable={false}
+                className={`letterhead-logo-container ${isEditMode && isSelected ? "word-image-selected" : ""}`}
+                style={{
+                  ...wrapStyles,
+                  ...borderStyles,
+                  ...shadowStyles,
+                  transform: `translate(${totalTranslateX}px, ${totalTranslateY}px) rotate(${logoRotate}deg)`,
+                  outline: isEditMode && isSelected ? "1.5px solid #2563eb" : undefined,
+                  outlineOffset: "2px",
+                  cursor: isEditMode ? (isMoving ? "grabbing" : "grab") : "default",
+                  userSelect: "none",
+                }}
+                onMouseDown={(e) => {
+                  if (isEditMode) {
+                    startDragMove(e);
+                  }
+                }}
+                onClick={(e) => {
+                  if (isEditMode) {
+                    e.stopPropagation();
+                    setIsSelected(true);
+                  }
+                }}
+                onDoubleClick={(e) => {
+                  if (isEditMode && update) {
+                    e.stopPropagation();
+                    update("letterheadLogoScale", 100);
+                    update("letterheadLogoX", 0);
+                    update("letterheadLogoY", 0);
+                    toast.success("Ukuran & posisi logo di-reset ke standar 100%");
+                  }
+                }}
+                title={
+                  isEditMode
+                    ? "Klik untuk memilih logo, geser untuk memindahkan posisi, atau tarik titik sudutnya (seperti di Microsoft Word)"
+                    : undefined
+                }
+              >
+                <img
+                  ref={imgRef}
+                  src={shipment.letterheadImage}
+                  alt="Logo Resmi Perusahaan"
+                  className="letterhead-logo"
+                  draggable={false}
+                  style={{
+                    height: `${scaledHeight}px`,
+                    maxHeight: `${Math.round(200 * (activeScale / 100))}px`,
+                    maxWidth: `${Math.round(400 * (activeScale / 100))}px`,
+                    width: "auto",
+                    objectFit: "contain",
+                    transform: `scale(${flipH}, ${flipV})`,
+                    transition: isDragging || isMoving ? "none" : "height 0.1s ease",
+                    pointerEvents: isDragging || isMoving ? "none" : "auto",
+                  }}
+                />
 
-              {/* Microsoft Word Style 8 Resize Handles & Floating Layout Options */}
-              {isEditMode && isSelected && (
-                <>
-                  {/* Floating Word Layout Options Button */}
-                  <button
-                    type="button"
-                    className="word-layout-floating-btn no-print"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowLayoutMenu((prev) => !prev);
-                    }}
-                    title="Opsi Tata Letak (Word Layout Options: Di Belakang/Depan Teks, Kotak, Sejajar)"
-                    style={{
-                      position: "absolute",
-                      top: "-14px",
-                      right: "-26px",
-                      width: "22px",
-                      height: "22px",
-                      background: "#ffffff",
-                      border: "1px solid #94a3b8",
-                      borderRadius: "3px",
-                      boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      cursor: "pointer",
-                      zIndex: 40,
-                    }}
-                  >
-                    <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                      <rect x="2" y="3" width="5" height="5" fill="#2563eb" rx="1" />
-                      <path d="M9 4H14M9 7H14M2 11H14M2 13H14" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" />
-                    </svg>
-                  </button>
-
-                  {/* Floating Word Layout Options Popover */}
-                  {showLayoutMenu && (
-                    <div
-                      className="word-layout-popover no-print"
-                      onClick={(e) => e.stopPropagation()}
+                {/* Microsoft Word Style 8 Resize Handles & Floating Layout Options */}
+                {isEditMode && isSelected && (
+                  <>
+                    {/* Floating Word Layout Options Button */}
+                    <button
+                      type="button"
+                      className="word-layout-floating-btn no-print"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowLayoutMenu((prev) => !prev);
+                      }}
+                      title="Opsi Tata Letak (Layout Options Microsoft Word)"
                       style={{
                         position: "absolute",
-                        top: "-10px",
-                        left: "calc(100% + 8px)",
+                        top: "-14px",
+                        right: "-28px",
+                        width: "24px",
+                        height: "24px",
                         background: "#ffffff",
-                        border: "1px solid #cbd5e1",
-                        borderRadius: "8px",
-                        boxShadow: "0 8px 24px rgba(15, 23, 42, 0.18)",
-                        padding: "10px",
-                        width: "230px",
-                        zIndex: 50,
-                        fontSize: "11px",
+                        border: "1px solid #94a3b8",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        zIndex: 40,
                       }}
                     >
-                      <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2">
-                        <span className="font-bold text-slate-800 uppercase tracking-wider text-[10px]">
-                          Opsi Tata Letak (Layout)
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => setShowLayoutMenu(false)}
-                          className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                        <rect x="2" y="2" width="12" height="2" fill="#64748b" rx="0.5" />
+                        <path d="M4 11 A4 4 0 0 1 12 11" stroke="#2563eb" strokeWidth="1.8" fill="none" />
+                        <rect x="2" y="6" width="3" height="1.5" fill="#64748b" rx="0.5" />
+                        <rect x="11" y="6" width="3" height="1.5" fill="#64748b" rx="0.5" />
+                        <rect x="2" y="13" width="12" height="1.5" fill="#64748b" rx="0.5" />
+                      </svg>
+                    </button>
 
-                      <div className="space-y-1.5">
-                        <span className="text-[10px] font-semibold text-slate-500 block">Bungkus Teks (Wrap):</span>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          {[
-                            { id: "inline", label: "📄 Sejajar", desc: "Sejajar Teks" },
-                            { id: "square", label: "🔲 Kotak", desc: "Kotak (Square)" },
-                            { id: "behind", label: "📑 Belakang", desc: "Di Belakang Teks (Watermark)" },
-                            { id: "front", label: "🏷️ Depan", desc: "Di Depan Teks (Floating)" },
-                            { id: "topBottom", label: "📜 Atas/Bwh", desc: "Atas & Bawah" },
-                          ].map((m) => (
+                    {/* Floating Word Layout Options Popover (Authentic MS Word Layout Options) */}
+                    {showLayoutMenu && (
+                      <div
+                        className="word-layout-popover no-print"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: "absolute",
+                          top: "-10px",
+                          left: "calc(100% + 10px)",
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "8px",
+                          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.22)",
+                          padding: "12px",
+                          width: "255px",
+                          zIndex: 55,
+                          fontSize: "11px",
+                          textAlign: "left",
+                        }}
+                      >
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2">
+                          <span className="font-bold text-slate-800 text-[11px]">
+                            Layout Options (Opsi Tata Letak)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowLayoutMenu(false)}
+                            className="text-slate-400 hover:text-slate-600 p-0.5 rounded"
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        <div className="space-y-2">
+                          <div>
+                            <span className="text-[10px] font-semibold text-slate-500 block mb-1">
+                              In Line with Text (Sejajar Teks)
+                            </span>
                             <button
-                              key={m.id}
                               type="button"
                               onClick={() => {
                                 if (update) {
-                                  update("letterheadLogoWrap", m.id as any);
-                                  if (m.id === "behind" && (!shipment.letterheadLogoOpacity || shipment.letterheadLogoOpacity === 100)) {
-                                    update("letterheadLogoOpacity", 30);
-                                  }
-                                  toast.success(`Tata letak diatur: ${m.desc}`);
+                                  update("letterheadLogoWrap", "inline");
+                                  update("letterheadLogoPositionPreset", "inline");
+                                  update("letterheadLogoX", 0);
+                                  update("letterheadLogoY", 0);
+                                  toast.success("Tata letak: In Line with Text (Sejajar Teks)");
                                 }
                               }}
-                              className={`p-1.5 text-left rounded border transition-colors ${
-                                wrapMode === m.id
+                              className={`w-full p-1.5 flex items-center gap-2 rounded border transition-colors ${
+                                wrapMode === "inline"
                                   ? "bg-blue-50 border-blue-500 font-bold text-blue-700"
                                   : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
                               }`}
                             >
-                              <div className="text-[11px] font-semibold">{m.label}</div>
+                              <span className="text-xs">📄</span>
+                              <span>In Line with Text (Sejajar)</span>
                             </button>
-                          ))}
-                        </div>
-
-                        {/* Opacity slider for watermark */}
-                        <div className="pt-2 border-t border-slate-100">
-                          <div className="flex justify-between items-center text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Opasitas / Watermark:</span>
-                            <span className="font-bold text-blue-600">{shipment.letterheadLogoOpacity ?? 100}%</span>
                           </div>
-                          <input
-                            type="range"
-                            min="10"
-                            max="100"
-                            step="5"
-                            value={shipment.letterheadLogoOpacity ?? 100}
-                            onChange={(e) => update && update("letterheadLogoOpacity", Number(e.target.value))}
-                            style={{ width: "100%", accentColor: "#2563eb" }}
-                          />
+
+                          <div>
+                            <span className="text-[10px] font-semibold text-slate-500 block mb-1">
+                              With Text Wrapping (Bungkus Teks)
+                            </span>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {[
+                                { id: "square", label: "Square", sub: "Kotak" },
+                                { id: "tight", label: "Tight", sub: "Rapat" },
+                                { id: "through", label: "Through", sub: "Tembus" },
+                                { id: "topBottom", label: "Top/Btm", sub: "Atas-Bwh" },
+                                { id: "behind", label: "Behind", sub: "Belakang" },
+                                { id: "front", label: "In Front", sub: "Di Depan" },
+                              ].map((m) => (
+                                <button
+                                  key={m.id}
+                                  type="button"
+                                  onClick={() => {
+                                    if (update) {
+                                      update("letterheadLogoWrap", m.id as any);
+                                      if (m.id === "behind" && (!shipment.letterheadLogoOpacity || shipment.letterheadLogoOpacity === 100)) {
+                                        update("letterheadLogoOpacity", 30);
+                                      } else if (m.id === "front" && shipment.letterheadLogoOpacity === 30) {
+                                        update("letterheadLogoOpacity", 100);
+                                      }
+                                      toast.success(`Wrap Text: ${m.label} (${m.sub})`);
+                                    }
+                                  }}
+                                  className={`p-1.5 text-center rounded border transition-colors ${
+                                    wrapMode === m.id
+                                      ? "bg-blue-50 border-blue-500 font-bold text-blue-700"
+                                      : "bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100"
+                                  }`}
+                                >
+                                  <div className="text-[10.5px] font-bold">{m.label}</div>
+                                  <div className="text-[9px] text-slate-500">{m.sub}</div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Opacity slider for watermark */}
+                          <div className="pt-2 border-t border-slate-100">
+                            <div className="flex justify-between items-center text-[10px] font-semibold text-slate-600 mb-1">
+                              <span>Transparansi / Watermark:</span>
+                              <span className="font-bold text-blue-600">{shipment.letterheadLogoOpacity ?? 100}%</span>
+                            </div>
+                            <input
+                              type="range"
+                              min="10"
+                              max="100"
+                              step="5"
+                              value={shipment.letterheadLogoOpacity ?? 100}
+                              onChange={(e) => update && update("letterheadLogoOpacity", Number(e.target.value))}
+                              style={{ width: "100%", accentColor: "#2563eb" }}
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {/* NW (Top-Left) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ top: "-5px", left: "-5px", cursor: "nwse-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "nw")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* N (Top-Center) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ top: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "n")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* NE (Top-Right) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ top: "-5px", right: "-5px", cursor: "nesw-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "ne")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* E (Middle-Right) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ top: "calc(50% - 4.5px)", right: "-5px", cursor: "ew-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "e")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* SE (Bottom-Right) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ bottom: "-5px", right: "-5px", cursor: "nwse-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "se")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* S (Bottom-Center) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ bottom: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "s")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* SW (Bottom-Left) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ bottom: "-5px", left: "-5px", cursor: "nesw-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "sw")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-                  {/* W (Middle-Left) */}
-                  <div
-                    className="word-resize-handle no-print"
-                    style={{ top: "calc(50% - 4.5px)", left: "-5px", cursor: "ew-resize" }}
-                    onMouseDown={(e) => startDragHandle(e, "w")}
-                    title="Tarik untuk mengubah ukuran logo"
-                  />
-
-                  {/* Size Indicator Tooltip while dragging */}
-                  {isDragging && (
+                    {/* NW (Top-Left) */}
                     <div
-                      className="word-resize-tooltip no-print"
-                      contentEditable={false}
-                      style={{
-                        position: "absolute",
-                        bottom: "-26px",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        background: "rgba(15, 23, 42, 0.9)",
-                        color: "#ffffff",
-                        padding: "2px 8px",
-                        borderRadius: "4px",
-                        fontSize: "10px",
-                        fontWeight: 600,
-                        whiteSpace: "nowrap",
-                        pointerEvents: "none",
-                        zIndex: 35,
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-                      }}
-                    >
-                      {activeScale}%
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
-          ) : (
+                      className="word-resize-handle no-print"
+                      style={{ top: "-5px", left: "-5px", cursor: "nwse-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "nw")}
+                      title="Tarik sudut kiri-atas (sudut kanan-bawah terkunci)"
+                    />
+                    {/* N (Top-Center) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ top: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "n")}
+                      title="Tarik sisi atas"
+                    />
+                    {/* NE (Top-Right) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ top: "-5px", right: "-5px", cursor: "nesw-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "ne")}
+                      title="Tarik sudut kanan-atas (sudut kiri-bawah terkunci)"
+                    />
+                    {/* E (Middle-Right) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ top: "calc(50% - 4.5px)", right: "-5px", cursor: "ew-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "e")}
+                      title="Tarik sisi kanan"
+                    />
+                    {/* SE (Bottom-Right) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ bottom: "-5px", right: "-5px", cursor: "nwse-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "se")}
+                      title="Tarik sudut kanan-bawah (sudut kiri-atas terkunci)"
+                    />
+                    {/* S (Bottom-Center) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ bottom: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "s")}
+                      title="Tarik sisi bawah"
+                    />
+                    {/* SW (Bottom-Left) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ bottom: "-5px", left: "-5px", cursor: "nesw-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "sw")}
+                      title="Tarik sudut kiri-bawah (sudut kanan-atas terkunci)"
+                    />
+                    {/* W (Middle-Left) */}
+                    <div
+                      className="word-resize-handle no-print"
+                      style={{ top: "calc(50% - 4.5px)", left: "-5px", cursor: "ew-resize" }}
+                      onMouseDown={(e) => startDragHandle(e, "w")}
+                      title="Tarik sisi kiri"
+                    />
+
+                    {/* Size Indicator Tooltip while dragging */}
+                    {isDragging && (
+                      <div
+                        className="word-resize-tooltip no-print"
+                        contentEditable={false}
+                        style={{
+                          position: "absolute",
+                          bottom: "-26px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "rgba(15, 23, 42, 0.9)",
+                          color: "#ffffff",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          whiteSpace: "nowrap",
+                          pointerEvents: "none",
+                          zIndex: 35,
+                          boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                        }}
+                      >
+                        {activeScale}% ({(scaledHeight * 0.0264).toFixed(2)} cm)
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            ) : (
+              <div
+                className="letterhead-crest-badge"
+                contentEditable={false}
+                onClick={onOpenSettings}
+                title="Klik untuk memasang logo perusahaan"
+                role="button"
+                tabIndex={0}
+              >
+                <Building2 size={24} className="text-slate-700" />
+                <span className="crest-tag">IEI</span>
+              </div>
+            )}
+
             <div
-              className="letterhead-crest-badge"
-              onClick={onOpenSettings}
-              title="Klik untuk memasang logo perusahaan"
-              role="button"
-              tabIndex={0}
+              className="letterhead-text"
+              style={{
+                flex: 1,
+                display: layoutMode === "split" ? "flex" : "block",
+                justifyContent: layoutMode === "split" ? "space-between" : undefined,
+                alignItems: layoutMode === "split" ? "center" : undefined,
+                gap: layoutMode === "split" ? "16px" : undefined,
+              }}
             >
-              <Building2 size={24} className="text-slate-700" />
-              <span className="crest-tag">IEI</span>
+              <h1
+                className="company-name"
+                style={{
+                  margin: 0,
+                  lineHeight: 1.15,
+                  marginBottom: layoutMode === "split" ? 0 : `${lineSpacing}px`,
+                }}
+                onBlur={(e) => {
+                  const text = e.currentTarget.innerText.trim();
+                  if (update && text && text !== exporterName) {
+                    update("exporter", text);
+                  }
+                }}
+              >
+                {exporterName}
+              </h1>
+              <div style={{ textAlign: layoutMode === "split" ? "right" : layoutMode === "center" ? "center" : "left" }}>
+                <p
+                  className="company-details"
+                  style={{
+                    margin: `${lineSpacing}px 0 0`,
+                    lineHeight: 1.25,
+                  }}
+                  onBlur={(e) => {
+                    const text = e.currentTarget.innerText.trim();
+                    if (update && text && text !== exporterAddress) {
+                      update("letterheadText", text);
+                    }
+                  }}
+                >
+                  {exporterAddress}
+                </p>
+                <p
+                  className="company-contact"
+                  style={{
+                    margin: `${lineSpacing}px 0 0`,
+                    lineHeight: 1.25,
+                  }}
+                  onBlur={(e) => {
+                    const text = e.currentTarget.innerText.trim();
+                    if (update && text && text !== exporterContact) {
+                      update("exporterContact", text);
+                    }
+                  }}
+                >
+                  {exporterContact}
+                </p>
+              </div>
             </div>
-          )}
-          <div className="letterhead-text">
-            <h1 className="company-name">{exporterName}</h1>
-            <p className="company-details">{exporterAddress}</p>
-            <p className="company-contact">
-              Telp: +62 812 3456 7890 · Email: official@indicoexport.com
-            </p>
           </div>
         </div>
-      </div>
-      <div className="letterhead-divider-line" />
+      )}
+
+      <div className="letterhead-divider-line" style={dividerLineStyles} />
     </div>
   );
 }
@@ -2155,10 +2372,14 @@ function ProformaInvoiceDoc({
       </div>
 
       <div className="doc-bank-card">
-        <div className="bank-card-title">
-          <span>{isId ? "RINCIAN REKENING BANK PENERIMA (BENEFICIARY)" : "BANK DETAILS FOR BENEFICIARY"}</span>
-        </div>
         <table className="bank-card-table">
+          <thead>
+            <tr>
+              <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                <span>{isId ? "RINCIAN REKENING BANK PENERIMA (BENEFICIARY)" : "BANK DETAILS FOR BENEFICIARY"}</span>
+              </th>
+            </tr>
+          </thead>
           <tbody>
             <tr>
               <td className="bank-lbl">{isId ? "Nama Bank:" : "Bank Name:"}</td>
@@ -2166,7 +2387,9 @@ function ProformaInvoiceDoc({
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Alamat Bank:" : "Bank Address:"}</td>
-              <td className="bank-val font-bold">Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia</td>
+              <td className="bank-val font-bold">
+                {shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}
+              </td>
             </tr>
             <tr>
               <td className="bank-lbl">{isId ? "Nama Rekening:" : "Account Name:"}</td>
@@ -3683,10 +3906,17 @@ function DocumentSettings({
               />
 
               <Field
-                label="Alamat & Kontak Kop Surat"
+                label="Alamat Lengkap Kop Surat"
                 value={shipment.letterheadText}
                 placeholder="Jl. Adiyaksa Baru No. 1B, Makassar..."
                 onChange={(value) => update("letterheadText", value)}
+              />
+
+              <Field
+                label="Kontak Kop Surat (Telp, Email, Website)"
+                value={shipment.exporterContact || "Telp: +62 812 3456 7890 · Email: official@indicoexport.com"}
+                placeholder="Telp: +62 812 3456 7890 · Email: official@indicoexport.com"
+                onChange={(value) => update("exporterContact", value)}
               />
 
               {/* Custom Logo Upload Dropzone */}
@@ -3938,6 +4168,12 @@ function DocumentSettings({
                 value={shipment.bankName || "PT. Bank Mandiri (Persero) Tbk"}
                 placeholder="Contoh: PT. Bank Mandiri (Persero) Tbk"
                 onChange={(value) => update("bankName", value)}
+              />
+              <Field
+                label="Alamat Cabang Bank Eksportir"
+                value={shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}
+                placeholder="Contoh: Jl. Boulevard, Panakkukang, Makassar"
+                onChange={(value) => update("bankAddress", value)}
               />
               <Field
                 label="Nomor Rekening Bank"
