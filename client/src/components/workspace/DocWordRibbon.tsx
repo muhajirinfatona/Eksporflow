@@ -79,6 +79,9 @@ import {
   stepSelectionFontSize,
   changeSelectionCase,
   clearFormattingFromSelection,
+  applyLineSpacingToSelection,
+  getSelectionLineHeight,
+  mapLineHeightToGapPx,
 } from "../../lib/wordEditorEngine";
 
 interface DocWordRibbonProps {
@@ -278,6 +281,7 @@ export function DocWordRibbon({
   // Live dynamic selection tracking inside .paper-document (Microsoft Word Fidelity)
   const [selectedFontSize, setSelectedFontSize] = useState<number | null>(null);
   const [selectedFontFamily, setSelectedFontFamily] = useState<string | null>(null);
+  const [selectedLineHeight, setSelectedLineHeight] = useState<number | null>(null);
   const [hasBlockedText, setHasBlockedText] = useState(false);
 
   useEffect(() => {
@@ -288,11 +292,14 @@ export function DocWordRibbon({
         saveActiveSelection();
         const pt = getSelectionFontSize();
         const font = getSelectionFontFamily();
+        const lh = getSelectionLineHeight();
         setSelectedFontSize(pt);
         setSelectedFontFamily(font);
+        if (lh !== null) setSelectedLineHeight(lh);
       } else {
         setSelectedFontSize(null);
         setSelectedFontFamily(null);
+        setSelectedLineHeight(null);
       }
     };
 
@@ -304,7 +311,7 @@ export function DocWordRibbon({
 
   const activeFontFamily = selectedFontFamily || shipment.docEditorFontFamily || "Calibri";
   const activeFontSize = selectedFontSize ?? (shipment.docEditorFontSize || 11);
-  const activeLineHeight = shipment.docEditorLineHeight || 1.35;
+  const activeLineHeight = selectedLineHeight ?? (shipment.docEditorLineHeight || 1.35);
   const activePaperSize: PaperSize = shipment.paperSize || "A4";
   const activeOrientation: DocumentOrientation = shipment.documentOrientation || "Portrait";
 
@@ -612,7 +619,31 @@ export function DocWordRibbon({
   };
 
   const handleLineHeightChange = (lh: number) => {
-    update("docEditorLineHeight", lh);
+    const cleanLh = Math.max(0.8, Math.min(4.0, Math.round(lh * 100) / 100));
+    restoreActiveSelection();
+
+    if (isTextSelected()) {
+      const res = applyLineSpacingToSelection(cleanLh);
+      setSelectedLineHeight(cleanLh);
+      if (res.isLetterhead) {
+        update("letterheadSpacing", res.mappedSpacingPx);
+      }
+      if (res.applied) {
+        toast.success(`Spasi baris teks terpilih diubah ke ${cleanLh}`);
+        return;
+      }
+    }
+
+    update("docEditorLineHeight", cleanLh);
+    update("letterheadSpacing", mapLineHeightToGapPx(cleanLh));
+    setSelectedLineHeight(cleanLh);
+    toast.success(`Spasi baris dokumen diubah ke ${cleanLh}`);
+  };
+
+  const stepLineSpacing = (delta: number) => {
+    const base = selectedLineHeight ?? (shipment.docEditorLineHeight || 1.25);
+    const next = Math.max(1.0, Math.min(3.0, Math.round((base + delta) * 20) / 20));
+    handleLineHeightChange(next);
   };
 
   const handleTextColor = (color: string) => {
@@ -1680,7 +1711,9 @@ export function DocWordRibbon({
                   {/* Line Spacing Selector */}
                   <select
                     className="doc-ribbon-select line-spacing-select"
-                    value={[1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].some(v => Math.abs(v - activeLineHeight) < 0.01) ? activeLineHeight.toString() : "custom"}
+                    value={[1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].some(v => Math.abs(v - activeLineHeight) < 0.01) ? [1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].find(v => Math.abs(v - activeLineHeight) < 0.01)!.toString() : "custom"}
+                    onFocus={() => saveActiveSelection()}
+                    onMouseDown={() => saveActiveSelection()}
                     onChange={(e) => {
                       if (e.target.value === "custom") {
                         setCustomLineHeightInput(activeLineHeight);
@@ -1689,7 +1722,7 @@ export function DocWordRibbon({
                         handleLineHeightChange(Number(e.target.value));
                       }
                     }}
-                    title="Spasi Antar Baris (Line Spacing)"
+                    title="Spasi Antar Baris (Pilih spasi untuk teks yang diblok atau seluruh dokumen)"
                     style={{ minWidth: "68px" }}
                   >
                     <option value="1">↕ 1.0</option>
@@ -1703,6 +1736,32 @@ export function DocWordRibbon({
                     <option value="3">↕ 3.0</option>
                     <option value="custom">Kustom...</option>
                   </select>
+
+                  {/* Quick Step Line Spacing Buttons */}
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      saveActiveSelection();
+                      stepLineSpacing(-0.15);
+                    }}
+                    title="Rapatkan Spasi Baris Teks Terpilih (↕−)"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "-0.5px" }}>↕−</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      saveActiveSelection();
+                      stepLineSpacing(0.15);
+                    }}
+                    title="Regangkan Spasi Baris Teks Terpilih (↕+)"
+                  >
+                    <span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "-0.5px" }}>↕+</span>
+                  </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom">

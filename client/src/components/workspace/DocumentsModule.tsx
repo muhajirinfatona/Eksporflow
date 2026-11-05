@@ -1213,6 +1213,7 @@ function OfficialLetterhead({
   const letterheadMode = shipment.letterheadMode || "standard";
   const bannerHeight = shipment.letterheadBannerHeight ?? 110;
   const lineSpacing = shipment.letterheadSpacing ?? 2;
+  const kopLineHeight = Number((1.1 + lineSpacing * 0.05).toFixed(2));
   const dividerGap = shipment.letterheadDividerGap ?? 4;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const dividerColor = shipment.letterheadDividerColor || "#0f2942";
@@ -1456,10 +1457,10 @@ function OfficialLetterhead({
       className="paper-letterhead-wrap group/kop relative"
       style={{ marginBottom: `${ Math.max(4, dividerGap + 4) }px` }}
     >
-      {/* Floating Quick Kop Surat Toolbar in Edit Mode (Appears on Hover or Selection) */}
+      {/* Floating Quick Kop Surat Toolbar in Edit Mode (Appears on Hover, Text Selection, or Logo Selection) */}
       {isEditMode && (
         <div
-          className={`letterhead-quick-toolbar no-print transition-opacity duration-150 ${isSelected ? "opacity-100" : "opacity-0 group-hover/kop:opacity-100"}`}
+          className={`letterhead-quick-toolbar no-print transition-opacity duration-150 ${isSelected ? "opacity-100" : "opacity-0 group-hover/kop:opacity-100 group-focus-within/kop:opacity-100"}`}
           contentEditable={false}
           style={{
             position: "absolute",
@@ -1484,10 +1485,49 @@ function OfficialLetterhead({
               color: "#334155",
               boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
             }}
-            title="Atur jarak ke garis bawah kop surat"
+            title="Atur spasi antar baris teks kop surat"
           >
+            <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginRight: "1px" }}>Spasi</span>
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => update && update("letterheadSpacing", Math.max(0, lineSpacing - 1))}
+              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+            >
+              −
+            </button>
+            <span style={{ fontWeight: 600, color: "#475569", padding: "0 2px" }}>
+              {lineSpacing}px
+            </span>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => update && update("letterheadSpacing", Math.min(20, lineSpacing + 1))}
+              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+            >
+              +
+            </button>
+          </div>
+
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "2px",
+              background: "#ffffff",
+              border: "1px solid #cbd5e1",
+              borderRadius: "4px",
+              padding: "1px 5px",
+              fontSize: "10px",
+              color: "#334155",
+              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+            }}
+            title="Atur jarak ke garis bawah kop surat"
+          >
+            <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginRight: "1px" }}>Garis</span>
+            <button
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => update && update("letterheadDividerGap", Math.max(0, dividerGap - 2))}
               style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
             >
@@ -1498,6 +1538,7 @@ function OfficialLetterhead({
             </span>
             <button
               type="button"
+              onMouseDown={(e) => e.preventDefault()}
               onClick={() => update && update("letterheadDividerGap", Math.min(28, dividerGap + 2))}
               style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
             >
@@ -1910,7 +1951,7 @@ function OfficialLetterhead({
                 className="company-name"
                 style={{
                   margin: 0,
-                  lineHeight: 1.15,
+                  lineHeight: kopLineHeight,
                   marginBottom: layoutMode === "split" ? 0 : `${lineSpacing}px`,
                 }}
                 onBlur={(e) => {
@@ -1927,7 +1968,7 @@ function OfficialLetterhead({
                   className="company-details"
                   style={{
                     margin: `${lineSpacing}px 0 0`,
-                    lineHeight: 1.25,
+                    lineHeight: kopLineHeight,
                   }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
@@ -1942,7 +1983,7 @@ function OfficialLetterhead({
                   className="company-contact"
                   style={{
                     margin: `${lineSpacing}px 0 0`,
-                    lineHeight: 1.25,
+                    lineHeight: kopLineHeight,
                   }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();

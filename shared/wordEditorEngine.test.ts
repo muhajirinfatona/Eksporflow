@@ -6,6 +6,9 @@ import {
   isTextSelected,
   getSelectionFontSize,
   getSelectionFontFamily,
+  mapLineHeightToGapPx,
+  applyLineSpacingToSelection,
+  getSelectionLineHeight,
 } from "../client/src/lib/wordEditorEngine";
 import { getDocMargins, initialShipment } from "./shipment";
 
@@ -20,6 +23,20 @@ describe("Word Editor Engine - Microsoft Word Selection & Formatting", () => {
     expect(isTextSelected()).toBe(false);
     expect(getSelectionFontSize()).toBe(11);
     expect(getSelectionFontFamily()).toBe("Calibri");
+    expect(getSelectionLineHeight()).toBeNull();
+    expect(applyLineSpacingToSelection(1.5)).toEqual({
+      applied: false,
+      isLetterhead: false,
+      mappedSpacingPx: 8,
+    });
+  });
+
+  it("maps line-height presets to proportional vertical gap pixels", () => {
+    expect(mapLineHeightToGapPx(1.0)).toBe(0);
+    expect(mapLineHeightToGapPx(1.15)).toBe(2);
+    expect(mapLineHeightToGapPx(1.25)).toBe(4);
+    expect(mapLineHeightToGapPx(1.5)).toBe(8);
+    expect(mapLineHeightToGapPx(2.0)).toBe(14);
   });
 
   it("safely resets and manages saved selection state", () => {

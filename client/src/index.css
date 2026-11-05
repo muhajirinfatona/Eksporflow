@@ -10798,21 +10798,22 @@ textarea:focus-visible {
   }
   .doc-type-sales-contract .company-name {
     font-size: 17px !important;
-    margin-bottom: 1.5px !important;
-    line-height: 1.2 !important;
+    margin-bottom: 1.5px;
+    line-height: 1.2;
   }
   .doc-type-sales-contract .company-details {
     font-size: 10.2px !important;
-    line-height: 1.28 !important;
-    margin: 1.5px 0 !important;
+    line-height: 1.28;
+    margin: 1.5px 0;
   }
   .doc-type-sales-contract .company-contact {
     font-size: 10px !important;
-    margin: 1.5px 0 0 !important;
+    margin: 1.5px 0 0;
+    line-height: 1.25;
   }
   .doc-type-sales-contract .letterhead-divider-line {
-    margin-top: 4px !important;
-    border-bottom: 2px solid #0f2942 !important;
+    margin-top: 4px;
+    border-bottom: 2px solid #0f2942;
   }
   .doc-type-sales-contract .doc-title-bar {
     margin-top: 5px !important;
@@ -10926,21 +10927,22 @@ textarea:focus-visible {
   }
   .doc-type-sales-contract.doc-contract-mode-1page .company-name {
     font-size: 17px !important;
-    margin-bottom: 1.5px !important;
-    line-height: 1.2 !important;
+    margin-bottom: 1.5px;
+    line-height: 1.2;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .company-details {
     font-size: 10.2px !important;
-    line-height: 1.28 !important;
-    margin: 1.5px 0 !important;
+    line-height: 1.28;
+    margin: 1.5px 0;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .company-contact {
     font-size: 10px !important;
-    margin: 1.5px 0 0 !important;
+    margin: 1.5px 0 0;
+    line-height: 1.25;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .letterhead-divider-line {
-    margin-top: 4px !important;
-    border-bottom: 2px solid #0f2942 !important;
+    margin-top: 4px;
+    border-bottom: 2px solid #0f2942;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .doc-title-bar {
     margin-top: 5px !important;
@@ -11099,21 +11101,22 @@ textarea:focus-visible {
   }
   .doc-type-sales-contract.doc-contract-mode-2page .company-name {
     font-size: 17px !important;
-    margin-bottom: 1.5px !important;
-    line-height: 1.2 !important;
+    margin-bottom: 1.5px;
+    line-height: 1.2;
   }
   .doc-type-sales-contract.doc-contract-mode-2page .company-details {
     font-size: 10.2px !important;
-    line-height: 1.28 !important;
-    margin: 1.5px 0 !important;
+    line-height: 1.28;
+    margin: 1.5px 0;
   }
   .doc-type-sales-contract.doc-contract-mode-2page .company-contact {
     font-size: 10px !important;
-    margin: 1.5px 0 0 !important;
+    margin: 1.5px 0 0;
+    line-height: 1.25;
   }
   .doc-type-sales-contract.doc-contract-mode-2page .letterhead-divider-line {
-    margin-top: 4px !important;
-    border-bottom: 2px solid #0f2942 !important;
+    margin-top: 4px;
+    border-bottom: 2px solid #0f2942;
   }
   .doc-type-sales-contract.doc-contract-mode-2page .doc-title-bar {
     margin-top: 5px !important;

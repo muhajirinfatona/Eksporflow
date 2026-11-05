@@ -382,3 +382,160 @@ export function clearFormattingFromSelection(): boolean {
     return false;
   }
 }
+
+const BLOCK_SELECTOR =
+  "h1, h2, h3, h4, h5, h6, p, li, div.company-details, div.company-contact, div.doc-entity-name, div.doc-entity-address, div.doc-entity-contact, div.party-name, div.party-address, div.party-phone, div.party-tax, b.table-product-title, td, th";
+
+/**
+ * Maps a line-height multiplier (e.g., 1.0, 1.15, 1.5, 2.0) to a vertical gap in px.
+ */
+export function mapLineHeightToGapPx(lh: number): number {
+  if (lh <= 1.0) return 0;
+  if (lh <= 1.15) return 2;
+  if (lh <= 1.25) return 4;
+  if (lh <= 1.35) return 5;
+  if (lh <= 1.5) return 8;
+  if (lh <= 1.75) return 11;
+  if (lh <= 2.0) return 14;
+  return Math.max(0, Math.round((lh - 1.0) * 14));
+}
+
+/**
+ * Applies line-height and paragraph/line vertical spacing to the currently blocked/selected text.
+ * Works across letterhead lines (.company-name, .company-details, .company-contact),
+ * paragraphs, list items, party cards, and table cells.
+ */
+export function applyLineSpacingToSelection(lh: number): {
+  applied: boolean;
+  isLetterhead: boolean;
+  mappedSpacingPx: number;
+} {
+  const mappedSpacingPx = mapLineHeightToGapPx(lh);
+  const range = getEffectiveSelectionRange();
+  if (!range || range.collapsed) {
+    return { applied: false, isLetterhead: false, mappedSpacingPx };
+  }
+
+  const paper = document.querySelector(".paper-document");
+  if (!paper || !paper.contains(range.commonAncestorContainer)) {
+    return { applied: false, isLetterhead: false, mappedSpacingPx };
+  }
+
+  try {
+    const textNodes = getTextNodesInRange(range);
+    const blockSet = new Set<HTMLElement>();
+    let isLetterhead = false;
+
+    const addNodeBlocks = (node: Node) => {
+      const el = (node.nodeType === Node.TEXT_NODE ? node.parentElement : node) as HTMLElement | null;
+      if (!el) return;
+      if (el.closest(".paper-letterhead-wrap, .letterhead-text")) {
+        isLetterhead = true;
+      }
+      const block = el.closest(BLOCK_SELECTOR) as HTMLElement | null;
+      if (block && paper.contains(block)) {
+        blockSet.add(block);
+      } else if (el !== paper && paper.contains(el)) {
+        blockSet.add(el);
+      }
+    };
+
+    if (textNodes.length > 0) {
+      for (const tn of textNodes) {
+        addNodeBlocks(tn);
+      }
+    } else {
+      addNodeBlocks(range.startContainer);
+      addNodeBlocks(range.endContainer);
+    }
+
+    // If selection is inside letterhead, include all selected letterhead lines
+    if (isLetterhead) {
+      const kopWrap = paper.querySelector(".letterhead-text");
+      if (kopWrap) {
+        const kopBlocks = kopWrap.querySelectorAll<HTMLElement>(".company-name, .company-details, .company-contact");
+        kopBlocks.forEach((kb) => {
+          try {
+            if (range.intersectsNode(kb)) {
+              blockSet.add(kb);
+            }
+          } catch {
+            blockSet.add(kb);
+          }
+        });
+      }
+    }
+
+    if (blockSet.size === 0) {
+      const ok = applyInlineStyleToSelection({ "line-height": String(lh) });
+      return { applied: ok, isLetterhead, mappedSpacingPx };
+    }
+
+    blockSet.forEach((blockEl) => {
+      blockEl.setAttribute("data-custom-lh", String(lh));
+      blockEl.style.setProperty("line-height", String(lh), "important");
+
+      if (blockEl.classList.contains("company-name")) {
+        blockEl.style.setProperty("margin-top", "0px", "important");
+        blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
+      } else if (
+        blockEl.classList.contains("company-details") ||
+        blockEl.classList.contains("company-contact")
+      ) {
+        blockEl.style.setProperty("margin-top", `${mappedSpacingPx}px`, "important");
+        blockEl.style.setProperty("margin-bottom", "0px", "important");
+      } else if (blockEl.tagName !== "TD" && blockEl.tagName !== "TH") {
+        blockEl.style.setProperty("margin-top", `${Math.max(0, Math.round(mappedSpacingPx * 0.5))}px`, "important");
+        blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
+      }
+    });
+
+    // Restore selection so highlight stays active
+    restoreActiveSelection();
+    return { applied: true, isLetterhead, mappedSpacingPx };
+  } catch (err) {
+    console.warn("applyLineSpacingToSelection error:", err);
+    return { applied: false, isLetterhead: false, mappedSpacingPx };
+  }
+}
+
+/**
+ * Detects the line-height of the currently selected text/block.
+ */
+export function getSelectionLineHeight(): number | null {
+  if (typeof window === "undefined") return null;
+  const range = getEffectiveSelectionRange();
+  if (!range) return null;
+
+  try {
+    const el = (range.startContainer.nodeType === Node.TEXT_NODE
+      ? range.startContainer.parentElement
+      : range.startContainer) as HTMLElement | null;
+    if (!el) return null;
+
+    const block = (el.closest(BLOCK_SELECTOR) as HTMLElement | null) || el;
+    const customAttr = block.getAttribute("data-custom-lh");
+    if (customAttr) {
+      const parsed = parseFloat(customAttr);
+      if (!isNaN(parsed)) return parsed;
+    }
+
+    if (block.style.lineHeight) {
+      const val = parseFloat(block.style.lineHeight);
+      if (!isNaN(val) && val > 0 && val < 5) {
+        return Math.round(val * 100) / 100;
+      }
+    }
+
+    const computed = window.getComputedStyle(block);
+    const lhPx = parseFloat(computed.lineHeight);
+    const fsPx = parseFloat(computed.fontSize);
+    if (!isNaN(lhPx) && !isNaN(fsPx) && fsPx > 0) {
+      const ratio = Math.round((lhPx / fsPx) * 20) / 20;
+      if (ratio >= 0.8 && ratio <= 4.0) return ratio;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
