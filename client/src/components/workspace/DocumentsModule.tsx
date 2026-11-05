@@ -59,6 +59,13 @@ import {
   type ExportFormat,
   type ExportDocData,
 } from "@/lib/documentExporters";
+import {
+  registerShipmentHistoryBridge,
+  pushEditorHistory,
+  performEditorUndo,
+  performEditorRedo,
+  resetEditorHistory,
+} from "@/lib/wordEditorEngine";
 
 export function DocumentsModule({
   shipment,
@@ -99,12 +106,66 @@ export function DocumentsModule({
   const isLandscape = shipment.documentOrientation === "Landscape";
   const paperWidthMm = isLandscape ? paperSpec.heightMm : paperSpec.widthMm;
 
+  const shipmentRef = useRef(shipment);
+  shipmentRef.current = shipment;
+
+  const trackedUpdate = <K extends keyof Shipment>(key: K, value: Shipment[K]) => {
+    if (shipmentRef.current[key] !== value) {
+      pushEditorHistory(`shipment:${String(key)}`);
+    }
+    update(key, value);
+  };
+
+  useEffect(() => {
+    return registerShipmentHistoryBridge(
+      () => ({ ...shipmentRef.current }),
+      (restoredState) => {
+        const current = shipmentRef.current;
+        for (const k of Object.keys(restoredState) as (keyof Shipment)[]) {
+          if (current[k] !== restoredState[k]) {
+            update(k, restoredState[k] as Shipment[typeof k]);
+          }
+        }
+      }
+    );
+  }, [update]);
+
+  useEffect(() => {
+    resetEditorHistory();
+  }, [selectedDocument]);
+
+  useEffect(() => {
+    const handleUndoRedoShortcut = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "SELECT")) {
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey) {
+        const key = e.key.toLowerCase();
+        if (key === "z" && !e.shiftKey) {
+          e.preventDefault();
+          if (performEditorUndo()) {
+            toast.info("Perubahan diurungkan (Undo)");
+          }
+        } else if (key === "y" || (key === "z" && e.shiftKey)) {
+          e.preventDefault();
+          if (performEditorRedo()) {
+            toast.info("Perubahan diulangi (Redo)");
+          }
+        }
+      }
+    };
+    window.addEventListener("keydown", handleUndoRedoShortcut);
+    return () => window.removeEventListener("keydown", handleUndoRedoShortcut);
+  }, []);
+
   const handleOpenSignatureModal = (party: "seller" | "buyer" = "seller") => {
     setSignatureParty(party);
     setIsSignatureModalOpen(true);
   };
 
   const handleResetDocument = () => {
+    pushEditorHistory("reset-document");
     setEditorKey((prev) => prev + 1);
     toast.success("Dokumen berhasil di-reset ke template standar sistem!");
   };
@@ -835,7 +896,7 @@ export function DocumentsModule({
       {isSettingsOpen && (
         <DocumentSettings
           shipment={shipment}
-          update={update}
+          update={trackedUpdate}
           onLetterheadImage={handleLetterheadImage}
           onClose={() => setIsSettingsOpen(false)}
         />
@@ -846,7 +907,7 @@ export function DocumentsModule({
         <div className="doc-sticky-ribbon-wrap no-print">
           <DocWordRibbon
             shipment={shipment}
-            update={update}
+            update={trackedUpdate}
             isEditMode={isEditMode}
             setIsEditMode={setIsEditMode}
             onOpenSignatureModal={handleOpenSignatureModal}
@@ -868,7 +929,7 @@ export function DocumentsModule({
               leftMarginMm={docMargins.left}
               rightMarginMm={docMargins.right}
               onClose={() => {
-                update("docShowRuler", false);
+                trackedUpdate("docShowRuler", false);
                 toast.info("Penggaris disembunyikan. Anda dapat menampilkannya kembali lewat tombol 'Penggaris' di toolbar atas.");
               }}
             />
@@ -879,6 +940,7 @@ export function DocumentsModule({
           key={editorKey}
           contentEditable={isEditMode}
           suppressContentEditableWarning={true}
+          onBeforeInput={() => pushEditorHistory("typing")}
           style={{
             fontFamily: shipment.docEditorFontFamily || "Calibri",
             fontSize: `${shipment.docEditorFontSize || 11}pt`,
@@ -901,7 +963,7 @@ export function DocumentsModule({
             onOpenSettings={() => setIsSettingsOpen(true)}
             isId={isId}
             isEditMode={isEditMode}
-            update={update}
+            update={trackedUpdate}
           />
 
           {/* Render Specific Document Type */}

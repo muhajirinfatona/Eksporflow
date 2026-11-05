@@ -133,6 +133,8 @@ export function applyInlineStyleToSelection(styles: Record<string, string>): boo
   const paper = document.querySelector(".paper-document");
   if (!paper || !paper.contains(range.commonAncestorContainer)) return false;
 
+  pushEditorHistory("format-inline");
+
   try {
     // Case 1: Range is strictly within a single Text Node
     if (range.startContainer === range.endContainer && range.startContainer.nodeType === Node.TEXT_NODE) {
@@ -337,6 +339,8 @@ export function changeSelectionCase(): boolean {
   const fullText = textNodes.map((n) => n.textContent || "").join("");
   if (!fullText) return false;
 
+  pushEditorHistory("change-case");
+
   const isAllUpper = fullText === fullText.toUpperCase();
   const isAllLower = fullText === fullText.toLowerCase();
 
@@ -366,6 +370,8 @@ export function changeSelectionCase(): boolean {
 export function clearFormattingFromSelection(): boolean {
   const range = getEffectiveSelectionRange();
   if (!range || range.collapsed) return false;
+
+  pushEditorHistory("clear-format");
 
   try {
     document.execCommand("removeFormat");
@@ -420,6 +426,8 @@ export function applyLineSpacingToSelection(lh: number): {
   if (!paper || !paper.contains(range.commonAncestorContainer)) {
     return { applied: false, isLetterhead: false, mappedSpacingPx };
   }
+
+  pushEditorHistory("line-spacing");
 
   try {
     const textNodes = getTextNodesInRange(range);
@@ -539,3 +547,297 @@ export function getSelectionLineHeight(): number | null {
   }
   return null;
 }
+
+// ============================================================================
+// UNIFIED MICROSOFT WORD UNDO / REDO HISTORY ENGINE
+// Tracks both DOM mutations inside .paper-document AND React Shipment state
+// ============================================================================
+
+export interface DomBlockSnapshot {
+  histKey: string;
+  innerHTML: string;
+  styleAttr: string | null;
+  customLh: string | null;
+}
+
+export interface EditorHistorySnapshot {
+  key: string;
+  timestamp: number;
+  shipmentState: Record<string, any> | null;
+  blocks: DomBlockSnapshot[];
+}
+
+const HISTORY_TRACKED_SELECTOR = [
+  ".company-name",
+  ".company-details",
+  ".company-contact",
+  ".doc-title-bar",
+  ".doc-two-col-grid",
+  ".doc-three-col-grid",
+  ".doc-si-header-meta",
+  ".doc-transport-row-strip",
+  ".doc-contract-ref-bar",
+  ".doc-preamble-text",
+  ".doc-contract-parties-grid",
+  ".contract-articles-wrapper",
+  ".doc-witness-clause",
+  "table.doc-table-pro",
+  "table.bank-card-table",
+  "table.doc-user-table",
+  ".doc-instructions-box",
+  ".doc-notes-box",
+  ".sig-signed-for",
+  ".sig-company-name",
+  ".sig-signatory-name",
+  ".sig-signatory-title",
+  ".sig-header-txt",
+  ".sig-name",
+  ".sig-sub",
+].join(", ");
+
+const MAX_HISTORY_STEPS = 50;
+let undoStack: EditorHistorySnapshot[] = [];
+let redoStack: EditorHistorySnapshot[] = [];
+let isRestoringHistory = false;
+let lastPushKey = "";
+let lastPushTimestamp = 0;
+
+let getShipmentSnapshotFn: (() => Record<string, any> | null) | null = null;
+let applyShipmentSnapshotFn: ((state: Record<string, any>) => void) | null = null;
+
+/**
+ * Registers callbacks from DocumentsModule so Undo/Redo can also snapshot and
+ * restore React Shipment state alongside DOM inline formatting & text edits.
+ */
+export function registerShipmentHistoryBridge(
+  getShipment: () => Record<string, any> | null,
+  applyShipment: (state: Record<string, any>) => void
+): () => void {
+  getShipmentSnapshotFn = getShipment;
+  applyShipmentSnapshotFn = applyShipment;
+  return () => {
+    if (getShipmentSnapshotFn === getShipment) getShipmentSnapshotFn = null;
+    if (applyShipmentSnapshotFn === applyShipment) applyShipmentSnapshotFn = null;
+  };
+}
+
+function notifyHistoryChange(): void {
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(
+    new CustomEvent("eksporflow:history-change", {
+      detail: {
+        canUndo: undoStack.length > 0,
+        canRedo: redoStack.length > 0,
+        undoCount: undoStack.length,
+        redoCount: redoStack.length,
+      },
+    })
+  );
+}
+
+function captureCurrentSnapshot(key = "manual"): EditorHistorySnapshot | null {
+  const blocks: DomBlockSnapshot[] = [];
+  const paper = typeof document !== "undefined" ? document.querySelector(".paper-document") : null;
+
+  if (paper) {
+    const elements = paper.querySelectorAll<HTMLElement>(HISTORY_TRACKED_SELECTOR);
+    elements.forEach((el, idx) => {
+      let histKey = el.getAttribute("data-hist-key");
+      if (!histKey) {
+        histKey = `${el.tagName.toLowerCase()}-${idx}`;
+        el.setAttribute("data-hist-key", histKey);
+      }
+      blocks.push({
+        histKey,
+        innerHTML: el.innerHTML,
+        styleAttr: el.getAttribute("style"),
+        customLh: el.getAttribute("data-custom-lh"),
+      });
+    });
+  }
+
+  const rawShipment = getShipmentSnapshotFn ? getShipmentSnapshotFn() : null;
+  const shipmentState = rawShipment ? { ...rawShipment } : null;
+
+  if (!paper && !shipmentState) return null;
+
+  return {
+    key,
+    timestamp: Date.now(),
+    shipmentState,
+    blocks,
+  };
+}
+
+function applySnapshotToDom(snap: EditorHistorySnapshot): void {
+  if (typeof document === "undefined") return;
+  const paper = document.querySelector(".paper-document");
+  if (!paper) return;
+
+  const elements = paper.querySelectorAll<HTMLElement>(HISTORY_TRACKED_SELECTOR);
+  elements.forEach((el, idx) => {
+    if (!el.getAttribute("data-hist-key")) {
+      el.setAttribute("data-hist-key", `${el.tagName.toLowerCase()}-${idx}`);
+    }
+  });
+
+  snap.blocks.forEach((b, idx) => {
+    const target =
+      paper.querySelector<HTMLElement>(`[data-hist-key="${b.histKey}"]`) ||
+      elements[idx];
+    if (!target) return;
+
+    if (target.innerHTML !== b.innerHTML) {
+      target.innerHTML = b.innerHTML;
+    }
+    if (b.styleAttr !== null && b.styleAttr !== "") {
+      target.setAttribute("style", b.styleAttr);
+    } else {
+      target.removeAttribute("style");
+    }
+    if (b.customLh !== null) {
+      target.setAttribute("data-custom-lh", b.customLh);
+    } else {
+      target.removeAttribute("data-custom-lh");
+    }
+  });
+}
+
+/**
+ * Records current editor state before a change is applied.
+ */
+export function pushEditorHistory(key = "edit"): void {
+  if (isRestoringHistory) return;
+
+  const now = Date.now();
+  // Coalesce high-frequency updates with the same key (e.g., slider drag or rapid typing)
+  const coalesceWindowMs = key.startsWith("shipment:") ? 250 : key === "typing" ? 750 : 50;
+  if (key === lastPushKey && now - lastPushTimestamp < coalesceWindowMs && undoStack.length > 0) {
+    lastPushTimestamp = now;
+    return;
+  }
+
+  const snap = captureCurrentSnapshot(key);
+  if (!snap) return;
+
+  undoStack.push(snap);
+  if (undoStack.length > MAX_HISTORY_STEPS) {
+    undoStack.shift();
+  }
+  redoStack = [];
+  lastPushKey = key;
+  lastPushTimestamp = now;
+  notifyHistoryChange();
+}
+
+/**
+ * Undoes the most recent document change (DOM formatting, text edit, or Shipment setting).
+ */
+export function performEditorUndo(): boolean {
+  if (undoStack.length === 0) {
+    // Fallback to native browser undo if stack is empty
+    try {
+      if (typeof document !== "undefined") {
+        return document.execCommand("undo", false);
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  isRestoringHistory = true;
+  try {
+    const currentSnap = captureCurrentSnapshot("current");
+    const prevSnap = undoStack.pop()!;
+    if (currentSnap) {
+      redoStack.push(currentSnap);
+    }
+
+    if (prevSnap.shipmentState && applyShipmentSnapshotFn) {
+      applyShipmentSnapshotFn(prevSnap.shipmentState);
+    }
+
+    applySnapshotToDom(prevSnap);
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => {
+        applySnapshotToDom(prevSnap);
+        isRestoringHistory = false;
+      });
+    } else {
+      isRestoringHistory = false;
+    }
+
+    lastPushKey = "";
+    notifyHistoryChange();
+    return true;
+  } catch (err) {
+    console.warn("performEditorUndo error:", err);
+    isRestoringHistory = false;
+    return false;
+  }
+}
+
+/**
+ * Redoes the most recently undone document change.
+ */
+export function performEditorRedo(): boolean {
+  if (redoStack.length === 0) {
+    try {
+      if (typeof document !== "undefined") {
+        return document.execCommand("redo", false);
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }
+
+  isRestoringHistory = true;
+  try {
+    const currentSnap = captureCurrentSnapshot("current");
+    const nextSnap = redoStack.pop()!;
+    if (currentSnap) {
+      undoStack.push(currentSnap);
+    }
+
+    if (nextSnap.shipmentState && applyShipmentSnapshotFn) {
+      applyShipmentSnapshotFn(nextSnap.shipmentState);
+    }
+
+    applySnapshotToDom(nextSnap);
+    if (typeof window !== "undefined" && typeof window.requestAnimationFrame === "function") {
+      window.requestAnimationFrame(() => {
+        applySnapshotToDom(nextSnap);
+        isRestoringHistory = false;
+      });
+    } else {
+      isRestoringHistory = false;
+    }
+
+    lastPushKey = "";
+    notifyHistoryChange();
+    return true;
+  } catch (err) {
+    console.warn("performEditorRedo error:", err);
+    isRestoringHistory = false;
+    return false;
+  }
+}
+
+export function canEditorUndo(): boolean {
+  return undoStack.length > 0;
+}
+
+export function canEditorRedo(): boolean {
+  return redoStack.length > 0;
+}
+
+export function resetEditorHistory(): void {
+  undoStack = [];
+  redoStack = [];
+  lastPushKey = "";
+  lastPushTimestamp = 0;
+  notifyHistoryChange();
+}
+

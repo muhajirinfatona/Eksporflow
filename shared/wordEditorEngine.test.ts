@@ -9,12 +9,20 @@ import {
   mapLineHeightToGapPx,
   applyLineSpacingToSelection,
   getSelectionLineHeight,
+  registerShipmentHistoryBridge,
+  pushEditorHistory,
+  performEditorUndo,
+  performEditorRedo,
+  canEditorUndo,
+  canEditorRedo,
+  resetEditorHistory,
 } from "../client/src/lib/wordEditorEngine";
 import { getDocMargins, initialShipment } from "./shipment";
 
 describe("Word Editor Engine - Microsoft Word Selection & Formatting", () => {
   beforeEach(() => {
     clearSavedSelection();
+    resetEditorHistory();
   });
 
   it("handles headless/SSR environment safely without throwing exceptions", () => {
@@ -73,5 +81,54 @@ describe("Word Editor Engine - Microsoft Word Selection & Formatting", () => {
     };
     expect(behindTextShipment.letterheadLogoWrap).toBe("behind");
     expect(behindTextShipment.letterheadLogoOpacity).toBe(30);
+  });
+
+  it("tracks and restores shipment state across Undo and Redo actions", () => {
+    let state = {
+      ...initialShipment,
+      docEditorFontSize: 11,
+      letterheadSpacing: 2,
+    };
+
+    const unregister = registerShipmentHistoryBridge(
+      () => ({ ...state }),
+      (restored) => {
+        state = { ...state, ...restored };
+      }
+    );
+
+    expect(canEditorUndo()).toBe(false);
+    expect(canEditorRedo()).toBe(false);
+
+    // Step 1: Change font size from 11 to 16
+    pushEditorHistory("font-size");
+    state.docEditorFontSize = 16;
+    expect(canEditorUndo()).toBe(true);
+
+    // Step 2: Change letterhead spacing from 2 to 10
+    pushEditorHistory("letterhead-spacing");
+    state.letterheadSpacing = 10;
+
+    // Undo Step 2 -> letterheadSpacing returns to 2, fontSize stays 16
+    expect(performEditorUndo()).toBe(true);
+    expect(state.letterheadSpacing).toBe(2);
+    expect(state.docEditorFontSize).toBe(16);
+    expect(canEditorRedo()).toBe(true);
+
+    // Undo Step 1 -> fontSize returns to 11
+    expect(performEditorUndo()).toBe(true);
+    expect(state.docEditorFontSize).toBe(11);
+    expect(canEditorUndo()).toBe(false);
+
+    // Redo Step 1 -> fontSize returns to 16
+    expect(performEditorRedo()).toBe(true);
+    expect(state.docEditorFontSize).toBe(16);
+
+    // Redo Step 2 -> letterheadSpacing returns to 10
+    expect(performEditorRedo()).toBe(true);
+    expect(state.letterheadSpacing).toBe(10);
+    expect(canEditorRedo()).toBe(false);
+
+    unregister();
   });
 });

@@ -82,6 +82,11 @@ import {
   applyLineSpacingToSelection,
   getSelectionLineHeight,
   mapLineHeightToGapPx,
+  pushEditorHistory,
+  performEditorUndo,
+  performEditorRedo,
+  canEditorUndo,
+  canEditorRedo,
 } from "../../lib/wordEditorEngine";
 
 interface DocWordRibbonProps {
@@ -283,6 +288,19 @@ export function DocWordRibbon({
   const [selectedFontFamily, setSelectedFontFamily] = useState<string | null>(null);
   const [selectedLineHeight, setSelectedLineHeight] = useState<number | null>(null);
   const [hasBlockedText, setHasBlockedText] = useState(false);
+  const [canUndoState, setCanUndoState] = useState<boolean>(() => canEditorUndo());
+  const [canRedoState, setCanRedoState] = useState<boolean>(() => canEditorRedo());
+
+  useEffect(() => {
+    const handleHistoryChange = () => {
+      setCanUndoState(canEditorUndo());
+      setCanRedoState(canEditorRedo());
+    };
+    window.addEventListener("eksporflow:history-change", handleHistoryChange);
+    return () => {
+      window.removeEventListener("eksporflow:history-change", handleHistoryChange);
+    };
+  }, []);
 
   useEffect(() => {
     const handleSelectionChange = () => {
@@ -558,8 +576,39 @@ export function DocWordRibbon({
     toast.success(`Kop surat "${p.name}" berhasil diterapkan ke dokumen!`);
   };
 
+  const handleUndo = () => {
+    const ok = performEditorUndo();
+    setCanUndoState(canEditorUndo());
+    setCanRedoState(canEditorRedo());
+    if (ok) {
+      toast.info("Perubahan diurungkan (Undo)");
+    } else {
+      toast.info("Belum ada riwayat perubahan untuk diurungkan");
+    }
+  };
+
+  const handleRedo = () => {
+    const ok = performEditorRedo();
+    setCanUndoState(canEditorUndo());
+    setCanRedoState(canEditorRedo());
+    if (ok) {
+      toast.info("Perubahan diulangi (Redo)");
+    } else {
+      toast.info("Belum ada perubahan untuk diulangi");
+    }
+  };
+
   // Execute formatting command while preserving selection
   const runCommand = (command: string, value: string | undefined = undefined) => {
+    if (command === "undo") {
+      handleUndo();
+      return;
+    }
+    if (command === "redo") {
+      handleRedo();
+      return;
+    }
+    pushEditorHistory(`cmd:${command}`);
     restoreActiveSelection();
     try {
       document.execCommand(command, false, value);
@@ -816,6 +865,7 @@ export function DocWordRibbon({
       toast.error("Klik di dalam tabel terlebih dahulu");
       return;
     }
+    pushEditorHistory("table:insert-row");
 
     const tbody = table.querySelector("tbody") || table;
     let targetRow = row;
@@ -909,6 +959,7 @@ export function DocWordRibbon({
       toast.error("Baris header judul kolom tidak dapat dihapus");
       return;
     }
+    pushEditorHistory("table:delete-row");
     row.remove();
     if (table) {
       reindexTableNumbers(table);
@@ -922,6 +973,7 @@ export function DocWordRibbon({
       toast.error("Klik di dalam tabel terlebih dahulu");
       return;
     }
+    pushEditorHistory("table:insert-col");
     const colIndex = cell ? cell.cellIndex : (table.rows[0]?.cells.length || 0);
     const targetIndex = direction === "left" ? colIndex : colIndex + 1;
 
@@ -986,6 +1038,7 @@ export function DocWordRibbon({
       toast.error("Tabel harus memiliki minimal 1 kolom.");
       return;
     }
+    pushEditorHistory("table:delete-col");
 
     table.querySelectorAll("thead tr, tbody tr").forEach((row) => {
       if (!row.classList.contains("doc-table-total-row") && row.children[colIndex]) {
@@ -1173,6 +1226,7 @@ export function DocWordRibbon({
       toast.error("Pilih atau klik salah satu sel tabel terlebih dahulu");
       return;
     }
+    pushEditorHistory("table:color");
 
     const textColor = getContrastColor(bgColor);
 
@@ -1385,23 +1439,19 @@ export function DocWordRibbon({
               <div className="doc-ribbon-group group-history">
                 <button
                   type="button"
-                  className="doc-ribbon-btn-icon"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    runCommand("undo");
-                  }}
-                  title="Undo / Urungkan (Ctrl+Z)"
+                  className={`doc-ribbon-btn-icon ${canUndoState ? "active" : ""}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleUndo}
+                  title="Undo / Urungkan Perubahan Terakhir (Ctrl+Z)"
                 >
                   <Undo2 size={14} />
                 </button>
                 <button
                   type="button"
-                  className="doc-ribbon-btn-icon"
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    runCommand("redo");
-                  }}
-                  title="Redo / Ulangi (Ctrl+Y)"
+                  className={`doc-ribbon-btn-icon ${canRedoState ? "active" : ""}`}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={handleRedo}
+                  title="Redo / Ulangi Perubahan (Ctrl+Y)"
                 >
                   <Redo2 size={14} />
                 </button>
