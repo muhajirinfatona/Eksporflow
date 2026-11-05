@@ -65,6 +65,7 @@ import {
   performEditorUndo,
   performEditorRedo,
   resetEditorHistory,
+  saveActiveSelection,
 } from "@/lib/wordEditorEngine";
 
 export function DocumentsModule({
@@ -199,9 +200,19 @@ export function DocumentsModule({
     const paperEl = document.querySelector(".paper-document");
     if (!paperEl) return;
 
-    // 1. Cell & Table Focus Tracking (Word Table Mode)
+    // 1. Cell, Table & Document Box Focus Tracking (Word Table & Box Mode)
     const handleCellFocus = (e: Event) => {
       const target = e.target as HTMLElement;
+      const box = target.closest(
+        ".doc-title-bar, .doc-box, .contract-party-card, .doc-terms-panel, .doc-bank-card"
+      ) as HTMLElement | null;
+      paperEl.querySelectorAll(".active-doc-box").forEach((el) => {
+        if (el !== box) el.classList.remove("active-doc-box");
+      });
+      if (box) {
+        box.classList.add("active-doc-box");
+      }
+
       const cell = target.closest("td, th") as HTMLTableCellElement | null;
       if (cell) {
         const currentTable = cell.closest("table");
@@ -2164,6 +2175,139 @@ function OfficialStampAndSignature({
 }
 
 // --------------------------------------------------------------------------
+// INTERACTIVE DOCUMENT TITLE BANNER (SELECTABLE & COLOR CUSTOMIZABLE)
+// --------------------------------------------------------------------------
+function DocTitleBanner({ title }: { title: string }) {
+  const barRef = useRef<HTMLDivElement>(null);
+  const h2Ref = useRef<HTMLHeadingElement>(null);
+
+  const selectTitleText = (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const h2 = h2Ref.current;
+    if (!h2) return;
+    const bar = barRef.current;
+    if (bar) {
+      document.querySelectorAll(".active-doc-box").forEach((el) => el.classList.remove("active-doc-box"));
+      bar.classList.add("active-doc-box");
+    }
+    try {
+      const range = document.createRange();
+      range.selectNodeContents(h2);
+      const sel = window.getSelection();
+      if (sel) {
+        sel.removeAllRanges();
+        sel.addRange(range);
+      }
+      saveActiveSelection();
+    } catch {
+      // ignore
+    }
+  };
+
+  const applyTitleBoxStyle = (
+    bg: string,
+    textColor: string,
+    border: string
+  ) => {
+    const bar = barRef.current;
+    const h2 = h2Ref.current;
+    if (!bar || !h2) return;
+    pushEditorHistory("title-box-style");
+    bar.style.setProperty("background", bg, "important");
+    bar.style.setProperty("background-color", bg, "important");
+    bar.style.setProperty("border", border, "important");
+    h2.style.setProperty("color", textColor, "important");
+    h2.querySelectorAll<HTMLElement>("*").forEach((child) => {
+      child.style.setProperty("color", textColor, "important");
+    });
+    toast.success("Gaya & warna kotak judul diperbarui");
+  };
+
+  return (
+    <div
+      ref={barRef}
+      className="doc-title-bar group/titlebar relative"
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest(".titlebar-quick-tools")) return;
+        if (target === barRef.current && h2Ref.current) {
+          selectTitleText();
+        }
+      }}
+    >
+      <div
+        className="titlebar-quick-tools no-print opacity-0 group-hover/titlebar:opacity-100 group-focus-within/titlebar:opacity-100 transition-opacity duration-150"
+        contentEditable={false}
+        style={{
+          position: "absolute",
+          top: "-24px",
+          right: "0",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: "4px",
+          background: "#ffffff",
+          border: "1px solid #cbd5e1",
+          borderRadius: "5px",
+          padding: "2px 6px",
+          boxShadow: "0 2px 6px rgba(15, 23, 42, 0.1)",
+          zIndex: 25,
+        }}
+      >
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={selectTitleText}
+          style={{
+            fontSize: "9.5px",
+            fontWeight: 700,
+            color: "#1e40af",
+            background: "#eff6ff",
+            border: "1px solid #bfdbfe",
+            borderRadius: "3px",
+            padding: "1px 6px",
+            cursor: "pointer",
+          }}
+          title="Blok / pilih seluruh teks judul untuk diubah ukuran atau jenis hurufnya"
+        >
+          Pilih Teks
+        </button>
+        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginLeft: "2px" }}>
+          Warna Kotak:
+        </span>
+        {[
+          { label: "Navy Korporat", bg: "#0f2942", text: "#ffffff", border: "1px solid #0f2942", swatch: "#0f2942" },
+          { label: "Biru Royal", bg: "#1e40af", text: "#ffffff", border: "1px solid #1e40af", swatch: "#1e40af" },
+          { label: "Hijau Ekspor", bg: "#065f46", text: "#ffffff", border: "1px solid #065f46", swatch: "#065f46" },
+          { label: "Slate Modern", bg: "#334155", text: "#ffffff", border: "1px solid #334155", swatch: "#334155" },
+          { label: "Putih Garis Resmi", bg: "#ffffff", text: "#0f172a", border: "1.5px solid #0f2942", swatch: "#ffffff" },
+        ].map((preset) => (
+          <button
+            key={preset.label}
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => applyTitleBoxStyle(preset.bg, preset.text, preset.border)}
+            title={preset.label}
+            style={{
+              width: "13px",
+              height: "13px",
+              borderRadius: "3px",
+              background: preset.swatch,
+              border: preset.swatch === "#ffffff" ? "1.5px solid #0f2942" : "1px solid rgba(0,0,0,0.2)",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          />
+        ))}
+      </div>
+      <h2 ref={h2Ref}>{title}</h2>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
 // 1. PROFORMA INVOICE (PI) COMPONENT
 // --------------------------------------------------------------------------
 function ProformaInvoiceDoc({
@@ -2229,9 +2373,7 @@ function ProformaInvoiceDoc({
 }) {
   return (
     <div className="doc-content-wrapper">
-      <div className="doc-title-bar">
-        <h2>{isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"}</h2>
-      </div>
+      <DocTitleBanner title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"} />
 
       <div className="doc-two-col-grid">
         <div className="doc-box">
@@ -2489,9 +2631,7 @@ function SalesContractDoc({
 
   return (
     <div className={`doc-content-wrapper doc-contract-wrapper ${is2Page ? "mode-2page" : "mode-1page"}`}>
-      <div className="doc-title-bar">
-        <h2>{isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"}</h2>
-      </div>
+      <DocTitleBanner title={isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} />
 
       <div className="doc-contract-ref-bar">
         <span>
@@ -3033,9 +3173,7 @@ function CommercialInvoiceDoc({
 }) {
   return (
     <div className="doc-content-wrapper">
-      <div className="doc-title-bar">
-        <h2>{isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"}</h2>
-      </div>
+      <DocTitleBanner title={isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"} />
 
       <div className="doc-two-col-grid">
         <div className="doc-parties-column">
@@ -3276,9 +3414,7 @@ function PackingListDoc({
 }) {
   return (
     <div className="doc-content-wrapper">
-      <div className="doc-title-bar">
-        <h2>{isId ? "DAFTAR KEMASAN (PACKING LIST)" : "PACKING LIST"}</h2>
-      </div>
+      <DocTitleBanner title={isId ? "DAFTAR KEMASAN (PACKING LIST)" : "PACKING LIST"} />
 
       <div className="doc-two-col-grid">
         <div className="doc-parties-column">
@@ -3503,9 +3639,7 @@ function ShippingInstructionDoc({
 }) {
   return (
     <div className="doc-content-wrapper">
-      <div className="doc-title-bar">
-        <h2>{isId ? "INSTRUKSI PENGAPALAN (SHIPPING INSTRUCTION)" : "SHIPPING INSTRUCTION (SI)"}</h2>
-      </div>
+      <DocTitleBanner title={isId ? "INSTRUKSI PENGAPALAN (SHIPPING INSTRUCTION)" : "SHIPPING INSTRUCTION (SI)"} />
 
       <div className="doc-si-header-grid">
         <div>

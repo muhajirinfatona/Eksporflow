@@ -572,6 +572,7 @@ const HISTORY_TRACKED_SELECTOR = [
   ".company-details",
   ".company-contact",
   ".doc-title-bar",
+  ".doc-title-bar h2",
   ".doc-two-col-grid",
   ".doc-three-col-grid",
   ".doc-si-header-meta",
@@ -687,7 +688,7 @@ function applySnapshotToDom(snap: EditorHistorySnapshot): void {
       elements[idx];
     if (!target) return;
 
-    if (target.innerHTML !== b.innerHTML) {
+    if (!target.classList.contains("doc-title-bar") && target.innerHTML !== b.innerHTML) {
       target.innerHTML = b.innerHTML;
     }
     if (b.styleAttr !== null && b.styleAttr !== "") {

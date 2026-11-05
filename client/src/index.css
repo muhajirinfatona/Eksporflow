@@ -15980,16 +15980,41 @@ body.doc-word-focus-mode .doc-center-root {
 }
 
 .paper-letterhead-content,
-.doc-title-bar,
 .doc-content-wrapper,
 .doc-two-col-grid,
 .doc-table-pro,
-.doc-terms-panel,
-.doc-bank-card,
 .official-sig-block {
   position: relative;
   z-index: 1;
-  background-color: transparent !important;
+}
+
+.doc-title-bar,
+.doc-terms-panel,
+.doc-bank-card {
+  position: relative;
+  z-index: 1;
+}
+
+.word-editable-mode .doc-title-bar,
+.word-editable-mode .doc-box,
+.word-editable-mode .contract-party-card,
+.word-editable-mode .doc-terms-panel,
+.word-editable-mode .doc-bank-card {
+  cursor: text;
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
+}
+
+.word-editable-mode .doc-title-bar:hover,
+.word-editable-mode .doc-box:hover,
+.word-editable-mode .contract-party-card:hover {
+  outline: 1px dashed rgba(37, 99, 235, 0.45);
+  outline-offset: 2px;
+}
+
+.word-editable-mode .active-doc-box {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .letterhead-logo-container {
