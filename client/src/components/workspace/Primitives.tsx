@@ -729,14 +729,11 @@ export function RecommendationsPanel({
     <section className="panel panel-padding recommendations-panel">
       <div className="panel-head">
         <div>
-          <span className="eyebrow">ACTIVE RECOMMENDATIONS</span>
-          <h3>Langkah berikutnya yang paling berdampak</h3>
-          <p className="profile-description">
-            Saran ini dihitung ulang setiap kali data transaksi, dokumen, atau muatan berubah.
-          </p>
+          <span className="eyebrow">TINDAK LANJUT</span>
+          <h3>Prioritas Operasional</h3>
         </div>
         <button type="button" className="text-button" onClick={() => navigate("advisor")}>
-          <MessageCircle size={14} /> Tanya AI Advisor
+          <MessageCircle size={14} /> AI Advisor
         </button>
       </div>
       <div className="recommendation-grid">
@@ -750,7 +747,6 @@ export function RecommendationsPanel({
             <span className="recommendation-icon">{recommendationIcon(rec.kind)}</span>
             <span className="recommendation-copy">
               <b>{rec.title}</b>
-              <small>{rec.detail}</small>
               <em>
                 {rec.action} <ChevronRight size={12} />
               </em>

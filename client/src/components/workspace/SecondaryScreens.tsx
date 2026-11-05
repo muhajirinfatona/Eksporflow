@@ -101,49 +101,74 @@ export function DashboardView({
 }) {
   return (
     <div className="module-stack">
-      {/* Ringkasan Operasional Transaksi Aktif */}
-      <section className="panel panel-padding">
-        <div className="panel-head" style={{ marginBottom: 0 }}>
-          <div>
-            <span className="eyebrow">RINGKASAN OPERASIONAL TRANSAKSI AKTIF</span>
-            <h3>
-              {shipment.reference} · {shipment.buyer || "Mitra Buyer Internasional"}
-            </h3>
-            <p className="profile-description">
-              Tujuan: <strong>{shipment.destination || "Pelabuhan Tujuan"}</strong> ({shipment.buyerCountry || "Internasional"}) · Komoditas: <strong>{formatNumber(shipment.quantity)} {shipment.unit} {shipment.product}</strong> · Eksportir: <strong>{shipment.exporter || "Eksportir Terdaftar"}</strong>
-            </p>
+      {/* 1. Compact Executive Deal Summary Bar */}
+      <section className="panel" style={{ padding: "14px 18px" }}>
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "16px",
+          }}
+        >
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px" }}>
+            <div>
+              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>TRANSAKSI AKTIF</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <strong style={{ fontSize: "15px", color: "var(--ink)" }}>{shipment.reference}</strong>
+                <span style={{ color: "var(--line-strong)" }}>·</span>
+                <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-soft)" }}>
+                  {shipment.buyer || "Buyer Internasional"}
+                </span>
+              </div>
+            </div>
+
+            <div style={{ height: "28px", width: "1px", background: "var(--line)" }} />
+
+            <div>
+              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>RUTE & TUJUAN</span>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>
+                Indonesia → {shipment.destination || "Pelabuhan Tujuan"}{" "}
+                {shipment.buyerCountry ? `(${shipment.buyerCountry})` : ""}
+              </div>
+            </div>
+
+            <div style={{ height: "28px", width: "1px", background: "var(--line)" }} />
+
+            <div>
+              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>KOMODITAS & VOLUME</span>
+              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>
+                {formatNumber(shipment.quantity)} {shipment.unit} · {shipment.product || "Komoditas Ekspor"}
+              </div>
+            </div>
           </div>
-          <div className="row-actions">
+
+          <div className="row-actions" style={{ marginLeft: "auto" }}>
             <StatusPill tone="blue">{shipment.shipmentStatus}</StatusPill>
             <button
               type="button"
               className="ghost-button"
               onClick={() => navigate("transactions")}
             >
-              Kelola di Transaksi Ekspor →
+              Kelola Pesanan →
             </button>
           </div>
         </div>
       </section>
 
+      {/* 2. Executive KPI Cards */}
       <div className="overview-grid">
         <section className="hero-card">
           <div className="hero-card-copy">
-            <span className="eyebrow light">PENAWARAN AKTIF · {shipment.incoterm}</span>
+            <span className="eyebrow light">NILAI KONTRAK · {shipment.incoterm}</span>
             <h2>{formatMoney(pricing.active.offer, shipment.currency)}</h2>
-            <p>
-              Estimasi nilai kontrak untuk{" "}
-              <strong>
-                {formatNumber(shipment.quantity)} {shipment.unit}
-              </strong>{" "}
-              {shipment.product || "produk ekspor Anda"} ke {shipment.destination || "tujuan pengiriman"}.
-            </p>
-            <div className="hero-meta">
+            <div className="hero-meta" style={{ marginTop: "10px" }}>
               <span>
-                <i className="tiny-dot mint" /> Margin bersih {shipment.margin}%
+                <i className="tiny-dot mint" /> Margin {shipment.margin}%
               </span>
               <span>
-                <i className="tiny-dot saffron" /> Review: {flow.effectiveApprovalStatus}
+                <i className="tiny-dot saffron" /> {flow.effectiveApprovalStatus}
               </span>
             </div>
           </div>
@@ -158,9 +183,9 @@ export function DashboardView({
         </section>
 
         <MetricCard
-          label="COST TO SERVE"
+          label="TOTAL BIAYA"
           value={formatMoney(pricing.active.cost, shipment.currency)}
-          detail={`${formatNumber((pricing.active.cost / Math.max(1, pricing.goods)) * 100, 1)}% terhadap nilai barang`}
+          detail={`${formatNumber((pricing.active.cost / Math.max(1, pricing.goods)) * 100, 1)}% dari nilai barang`}
           tone="cream"
           icon={<BarChart3 size={16} />}
         />
@@ -172,69 +197,59 @@ export function DashboardView({
           icon={<ArrowUpRight size={16} />}
         />
         <MetricCard
-          label="UTILISASI KONTAINER"
+          label="MUATAN KONTAINER"
           value={`${container.volumeUtilization.toFixed(0)}%`}
-          detail={`${container.containers} × ${shipment.containerType} · ${formatNumber(container.totalVolume, 1)} m³`}
+          detail={`${container.containers}× ${shipment.containerType} · ${formatNumber(container.totalVolume, 1)} m³`}
           tone="sand"
           icon={<Box size={16} />}
         />
       </div>
 
-      {/* Akses Cepat Modul Ekspor */}
-      <section className="panel panel-padding">
-        <div className="panel-head">
-          <div>
-            <span className="eyebrow">AKSES CEPAT MODUL EKSPOR</span>
-            <h3>Pusat Kerja Operasional</h3>
-          </div>
-          <span style={{ fontSize: "12px", color: "var(--muted)" }}>
-            Buka langsung modul terkait untuk mengelola transaksi aktif
-          </span>
-        </div>
-        <div className="quick-links-grid">
-          <QuickLink
-            icon={<Calculator size={16} />}
-            title="Kalkulator Harga & Order"
-            caption="Uji 7 skenario Incoterms® 2020 & margin"
-            onClick={() => navigate("pricing")}
-          />
-          <QuickLink
-            icon={<FileCheck2 size={16} />}
-            title="Dokumen Ekspor"
-            caption="Invoice, Packing List & B/L draft terintegrasi"
-            onClick={() => navigate("documents")}
-          />
-          <QuickLink
-            icon={<Ship size={16} />}
-            title="Rencana Muatan Kontainer"
-            caption="Simulasi 3D, pallet kayu & beban muatan"
-            onClick={() => navigate("cargo")}
-          />
-          <QuickLink
-            icon={<Wallet size={16} />}
-            title="Keuangan & Piutang"
-            caption={`Sisa piutang ${formatMoney(flow.remainingReceivable, shipment.currency)}`}
-            onClick={() => navigate("finance")}
-          />
-        </div>
-      </section>
+      {/* 3. Streamlined Module Shortcuts */}
+      <div className="quick-links-grid">
+        <QuickLink
+          icon={<Calculator size={16} />}
+          title="Harga & Order"
+          caption="Kalkulasi 7 Incoterms"
+          onClick={() => navigate("pricing")}
+        />
+        <QuickLink
+          icon={<FileCheck2 size={16} />}
+          title="Dokumen Ekspor"
+          caption="PI, SC, CI, PL & SI"
+          onClick={() => navigate("documents")}
+        />
+        <QuickLink
+          icon={<Ship size={16} />}
+          title="Muatan 3D"
+          caption={`${container.containers}× ${shipment.containerType}`}
+          onClick={() => navigate("cargo")}
+        />
+        <QuickLink
+          icon={<Wallet size={16} />}
+          title="Keuangan"
+          caption={`Piutang ${formatMoney(flow.remainingReceivable, shipment.currency)}`}
+          onClick={() => navigate("finance")}
+        />
+      </div>
 
+      {/* 4. Incoterms Matrix Table */}
       <section className="panel panel-padding scenario-panel">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">PERBANDINGAN INCOTERMS® 2020</span>
-            <h3>Pergerakan harga di tiap skenario penyerahan</h3>
+            <span className="eyebrow">MATRIKS HARGA</span>
+            <h3>Perbandingan Skenario Incoterms® 2020</h3>
           </div>
           <button className="text-button" type="button" onClick={() => navigate("pricing")}>
-            Buka kalkulator lengkap <ChevronRight size={15} />
+            Kalkulator Harga <ChevronRight size={15} />
           </button>
         </div>
         <div className="scenario-table">
           <div className="scenario-row scenario-header">
             <span>TERM</span>
-            <span>CAKUPAN BIAYA</span>
-            <span>TOTAL PENAWARAN</span>
-            <span>SELISIH DARI EXW</span>
+            <span>CAKUPAN</span>
+            <span>PENAWARAN</span>
+            <span>SELISIH EXW</span>
             <span>STATUS</span>
           </div>
           {pricing.scenarios.slice(0, 5).map((scenario, index) => (
@@ -245,19 +260,19 @@ export function DashboardView({
               <strong>{scenario.term}</strong>
               <span>
                 {scenario.term === "EXW"
-                  ? "Ex-works gudang eksportir"
+                  ? "Gudang Eksportir"
                   : scenario.term === "FCA"
-                    ? "Serah ke pengangkut pertama"
+                    ? "Pengangkut Pertama"
                     : scenario.term === "FOB"
-                      ? "Muat di atas kapal (on board)"
+                      ? "On Board Pelabuhan Muat"
                       : scenario.term === "CFR"
-                        ? "Termasuk ocean freight"
-                        : "Termasuk freight + insurance"}
+                        ? "Termasuk Ocean Freight"
+                        : "Freight + Asuransi"}
               </span>
               <b>{formatMoney(scenario.offer, shipment.currency)}</b>
               <span className={index === 0 ? "muted-delta" : "positive-delta"}>
                 {index === 0
-                  ? "Basis EXW"
+                  ? "Basis"
                   : `+${formatMoney(scenario.offer - pricing.scenarios[0].offer, shipment.currency)}`}
               </span>
               <span>
@@ -269,7 +284,7 @@ export function DashboardView({
                     className="table-inline-btn"
                     onClick={() => update("incoterm", scenario.term)}
                   >
-                    Pakai
+                    Pilih
                   </button>
                 )}
               </span>

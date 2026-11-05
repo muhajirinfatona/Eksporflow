@@ -292,23 +292,23 @@ function renderPersistenceBadge(
   activeShipmentId: string | null,
 ) {
   if (!user) {
-    return <StatusPill tone="gray">Draft lokal browser</StatusPill>;
+    return <StatusPill tone="gray">Draft Lokal</StatusPill>;
   }
   if (saveState === "saving") {
-    return <StatusPill tone="blue">Menyimpan ke Cloud...</StatusPill>;
+    return <StatusPill tone="blue">Menyimpan...</StatusPill>;
   }
   if (saveState === "saved" && activeShipmentId) {
-    return <StatusPill tone="green">Tersimpan di Cloud · v{version}</StatusPill>;
+    return <StatusPill tone="green">Tersimpan · v{version}</StatusPill>;
   }
   if (saveState === "conflict") {
-    return <StatusPill tone="red">Konflik versi · muat ulang</StatusPill>;
+    return <StatusPill tone="red">Konflik Versi</StatusPill>;
   }
   if (saveState === "error") {
-    return <StatusPill tone="red">Gagal simpan</StatusPill>;
+    return <StatusPill tone="red">Gagal Simpan</StatusPill>;
   }
   return (
     <StatusPill tone="amber">
-      {activeShipmentId ? `Perubahan belum disimpan · v${version}` : "Draft baru belum di Cloud"}
+      {activeShipmentId ? `Belum Disimpan · v${version}` : "Draft Baru"}
     </StatusPill>
   );
 }
@@ -678,7 +678,6 @@ export function WorkspaceShell({
                 ) : null}
               </span>
               <h1>{activeMeta.title}</h1>
-              {screen !== "documents" && <p>{activeMeta.description}</p>}
             </div>
             <div className="heading-actions">
               {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
