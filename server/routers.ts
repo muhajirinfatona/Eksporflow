@@ -12,7 +12,9 @@ import {
   getPendingDevOtpCode,
   loginWithEmailPassword,
   registerUserAccount,
+  requestPasswordReset,
   resendVerificationChallenge,
+  resetPasswordWithCode,
   verifyEmailCodeAndSignIn,
 } from "./authService";
 import { createShipment, deleteShipment, getShipment, listShipments, ShipmentPersistenceError, updateShipment } from "./shipmentDb";
@@ -129,6 +131,36 @@ export const appRouter = router({
         checkAuthRateLimit(`resend:${input.email.toLowerCase()}`);
         try {
           return await resendVerificationChallenge(input);
+        } catch (error) {
+          return authError(error);
+        }
+      }),
+    requestPasswordReset: publicProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        checkAuthRateLimit(`reset-req:${input.email.toLowerCase()}`);
+        try {
+          return await requestPasswordReset(input);
+        } catch (error) {
+          return authError(error);
+        }
+      }),
+    resetPasswordWithCode: publicProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+          code: z.string().trim().min(6).max(12),
+          newPassword: z.string().min(8, "Kata sandi minimal 8 karakter.").max(128),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        checkAuthRateLimit(`reset-exec:${input.email.toLowerCase()}`);
+        try {
+          return await resetPasswordWithCode(ctx.req, ctx.res, input);
         } catch (error) {
           return authError(error);
         }

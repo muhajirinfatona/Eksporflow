@@ -428,3 +428,134 @@ export async function resendVerificationChallenge(input: { email: string }) {
     devOtpCode: challenge.devOtpCode,
   };
 }
+
+export async function requestPasswordReset(input: { email: string }) {
+  const db = await getDb();
+  if (!db) {
+    throw new AuthFlowError("SERVICE_UNAVAILABLE", "Database PostgreSQL / Supabase belum tersedia.");
+  }
+
+  const email = normalizeEmail(input.email);
+  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const user = rows[0];
+  if (!user) {
+    throw new AuthFlowError(
+      "BAD_REQUEST",
+      "Akun dengan email tersebut tidak ditemukan. Silakan periksa kembali alamat email Anda.",
+    );
+  }
+
+  const challenge = await createVerificationChallenge(user.id, email);
+  return {
+    sent: true as const,
+    email,
+    expiresInMinutes: challenge.expiresInMinutes,
+    devOtpCode: challenge.devOtpCode,
+  };
+}
+
+export async function resetPasswordWithCode(
+  req: Request,
+  res: Response,
+  input: { email: string; code: string; newPassword: string },
+) {
+  const db = await getDb();
+  if (!db) {
+    throw new AuthFlowError("SERVICE_UNAVAILABLE", "Database PostgreSQL / Supabase belum tersedia.");
+  }
+
+  const email = normalizeEmail(input.email);
+  if (passwordTooShort(input.newPassword)) {
+    throw new AuthFlowError("BAD_REQUEST", "Kata sandi baru minimal 8 karakter.");
+  }
+
+  const cleanCode = input.code.replace(/\s+/g, "");
+  if (!/^\d{6}$/.test(cleanCode)) {
+    throw new AuthFlowError("BAD_REQUEST", "Masukkan 6 digit angka kode verifikasi.");
+  }
+
+  const userRows = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const user = userRows[0];
+  if (!user) {
+    throw new AuthFlowError("BAD_REQUEST", "Akun dengan email tersebut tidak ditemukan.");
+  }
+
+  const now = new Date();
+  const codeRows = await db
+    .select()
+    .from(emailVerificationCodes)
+    .where(
+      and(
+        eq(emailVerificationCodes.userId, user.id),
+        isNull(emailVerificationCodes.consumedAt),
+        gt(emailVerificationCodes.expiresAt, now),
+      ),
+    )
+    .orderBy(desc(emailVerificationCodes.id))
+    .limit(1);
+
+  const challenge = codeRows[0];
+  if (!challenge) {
+    throw new AuthFlowError(
+      "BAD_REQUEST",
+      "Kode verifikasi sudah kedaluwarsa atau belum diminta. Silakan minta kode reset baru.",
+    );
+  }
+
+  if (challenge.attempts >= MAX_OTP_ATTEMPTS) {
+    throw new AuthFlowError(
+      "TOO_MANY_REQUESTS",
+      "Terlalu banyak percobaan salah untuk kode ini. Silakan minta kode reset baru.",
+    );
+  }
+
+  if (!verifyOtpCode(email, cleanCode, challenge.codeHash)) {
+    await db
+      .update(emailVerificationCodes)
+      .set({ attempts: challenge.attempts + 1 })
+      .where(eq(emailVerificationCodes.id, challenge.id));
+    const remaining = Math.max(0, MAX_OTP_ATTEMPTS - (challenge.attempts + 1));
+    throw new AuthFlowError(
+      "BAD_REQUEST",
+      remaining > 0
+        ? `Kode verifikasi salah. Sisa percobaan: ${remaining} kali.`
+        : "Kode verifikasi salah dan batas percobaan habis. Silakan minta kode reset baru.",
+    );
+  }
+
+  const updatedHash = hashPassword(input.newPassword);
+  const verifiedUser = await db.transaction(async (tx) => {
+    await tx
+      .update(emailVerificationCodes)
+      .set({ consumedAt: now })
+      .where(eq(emailVerificationCodes.id, challenge.id));
+
+    const updated = await tx
+      .update(users)
+      .set({
+        passwordHash: updatedHash,
+        emailVerifiedAt: user.emailVerifiedAt ?? now,
+        lastSignedIn: now,
+        updatedAt: now,
+      })
+      .where(eq(users.id, user.id))
+      .returning();
+
+    return (
+      updated[0] ?? {
+        ...user,
+        passwordHash: updatedHash,
+        emailVerifiedAt: user.emailVerifiedAt ?? now,
+        lastSignedIn: now,
+      }
+    );
+  });
+
+  clearPendingDevOtpCode(email);
+  await issueSessionCookie(req, res, verifiedUser);
+
+  return {
+    success: true as const,
+    user: sanitizeUser(verifiedUser),
+  };
+}

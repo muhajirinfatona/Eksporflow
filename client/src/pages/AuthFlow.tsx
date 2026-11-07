@@ -18,7 +18,7 @@ import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-type AuthStep = "login" | "register" | "verify";
+type AuthStep = "login" | "register" | "verify" | "forgot_password" | "reset_password";
 
 const HAS_LOGGED_IN_STORAGE_KEY = "eksporflow:has_logged_in";
 
@@ -92,13 +92,19 @@ function readInitialAuthData(): InitialAuthData {
         : "login";
 
     let finalStep: AuthStep = "login";
-    if (rawStep === "register" || rawStep === "verify" || rawStep === "login") {
+    if (
+      rawStep === "register" ||
+      rawStep === "verify" ||
+      rawStep === "login" ||
+      rawStep === "forgot_password" ||
+      rawStep === "reset_password"
+    ) {
       finalStep = rawStep;
     }
 
     // Jika pengguna membuka halaman verifikasi tanpa email tersimpan,
     // kembalikan ke step asal (login/register) agar tidak tampil form kosong
-    if (finalStep === "verify" && !finalEmail) {
+    if ((finalStep === "verify" || finalStep === "reset_password") && !finalEmail) {
       finalStep = finalOrigin;
     }
 
@@ -664,11 +670,13 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
   const loginMutation = trpc.auth.login.useMutation();
   const verifyMutation = trpc.auth.verifyEmail.useMutation();
   const resendMutation = trpc.auth.resendVerification.useMutation();
+  const requestResetMutation = trpc.auth.requestPasswordReset.useMutation();
+  const resetPasswordMutation = trpc.auth.resetPasswordWithCode.useMutation();
 
   const devOtpQuery = trpc.auth.getDevOtpHint.useQuery(
     { email: email.trim() },
     {
-      enabled: step === "verify" && Boolean(email.trim()),
+      enabled: (step === "verify" || step === "reset_password") && Boolean(email.trim()),
       refetchInterval: devOtpHint ? false : 2000,
     }
   );
@@ -717,12 +725,20 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     if (meta?.origin) {
       setOriginStep(meta.origin);
     }
-    goToSlide(next === "login" ? 0 : next === "register" ? 1 : 2);
+    const slideIdx =
+      next === "login"
+        ? 0
+        : next === "register"
+          ? 1
+          : next === "forgot_password"
+            ? 0
+            : 2;
+    goToSlide(slideIdx);
     try {
       const url = new URL(window.location.href);
       url.searchParams.set("auth", next);
 
-      if (next === "verify") {
+      if (next === "verify" || next === "reset_password") {
         const activeEmail = meta?.email ?? email;
         const activeOrigin = meta?.origin ?? originStep;
         if (activeEmail) {
@@ -755,11 +771,15 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         ? "EksporFlow · Buat Akun"
         : step === "verify"
           ? "EksporFlow · Verifikasi OTP"
-          : "EksporFlow · Masuk";
+          : step === "forgot_password"
+            ? "EksporFlow · Lupa Kata Sandi"
+            : step === "reset_password"
+              ? "EksporFlow · Atur Ulang Sandi"
+              : "EksporFlow · Masuk";
   }, [step]);
 
   useEffect(() => {
-    if (step === "verify") {
+    if (step === "verify" || step === "reset_password") {
       setTimeout(() => otpRefs.current[0]?.focus(), 60);
     }
   }, [step]);
@@ -987,11 +1007,96 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     otpRefs.current[Math.min(5, Math.max(0, pasted.length - 1))]?.focus();
   };
 
+  const handleForgotSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage(null);
+    if (!email.trim()) {
+      setErrorMessage("Masukkan alamat email Anda terlebih dahulu.");
+      return;
+    }
+    try {
+      const result = await requestResetMutation.mutateAsync({ email: email.trim() });
+      setEmail(result.email);
+      setOtpDigits(["", "", "", "", "", ""]);
+      if (result.devOtpCode) {
+        setDevOtpHint(result.devOtpCode);
+        try {
+          window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
+        } catch {
+          // Abaikan
+        }
+      }
+      switchStep("reset_password", { email: result.email });
+      toast.info("Kode reset terkirim", {
+        description: "Masukkan 6 digit kode pemulihan dan buat kata sandi baru Anda.",
+      });
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Gagal meminta reset kata sandi.";
+      setErrorMessage(msg);
+    }
+  };
+
+  const handleResetSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setErrorMessage(null);
+
+    const code = otpDigits.join("");
+    if (!/^\d{6}$/.test(code)) {
+      setErrorMessage("Lengkapi ke-6 digit kode verifikasi terlebih dahulu.");
+      return;
+    }
+
+    if (password.length < 8) {
+      setErrorMessage("Kata sandi baru minimal 8 karakter.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMessage("Konfirmasi kata sandi tidak cocok. Mohon periksa kembali.");
+      return;
+    }
+
+    try {
+      const result = await resetPasswordMutation.mutateAsync({
+        email: email.trim(),
+        code,
+        newPassword: password,
+      });
+      try {
+        window.sessionStorage.removeItem(VERIFY_EMAIL_KEY);
+        window.sessionStorage.removeItem(VERIFY_ORIGIN_KEY);
+        window.sessionStorage.removeItem(REG_DRAFT_KEY);
+        window.sessionStorage.removeItem("eksporflow:auth_dev_otp");
+        const url = new URL(window.location.href);
+        url.searchParams.delete("auth");
+        url.searchParams.delete("email");
+        url.searchParams.delete("from");
+        window.history.replaceState({}, "", url.toString());
+      } catch {
+        // Abaikan
+      }
+      setDevOtpHint(null);
+      setPassword("");
+      setConfirmPassword("");
+      markHasLoggedInBefore();
+      setHasLoggedInBefore(true);
+      toast.success("Kata sandi berhasil diperbarui!", {
+        description: `Selamat datang kembali, ${result.user.name || "Pengguna"}.`,
+      });
+      await onAuthenticated();
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "Gagal memperbarui kata sandi.";
+      setErrorMessage(msg);
+    }
+  };
+
   const isBusy =
     registerMutation.isPending ||
     loginMutation.isPending ||
     verifyMutation.isPending ||
-    resendMutation.isPending;
+    resendMutation.isPending ||
+    requestResetMutation.isPending ||
+    resetPasswordMutation.isPending;
 
   const activeSlide = SLIDES[slideIndex] ?? SLIDES[0];
   const isReturningWelcome = step === "login" && hasLoggedInBefore;
@@ -1181,17 +1286,27 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                     {loginMutation.isPending ? "Memproses..." : "Masuk"}
                   </button>
 
-                  <label className="auth-remember">
-                    <input
-                      type="checkbox"
-                      checked={rememberMe}
-                      onChange={(e) => setRememberMe(e.target.checked)}
-                    />
-                    <span>
-                      <Check size={11} />
-                    </span>
-                    Ingat sesi saya
-                  </label>
+                  <div className="auth-actions-group">
+                    <label className="auth-remember">
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(e) => setRememberMe(e.target.checked)}
+                      />
+                      <span>
+                        <Check size={11} />
+                      </span>
+                      Ingat sesi saya
+                    </label>
+
+                    <button
+                      type="button"
+                      className="auth-forgot-link"
+                      onClick={() => switchStep("forgot_password")}
+                    >
+                      Lupa kata sandi?
+                    </button>
+                  </div>
                 </div>
               </form>
             )}
@@ -1366,6 +1481,156 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                     {originStep === "register"
                       ? "Kembali ke halaman Registrasi"
                       : "Kembali ke halaman Log In"}
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === "forgot_password" && (
+              <form className="auth-minimal-form" onSubmit={(e) => void handleForgotSubmit(e)}>
+                <div className="auth-minimal-head">
+                  <h2>Lupa Kata Sandi</h2>
+                  <p>
+                    Masukkan alamat email akun Anda. Kami akan mengirimkan 6 digit kode pemulihan untuk mengatur ulang kata sandi Anda.
+                  </p>
+                </div>
+
+                <div className="auth-line-fields">
+                  <label className="auth-line-input">
+                    <input
+                      type="email"
+                      required
+                      autoComplete="email"
+                      placeholder="Email terdaftar"
+                      aria-label="Email terdaftar"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
+                    <Mail size={16} />
+                  </label>
+                </div>
+
+                <div className="auth-action-bar">
+                  <button type="submit" className="auth-primary-btn" disabled={isBusy}>
+                    {requestResetMutation.isPending ? "Mengirim kode..." : "Kirim Kode Reset"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="auth-forgot-link"
+                    onClick={() => switchStep("login")}
+                  >
+                    Kembali ke Log In
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {step === "reset_password" && (
+              <form className="auth-minimal-form" onSubmit={(e) => void handleResetSubmit(e)}>
+                <div className="auth-minimal-head">
+                  <h2>Atur Kata Sandi Baru</h2>
+                  <p>
+                    Kode verifikasi 6 digit telah dikirimkan ke:
+                    <br />
+                    <strong style={{ color: "var(--ink)", fontSize: "14px" }}>{email || "email Anda"}</strong>
+                  </p>
+                  <p style={{ marginTop: "2px" }}>
+                    Bukan email Anda?{" "}
+                    <button type="button" onClick={() => switchStep("forgot_password")}>
+                      Ubah email
+                    </button>
+                  </p>
+                </div>
+
+                {devOtpHint && (
+                  <div className="auth-sim-pill" role="status" aria-live="polite">
+                    <span>
+                      Mode Testing: Kode verifikasi Anda adalah <b className="mono-code">{devOtpHint}</b>
+                    </span>
+                    <button type="button" onClick={fillDevOtp} title="Isi 6 digit kode otomatis">
+                      <Copy size={12} /> Isi otomatis
+                    </button>
+                  </div>
+                )}
+
+                <div className="auth-otp-clean-row" role="group" aria-label="6 digit kode reset sandi">
+                  {otpDigits.map((digit, index) => (
+                    <input
+                      key={index}
+                      ref={(el) => {
+                        otpRefs.current[index] = el;
+                      }}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      aria-label={`Digit ke-${index + 1}`}
+                      className="auth-otp-clean-box mono-code"
+                      value={digit}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={handleOtpPaste}
+                    />
+                  ))}
+                </div>
+
+                <div className="auth-line-fields compact" style={{ marginTop: "18px" }}>
+                  <div className="auth-line-two-col">
+                    <label className="auth-line-input">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        placeholder="Sandi baru (min. 8)"
+                        aria-label="Kata sandi baru"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        className="auth-line-icon-btn"
+                        aria-label={showPassword ? "Sembunyikan sandi" : "Tampilkan sandi"}
+                        onClick={() => setShowPassword((prev) => !prev)}
+                      >
+                        {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                      </button>
+                    </label>
+
+                    <label className="auth-line-input">
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        minLength={8}
+                        autoComplete="new-password"
+                        placeholder="Ulangi sandi baru"
+                        aria-label="Ulangi kata sandi baru"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                      />
+                      <KeyRound size={15} />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="auth-action-bar">
+                  <button type="submit" className="auth-primary-btn" disabled={isBusy}>
+                    {resetPasswordMutation.isPending ? "Menyimpan..." : "Simpan & Masuk"}
+                  </button>
+
+                  <button
+                    type="button"
+                    className="auth-resend-inline"
+                    disabled={isBusy}
+                    onClick={() => void handleForgotSubmit(new Event("submit") as unknown as React.FormEvent)}
+                  >
+                    <RefreshCw size={13} /> {requestResetMutation.isPending ? "Mengirim..." : "Kirim ulang"}
+                  </button>
+                </div>
+
+                <div className="auth-bottom-link">
+                  <button type="button" onClick={() => switchStep("login")}>
+                    Kembali ke halaman Log In
                   </button>
                 </div>
               </form>

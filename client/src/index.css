@@ -10102,6 +10102,30 @@ textarea:focus-visible {
   color: var(--navy);
 }
 
+.auth-actions-group {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.auth-forgot-link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--navy);
+  opacity: 0.85;
+  cursor: pointer;
+  transition: opacity 0.15s ease, text-decoration 0.15s ease;
+}
+
+.auth-forgot-link:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .auth-bottom-link {
   margin-top: 26px;
   text-align: center;
