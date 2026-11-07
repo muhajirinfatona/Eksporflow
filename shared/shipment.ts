@@ -348,7 +348,17 @@ export type Shipment = {
   letterheadBannerHeight?: number;
   letterheadSpacing?: number;
   letterheadDividerGap?: number;
-  letterheadDividerStyle?: "single" | "double" | "thick-thin" | "none";
+  letterheadDividerStyle?:
+    | "single"
+    | "double"
+    | "thick-thin"
+    | "thin-thick"
+    | "thin"
+    | "bold"
+    | "accent-gradient"
+    | "dashed"
+    | "dotted"
+    | "none";
   letterheadDividerColor?: string;
   letterheadLayout?: "left" | "center" | "split";
   exporterContact?: string;

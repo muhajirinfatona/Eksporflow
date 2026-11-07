@@ -6474,6 +6474,16 @@ textarea:focus-visible {
   box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
 }
 
+.word-logo-delete-btn:hover {
+  background: #fee2e2 !important;
+  border-color: #f87171 !important;
+  transform: scale(1.05);
+}
+
+.letterhead-quick-toolbar button:hover {
+  filter: brightness(0.97);
+}
+
 .crest-tag {
   font-size: 9px;
   font-weight: 800;

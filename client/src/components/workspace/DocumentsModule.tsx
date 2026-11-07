@@ -39,6 +39,7 @@ import {
   SlidersHorizontal,
   Sparkles,
   Trash2,
+  Upload,
   UploadCloud,
   X,
 } from "lucide-react";
@@ -1016,6 +1017,7 @@ export function DocumentsModule({
             isId={isId}
             isEditMode={isEditMode}
             update={trackedUpdate}
+            onLetterheadImage={handleLetterheadImage}
           />
 
           {/* Render Specific Document Type */}
@@ -1281,8 +1283,114 @@ function WordRuler({
 }
 
 // --------------------------------------------------------------------------
-// Official Letterhead Component
+// Official Letterhead Component & Line Styles
 // --------------------------------------------------------------------------
+const LINE_STYLES = [
+  {
+    id: "double" as const,
+    label: "Garis Ganda Resmi",
+    preview: (color: string) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%" }}>
+        <div style={{ height: "2.5px", background: color }} />
+        <div style={{ height: "1px", background: color }} />
+      </div>
+    ),
+  },
+  {
+    id: "thick-thin" as const,
+    label: "Tebal-Tipis Dinas",
+    preview: (color: string) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%" }}>
+        <div style={{ height: "3.5px", background: color }} />
+        <div style={{ height: "1px", background: color }} />
+      </div>
+    ),
+  },
+  {
+    id: "thin-thick" as const,
+    label: "Tipis-Tebal Modern",
+    preview: (color: string) => (
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px", width: "100%" }}>
+        <div style={{ height: "1px", background: color }} />
+        <div style={{ height: "3px", background: color }} />
+      </div>
+    ),
+  },
+  {
+    id: "single" as const,
+    label: "Garis Tunggal Solid",
+    preview: (color: string) => (
+      <div style={{ height: "2px", background: color, width: "100%" }} />
+    ),
+  },
+  {
+    id: "thin" as const,
+    label: "Garis Tunggal Halus",
+    preview: (color: string) => (
+      <div style={{ height: "1px", background: color, width: "100%" }} />
+    ),
+  },
+  {
+    id: "bold" as const,
+    label: "Garis Tunggal Tebal",
+    preview: (color: string) => (
+      <div style={{ height: "3.5px", background: color, width: "100%" }} />
+    ),
+  },
+  {
+    id: "accent-gradient" as const,
+    label: "Aksen Gradasi Modern",
+    preview: (color: string) => (
+      <div style={{ height: "3px", background: `linear-gradient(90deg, ${color} 0%, ${color} 65%, transparent 100%)`, width: "100%", borderRadius: "2px" }} />
+    ),
+  },
+  {
+    id: "dashed" as const,
+    label: "Garis Putus-Putus",
+    preview: (color: string) => (
+      <div style={{ borderBottom: `2px dashed ${color}`, width: "100%", height: "0px" }} />
+    ),
+  },
+  {
+    id: "dotted" as const,
+    label: "Garis Titik-Titik",
+    preview: (color: string) => (
+      <div style={{ borderBottom: `2.5px dotted ${color}`, width: "100%", height: "0px" }} />
+    ),
+  },
+  {
+    id: "none" as const,
+    label: "Tanpa Garis (Polos)",
+    preview: () => (
+      <div style={{ fontSize: "10px", color: "#94a3b8", fontStyle: "italic", textAlign: "center" }}>Tanpa garis</div>
+    ),
+  },
+];
+
+const LINE_STYLE_LABELS: Record<string, string> = {
+  double: "Ganda Resmi",
+  "thick-thin": "Tebal-Tipis",
+  "thin-thick": "Tipis-Tebal",
+  single: "Tunggal",
+  solid: "Tunggal",
+  thin: "Halus",
+  bold: "Tebal",
+  "accent-gradient": "Gradasi",
+  dashed: "Putus-putus",
+  dotted: "Titik-titik",
+  none: "Tanpa Garis",
+};
+
+const DIVIDER_COLORS = [
+  { color: "#0f2942", label: "Navy Eksekutif" },
+  { color: "#000000", label: "Hitam Pekat" },
+  { color: "#1e40af", label: "Biru Royal" },
+  { color: "#334155", label: "Abu Slate" },
+  { color: "#065f46", label: "Hijau Emerald" },
+  { color: "#b45309", label: "Emas / Amber" },
+  { color: "#991b1b", label: "Merah Marun" },
+];
+
 function OfficialLetterhead({
   shipment,
   exporterName,
@@ -1291,6 +1399,7 @@ function OfficialLetterhead({
   isId = false,
   isEditMode = false,
   update,
+  onLetterheadImage,
 }: {
   shipment: Shipment;
   exporterName: string;
@@ -1299,17 +1408,21 @@ function OfficialLetterhead({
   isId?: boolean;
   isEditMode?: boolean;
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
+  onLetterheadImage?: (file?: File) => void;
 }) {
   const [isSelected, setIsSelected] = useState(false);
   const [selectedLineGapPx, setSelectedLineGapPx] = useState<number | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [showLayoutMenu, setShowLayoutMenu] = useState(false);
+  const [showLineMenu, setShowLineMenu] = useState(false);
   const [dragScale, setDragScale] = useState<number | null>(null);
   const [dragShift, setDragShift] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [dragMoveOffset, setDragMoveOffset] = useState<{ x: number; y: number } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
+  const lineMenuRef = useRef<HTMLDivElement | null>(null);
+  const quickFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const activeScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
   const baseLogoHeight = 68;
@@ -1366,6 +1479,39 @@ function OfficialLetterhead({
     window.addEventListener("mousedown", handleClickOutside);
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [isSelected]);
+
+  // Handle Click Outside for Line Style Menu
+  useEffect(() => {
+    if (!showLineMenu) return;
+    const handleLineMenuOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (lineMenuRef.current && !lineMenuRef.current.contains(target)) {
+        setShowLineMenu(false);
+      }
+    };
+    window.addEventListener("mousedown", handleLineMenuOutside);
+    return () => window.removeEventListener("mousedown", handleLineMenuOutside);
+  }, [showLineMenu]);
+
+  // Keyboard shortcut: Delete or Backspace key to remove logo when selected
+  useEffect(() => {
+    if (!isSelected || !isEditMode || !update) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        const target = e.target as HTMLElement;
+        if (target.isContentEditable || target.tagName === "INPUT" || target.tagName === "TEXTAREA") {
+          return;
+        }
+        e.preventDefault();
+        update("letterheadImage", "");
+        setIsSelected(false);
+        setShowLayoutMenu(false);
+        toast.success("Logo kop surat berhasil dihapus.");
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isSelected, isEditMode, update]);
 
   // Free Drag Move across Document Canvas
   const startDragMove = (e: React.MouseEvent) => {
@@ -1568,6 +1714,29 @@ function OfficialLetterhead({
     dividerLineStyles.borderTop = `3.5px solid ${dividerColor}`;
     dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
     dividerLineStyles.height = "5px";
+  } else if (dividerStyle === "thin-thick") {
+    dividerLineStyles.borderTop = `1px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `3px solid ${dividerColor}`;
+    dividerLineStyles.height = "4.5px";
+  } else if (dividerStyle === "single") {
+    dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
+    dividerLineStyles.height = "0px";
+  } else if (dividerStyle === "thin") {
+    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.height = "0px";
+  } else if (dividerStyle === "bold") {
+    dividerLineStyles.borderBottom = `3.5px solid ${dividerColor}`;
+    dividerLineStyles.height = "0px";
+  } else if (dividerStyle === "dashed") {
+    dividerLineStyles.borderBottom = `2px dashed ${dividerColor}`;
+    dividerLineStyles.height = "0px";
+  } else if (dividerStyle === "dotted") {
+    dividerLineStyles.borderBottom = `2.5px dotted ${dividerColor}`;
+    dividerLineStyles.height = "0px";
+  } else if (dividerStyle === "accent-gradient") {
+    dividerLineStyles.background = `linear-gradient(90deg, ${dividerColor} 0%, ${dividerColor} 65%, transparent 100%)`;
+    dividerLineStyles.height = "3px";
+    dividerLineStyles.borderRadius = "2px";
   } else {
     dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
     dividerLineStyles.height = "0px";
@@ -1589,34 +1758,59 @@ function OfficialLetterhead({
       {/* Floating Quick Kop Surat Toolbar in Edit Mode (Appears on Hover, Text Selection, or Logo Selection) */}
       {isEditMode && (
         <div
-          className={`letterhead-quick-toolbar no-print transition-opacity duration-150 ${isSelected ? "opacity-100" : "opacity-0 group-hover/kop:opacity-100 group-focus-within/kop:opacity-100"}`}
+          className={`letterhead-quick-toolbar no-print transition-all duration-200 ${
+            isSelected || showLineMenu
+              ? "opacity-100"
+              : "opacity-0 group-hover/kop:opacity-100 group-focus-within/kop:opacity-100"
+          }`}
           contentEditable={false}
           style={{
             position: "absolute",
-            top: "-24px",
+            top: "-36px",
             right: "0",
             display: "flex",
             alignItems: "center",
-            gap: "4px",
-            zIndex: 30,
+            gap: "5px",
+            zIndex: 35,
+            background: "rgba(255, 255, 255, 0.98)",
+            backdropFilter: "blur(8px)",
+            padding: "3px 6px",
+            borderRadius: "7px",
+            border: "1px solid #cbd5e1",
+            boxShadow: "0 4px 16px -2px rgba(15, 23, 42, 0.14), 0 2px 4px -1px rgba(15, 23, 42, 0.06)",
           }}
         >
+          {/* Quick hidden file input for Upload Logo */}
+          <input
+            ref={quickFileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            style={{ display: "none" }}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file && onLetterheadImage) {
+                onLetterheadImage(file);
+                toast.success("Logo resmi berhasil dipasang.");
+              }
+            }}
+          />
+
+          {/* Stepper: Spasi Teks */}
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "2px",
-              background: "#ffffff",
-              border: "1px solid #cbd5e1",
-              borderRadius: "4px",
-              padding: "1px 5px",
-              fontSize: "10px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "5px",
+              padding: "2px 6px",
+              fontSize: "11px",
               color: "#334155",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
             }}
             title="Atur spasi antar baris teks kop surat"
           >
-            <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginRight: "1px" }}>Spasi</span>
+            <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", marginRight: "2px" }}>Spasi</span>
             <button
               type="button"
               onMouseDown={(e) => {
@@ -1632,11 +1826,23 @@ function OfficialLetterhead({
                 setSelectedLineGapPx(null);
                 if (update) update("letterheadSpacing", Math.max(0, lineSpacing - 1));
               }}
-              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+              style={{
+                width: "18px",
+                height: "18px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "3px",
+                border: "1px solid #cbd5e1",
+                background: "#ffffff",
+                fontWeight: 700,
+                cursor: "pointer",
+                color: "#1e40af",
+              }}
             >
               −
             </button>
-            <span style={{ fontWeight: 600, color: "#475569", padding: "0 2px" }}>
+            <span style={{ fontWeight: 700, color: "#1e293b", padding: "0 3px", minWidth: "22px", textAlign: "center" }}>
               {selectedLineGapPx ?? lineSpacing}px
             </span>
             <button
@@ -1654,49 +1860,289 @@ function OfficialLetterhead({
                 setSelectedLineGapPx(null);
                 if (update) update("letterheadSpacing", Math.min(20, lineSpacing + 1));
               }}
-              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+              style={{
+                width: "18px",
+                height: "18px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "3px",
+                border: "1px solid #cbd5e1",
+                background: "#ffffff",
+                fontWeight: 700,
+                cursor: "pointer",
+                color: "#1e40af",
+              }}
             >
               +
             </button>
           </div>
 
+          {/* Dropdown: Pilihan Garis Kop Surat */}
+          <div style={{ position: "relative" }} ref={lineMenuRef}>
+            <button
+              type="button"
+              onClick={() => setShowLineMenu((prev) => !prev)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                background: showLineMenu ? "#eff6ff" : "#f8fafc",
+                border: showLineMenu ? "1px solid #3b82f6" : "1px solid #e2e8f0",
+                borderRadius: "5px",
+                padding: "2px 7px",
+                fontSize: "11px",
+                fontWeight: 600,
+                color: showLineMenu ? "#1d4ed8" : "#334155",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              title="Pilih model garis, warna, dan jarak garis kop surat"
+            >
+              <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b" }}>Garis:</span>
+              <span style={{ fontWeight: 700, color: dividerColor }}>
+                {LINE_STYLE_LABELS[dividerStyle] || "Ganda"}
+              </span>
+              <ChevronDown size={12} className={showLineMenu ? "rotate-180 transition-transform" : "transition-transform"} />
+            </button>
+
+            {/* Popover Pilihan Garis */}
+            {showLineMenu && (
+              <div
+                className="no-print"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: "absolute",
+                  top: "calc(100% + 6px)",
+                  right: "0",
+                  width: "275px",
+                  background: "#ffffff",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "8px",
+                  boxShadow: "0 12px 30px -4px rgba(15, 23, 42, 0.22)",
+                  padding: "10px",
+                  zIndex: 60,
+                  fontSize: "11px",
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px", borderBottom: "1px solid #f1f5f9", paddingBottom: "5px" }}>
+                  <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "11.5px" }}>Pilihan Model Garis Kop</span>
+                  <button
+                    type="button"
+                    onClick={() => setShowLineMenu(false)}
+                    style={{ border: 0, background: "none", color: "#94a3b8", cursor: "pointer", fontSize: "12px", padding: "0 2px" }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* List model garis */}
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "210px", overflowY: "auto" }}>
+                  {LINE_STYLES.map((st) => {
+                    const isSelectedStyle = dividerStyle === st.id;
+                    return (
+                      <button
+                        key={st.id}
+                        type="button"
+                        onClick={() => {
+                          if (update) update("letterheadDividerStyle", st.id as any);
+                          toast.success(`Model garis: ${st.label}`);
+                        }}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          padding: "5px 8px",
+                          borderRadius: "5px",
+                          border: isSelectedStyle ? "1.5px solid #2563eb" : "1px solid #e2e8f0",
+                          background: isSelectedStyle ? "#eff6ff" : "#ffffff",
+                          cursor: "pointer",
+                          textAlign: "left",
+                        }}
+                      >
+                        <span style={{ fontWeight: isSelectedStyle ? 700 : 500, color: isSelectedStyle ? "#1e40af" : "#334155" }}>
+                          {st.label}
+                        </span>
+                        <div style={{ width: "90px" }}>
+                          {st.preview(dividerColor)}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Pilihan Warna Garis */}
+                <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #f1f5f9" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", display: "block", marginBottom: "5px" }}>
+                    Warna Garis
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    {DIVIDER_COLORS.map((c) => (
+                      <button
+                        key={c.color}
+                        type="button"
+                        onClick={() => {
+                          if (update) update("letterheadDividerColor", c.color);
+                        }}
+                        style={{
+                          width: "20px",
+                          height: "20px",
+                          borderRadius: "100%",
+                          background: c.color,
+                          border: dividerColor.toLowerCase() === c.color.toLowerCase() ? "2px solid #ffffff" : "1px solid #cbd5e1",
+                          outline: dividerColor.toLowerCase() === c.color.toLowerCase() ? `2px solid ${c.color}` : "none",
+                          cursor: "pointer",
+                        }}
+                        title={c.label}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Jarak Garis */}
+                <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b" }}>Jarak Garis (Gap)</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <button
+                      type="button"
+                      onClick={() => update && update("letterheadDividerGap", Math.max(0, dividerGap - 2))}
+                      style={{ width: "20px", height: "20px", borderRadius: "3px", border: "1px solid #cbd5e1", background: "#f8fafc", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      −
+                    </button>
+                    <span style={{ fontWeight: 700, color: "#0f172a", minWidth: "24px", textAlign: "center" }}>
+                      {dividerGap}px
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => update && update("letterheadDividerGap", Math.min(28, dividerGap + 2))}
+                      style={{ width: "20px", height: "20px", borderRadius: "3px", border: "1px solid #cbd5e1", background: "#f8fafc", cursor: "pointer", fontWeight: 700 }}
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Stepper: Jarak Garis Langsung */}
           <div
             style={{
               display: "inline-flex",
               alignItems: "center",
               gap: "2px",
-              background: "#ffffff",
-              border: "1px solid #cbd5e1",
-              borderRadius: "4px",
-              padding: "1px 5px",
-              fontSize: "10px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "5px",
+              padding: "2px 6px",
+              fontSize: "11px",
               color: "#334155",
-              boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
             }}
-            title="Atur jarak ke garis bawah kop surat"
+            title="Atur jarak ke garis pembatas kop surat"
           >
-            <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginRight: "1px" }}>Garis</span>
+            <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", marginRight: "2px" }}>Jarak</span>
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => update && update("letterheadDividerGap", Math.max(0, dividerGap - 2))}
-              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+              style={{
+                width: "18px",
+                height: "18px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "3px",
+                border: "1px solid #cbd5e1",
+                background: "#ffffff",
+                fontWeight: 700,
+                cursor: "pointer",
+                color: "#1e40af",
+              }}
             >
               −
             </button>
-            <span style={{ fontWeight: 600, color: "#475569", padding: "0 2px" }}>
+            <span style={{ fontWeight: 700, color: "#1e293b", padding: "0 3px", minWidth: "22px", textAlign: "center" }}>
               {dividerGap}px
             </span>
             <button
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => update && update("letterheadDividerGap", Math.min(28, dividerGap + 2))}
-              style={{ padding: "0 3px", fontWeight: 800, cursor: "pointer", color: "#1e40af" }}
+              style={{
+                width: "18px",
+                height: "18px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "3px",
+                border: "1px solid #cbd5e1",
+                background: "#ffffff",
+                fontWeight: 700,
+                cursor: "pointer",
+                color: "#1e40af",
+              }}
             >
               +
             </button>
           </div>
 
+          {/* Tombol Hapus Logo / Pasang Logo */}
+          {shipment.letterheadImage ? (
+            <button
+              type="button"
+              onClick={() => {
+                if (update) {
+                  update("letterheadImage", "");
+                  setIsSelected(false);
+                  toast.success("Logo kop surat berhasil dihapus.");
+                }
+              }}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                background: "#fef2f2",
+                border: "1px solid #fecaca",
+                color: "#dc2626",
+                borderRadius: "5px",
+                padding: "2px 7px",
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              title="Hapus logo resmi dari kop surat"
+            >
+              <Trash2 size={11} />
+              <span>Hapus Logo</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => quickFileInputRef.current?.click()}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                background: "#f0fdf4",
+                border: "1px solid #bbf7d0",
+                color: "#16a34a",
+                borderRadius: "5px",
+                padding: "2px 7px",
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              title="Unggah logo resmi perusahaan"
+            >
+              <Upload size={11} />
+              <span>Pasang Logo</span>
+            </button>
+          )}
+
+          {/* Tombol Atur Kop */}
           <button
             type="button"
             onClick={() => window.dispatchEvent(new CustomEvent("eksporflow:open-letterhead-modal"))}
@@ -1704,19 +2150,20 @@ function OfficialLetterhead({
               display: "inline-flex",
               alignItems: "center",
               gap: "4px",
-              background: "#1e3a8a",
-              border: "1px solid #1e3a8a",
+              background: "#0f2942",
+              border: "1px solid #0f2942",
               color: "#ffffff",
-              borderRadius: "4px",
-              padding: "2px 8px",
-              fontSize: "10px",
+              borderRadius: "5px",
+              padding: "2px 9px",
+              fontSize: "11px",
               fontWeight: 600,
               cursor: "pointer",
-              boxShadow: "0 1px 2px rgba(15, 23, 42, 0.12)",
+              boxShadow: "0 1px 3px rgba(15, 41, 66, 0.2)",
+              transition: "all 0.15s ease",
             }}
-            title="Impor kop surat perusahaan lain atau atur format kop"
+            title="Buka panel lengkap pengaturan kop surat"
           >
-            <SlidersHorizontal size={10} />
+            <SlidersHorizontal size={11} />
             <span>Atur Kop</span>
           </button>
         </div>
@@ -1869,6 +2316,41 @@ function OfficialLetterhead({
                       </svg>
                     </button>
 
+                    {/* Floating Word Delete Button */}
+                    <button
+                      type="button"
+                      className="word-logo-delete-btn no-print"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (update) {
+                          update("letterheadImage", "");
+                          setIsSelected(false);
+                          setShowLayoutMenu(false);
+                          toast.success("Logo kop surat berhasil dihapus.");
+                        }
+                      }}
+                      title="Hapus Logo Kop Surat (Delete)"
+                      style={{
+                        position: "absolute",
+                        top: "-14px",
+                        right: "-56px",
+                        width: "24px",
+                        height: "24px",
+                        background: "#ffffff",
+                        border: "1px solid #fca5a5",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 6px rgba(220, 38, 38, 0.18)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        zIndex: 40,
+                        color: "#dc2626",
+                      }}
+                    >
+                      <Trash2 size={13} />
+                    </button>
+
                     {/* Floating Word Layout Options Popover (Authentic MS Word Layout Options) */}
                     {showLayoutMenu && (
                       <div
@@ -1985,6 +2467,24 @@ function OfficialLetterhead({
                               style={{ width: "100%", accentColor: "#2563eb" }}
                             />
                           </div>
+
+                          {/* Quick Delete Logo button inside layout menu */}
+                          <div className="pt-2 border-t border-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (update) {
+                                  update("letterheadImage", "");
+                                  setIsSelected(false);
+                                  setShowLayoutMenu(false);
+                                  toast.success("Logo kop surat berhasil dihapus.");
+                                }
+                              }}
+                              className="w-full py-1.5 px-2 bg-red-50 hover:bg-red-100 text-red-600 rounded text-[10.5px] font-semibold flex items-center justify-center gap-1.5 border border-red-200 transition-colors"
+                            >
+                              <Trash2 size={12} /> Hapus Logo Kop Surat
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
@@ -2074,21 +2574,21 @@ function OfficialLetterhead({
                   </>
                 )}
               </div>
-            ) : (
+            ) : isEditMode ? (
               <div
-                className="letterhead-crest-badge"
+                className="letterhead-crest-badge no-print"
                 contentEditable={false}
-                onClick={onOpenSettings}
+                onClick={() => quickFileInputRef.current?.click()}
                 title="Klik untuk memasang logo perusahaan"
                 role="button"
                 tabIndex={0}
               >
-                <Building2 size={24} className="text-slate-700" />
-                <span className="crest-tag">IEI</span>
+                <Upload size={20} className="text-slate-500" />
+                <span className="crest-tag">+ Logo</span>
               </div>
-            )}
+            ) : null}
 
-            {layoutMode !== "center" && (
+            {shipment.letterheadImage && layoutMode !== "center" && (
               <div className="letterhead-logo-divider" contentEditable={false} />
             )}
 

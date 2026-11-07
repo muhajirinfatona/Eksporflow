@@ -148,7 +148,7 @@ export function DocWordRibbon({
       address: string;
       contact: string;
       layout: "left" | "center" | "split";
-      dividerStyle: "double" | "thick-thin" | "single" | "none";
+      dividerStyle: NonNullable<Shipment["letterheadDividerStyle"]>;
       dividerColor: string;
       dividerGap: number;
       spacing: number;
@@ -554,7 +554,7 @@ export function DocWordRibbon({
       contact:
         shipment.exporterContact || "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
       layout: (shipment.letterheadLayout || "left") as "left" | "center" | "split",
-      dividerStyle: (shipment.letterheadDividerStyle || "double") as "double" | "thick-thin" | "single" | "none",
+      dividerStyle: (shipment.letterheadDividerStyle || "double") as NonNullable<Shipment["letterheadDividerStyle"]>,
       dividerColor: shipment.letterheadDividerColor || "#0f2942",
       dividerGap: shipment.letterheadDividerGap ?? 4,
       spacing: shipment.letterheadSpacing ?? 2,
@@ -4504,9 +4504,15 @@ export function DocWordRibbon({
                       </label>
                       <div className="grid grid-cols-2 gap-1.5">
                         {[
-                          { id: "double", label: "Garis Ganda" },
-                          { id: "thick-thin", label: "Tebal-Tipis" },
-                          { id: "single", label: "Garis Tunggal" },
+                          { id: "double", label: "Garis Ganda Resmi" },
+                          { id: "thick-thin", label: "Tebal-Tipis Dinas" },
+                          { id: "thin-thick", label: "Tipis-Tebal Modern" },
+                          { id: "single", label: "Garis Tunggal Solid" },
+                          { id: "thin", label: "Garis Tunggal Halus" },
+                          { id: "bold", label: "Garis Tunggal Tebal" },
+                          { id: "accent-gradient", label: "Aksen Gradasi" },
+                          { id: "dashed", label: "Putus-Putus" },
+                          { id: "dotted", label: "Titik-Titik" },
                           { id: "none", label: "Tanpa Garis" },
                         ].map((st) => (
                           <button
