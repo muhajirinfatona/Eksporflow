@@ -2589,26 +2589,40 @@ function OfficialLetterhead({
             ) : null}
 
             {shipment.letterheadImage && layoutMode !== "center" && (
-              <div className="letterhead-logo-divider" contentEditable={false} />
+              <div
+                className="letterhead-logo-divider"
+                contentEditable={false}
+                style={{
+                  height: layoutMode === "split" ? "42px" : "50px",
+                  margin: "0 10px",
+                }}
+              />
             )}
 
             <div
-              className="letterhead-text"
+              className={`letterhead-text doc-layout-${layoutMode}`}
               style={{
                 flex: 1,
+                minWidth: 0,
                 display: layoutMode === "split" ? "flex" : "block",
                 justifyContent: layoutMode === "split" ? "space-between" : undefined,
                 alignItems: layoutMode === "split" ? "center" : undefined,
-                gap: layoutMode === "split" ? "18px" : undefined,
+                gap: layoutMode === "split" ? "16px" : undefined,
               }}
             >
               <div
                 style={{
                   textAlign: layoutMode === "center" ? "center" : "left",
+                  minWidth: layoutMode === "split" ? "fit-content" : undefined,
+                  flexShrink: layoutMode === "split" ? 0 : undefined,
                 }}
               >
                 <h1
                   className="company-name"
+                  style={{
+                    fontSize: layoutMode === "split" ? "13pt" : layoutMode === "center" ? "16pt" : "15pt",
+                    whiteSpace: layoutMode === "split" ? "nowrap" : undefined,
+                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (update && text && text !== exporterName) {
@@ -2620,6 +2634,10 @@ function OfficialLetterhead({
                 </h1>
                 <p
                   className="company-tagline"
+                  style={{
+                    fontSize: layoutMode === "split" ? "7.5pt" : "8pt",
+                    whiteSpace: layoutMode === "split" ? "nowrap" : undefined,
+                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (text !== exporterTagline) {
@@ -2639,10 +2657,15 @@ function OfficialLetterhead({
                       : layoutMode === "center"
                         ? "center"
                         : "left",
+                  maxWidth: layoutMode === "split" ? "55%" : undefined,
                 }}
               >
                 <p
                   className="company-details"
+                  style={{
+                    fontSize: layoutMode === "split" ? "8pt" : "8.5pt",
+                    lineHeight: layoutMode === "split" ? 1.3 : undefined,
+                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (update && text && text !== exporterAddress) {
@@ -2654,6 +2677,10 @@ function OfficialLetterhead({
                 </p>
                 <p
                   className="company-contact"
+                  style={{
+                    fontSize: layoutMode === "split" ? "8pt" : "8.5pt",
+                    lineHeight: layoutMode === "split" ? 1.3 : undefined,
+                  }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
                     if (update && text && text !== exporterContact) {

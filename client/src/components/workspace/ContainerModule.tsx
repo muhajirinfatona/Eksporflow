@@ -92,20 +92,6 @@ export function ContainerModule({
               onChange={(value) => updateNumber("cartonQty", value)}
             />
           </div>
-          <LineItemsEditor
-            items={shipment.lineItems}
-            updateItems={updateLineItems}
-            currency={shipment.currency}
-            onOpenCatalog={() => navigate("products")}
-          />
-          <div className="row-actions" style={{ marginTop: 14 }}>
-            <button type="button" className="ghost-button" onClick={() => navigate("documents")}>
-              <FileText size={14} /> Lihat Packing List
-            </button>
-            <button type="button" className="save-button" onClick={() => navigate("shipment")}>
-              <Truck size={14} /> Lanjut ke Logistik &amp; Kontainer <ArrowUpRight size={14} />
-            </button>
-          </div>
         </section>
 
         <section className={`load-result ${overload ? "overload" : ""}`}>
@@ -186,6 +172,29 @@ export function ContainerModule({
           </div>
         </section>
       </div>
+
+      {/* Full-width Line Items Table so product columns breathe comfortably */}
+      <section className="panel panel-padding">
+        <SectionTitle
+          eyebrow="DAFTAR PRODUK"
+          title="Rincian komoditas & kuantitas muatan"
+          description="Tambahkan atau sesuaikan kuantitas komoditas ekspor. Data ini otomatis tersinkronisasi ke seluruh dokumen ekspor dan simulasi stuffing."
+        />
+        <LineItemsEditor
+          items={shipment.lineItems}
+          updateItems={updateLineItems}
+          currency={shipment.currency}
+          onOpenCatalog={() => navigate("products")}
+        />
+        <div className="row-actions" style={{ marginTop: 14 }}>
+          <button type="button" className="ghost-button" onClick={() => navigate("documents")}>
+            <FileText size={14} /> Lihat Packing List
+          </button>
+          <button type="button" className="save-button" onClick={() => navigate("shipment")}>
+            <Truck size={14} /> Lanjut ke Logistik &amp; Kontainer <ArrowUpRight size={14} />
+          </button>
+        </div>
+      </section>
 
       <Container3DSimulator shipment={shipment} container={container} />
 

@@ -4236,10 +4236,16 @@ export function DocWordRibbon({
 
       {/* Pop-up Modal: Pengaturan Kop Surat Perusahaan */}
       {showLetterheadModal && (
-        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
-          <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-xl w-full overflow-hidden flex flex-col">
+        <div
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150"
+          onClick={() => setShowLetterheadModal(false)}
+        >
+          <div
+            className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-xl w-full max-h-[92vh] overflow-hidden flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Header */}
-            <div className="px-5 py-3 bg-[#0f2942] text-white flex items-center justify-between">
+            <div className="px-5 py-3 bg-[#0f2942] text-white flex items-center justify-between shrink-0">
               <div className="flex items-center gap-2.5">
                 <div className="w-7 h-7 rounded-lg bg-white/10 border border-white/15 flex items-center justify-center">
                   <Building2 size={15} className="text-blue-200" />
@@ -4256,7 +4262,7 @@ export function DocWordRibbon({
             </div>
 
             {/* Segmented Tab Bar */}
-            <div className="px-5 pt-3 pb-2 bg-slate-50/80 border-b border-slate-200">
+            <div className="px-5 pt-3 pb-2 bg-slate-50/80 border-b border-slate-200 shrink-0">
               <div className="grid grid-cols-2 gap-1 p-1 bg-slate-200/70 rounded-lg">
                 <button
                   type="button"
@@ -4286,7 +4292,7 @@ export function DocWordRibbon({
             </div>
 
             {/* Body */}
-            <div className="p-5 space-y-4 text-slate-700">
+            <div className="p-5 space-y-4 text-slate-700 overflow-y-auto flex-1 max-h-[calc(92vh-125px)]">
               {letterheadModalTab === "import" ? (
                 <>
                   {/* Mode Selector: Standard vs Full Banner Image */}
@@ -4332,6 +4338,20 @@ export function DocWordRibbon({
                           <Upload size={12} />
                           <span>Ganti Logo Perusahaan</span>
                         </button>
+                        {shipment.letterheadImage && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              update("letterheadImage", "");
+                              toast.success("Logo resmi kop surat berhasil dihapus");
+                            }}
+                            className="mt-2 w-full py-1.5 px-2.5 bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 rounded-lg text-[11px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
+                          >
+                            <Trash2 size={12} />
+                            <span>Hapus Logo Kop Surat</span>
+                          </button>
+                        )}
                       </div>
 
                       <div
@@ -4481,10 +4501,13 @@ export function DocWordRibbon({
                           <button
                             key={ly.id}
                             type="button"
-                            onClick={() => update("letterheadLayout", ly.id as any)}
+                            onClick={() => {
+                              update("letterheadLayout", ly.id as any);
+                              toast.success(`Tata letak kop: ${ly.label}`);
+                            }}
                             className={`p-2.5 rounded-xl border text-left transition-all ${
                               active
-                                ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20"
+                                ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20 shadow-xs"
                                 : "border-slate-200 bg-white hover:border-slate-300"
                             }`}
                           >
@@ -4518,10 +4541,13 @@ export function DocWordRibbon({
                           <button
                             key={st.id}
                             type="button"
-                            onClick={() => update("letterheadDividerStyle", st.id as any)}
+                            onClick={() => {
+                              update("letterheadDividerStyle", st.id as any);
+                              toast.success(`Gaya garis: ${st.label}`);
+                            }}
                             className={`py-1.5 px-2 text-[11px] font-semibold rounded-lg border transition-all ${
                               (shipment.letterheadDividerStyle || "double") === st.id
-                                ? "bg-[#0f2942] text-white border-[#0f2942]"
+                                ? "bg-[#0f2942] text-white border-[#0f2942] shadow-xs"
                                 : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                             }`}
                           >
@@ -4548,10 +4574,13 @@ export function DocWordRibbon({
                             <button
                               key={sw.color}
                               type="button"
-                              onClick={() => update("letterheadDividerColor", sw.color)}
+                              onClick={() => {
+                                update("letterheadDividerColor", sw.color);
+                                toast.success(`Warna garis: ${sw.label}`);
+                              }}
                               className={`flex-1 py-1.5 rounded-lg border flex flex-col items-center gap-1 transition-all ${
                                 activeColor
-                                  ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20"
+                                  ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20 shadow-xs"
                                   : "border-slate-200 hover:border-slate-300"
                               }`}
                             >
@@ -4586,13 +4615,13 @@ export function DocWordRibbon({
                         className="w-full accent-[#0f2942] cursor-pointer"
                       />
                       <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                        <button type="button" onClick={() => update("letterheadSpacing", 0)} className="hover:text-slate-900 font-medium">
+                        <button type="button" onClick={() => { update("letterheadSpacing", 0); toast.success("Spasi baris: 0px (Rapat)"); }} className="hover:text-slate-900 font-medium">
                           0px (Rapat)
                         </button>
-                        <button type="button" onClick={() => update("letterheadSpacing", 2)} className="hover:text-slate-900 font-medium">
+                        <button type="button" onClick={() => { update("letterheadSpacing", 2); toast.success("Spasi baris: 2px (Standar)"); }} className="hover:text-slate-900 font-medium">
                           2px (Standar)
                         </button>
-                        <button type="button" onClick={() => update("letterheadSpacing", 6)} className="hover:text-slate-900 font-medium">
+                        <button type="button" onClick={() => { update("letterheadSpacing", 6); toast.success("Spasi baris: 6px (Lega)"); }} className="hover:text-slate-900 font-medium">
                           6px (Lega)
                         </button>
                       </div>
@@ -4615,13 +4644,13 @@ export function DocWordRibbon({
                         className="w-full accent-[#0f2942] cursor-pointer"
                       />
                       <div className="flex justify-between text-[10px] text-slate-500 mt-1">
-                        <button type="button" onClick={() => update("letterheadDividerGap", 0)} className="hover:text-slate-900 font-medium">
+                        <button type="button" onClick={() => { update("letterheadDividerGap", 0); toast.success("Jarak garis: 0px (Rapat)"); }} className="hover:text-slate-900 font-medium">
                           0px (Rapat)
                         </button>
-                        <button type="button" onClick={() => update("letterheadDividerGap", 4)} className="hover:text-slate-900 font-medium">
+                        <button type="button" onClick={() => { update("letterheadDividerGap", 4); toast.success("Jarak garis: 4px (Standar)"); }} className="hover:text-slate-900 font-medium">
                           4px (Standar)
                         </button>
-                        <button type="button" onClick={() => update("letterheadDividerGap", 10)} className="hover:text-slate-900 font-medium">
+                        <button type="button" onClick={() => { update("letterheadDividerGap", 10); toast.success("Jarak garis: 10px (Lega)"); }} className="hover:text-slate-900 font-medium">
                           10px (Lega)
                         </button>
                       </div>
@@ -4632,11 +4661,21 @@ export function DocWordRibbon({
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-2.5 bg-slate-50 border-t border-slate-200 flex justify-end items-center">
+            <div className="px-5 py-3 bg-slate-50 border-t border-slate-200 flex justify-end items-center gap-2 shrink-0">
               <button
                 type="button"
                 onClick={() => setShowLetterheadModal(false)}
-                className="px-4 py-1.5 text-xs font-bold text-white bg-[#0f2942] hover:bg-slate-800 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5"
+                className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-200/80 rounded-lg transition-colors cursor-pointer"
+              >
+                Tutup
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowLetterheadModal(false);
+                  toast.success("Pengaturan kop surat berhasil disimpan");
+                }}
+                className="px-4 py-1.5 text-xs font-bold text-white bg-[#0f2942] hover:bg-slate-800 rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer"
               >
                 <Check size={13} />
                 Selesai
