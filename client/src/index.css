@@ -10420,18 +10420,31 @@ textarea:focus-visible {
     display: none !important;
   }
 
-  .doc-center-root > *:not(.doc-paper-desk) {
+  .doc-center-root > *:not(.doc-paper-desk):not(.doc-paper-workspace-scroll) {
     display: none !important;
   }
 
+  html,
+  body,
+  body.doc-word-focus-mode,
+  #root,
   .app-shell,
   .main-content,
+  body.doc-word-focus-mode .main-content,
   .page-wrap,
+  body.doc-word-focus-mode .page-wrap,
   .doc-center-root,
+  body.doc-word-focus-mode .doc-center-root,
+  .doc-paper-workspace-scroll,
   .doc-paper-desk {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
     margin: 0 !important;
     padding: 0 !important;
     background: transparent !important;
@@ -10456,9 +10469,10 @@ textarea:focus-visible {
     font-size: 11.5px !important;
     line-height: 1.32 !important;
     color: #0f172a !important;
+    outline: none !important;
   }
 
-  /* Letterhead: tepat 1 garis tunggal (identik dengan tampilan layar) */
+  /* Letterhead: tepat sesuai pengaturan pengguna (identik dengan tampilan layar) */
   .paper-letterhead-wrap {
     margin-bottom: 6px !important;
     padding-bottom: 0 !important;
@@ -10466,7 +10480,6 @@ textarea:focus-visible {
   }
   .letterhead-brand {
     gap: 16px !important;
-    align-items: center !important;
   }
   .letterhead-logo {
     height: calc(68px * var(--logo-scale, 1)) !important;
@@ -10477,7 +10490,9 @@ textarea:focus-visible {
     border-radius: 4px !important;
   }
   .word-resize-handle,
-  .word-resize-tooltip {
+  .word-resize-tooltip,
+  .word-logo-delete-btn,
+  .letterhead-quick-toolbar {
     display: none !important;
   }
   .word-image-selected {
@@ -10501,8 +10516,8 @@ textarea:focus-visible {
     color: #0f172a !important;
   }
   .letterhead-divider-line {
-    border-bottom: 2px solid #0f2942 !important;
-    margin-top: 4px !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   /* Title bar print */
@@ -10947,8 +10962,8 @@ textarea:focus-visible {
     line-height: 1.25;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .letterhead-divider-line {
-    margin-top: 4px;
-    border-bottom: 2px solid #0f2942;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .doc-title-bar {
     margin-top: 5px !important;
@@ -15927,8 +15942,28 @@ textarea:focus-visible {
   .doc-btn-click-sign,
   .word-layout-floating-btn,
   .word-layout-popover,
+  .word-logo-delete-btn,
+  .letterhead-quick-toolbar,
   .doc-freeze-top-header {
     display: none !important;
+  }
+
+  body.doc-word-focus-mode,
+  body.doc-word-focus-mode .main-content,
+  body.doc-word-focus-mode .page-wrap,
+  body.doc-word-focus-mode .doc-center-root,
+  .doc-paper-workspace-scroll,
+  .doc-paper-desk {
+    overflow: visible !important;
+    height: auto !important;
+    max-height: none !important;
+    min-height: 0 !important;
+    display: block !important;
+    border: none !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
   }
 }
 
@@ -15936,34 +15971,36 @@ textarea:focus-visible {
    WORD DESKTOP FOCUSED MODE (Request 10)
    Freeze top navigation & ribbon menus; isolate scrolling to paper workspace!
    ========================================================================== */
-body.doc-word-focus-mode {
-  overflow: hidden !important;
-}
+@media screen {
+  body.doc-word-focus-mode {
+    overflow: hidden !important;
+  }
 
-body.doc-word-focus-mode .main-content {
-  overflow: hidden !important;
-  height: 100vh !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
+  body.doc-word-focus-mode .main-content {
+    overflow: hidden !important;
+    height: 100vh !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
 
-body.doc-word-focus-mode .page-wrap {
-  flex: 1 !important;
-  height: calc(100vh - 64px) !important;
-  max-width: 100% !important;
-  padding: 6px 16px 0 !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-}
+  body.doc-word-focus-mode .page-wrap {
+    flex: 1 !important;
+    height: calc(100vh - 64px) !important;
+    max-width: 100% !important;
+    padding: 6px 16px 0 !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
 
-body.doc-word-focus-mode .doc-center-root {
-  flex: 1 !important;
-  height: 100% !important;
-  overflow: hidden !important;
-  display: flex !important;
-  flex-direction: column !important;
-  gap: 0 !important;
+  body.doc-word-focus-mode .doc-center-root {
+    flex: 1 !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0 !important;
+  }
 }
 
 .doc-freeze-top-header {
