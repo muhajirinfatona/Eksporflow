@@ -5326,7 +5326,7 @@ function CommercialInvoiceDoc({
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
               <span className="unlk-val-bold">{isId ? `TOTAL FAKTUR (${incoterm} MAKASSAR):` : `INVOICE TOTAL (${incoterm} MAKASSAR):`}</span>
-              <span className="unlk-val-bold" style={{ fontSize: "8.8pt", whiteSpace: "nowrap" }}>
+              <span className="unlk-val-bold" style={{ whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
@@ -5663,7 +5663,7 @@ function PackingListDoc({
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
               <span className="unlk-val-bold">{isId ? "TOTAL KEMASAN:" : "TOTAL PACKAGES:"}</span>
-              <span className="unlk-val-bold" style={{ fontSize: "8.8pt" }}>
+              <span className="unlk-val-bold">
                 {formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"} ({formatNumber(grossWeightKgs, 2)} KGS)
               </span>
             </div>
@@ -5969,7 +5969,7 @@ function ShippingInstructionDoc({
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
               <span className="unlk-val-bold">{isId ? "TOTAL KARGO:" : "TOTAL CARGO:"}</span>
-              <span className="unlk-val-bold" style={{ fontSize: "8.8pt" }}>
+              <span className="unlk-val-bold">
                 {formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"} | {formatNumber(grossWeightKgs, 2)} KGS | {formatNumber(totalCBM, 3)} CBM
               </span>
             </div>
