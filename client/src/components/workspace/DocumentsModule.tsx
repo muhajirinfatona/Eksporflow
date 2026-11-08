@@ -4462,11 +4462,14 @@ function ProformaInvoiceDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
+                <div className="unlk-val-bold">{sigFull}</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
+                <div className="unlk-val-bold">{sigRoleText}</div>
               </div>
             </div>
 
@@ -5344,11 +5347,14 @@ function CommercialInvoiceDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
+                <div className="unlk-val-bold">{sigFull}</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
+                <div className="unlk-val-bold">{sigRoleText}</div>
               </div>
             </div>
 
@@ -5678,11 +5684,14 @@ function PackingListDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
+                <div className="unlk-val-bold">{sigFull}</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
+                <div className="unlk-val-bold">{sigRoleText}</div>
               </div>
             </div>
 
@@ -5981,11 +5990,14 @@ function ShippingInstructionDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
+                <div className="unlk-val-bold">{sigFull}</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
+                <div className="unlk-val-bold">{sigRoleText}</div>
               </div>
             </div>
 
