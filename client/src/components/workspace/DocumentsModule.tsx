@@ -4319,32 +4319,45 @@ function SalesContractDoc({
                   src={shipment.sellerSignatureImage}
                   alt="Seller Signature"
                   className="doc-rendered-signature"
+                  style={{
+                    maxHeight: "56px",
+                    width: "auto",
+                    objectFit: "contain",
+                    cursor: onOpenSignatureModal ? "pointer" : "default",
+                  }}
+                  onClick={() => onOpenSignatureModal?.("seller")}
+                  title="Klik untuk mengubah tanda tangan"
                 />
-                {(shipment?.includeOfficialStamp ?? true) && (
-                  <div className={`doc-seal-overlay seal-${shipment?.officialStampColor || "red"}`} title="Stempel Digital Resmi Validated">
-                    <div className="seal-circle-outer">
-                      <div className="seal-circle-inner">
-                        <span className="seal-txt-top">★ PT. INDICO EXPORT ★</span>
-                        <span className="seal-txt-star">★ VALIDATED ★</span>
-                        <span className="seal-txt-sub">OFFICIAL SEAL</span>
-                        <span className="seal-txt-bot">INDONESIA</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div className="sig-verify-badge">
+                <div className="sig-verify-badge no-print">
                   <span className="sig-verify-check">✓</span>
                   <span>Signed & Verified ({shipment.sellerSignatureDate || "2026"})</span>
                 </div>
-                {onOpenSignatureModal && (
-                  <button
-                    type="button"
-                    className="sig-edit-hover-btn"
-                    onClick={() => onOpenSignatureModal("seller")}
-                  >
-                    Ubah
-                  </button>
-                )}
+                <div className="no-print" style={{ display: "flex", gap: "4px" }}>
+                  {onOpenSignatureModal && (
+                    <button
+                      type="button"
+                      className="sig-edit-hover-btn"
+                      onClick={() => onOpenSignatureModal("seller")}
+                      title="Ganti tanda tangan"
+                    >
+                      Ubah
+                    </button>
+                  )}
+                  {update && (
+                    <button
+                      type="button"
+                      className="sig-edit-hover-btn"
+                      onClick={() => {
+                        update("sellerSignatureImage", "" as any);
+                        update("sellerSignatureDate", "" as any);
+                      }}
+                      title="Hapus tanda tangan"
+                      style={{ color: "#dc2626" }}
+                    >
+                      Hapus
+                    </button>
+                  )}
+                </div>
               </div>
             ) : onOpenSignatureModal ? (
               <button
