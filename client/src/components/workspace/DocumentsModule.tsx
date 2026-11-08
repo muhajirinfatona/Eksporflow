@@ -3883,6 +3883,99 @@ function DocTitleBanner({ title }: { title: string }) {
         >
           🔗 Gabung Tabel
         </button>
+
+        {/* Quick Spasi Atas & Bawah ala Word */}
+        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginLeft: "4px", paddingLeft: "5px", borderLeft: "1px solid #e2e8f0" }}>
+          Spasi:
+        </span>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (typeof (window as any).__eksporflow_space_before === "function") {
+              (window as any).__eksporflow_space_before(2);
+            }
+          }}
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            padding: "1.5px 5px",
+            borderRadius: "3px",
+            border: "1px solid #cbd5e1",
+            background: "#f8fafc",
+            color: "#334155",
+            cursor: "pointer",
+          }}
+          title="Tambah Spasi Atas (+2px) pada teks/kotak yang aktif"
+        >
+          ⬆️+ Atas
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (typeof (window as any).__eksporflow_space_before === "function") {
+              (window as any).__eksporflow_space_before(-2);
+            }
+          }}
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            padding: "1.5px 5px",
+            borderRadius: "3px",
+            border: "1px solid #cbd5e1",
+            background: "#f8fafc",
+            color: "#334155",
+            cursor: "pointer",
+          }}
+          title="Kurangi Spasi Atas (-2px) pada teks/kotak yang aktif"
+        >
+          ⬆️−
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (typeof (window as any).__eksporflow_space_after === "function") {
+              (window as any).__eksporflow_space_after(2);
+            }
+          }}
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            padding: "1.5px 5px",
+            borderRadius: "3px",
+            border: "1px solid #cbd5e1",
+            background: "#f8fafc",
+            color: "#334155",
+            cursor: "pointer",
+          }}
+          title="Tambah Spasi Bawah (+2px) pada teks/kotak yang aktif"
+        >
+          ⬇️+ Bawah
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            if (typeof (window as any).__eksporflow_space_after === "function") {
+              (window as any).__eksporflow_space_after(-2);
+            }
+          }}
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            padding: "1.5px 5px",
+            borderRadius: "3px",
+            border: "1px solid #cbd5e1",
+            background: "#f8fafc",
+            color: "#334155",
+            cursor: "pointer",
+          }}
+          title="Kurangi Spasi Bawah (-2px) pada teks/kotak yang aktif"
+        >
+          ⬇️−
+        </button>
       </div>
 
       <h2 ref={h2Ref}>{title}</h2>

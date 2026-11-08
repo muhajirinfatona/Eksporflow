@@ -28,6 +28,7 @@ import {
   Sparkles,
   Table,
   Plus,
+  Minus,
   Trash2,
   Columns,
   Rows,
@@ -82,6 +83,9 @@ import {
   applyLineSpacingToSelection,
   getSelectionLineHeight,
   mapLineHeightToGapPx,
+  adjustSelectionSpacing,
+  getSelectionSpacingBefore,
+  getSelectionSpacingAfter,
   pushEditorHistory,
   performEditorUndo,
   performEditorRedo,
@@ -705,6 +709,36 @@ export function DocWordRibbon({
     const next = Math.max(1.0, Math.min(3.0, Math.round((base + delta) * 20) / 20));
     handleLineHeightChange(next);
   };
+
+  const [spaceBeforeVal, setSpaceBeforeVal] = useState<number>(4);
+  const [spaceAfterVal, setSpaceAfterVal] = useState<number>(4);
+
+  const handleSpaceBefore = (deltaOrVal: number, isAbsolute = false) => {
+    restoreActiveSelection();
+    const res = adjustSelectionSpacing("before", deltaOrVal, isAbsolute);
+    if (res.applied) {
+      setSpaceBeforeVal(res.valuePx);
+      toast.success(`Spasi atas (Space Before) diatur ke ${res.valuePx}px`);
+    } else {
+      toast.info("Klik atau blok teks/kotak yang ingin diatur spasi atasnya.");
+    }
+  };
+
+  const handleSpaceAfter = (deltaOrVal: number, isAbsolute = false) => {
+    restoreActiveSelection();
+    const res = adjustSelectionSpacing("after", deltaOrVal, isAbsolute);
+    if (res.applied) {
+      setSpaceAfterVal(res.valuePx);
+      toast.success(`Spasi bawah (Space After) diatur ke ${res.valuePx}px`);
+    } else {
+      toast.info("Klik atau blok teks/kotak yang ingin diatur spasi bawahnya.");
+    }
+  };
+
+  useEffect(() => {
+    (window as any).__eksporflow_space_before = (delta: number) => handleSpaceBefore(delta);
+    (window as any).__eksporflow_space_after = (delta: number) => handleSpaceAfter(delta);
+  }, []);
 
   const handleTextColor = (color: string) => {
     restoreActiveSelection();
@@ -2025,6 +2059,81 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
+              {/* SPASI ATAS & BAWAH PARAGRAF / KOTAK (WORD STYLE) */}
+              <div className="doc-ribbon-group group-paragraph-spacing">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#334155", minWidth: "48px" }}>⬆️ Atas:</span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceBefore(-2); }}
+                    title="Kurangi Spasi Atas (−2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "24px", textAlign: "center", color: "#0f172a" }}>
+                    {spaceBeforeVal}px
+                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceBefore(+2); }}
+                    title="Tambah Spasi Atas (+2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Plus size={11} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceBefore(0, true); }}
+                    title="Hapus Spasi Atas (0px)"
+                    style={{ fontSize: "9px", fontWeight: 700, padding: "0 3px", height: "20px", color: "#64748b" }}
+                  >
+                    0
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#334155", minWidth: "48px" }}>⬇️ Bwh:</span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceAfter(-2); }}
+                    title="Kurangi Spasi Bawah (−2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "24px", textAlign: "center", color: "#0f172a" }}>
+                    {spaceAfterVal}px
+                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceAfter(+2); }}
+                    title="Tambah Spasi Bawah (+2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Plus size={11} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceAfter(0, true); }}
+                    title="Hapus Spasi Bawah (0px)"
+                    style={{ fontSize: "9px", fontWeight: 700, padding: "0 3px", height: "20px", color: "#64748b" }}
+                  >
+                    0
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Spasi Atas/Bwh</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
               {/* Quick Kop Surat & Tabel Shortcuts on Home Tab */}
               <div className="doc-ribbon-group group-kop-shortcut">
                 <div className="doc-ribbon-row-top">
@@ -2944,6 +3053,81 @@ export function DocWordRibbon({
                 </div>
 
                 <span className="doc-ribbon-group-label">Perataan & Spasi</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* Spasi Atas / Bawah Sel & Kotak (Word Style) */}
+              <div className="doc-ribbon-group group-table-spacing">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#334155", minWidth: "48px" }}>⬆️ Atas:</span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceBefore(-2); }}
+                    title="Kurangi Spasi Atas (−2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "24px", textAlign: "center", color: "#0f172a" }}>
+                    {spaceBeforeVal}px
+                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceBefore(+2); }}
+                    title="Tambah Spasi Atas (+2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Plus size={11} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceBefore(0, true); }}
+                    title="Hapus Spasi Atas (0px)"
+                    style={{ fontSize: "9px", fontWeight: 700, padding: "0 3px", height: "20px", color: "#64748b" }}
+                  >
+                    0
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#334155", minWidth: "48px" }}>⬇️ Bwh:</span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceAfter(-2); }}
+                    title="Kurangi Spasi Bawah (−2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Minus size={11} />
+                  </button>
+                  <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "24px", textAlign: "center", color: "#0f172a" }}>
+                    {spaceAfterVal}px
+                  </span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceAfter(+2); }}
+                    title="Tambah Spasi Bawah (+2px)"
+                    style={{ width: "20px", height: "20px", padding: 0 }}
+                  >
+                    <Plus size={11} />
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onMouseDown={(e) => { e.preventDefault(); handleSpaceAfter(0, true); }}
+                    title="Hapus Spasi Bawah (0px)"
+                    style={{ fontSize: "9px", fontWeight: 700, padding: "0 3px", height: "20px", color: "#64748b" }}
+                  >
+                    0
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label" style={{ color: "#0284c7" }}>Spasi Atas/Bwh</span>
               </div>
 
               <div className="doc-ribbon-divider" />

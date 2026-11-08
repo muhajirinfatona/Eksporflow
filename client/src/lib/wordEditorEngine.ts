@@ -652,6 +652,146 @@ export function getSelectionLineHeight(): number | null {
 }
 
 // ============================================================================
+// MICROSOFT WORD PARAGRAPH & BOX SPACING (SPASI ATAS / SPASI BAWAH)
+// Allows fine-grained Space Before & Space After on any selection, block, cell or total bar
+// ============================================================================
+
+const EXTENDED_SPACING_BLOCK_SELECTOR =
+  "h1, h2, h3, h4, h5, h6, p, li, .unlk-total-bar, .unlk-cell, .unlk-val, .unlk-val-bold, .unlk-lbl, .unlk-item-spec, .company-name, .company-tagline, .company-details, .company-contact, td, th, tr, div.doc-box, div.contract-party-card, div.unlk-subrow-2col";
+
+export function getTargetBlocksForSpacing(): HTMLElement[] {
+  const paper = document.querySelector(".paper-document");
+  if (!paper) return [];
+
+  // 1. Text selection range in document
+  const range = getEffectiveSelectionRange();
+  if (range && paper.contains(range.commonAncestorContainer)) {
+    if (!range.collapsed) {
+      const textNodes = getTextNodesInRange(range);
+      const blockSet = new Set<HTMLElement>();
+      for (const tn of textNodes) {
+        const el = tn.parentElement;
+        if (!el) continue;
+        const block = (el.closest(EXTENDED_SPACING_BLOCK_SELECTOR) as HTMLElement | null) || el;
+        if (block && paper.contains(block)) {
+          blockSet.add(block);
+        }
+      }
+      if (blockSet.size > 0) return Array.from(blockSet);
+    } else {
+      const node = range.startContainer;
+      const el = node instanceof Element ? node : node?.parentElement;
+      const block = (el?.closest(EXTENDED_SPACING_BLOCK_SELECTOR) as HTMLElement | null) || (el instanceof HTMLElement ? el : null);
+      if (block && paper.contains(block)) {
+        return [block];
+      }
+    }
+  }
+
+  // 2. Blocked / active table cells or boxes
+  const selectedCells = Array.from(
+    paper.querySelectorAll("td.table-cell-selected, th.table-cell-selected, td.active-cell, th.active-cell")
+  ) as HTMLElement[];
+  if (selectedCells.length > 0) return selectedCells;
+
+  // 3. Active box (.unlk-total-bar, .unlk-cell, etc.)
+  const activeBox =
+    (window as any).__eksporflow_active_cell ||
+    paper.querySelector(".unlk-total-bar.active-cell, .active-doc-box, .unlk-total-bar");
+  if (activeBox && paper.contains(activeBox)) {
+    return [activeBox as HTMLElement];
+  }
+
+  return [];
+}
+
+export function getElementSpacingBefore(el: HTMLElement): number {
+  const custom = el.getAttribute("data-space-before");
+  if (custom !== null && !isNaN(parseFloat(custom))) return parseFloat(custom);
+  const cs = window.getComputedStyle(el);
+  const isBox =
+    el.tagName === "TD" ||
+    el.tagName === "TH" ||
+    el.classList.contains("unlk-cell") ||
+    el.classList.contains("unlk-total-bar");
+  const val = isBox ? cs.paddingTop : cs.marginTop;
+  return Math.round(parseFloat(val) || 0);
+}
+
+export function getElementSpacingAfter(el: HTMLElement): number {
+  const custom = el.getAttribute("data-space-after");
+  if (custom !== null && !isNaN(parseFloat(custom))) return parseFloat(custom);
+  const cs = window.getComputedStyle(el);
+  const isBox =
+    el.tagName === "TD" ||
+    el.tagName === "TH" ||
+    el.classList.contains("unlk-cell") ||
+    el.classList.contains("unlk-total-bar");
+  const val = isBox ? cs.paddingBottom : cs.marginBottom;
+  return Math.round(parseFloat(val) || 0);
+}
+
+export function getSelectionSpacingBefore(): number {
+  const targets = getTargetBlocksForSpacing();
+  if (targets.length === 0) return 4;
+  return getElementSpacingBefore(targets[0]);
+}
+
+export function getSelectionSpacingAfter(): number {
+  const targets = getTargetBlocksForSpacing();
+  if (targets.length === 0) return 4;
+  return getElementSpacingAfter(targets[0]);
+}
+
+export function adjustSelectionSpacing(
+  type: "before" | "after",
+  deltaOrValue: number,
+  isAbsolute = false
+): {
+  applied: boolean;
+  valuePx: number;
+} {
+  const targets = getTargetBlocksForSpacing();
+  if (targets.length === 0) {
+    return { applied: false, valuePx: 0 };
+  }
+
+  pushEditorHistory(`spacing-${type}`);
+
+  let resultVal = 0;
+  targets.forEach((el, idx) => {
+    const isBox =
+      el.tagName === "TD" ||
+      el.tagName === "TH" ||
+      el.classList.contains("unlk-cell") ||
+      el.classList.contains("unlk-total-bar");
+    const current = type === "before" ? getElementSpacingBefore(el) : getElementSpacingAfter(el);
+    const next = isAbsolute
+      ? Math.max(0, Math.min(60, Math.round(deltaOrValue)))
+      : Math.max(0, Math.min(60, Math.round(current + deltaOrValue)));
+    if (idx === 0) resultVal = next;
+
+    if (type === "before") {
+      el.setAttribute("data-space-before", String(next));
+      if (isBox) {
+        el.style.setProperty("padding-top", `${next}px`, "important");
+      } else {
+        el.style.setProperty("margin-top", `${next}px`, "important");
+      }
+    } else {
+      el.setAttribute("data-space-after", String(next));
+      if (isBox) {
+        el.style.setProperty("padding-bottom", `${next}px`, "important");
+      } else {
+        el.style.setProperty("margin-bottom", `${next}px`, "important");
+      }
+    }
+  });
+
+  return { applied: true, valuePx: resultVal };
+}
+
+// ============================================================================
 // UNIFIED MICROSOFT WORD UNDO / REDO HISTORY ENGINE
 // Tracks both DOM mutations inside .paper-document AND React Shipment state
 // ============================================================================
