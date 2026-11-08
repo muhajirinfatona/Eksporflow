@@ -2144,56 +2144,209 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
-              {/* Quick Kop Surat & Tabel Shortcuts on Home Tab */}
+              {/* Quick Kop Surat & Format Toolbar on Home Tab */}
               <div className="doc-ribbon-group group-kop-shortcut">
-                <div className="doc-ribbon-row-top">
-                  <button
-                    type="button"
-                    className="doc-ribbon-table-subbtn"
-                    style={{ fontWeight: 700, color: "#1e3a8a" }}
-                    onClick={() => {
-                      setLetterheadModalTab("import");
-                      setShowLetterheadModal(true);
+                <div className="doc-ribbon-row-top" style={{ gap: "4px", alignItems: "center" }}>
+                  {/* Tata Letak Kop */}
+                  <select
+                    value={shipment.letterheadLayout || "split"}
+                    onChange={(e) => {
+                      update("letterheadLayout", e.target.value as any);
+                      toast.success(`Tata letak kop: ${e.target.value === "left" ? "Grid Eksekutif" : e.target.value === "center" ? "Simetris" : "Split Korporat"}`);
                     }}
-                    title="Impor Kop Surat Perusahaan Lain atau Pilih Profil Kop"
+                    style={{ fontSize: "10.5px", height: "22px", padding: "1px 5px", fontWeight: 600, border: "1px solid #cbd5e1", borderRadius: "3px", background: "#f8fafc", color: "#1e293b", cursor: "pointer" }}
+                    title="Pilih Tata Letak Kop Surat (Grid Eksekutif, Split Korporat, Simetris)"
                   >
-                    <Upload size={11} />
-                    <span>Impor Kop</span>
-                  </button>
+                    <option value="left">Grid Eksekutif</option>
+                    <option value="split">Split Korporat</option>
+                    <option value="center">Simetris (Tengah)</option>
+                  </select>
+
+                  {/* Stepper Spasi Kop */}
+                  <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "3px", overflow: "hidden", height: "22px", background: "#f8fafc" }}>
+                    <span style={{ fontSize: "9.5px", fontWeight: 700, padding: "0 4px", color: "#64748b" }}>Spasi</span>
+                    <button
+                      type="button"
+                      onClick={() => update("letterheadSpacing", Math.max(0, (shipment.letterheadSpacing ?? 2) - 1))}
+                      style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
+                      title="Kurangi spasi antar baris kop (-1px)"
+                    >
+                      −
+                    </button>
+                    <span style={{ fontSize: "9.5px", fontWeight: 700, minWidth: "22px", textAlign: "center", color: "#0f172a" }}>
+                      {shipment.letterheadSpacing ?? 2}px
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => update("letterheadSpacing", Math.min(20, (shipment.letterheadSpacing ?? 2) + 1))}
+                      style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
+                      title="Tambah spasi antar baris kop (+1px)"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Pasang / Hapus Logo */}
+                  {shipment.letterheadImage ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        update("letterheadImage", "");
+                        toast.success("Logo kop surat dihapus");
+                      }}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                        color: "#dc2626",
+                        background: "#fef2f2",
+                        border: "1px solid #fecaca",
+                        padding: "0 6px",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        height: "22px",
+                        borderRadius: "3px",
+                        cursor: "pointer",
+                      }}
+                      title="Hapus Logo Resmi dari Kop Surat"
+                    >
+                      <Trash2 size={11} />
+                      <span>Hapus Logo</span>
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => logoUploadRef.current?.click()}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "3px",
+                        color: "#16a34a",
+                        background: "#f0fdf4",
+                        border: "1px solid #bbf7d0",
+                        padding: "0 6px",
+                        fontSize: "10px",
+                        fontWeight: 600,
+                        height: "22px",
+                        borderRadius: "3px",
+                        cursor: "pointer",
+                      }}
+                      title="Unggah dan Pasang Logo Perusahaan"
+                    >
+                      <Upload size={11} />
+                      <span>Pasang Logo</span>
+                    </button>
+                  )}
+
+                  {/* Tombol Atur Kop Lengkap */}
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                      background: "#0f2942",
+                      color: "#ffffff",
+                      height: "22px",
+                      padding: "0 8px",
+                      fontSize: "10.5px",
+                      fontWeight: 700,
+                      borderRadius: "3px",
+                      border: "1px solid #0f2942",
+                      cursor: "pointer",
+                    }}
                     onClick={() => {
                       setLetterheadModalTab("spacing");
                       setShowLetterheadModal(true);
                     }}
-                    title="Atur Spasi & Garis Kop Surat"
+                    title="Buka Pengaturan Lengkap Kop Surat (Profil, Garis, Font)"
                   >
-                    <Sliders size={11} />
-                    <span>Spasi Kop</span>
+                    <SlidersHorizontal size={11} />
+                    <span>Atur Kop</span>
                   </button>
                 </div>
-                <div className="doc-ribbon-row-bottom">
+
+                <div className="doc-ribbon-row-bottom" style={{ gap: "4px", alignItems: "center" }}>
+                  {/* Model Garis Pembatas */}
+                  <select
+                    value={shipment.letterheadDividerStyle || "double"}
+                    onChange={(e) => {
+                      update("letterheadDividerStyle", e.target.value as any);
+                      toast.success("Model garis kop surat diperbarui");
+                    }}
+                    style={{ fontSize: "10.5px", height: "22px", padding: "1px 5px", fontWeight: 600, border: "1px solid #cbd5e1", borderRadius: "3px", background: "#f8fafc", color: "#1e293b", cursor: "pointer" }}
+                    title="Pilih Model Garis Pembatas Kop Surat"
+                  >
+                    <option value="double">Garis: Ganda Resmi</option>
+                    <option value="thick-thin">Garis: Tebal-Tipis</option>
+                    <option value="thin-thick">Garis: Tipis-Tebal</option>
+                    <option value="single">Garis: Tunggal</option>
+                    <option value="bold">Garis: Tebal</option>
+                    <option value="accent-gradient">Garis: Aksen Modern</option>
+                    <option value="none">Garis: Tanpa Garis</option>
+                  </select>
+
+                  {/* Stepper Jarak Garis */}
+                  <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "3px", overflow: "hidden", height: "22px", background: "#f8fafc" }}>
+                    <span style={{ fontSize: "9.5px", fontWeight: 700, padding: "0 4px", color: "#64748b" }}>Jarak</span>
+                    <button
+                      type="button"
+                      onClick={() => update("letterheadDividerGap", Math.max(0, (shipment.letterheadDividerGap ?? 4) - 2))}
+                      style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
+                      title="Kurangi jarak garis pembatas (-2px)"
+                    >
+                      −
+                    </button>
+                    <span style={{ fontSize: "9.5px", fontWeight: 700, minWidth: "22px", textAlign: "center", color: "#0f172a" }}>
+                      {shipment.letterheadDividerGap ?? 4}px
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => update("letterheadDividerGap", Math.min(28, (shipment.letterheadDividerGap ?? 4) + 2))}
+                      style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
+                      title="Tambah jarak garis pembatas (+2px)"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Mode IncoDocs Toggle */}
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
-                    onClick={() => setActiveRibbonTab("picture")}
-                    title="Buka Alat Format Gambar / Logo"
+                    onClick={() => {
+                      const next = (shipment.letterheadMode as any) === "hidden" ? "standard" : "hidden";
+                      update("letterheadMode", next as any);
+                      toast.success(next === "hidden" ? "Mode IncoDocs aktif: logo di kotak Seller" : "Kop surat atas standar aktif");
+                    }}
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      height: "22px",
+                      padding: "0 6px",
+                      borderRadius: "3px",
+                      border: (shipment.letterheadMode as any) === "hidden" ? "1px solid #3b82f6" : "1px solid #cbd5e1",
+                      background: (shipment.letterheadMode as any) === "hidden" ? "#eff6ff" : "#f8fafc",
+                      color: (shipment.letterheadMode as any) === "hidden" ? "#1d4ed8" : "#475569",
+                      cursor: "pointer",
+                    }}
+                    title="Toggle Mode IncoDocs (Logo langsung di Kotak Seller tanpa kop atas terpisah)"
                   >
-                    <ImageIcon size={11} />
-                    <span>Format Gambar</span>
+                    {(shipment.letterheadMode as any) === "hidden" ? "Kop Standar" : "IncoDocs"}
                   </button>
+
+                  {/* Tanda Tangan */}
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => onOpenSignatureModal("seller")}
-                    title="Tanda Tangan & Stempel"
+                    title="Buka Pengaturan Tanda Tangan & Stempel"
+                    style={{ height: "22px", padding: "0 6px" }}
                   >
                     <FileSignature size={11} />
                     <span>Tanda Tangan</span>
                   </button>
                 </div>
-                <span className="doc-ribbon-group-label">Kop & Stempel</span>
+                <span className="doc-ribbon-group-label">Kop Surat</span>
               </div>
 
               <div className="doc-ribbon-divider" />
