@@ -3794,6 +3794,7 @@ function ProformaInvoiceDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
+  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
   const sigRoleText = signatoryRole || (isId ? "Direktur Ekspor" : "Export Director");
   const netWeightKgs = netWeightMT * 1000;
@@ -3809,15 +3810,26 @@ function ProformaInvoiceDoc({
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Penjual / Seller" : "Seller"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
-            </div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
-            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-              Contact Person: {sigFull} ({sigRoleText})
-            </div>
+            {hasTopLetterhead ? (
+              <>
+                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact: {sigFull} ({sigRoleText})
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="unlk-val">
+                  Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
+                </div>
+                <div className="unlk-val">
+                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+                </div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact Person: {sigFull} ({sigRoleText})
+                </div>
+              </>
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -3871,9 +3883,6 @@ function ProformaInvoiceDoc({
             <div className="unlk-cell unlk-flex-fill">
               <div className="unlk-lbl">Notify Party</div>
               <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-              <div className="unlk-val">
-                {buyerName} — Contact: {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
-              </div>
             </div>
           </div>
         </div>
@@ -3975,13 +3984,8 @@ function ProformaInvoiceDoc({
                 </div>
                 <div className="unlk-item-spec">
                   • {isId
-                    ? `Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE Food-Grade (${formatNumber(bagsCount)} Karung)`
-                    : `Packing: 20 kg net / Multiwall Kraft Paper Bag with Food-Grade PE Inner Liner (${formatNumber(bagsCount)} Bags)`}
-                </div>
-                <div className="unlk-item-spec">
-                  • {isId
-                    ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kgs | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kgs | Muatan: 1 x 20' FCL`
-                    : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs | Load: 1 x 20' FCL`}
+                    ? "Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE Food-Grade"
+                    : "Packing: 20 kg Net Multiwall Kraft Paper Bag with Food-Grade PE Inner Liner"}
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
@@ -4000,7 +4004,7 @@ function ProformaInvoiceDoc({
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total ({incoterm} Makassar)</td>
+              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
               <td />
@@ -4018,8 +4022,8 @@ function ProformaInvoiceDoc({
               <div className="unlk-val">
                 <b>Say:</b> <i>{amountInWords}</i>
               </div>
-              <div className="unlk-val" style={{ marginTop: "2px" }}>
-                Total Volume: {formatNumber(bagsCount)} Multiwall Kraft Paper Bags @ 20 kg Net loaded in 1 x 20&apos; FCL Food-Grade Container.
+              <div className="unlk-val" style={{ marginTop: "2px", color: "#334155" }}>
+                <b>Remarks:</b> Partial Shipment: Not Allowed • Transhipment: Allowed • Overseas banking charges for buyer&apos;s account.
               </div>
             </div>
 
@@ -4038,20 +4042,17 @@ function ProformaInvoiceDoc({
           {/* Right 50%: TOTAL + Incoterms/Currency + Signatory Company + Authorized Signatory + Signature */}
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL ({incoterm} MAKASSAR):</span>
+              <span className="unlk-val-bold">INVOICE TOTAL ({incoterm} MAKASSAR):</span>
               <span className="unlk-val-bold" style={{ fontSize: "10.5pt", whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Place and Date of Issue</div>
-                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Date of Issue</div>
-                <div className="unlk-val-bold">08 Nov 2026</div>
+            <div className="unlk-cell unlk-border-b">
+              <div className="unlk-lbl">Place and Date of Issue</div>
+              <div className="unlk-signatory-split">
+                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
+                <span className="unlk-val-bold">08 Nov 2026</span>
               </div>
             </div>
 
@@ -4682,6 +4683,7 @@ function CommercialInvoiceDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
+  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
   const sigParts = sigFull.trim().split(/\s+/);
   const sigFirst = sigParts[0] || "Muhajirin";
@@ -4702,15 +4704,26 @@ function CommercialInvoiceDoc({
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
-            </div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
-            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-              Contact Person: {sigFull} ({signatoryRole || "Export Director"})
-            </div>
+            {hasTopLetterhead ? (
+              <>
+                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact: {sigFull} ({signatoryRole || "Export Director"})
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="unlk-val">
+                  Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
+                </div>
+                <div className="unlk-val">
+                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+                </div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact Person: {sigFull} ({signatoryRole || "Export Director"})
+                </div>
+              </>
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -4755,10 +4768,6 @@ function CommercialInvoiceDoc({
           <div className="unlk-cell">
             <div className="unlk-lbl">Buyer (If not Consignee)</div>
             <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-            <div className="unlk-val">{buyerName} — {buyerCountry}</div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} | Tel: {buyerPhone || "+971 4 223 4567"}
-            </div>
           </div>
         </div>
 
@@ -4864,10 +4873,10 @@ function CommercialInvoiceDoc({
                   • Specification: Grade A Export Quality, Moisture Max 2.5%, Mesh 16-18, Purity 99%
                 </div>
                 <div className="unlk-item-spec">
-                  • Packing: 20 Kg Net Multiwall Kraft Paper Bag ({formatNumber(bagsCount)} Bags) | Net: {formatNumber(netWeightKgs, 2)} Kgs | Gross: {formatNumber(grossWeightKgs, 2)} Kgs
+                  • Packing: 20 Kg Net Multiwall Kraft Paper Bag with Food-Grade PE Liner
                 </div>
                 <div className="unlk-item-spec">
-                  • Container / Seal No.: {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} | Country of Origin: Indonesia
+                  • Shipping Marks: {buyerName.split(" ")[0] || "AL BARAKAH"} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
@@ -4886,7 +4895,7 @@ function CommercialInvoiceDoc({
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total ({incoterm} Makassar)</td>
+              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
               <td />
@@ -4922,20 +4931,17 @@ function CommercialInvoiceDoc({
 
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL ({incoterm} MAKASSAR):</span>
+              <span className="unlk-val-bold">INVOICE TOTAL ({incoterm} MAKASSAR):</span>
               <span className="unlk-val-bold" style={{ fontSize: "10.5pt", whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Place and Date of Issue</div>
-                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Date of Issue</div>
-                <div className="unlk-val-bold">08 Nov 2026</div>
+            <div className="unlk-cell unlk-border-b">
+              <div className="unlk-lbl">Place and Date of Issue</div>
+              <div className="unlk-signatory-split">
+                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
+                <span className="unlk-val-bold">08 Nov 2026</span>
               </div>
             </div>
 
@@ -5032,6 +5038,7 @@ function PackingListDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
+  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
   const sigParts = sigFull.trim().split(/\s+/);
   const sigFirst = sigParts[0] || "Muhajirin";
@@ -5052,15 +5059,26 @@ function PackingListDoc({
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
-            </div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
-            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-              Contact Person: {sigFull} ({signatoryRole || "Export Director"})
-            </div>
+            {hasTopLetterhead ? (
+              <>
+                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact: {sigFull} ({signatoryRole || "Export Director"})
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="unlk-val">
+                  Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
+                </div>
+                <div className="unlk-val">
+                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+                </div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact Person: {sigFull} ({signatoryRole || "Export Director"})
+                </div>
+              </>
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -5105,10 +5123,6 @@ function PackingListDoc({
           <div className="unlk-cell">
             <div className="unlk-lbl">Notify Party / Buyer</div>
             <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-            <div className="unlk-val">{buyerName} — {buyerCountry}</div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} | Tel: {buyerPhone || "+971 4 223 4567"}
-            </div>
           </div>
         </div>
 
@@ -5237,17 +5251,15 @@ function PackingListDoc({
             <div className="unlk-cell unlk-border-b">
               <div className="unlk-lbl">Additional Info</div>
               <div className="unlk-val">
-                <b>Total Packages:</b> {formatNumber(bagsCount)} Multiwall Kraft Paper Bags loaded in 1 x 20&apos; FCL Dry Food-Grade Container.
+                <b>Total Consignment:</b> {formatNumber(bagsCount)} Multiwall Kraft Paper Bags stuffed into 1 x 20&apos; FCL Food-Grade Container.
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Packing &amp; Phytosanitary Declaration</div>
+              <div className="unlk-lbl">Packing &amp; Seaworthy Compliance Declaration</div>
               <div className="unlk-bank-lines">
-                <div><b>Container No.:</b> {containerNumber || "TGHU 2468135"} | <b>Seal No.:</b> {sealNumber || "IDMKS998877"}</div>
-                <div><b>Net Weight:</b> {formatNumber(netWeightKgs, 2)} Kgs ({formatNumber(netWeightMT, 2)} MT)</div>
-                <div><b>Gross Weight:</b> {formatNumber(grossWeightKgs, 2)} Kgs ({formatNumber(grossWeightMT, 3)} MT)</div>
-                <div><b>Total Volume:</b> {formatNumber(totalCBM, 3)} CBM | <b>Origin:</b> Indonesia</div>
+                <div>We hereby certify that the goods mentioned above are packed in seaworthy export multiwall kraft paper bags with inner food-grade PE liner.</div>
+                <div>All particulars concerning quantity, packaging, and gross/net weights are verified, true, and correct.</div>
               </div>
             </div>
           </div>
@@ -5260,14 +5272,11 @@ function PackingListDoc({
               </span>
             </div>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Total Net Weight</div>
-                <div className="unlk-val-bold">{formatNumber(netWeightKgs, 2)} KGS</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Volume</div>
-                <div className="unlk-val-bold">{formatNumber(totalCBM, 3)} CBM</div>
+            <div className="unlk-cell unlk-border-b">
+              <div className="unlk-lbl">Place and Date of Issue</div>
+              <div className="unlk-signatory-split">
+                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
+                <span className="unlk-val-bold">08 Nov 2026</span>
               </div>
             </div>
 
@@ -5364,6 +5373,7 @@ function ShippingInstructionDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
+  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
   const sigParts = sigFull.trim().split(/\s+/);
   const sigFirst = sigParts[0] || "Muhajirin";
@@ -5384,15 +5394,26 @@ function ShippingInstructionDoc({
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Pengirim / Shipper" : "Shipper / Exporter (To appear on B/L)"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
-            </div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
-            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-              Contact Person: {sigFull} ({signatoryRole || "Export Director"})
-            </div>
+            {hasTopLetterhead ? (
+              <>
+                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact: {sigFull} ({signatoryRole || "Export Director"})
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="unlk-val">
+                  {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
+                </div>
+                <div className="unlk-val">
+                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+                </div>
+                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                  Contact Person: {sigFull} ({signatoryRole || "Export Director"})
+                </div>
+              </>
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -5437,10 +5458,6 @@ function ShippingInstructionDoc({
           <div className="unlk-cell">
             <div className="unlk-lbl">Notify Party (To appear on B/L)</div>
             <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-            <div className="unlk-val">{buyerName} — {buyerCountry}</div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} | Tel: {buyerPhone || "+971 4 223 4567"}
-            </div>
           </div>
         </div>
 
@@ -5521,7 +5538,7 @@ function ShippingInstructionDoc({
                   • Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner.
                 </div>
                 <div className="unlk-item-spec">
-                  • Net Weight: {formatNumber(netWeightKgs, 2)} KGS | Container / Seal: {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
+                  • Clean on Board, Stowed Under Deck in FCL Container.
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
@@ -5562,14 +5579,11 @@ function ShippingInstructionDoc({
               </span>
             </div>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Freight</div>
-                <div className="unlk-val-bold">{incoterm === "FOB" ? "COLLECT" : "PREPAID"}</div>
+            <div className="unlk-cell unlk-border-b">
+              <div className="unlk-lbl">Place and Date of Issue</div>
+              <div className="unlk-signatory-split">
+                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
+                <span className="unlk-val-bold">16 Nov 2026</span>
               </div>
             </div>
 
