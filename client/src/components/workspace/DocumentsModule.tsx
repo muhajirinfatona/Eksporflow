@@ -5120,7 +5120,7 @@ function CommercialInvoiceDoc({
           </div>
         </div>
 
-        {/* ROW 2: Consignee (Left 50%) | Buyer (If not Consignee) (Right 50%) */}
+        {/* ROW 2: Consignee (Left 50%) | Method of Dispatch & Vessel (Right 50% - replaces duplicate Buyer) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Penerima Barang (Consignee)" : "Consignee"}</div>
@@ -5129,21 +5129,13 @@ function CommercialInvoiceDoc({
             <div className="unlk-val">
               Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
             </div>
-          </div>
-
-          <div className="unlk-cell">
-            <div className="unlk-lbl">{isId ? "Pembeli (Jika Bukan Penerima)" : "Buyer (If not Consignee)"}</div>
-            <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
-            <div className="unlk-val">
-              {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
             </div>
           </div>
-        </div>
 
-        {/* ROW 3: 4x2 Logistics Grid (Left 50%) | Origin/Destination + Terms of Payment + Policy/LC (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
+          <div className="unlk-col-stack">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Metode Pengiriman" : "Method of Dispatch"}</div>
                 <div className="unlk-val-bold">{isId ? "Muatan Laut (Ocean FCL)" : "Sea Freight (FCL)"}</div>
@@ -5154,7 +5146,7 @@ function CommercialInvoiceDoc({
               </div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Kapal / Pesawat" : "Vessel / Aircraft"}</div>
                 <div className="unlk-val-bold">{vesselOnly}</div>
@@ -5164,8 +5156,13 @@ function CommercialInvoiceDoc({
                 <div className="unlk-val-bold">{voyageOnly}</div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
+        {/* ROW 3: Ports & Destination (Left 50%) | Origin, Destination & Terms of Payment (Right 50%) */}
+        <div className="unlk-row-50-50 unlk-border-t">
+          <div className="unlk-col-stack unlk-border-r">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Pelabuhan Muat" : "Port of Loading"}</div>
                 <div className="unlk-val-bold">{pol}</div>
@@ -5189,7 +5186,7 @@ function CommercialInvoiceDoc({
           </div>
 
           <div className="unlk-col-stack">
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country Of Origin of Goods"}</div>
                 <div className="unlk-val-bold">Indonesia</div>
@@ -5200,28 +5197,13 @@ function CommercialInvoiceDoc({
               </div>
             </div>
 
-            <div className="unlk-cell unlk-border-b unlk-flex-fill">
+            <div className="unlk-cell unlk-flex-fill">
               <div className="unlk-lbl">{isId ? "Syarat / Metode Pembayaran" : "Terms / Method of Payment"}</div>
               <div className="unlk-val-bold">
                 {paymentTerms ||
                   (isId
                     ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% saat Salinan B/L Diterima"
                     : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Polis Asuransi Laut" : "Marine Cover Policy No"}</div>
-                <div className="unlk-val-bold">
-                  {incoterm === "CIF"
-                    ? "MC-IEI-2026-881"
-                    : (isId ? "Ditanggung Pembeli (FOB)" : "FOB Buyer Coverage")}
-                </div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Nomor Letter of Credit (L/C)" : "Letter Of Credit No"}</div>
-                <div className="unlk-val-bold">{isId ? "Tidak Ada (Remitansi T/T)" : "N/A (T/T Remittance)"}</div>
               </div>
             </div>
           </div>
@@ -5486,7 +5468,7 @@ function PackingListDoc({
           </div>
         </div>
 
-        {/* ROW 2: Consignee (Left 50%) | Notify Party (Right 50%) */}
+        {/* ROW 2: Consignee (Left 50%) | Method of Dispatch & Vessel (Right 50% - replaces duplicate Buyer) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Penerima Barang (Consignee)" : "Consignee"}</div>
@@ -5495,21 +5477,13 @@ function PackingListDoc({
             <div className="unlk-val">
               Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
             </div>
-          </div>
-
-          <div className="unlk-cell">
-            <div className="unlk-lbl">{isId ? "Pihak yang Diberitahu (Notify Party)" : "Notify Party / Buyer"}</div>
-            <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
-            <div className="unlk-val">
-              {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
             </div>
           </div>
-        </div>
 
-        {/* ROW 3: Transport & Container Grid */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
+          <div className="unlk-col-stack">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Metode Pengiriman" : "Method of Dispatch"}</div>
                 <div className="unlk-val-bold">{isId ? "Muatan Laut (Ocean FCL)" : "Sea Freight (FCL)"}</div>
@@ -5520,7 +5494,7 @@ function PackingListDoc({
               </div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Kapal / Pesawat" : "Vessel / Aircraft"}</div>
                 <div className="unlk-val-bold">{vesselOnly}</div>
@@ -5530,8 +5504,13 @@ function PackingListDoc({
                 <div className="unlk-val-bold">{voyageOnly}</div>
               </div>
             </div>
+          </div>
+        </div>
 
-            <div className="unlk-subrow-2col unlk-flex-fill">
+        {/* ROW 3: Transport & Container Grid */}
+        <div className="unlk-row-50-50 unlk-border-t">
+          <div className="unlk-col-stack unlk-border-r">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Pelabuhan Muat" : "Port of Loading"}</div>
                 <div className="unlk-val-bold">{pol}</div>
@@ -5541,21 +5520,8 @@ function PackingListDoc({
                 <div className="unlk-val-bold">{pod}</div>
               </div>
             </div>
-          </div>
 
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country Of Origin of Goods"}</div>
-                <div className="unlk-val-bold">Indonesia</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
-                <div className="unlk-val-bold">{buyerCountry}</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Nomor Kontainer" : "Container Number"}</div>
                 <div className="unlk-val-bold">{containerNumber || "TGHU 2468135"}</div>
@@ -5563,6 +5529,19 @@ function PackingListDoc({
               <div className="unlk-cell">
                 <div className="unlk-lbl">{isId ? "Nomor Segel" : "Seal Number"}</div>
                 <div className="unlk-val-bold">{sealNumber || "IDMKS998877"}</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="unlk-col-stack">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country Of Origin of Goods"}</div>
+                <div className="unlk-val-bold">Indonesia</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
+                <div className="unlk-val-bold">{buyerCountry}</div>
               </div>
             </div>
 
