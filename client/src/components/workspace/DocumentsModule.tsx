@@ -4794,9 +4794,9 @@ function CommercialInvoiceDoc({
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Nomor & Tanggal Faktur" : "Invoice Number & Date"}</div>
-                <div className="unlk-signatory-split">
-                  <span className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</span>
-                  <span className="unlk-val-bold">08 Nov 2026</span>
+                <div className="unlk-val-bold" style={{ whiteSpace: "nowrap" }}>INV/IEI-DXB/XI/2026/001</div>
+                <div className="unlk-val" style={{ color: "#475569", fontWeight: 600, marginTop: "2px", whiteSpace: "nowrap" }}>
+                  {isId ? "Tanggal: 08 Nov 2026" : "Date: 08 Nov 2026"}
                 </div>
               </div>
               <div className="unlk-cell">
@@ -5160,9 +5160,9 @@ function PackingListDoc({
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Nomor & Tanggal Packing List" : "Packing List Number & Date"}</div>
-                <div className="unlk-signatory-split">
-                  <span className="unlk-val-bold">PL/IEI-DXB/XI/2026/001</span>
-                  <span className="unlk-val-bold">08 Nov 2026</span>
+                <div className="unlk-val-bold" style={{ whiteSpace: "nowrap" }}>PL/IEI-DXB/XI/2026/001</div>
+                <div className="unlk-val" style={{ color: "#475569", fontWeight: 600, marginTop: "2px", whiteSpace: "nowrap" }}>
+                  {isId ? "Tanggal: 08 Nov 2026" : "Date: 08 Nov 2026"}
                 </div>
               </div>
               <div className="unlk-cell">
@@ -5497,9 +5497,9 @@ function ShippingInstructionDoc({
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Nomor & Tanggal SI" : "SI Number & Date"}</div>
-                <div className="unlk-signatory-split">
-                  <span className="unlk-val-bold">SI/IEI/XI/2026/001</span>
-                  <span className="unlk-val-bold">16 Nov 2026</span>
+                <div className="unlk-val-bold" style={{ whiteSpace: "nowrap" }}>SI/IEI/XI/2026/001</div>
+                <div className="unlk-val" style={{ color: "#475569", fontWeight: 600, marginTop: "2px", whiteSpace: "nowrap" }}>
+                  {isId ? "Tanggal: 16 Nov 2026" : "Date: 16 Nov 2026"}
                 </div>
               </div>
               <div className="unlk-cell">
