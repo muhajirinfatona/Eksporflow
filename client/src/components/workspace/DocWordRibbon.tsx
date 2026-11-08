@@ -70,7 +70,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
-import { getPaperSizeSpec, getDocMargins, DOC_MARGIN_PRESETS } from "@shared/shipment";
+import { getPaperSizeSpec, getDocMargins, DOC_MARGIN_PRESETS, DEFAULT_INDICO_LOGO } from "@shared/shipment";
 import {
   saveActiveSelection,
   restoreActiveSelection,
@@ -2403,56 +2403,116 @@ export function DocWordRibbon({
                     </button>
                   </div>
 
-                  {/* Pasang / Hapus Logo */}
+                  {/* Pasang / Hapus / Reset Logo */}
                   {shipment.letterheadImage ? (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        update("letterheadImage", "");
-                        toast.success("Logo kop surat dihapus");
-                      }}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "3px",
-                        color: "#dc2626",
-                        background: "#fef2f2",
-                        border: "1px solid #fecaca",
-                        padding: "0 6px",
-                        fontSize: "10px",
-                        fontWeight: 600,
-                        height: "22px",
-                        borderRadius: "3px",
-                        cursor: "pointer",
-                      }}
-                      title="Hapus Logo Resmi dari Kop Surat"
-                    >
-                      <Trash2 size={11} />
-                      <span>Hapus Logo</span>
-                    </button>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          update("letterheadLogoScale", 100);
+                          update("letterheadLogoX", 0);
+                          update("letterheadLogoY", 0);
+                          update("letterheadLogoWrap", "inline");
+                          toast.success("Posisi & ukuran logo di-reset ke standar 100%");
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "2px",
+                          color: "#0369a1",
+                          background: "#f0f9ff",
+                          border: "1px solid #bae6fd",
+                          padding: "0 5px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          height: "22px",
+                          borderRadius: "3px",
+                          cursor: "pointer",
+                        }}
+                        title="Reset Posisi & Ukuran Logo ke Standar (100%)"
+                      >
+                        <RotateCcw size={11} />
+                        <span>Reset</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          update("letterheadImage", "");
+                          toast.success("Logo kop surat dihapus");
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "2px",
+                          color: "#dc2626",
+                          background: "#fef2f2",
+                          border: "1px solid #fecaca",
+                          padding: "0 5px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          height: "22px",
+                          borderRadius: "3px",
+                          cursor: "pointer",
+                        }}
+                        title="Hapus Logo Resmi dari Kop Surat"
+                      >
+                        <Trash2 size={11} />
+                        <span>Hapus</span>
+                      </button>
+                    </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => logoUploadRef.current?.click()}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: "3px",
-                        color: "#16a34a",
-                        background: "#f0fdf4",
-                        border: "1px solid #bbf7d0",
-                        padding: "0 6px",
-                        fontSize: "10px",
-                        fontWeight: 600,
-                        height: "22px",
-                        borderRadius: "3px",
-                        cursor: "pointer",
-                      }}
-                      title="Unggah dan Pasang Logo Perusahaan"
-                    >
-                      <Upload size={11} />
-                      <span>Pasang Logo</span>
-                    </button>
+                    <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+                      <button
+                        type="button"
+                        onClick={() => logoUploadRef.current?.click()}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "3px",
+                          color: "#16a34a",
+                          background: "#f0fdf4",
+                          border: "1px solid #bbf7d0",
+                          padding: "0 6px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          height: "22px",
+                          borderRadius: "3px",
+                          cursor: "pointer",
+                        }}
+                        title="Upload Logo dari Komputer"
+                      >
+                        <Upload size={11} />
+                        <span>+ Logo</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          update("letterheadImage", DEFAULT_INDICO_LOGO);
+                          update("letterheadLogoScale", 100);
+                          update("letterheadLogoX", 0);
+                          update("letterheadLogoY", 0);
+                          update("letterheadLogoWrap", "inline");
+                          toast.success("Logo resmi Indico Export Indonesia berhasil dipasang!");
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "2px",
+                          color: "#15803d",
+                          background: "#ecfdf5",
+                          border: "1px solid #a7f3d0",
+                          padding: "0 5px",
+                          fontSize: "10px",
+                          fontWeight: 600,
+                          height: "22px",
+                          borderRadius: "3px",
+                          cursor: "pointer",
+                        }}
+                        title="Pasang Logo Resmi Indico Export Indonesia"
+                      >
+                        <span>🌿 Indico</span>
+                      </button>
+                    </div>
                   )}
 
                   {/* Tombol Atur Kop Lengkap */}

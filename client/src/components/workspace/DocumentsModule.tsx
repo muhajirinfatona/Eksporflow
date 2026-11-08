@@ -12,6 +12,7 @@ import {
   type Shipment,
   getPaperSizeSpec,
   getDocMargins,
+  DEFAULT_INDICO_LOGO,
 } from "@shared/shipment";
 import {
   Building2,
@@ -37,6 +38,7 @@ import {
   Phone,
   Edit3,
   Printer,
+  RotateCcw,
   Ruler,
   ShieldCheck,
   Ship,
@@ -1673,9 +1675,14 @@ function OfficialLetterhead({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const quickFileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const activeScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
+  const effectiveLogoImage =
+    shipment.letterheadImage ||
+    (exporterName.toLowerCase().includes("indico") ? DEFAULT_INDICO_LOGO : "");
+
+  const rawScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
+  const activeScale = isNaN(rawScale) || rawScale < 30 ? 100 : Math.min(300, rawScale);
   const baseLogoHeight = 68;
-  const scaledHeight = Math.round(baseLogoHeight * (activeScale / 100));
+  const scaledHeight = Math.max(34, Math.round(baseLogoHeight * (activeScale / 100)));
 
   const wrapMode = shipment.letterheadLogoWrap || "inline";
   const alignMode = shipment.letterheadLogoAlign || "left";
@@ -1731,8 +1738,10 @@ function OfficialLetterhead({
   const [customTagline, setCustomTagline] = useState<string | null>(null);
   const exporterTagline = customTagline !== null ? customTagline : defaultTagline;
 
-  const currentX = dragMoveOffset ? dragMoveOffset.x : (shipment.letterheadLogoX || 0);
-  const currentY = dragMoveOffset ? dragMoveOffset.y : (shipment.letterheadLogoY || 0);
+  const rawX = dragMoveOffset ? dragMoveOffset.x : (shipment.letterheadLogoX || 0);
+  const rawY = dragMoveOffset ? dragMoveOffset.y : (shipment.letterheadLogoY || 0);
+  const currentX = Math.max(-10, Math.min(260, isNaN(rawX) ? 0 : rawX));
+  const currentY = Math.max(-10, Math.min(80, isNaN(rawY) ? 0 : rawY));
 
   // Notify Ribbon of Image Focus / Deselection & Handle Click Outside
   useEffect(() => {
@@ -1797,8 +1806,8 @@ function OfficialLetterhead({
       const dy = moveEvent.clientY - startClientY;
       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
         moved = true;
-        finalX = startLogoX + dx;
-        finalY = startLogoY + dy;
+        finalX = Math.max(-10, Math.min(260, startLogoX + dx));
+        finalY = Math.max(-10, Math.min(80, startLogoY + dy));
         setDragMoveOffset({ x: finalX, y: finalY });
       }
     };
@@ -1880,8 +1889,8 @@ function OfficialLetterhead({
       }
 
       latestScale = computedScale;
-      latestShiftX = Math.round(sx);
-      latestShiftY = Math.round(sy);
+      latestShiftX = Math.max(-10 - startLogoX, Math.min(260 - startLogoX, Math.round(sx)));
+      latestShiftY = Math.max(-10 - startLogoY, Math.min(80 - startLogoY, Math.round(sy)));
       setDragScale(computedScale);
       setDragShift({ x: latestShiftX, y: latestShiftY });
     };
@@ -1894,8 +1903,8 @@ function OfficialLetterhead({
       setDragShift({ x: 0, y: 0 });
       update("letterheadLogoScale", latestScale);
       if (latestShiftX !== 0 || latestShiftY !== 0) {
-        update("letterheadLogoX", startLogoX + latestShiftX);
-        update("letterheadLogoY", startLogoY + latestShiftY);
+        update("letterheadLogoX", Math.max(-10, Math.min(260, startLogoX + latestShiftX)));
+        update("letterheadLogoY", Math.max(-10, Math.min(80, startLogoY + latestShiftY)));
       }
     };
 
@@ -2117,7 +2126,7 @@ function OfficialLetterhead({
               width: "100%",
             }}
           >
-            {shipment.letterheadImage ? (
+            {effectiveLogoImage ? (
               <div
                 ref={containerRef}
                 contentEditable={false}
@@ -2149,6 +2158,7 @@ function OfficialLetterhead({
                     update("letterheadLogoScale", 100);
                     update("letterheadLogoX", 0);
                     update("letterheadLogoY", 0);
+                    update("letterheadLogoWrap", "inline");
                     toast.success("Ukuran & posisi logo di-reset ke standar 100%");
                   }
                 }}
@@ -2160,12 +2170,21 @@ function OfficialLetterhead({
               >
                 <img
                   ref={imgRef}
-                  src={shipment.letterheadImage}
+                  src={effectiveLogoImage}
                   alt="Logo Resmi Perusahaan"
                   className="letterhead-logo"
                   draggable={false}
+                  onError={(e) => {
+                    const target = e.currentTarget;
+                    if (target.src !== DEFAULT_INDICO_LOGO) {
+                      target.src = DEFAULT_INDICO_LOGO;
+                      if (update) update("letterheadImage", DEFAULT_INDICO_LOGO);
+                    }
+                  }}
                   style={{
                     height: `${scaledHeight}px`,
+                    minHeight: "36px",
+                    minWidth: "36px",
                     maxHeight: `${Math.round(200 * (activeScale / 100))}px`,
                     maxWidth: `${Math.round(400 * (activeScale / 100))}px`,
                     width: "auto",
@@ -2247,6 +2266,42 @@ function OfficialLetterhead({
                       }}
                     >
                       <Trash2 size={13} />
+                    </button>
+
+                    {/* Floating Word Reset Button */}
+                    <button
+                      type="button"
+                      className="word-logo-reset-btn no-print"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (update) {
+                          update("letterheadLogoScale", 100);
+                          update("letterheadLogoX", 0);
+                          update("letterheadLogoY", 0);
+                          update("letterheadLogoWrap", "inline");
+                          toast.success("Ukuran & posisi logo di-reset ke standar 100%");
+                        }
+                      }}
+                      title="Reset Posisi & Ukuran Logo ke Standar (100%)"
+                      style={{
+                        position: "absolute",
+                        top: "-14px",
+                        right: "-84px",
+                        width: "24px",
+                        height: "24px",
+                        background: "#ffffff",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        zIndex: 40,
+                        color: "#475569",
+                      }}
+                    >
+                      <RotateCcw size={12} />
                     </button>
 
                     {/* Floating Word Layout Options Popover (Authentic MS Word Layout Options) */}
@@ -2476,17 +2531,61 @@ function OfficialLetterhead({
               <div
                 className="letterhead-crest-badge no-print"
                 contentEditable={false}
-                onClick={() => quickFileInputRef.current?.click()}
-                title="Klik untuk memasang logo perusahaan"
-                role="button"
-                tabIndex={0}
+                style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: "5px" }}
               >
-                <Upload size={20} className="text-slate-500" />
-                <span className="crest-tag">+ Logo</span>
+                <div
+                  onClick={() => quickFileInputRef.current?.click()}
+                  title="Klik untuk memilih file logo dari komputer (PNG, JPG, WEBP)"
+                  role="button"
+                  tabIndex={0}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    padding: "3px 8px",
+                    background: "#f8fafc",
+                    border: "1px dashed #cbd5e1",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    fontSize: "10px",
+                    fontWeight: 600,
+                    color: "#475569",
+                  }}
+                >
+                  <Upload size={13} className="text-slate-500" />
+                  <span>+ Upload Logo</span>
+                </div>
+                {update && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      update("letterheadImage", DEFAULT_INDICO_LOGO);
+                      update("letterheadLogoScale", 100);
+                      update("letterheadLogoX", 0);
+                      update("letterheadLogoY", 0);
+                      update("letterheadLogoWrap", "inline");
+                      toast.success("Logo Indico Export Indonesia berhasil dipasang!");
+                    }}
+                    style={{
+                      padding: "2px 6px",
+                      fontSize: "9.5px",
+                      fontWeight: 600,
+                      borderRadius: "3px",
+                      border: "1px solid #bbf7d0",
+                      background: "#f0fdf4",
+                      color: "#15803d",
+                      cursor: "pointer",
+                    }}
+                    title="Gunakan Logo Resmi Indico Export Indonesia"
+                  >
+                    🌿 Logo Indico
+                  </button>
+                )}
               </div>
             ) : null}
 
-            {shipment.letterheadImage && !isLogoCentered && (
+            {effectiveLogoImage && !isLogoCentered && (
               <div
                 className="letterhead-logo-divider"
                 contentEditable={false}

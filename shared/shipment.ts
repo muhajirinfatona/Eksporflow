@@ -431,6 +431,8 @@ export type Shipment = {
   mfgOverhead?: number;
 };
 
+export const DEFAULT_INDICO_LOGO = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 160 160' width='160' height='160'><circle cx='80' cy='65' r='46' fill='%230f2942' stroke='%2322c55e' stroke-width='2.5'/><circle cx='80' cy='65' r='41' fill='none' stroke='%23ffffff' stroke-width='1.2' stroke-dasharray='3,2'/><path d='M76 96 Q73 70 80 50 Q83 70 81 96 Z' fill='%23d97706'/><path d='M80 50 Q64 34 48 44 Q62 49 80 51 Z' fill='%2322c55e'/><path d='M80 50 Q58 48 46 58 Q62 60 80 52 Z' fill='%2316a34a'/><path d='M80 50 Q96 34 112 44 Q98 49 80 51 Z' fill='%2322c55e'/><path d='M80 50 Q102 48 114 58 Q98 60 80 52 Z' fill='%2316a34a'/><path d='M80 50 Q80 30 75 26 Q85 30 80 50 Z' fill='%234ade80'/><circle cx='75' cy='55' r='4' fill='%2378350f'/><circle cx='85' cy='55' r='4' fill='%2378350f'/><circle cx='80' cy='58' r='3.5' fill='%2392400e'/><text x='80' y='132' text-anchor='middle' font-family='sans-serif' font-size='13' font-weight='800' fill='%230f2942' letter-spacing='1.2'>INDICO EXPORT</text><text x='80' y='148' text-anchor='middle' font-family='sans-serif' font-size='9.5' font-weight='700' fill='%23059669' letter-spacing='2.8'>INDONESIA</text></svg>";
+
 export const initialShipment: Shipment = {
   reference: "EXP-2026-084",
   exporter: "Indico Export Indonesia",
@@ -510,7 +512,7 @@ export const initialShipment: Shipment = {
   docShowRuler: true,
   contractSpecialTerms: "",
   letterheadText: "Indico Export Indonesia",
-  letterheadImage: "",
+  letterheadImage: DEFAULT_INDICO_LOGO,
   letterheadLogoScale: 100,
   letterheadLogoWrap: "inline",
   letterheadLogoAlign: "left",
@@ -636,8 +638,8 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     previewLanguage: "English",
     documentReviewed: false,
     documentRevision: 1,
-    letterheadText: company,
-    letterheadImage: "",
+    letterheadText: company || "PT. INDICO EXPORT INDONESIA",
+    letterheadImage: !company || company.toLowerCase().includes("indico") ? DEFAULT_INDICO_LOGO : "",
     letterheadLogoScale: 100,
     letterheadLogoWrap: "inline",
     letterheadLogoAlign: "left",
@@ -816,6 +818,24 @@ export function hydrateShipment(input: {
     lineItems: migratedItems,
     exporter: typeof raw.exporter === "string" ? raw.exporter : base.exporter,
     letterheadText: typeof raw.letterheadText === "string" ? raw.letterheadText : base.letterheadText,
+    letterheadImage:
+      typeof raw.letterheadImage === "string" && raw.letterheadImage.trim() !== ""
+        ? raw.letterheadImage
+        : (typeof raw.exporter === "string" ? raw.exporter : base.exporter).toLowerCase().includes("indico")
+          ? DEFAULT_INDICO_LOGO
+          : (raw.letterheadImage || base.letterheadImage),
+    letterheadLogoScale:
+      typeof raw.letterheadLogoScale === "number" && !isNaN(raw.letterheadLogoScale) && raw.letterheadLogoScale >= 30
+        ? Math.min(300, raw.letterheadLogoScale)
+        : 100,
+    letterheadLogoX:
+      typeof raw.letterheadLogoX === "number" && !isNaN(raw.letterheadLogoX)
+        ? Math.max(-10, Math.min(260, raw.letterheadLogoX))
+        : 0,
+    letterheadLogoY:
+      typeof raw.letterheadLogoY === "number" && !isNaN(raw.letterheadLogoY)
+        ? Math.max(-10, Math.min(80, raw.letterheadLogoY))
+        : 0,
     additionalCostFactors: Array.isArray(raw.additionalCostFactors) ? (raw.additionalCostFactors as AdditionalCostFactor[]) : [],
   };
 }
