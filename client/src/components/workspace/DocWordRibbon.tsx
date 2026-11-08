@@ -86,6 +86,7 @@ import {
   adjustSelectionSpacing,
   getSelectionSpacingBefore,
   getSelectionSpacingAfter,
+  applyAlignmentToSelection,
   pushEditorHistory,
   performEditorUndo,
   performEditorRedo,
@@ -735,9 +736,28 @@ export function DocWordRibbon({
     }
   };
 
+  const handleAlignText = (align: "left" | "center" | "right" | "justify") => {
+    restoreActiveSelection();
+    const ok = applyAlignmentToSelection(align);
+    if (ok) {
+      toast.success(
+        align === "left"
+          ? "Rata kiri diterapkan pada teks/sel terpilih"
+          : align === "center"
+          ? "Rata tengah diterapkan pada teks/sel terpilih"
+          : align === "right"
+          ? "Rata kanan diterapkan pada teks/sel terpilih"
+          : "Rata justify diterapkan pada teks/sel terpilih"
+      );
+    } else {
+      toast.info("Klik atau blok teks/sel yang ingin diatur perataannya.");
+    }
+  };
+
   useEffect(() => {
     (window as any).__eksporflow_space_before = (delta: number) => handleSpaceBefore(delta);
     (window as any).__eksporflow_space_after = (delta: number) => handleSpaceAfter(delta);
+    (window as any).__eksporflow_align_text = (align: "left" | "center" | "right" | "justify") => handleAlignText(align);
   }, []);
 
   const handleTextColor = (color: string) => {
@@ -1284,13 +1304,7 @@ export function DocWordRibbon({
   };
 
   const setCellAlign = (align: "left" | "center" | "right" | "justify") => {
-    const { cell } = getTargetTableAndCell();
-    if (!cell) {
-      toast.error("Pilih sel tabel terlebih dahulu");
-      return;
-    }
-    cell.style.textAlign = align;
-    toast.success(`Perataan teks: ${align}`);
+    handleAlignText(align);
   };
 
   const setCellVAlign = (vAlign: "top" | "middle" | "bottom") => {
@@ -2003,10 +2017,9 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("justifyLeft");
-                      update("docEditorTextAlign", "left");
+                      handleAlignText("left");
                     }}
-                    title="Rata Kiri (Align Left · Ctrl+L)"
+                    title="Rata Kiri Teks/Sel Terpilih (Align Left · Ctrl+L)"
                   >
                     <AlignLeft size={13} />
                   </button>
@@ -2017,10 +2030,9 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("justifyCenter");
-                      update("docEditorTextAlign", "center");
+                      handleAlignText("center");
                     }}
-                    title="Rata Tengah (Align Center · Ctrl+E)"
+                    title="Rata Tengah Teks/Sel Terpilih (Align Center · Ctrl+E)"
                   >
                     <AlignCenter size={13} />
                   </button>
@@ -2031,10 +2043,9 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("justifyRight");
-                      update("docEditorTextAlign", "right");
+                      handleAlignText("right");
                     }}
-                    title="Rata Kanan (Align Right · Ctrl+R)"
+                    title="Rata Kanan Teks/Sel Terpilih (Align Right · Ctrl+R)"
                   >
                     <AlignRight size={13} />
                   </button>
@@ -2045,10 +2056,9 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("justifyFull");
-                      update("docEditorTextAlign", "justify");
+                      handleAlignText("justify");
                     }}
-                    title="Rata Kanan-Kiri (Justify · Ctrl+J)"
+                    title="Rata Kanan-Kiri Teks/Sel Terpilih (Justify · Ctrl+J)"
                   >
                     <AlignJustify size={13} />
                   </button>

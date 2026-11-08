@@ -792,6 +792,78 @@ export function adjustSelectionSpacing(
 }
 
 // ============================================================================
+// TARGETED TEXT ALIGNMENT ENGINE (WORD STYLE)
+// Applies alignment ONLY to selected paragraph, block, or table cell, NEVER the whole document
+// ============================================================================
+
+export const ALIGNMENT_BLOCK_SELECTOR =
+  "td, th, p, h1, h2, h3, h4, h5, h6, li, blockquote, .unlk-total-bar, .unlk-val, .unlk-val-bold, .unlk-lbl, .unlk-item-spec, .company-name, .company-tagline, .company-details, .company-contact, div.unlk-bank-lines > div, div.doc-box, div.contract-party-card";
+
+export function getTargetBlocksForAlignment(): HTMLElement[] {
+  const paper = document.querySelector(".paper-document");
+  if (!paper) return [];
+
+  // 1. Text selection range in document
+  const range = getEffectiveSelectionRange();
+  if (range && paper.contains(range.commonAncestorContainer)) {
+    if (!range.collapsed) {
+      const textNodes = getTextNodesInRange(range);
+      const blockSet = new Set<HTMLElement>();
+      for (const tn of textNodes) {
+        const el = tn.parentElement;
+        if (!el) continue;
+        const block = (el.closest(ALIGNMENT_BLOCK_SELECTOR) as HTMLElement | null) || (el instanceof HTMLElement ? el : null);
+        if (block && paper.contains(block)) {
+          blockSet.add(block);
+        }
+      }
+      if (blockSet.size > 0) return Array.from(blockSet);
+    } else {
+      const node = range.startContainer;
+      const el = node instanceof Element ? node : node?.parentElement;
+      const block = (el?.closest(ALIGNMENT_BLOCK_SELECTOR) as HTMLElement | null) || (el instanceof HTMLElement ? el : null);
+      if (block && paper.contains(block)) {
+        return [block];
+      }
+    }
+  }
+
+  // 2. Blocked / active table cells
+  const selectedCells = Array.from(
+    paper.querySelectorAll("td.table-cell-selected, th.table-cell-selected, td.active-cell, th.active-cell")
+  ) as HTMLElement[];
+  if (selectedCells.length > 0) return selectedCells;
+
+  // 3. Active cell/box fallback
+  const activeBox =
+    (window as any).__eksporflow_active_cell ||
+    paper.querySelector(".unlk-total-bar.active-cell, .active-doc-box, .unlk-total-bar");
+  if (activeBox && paper.contains(activeBox)) {
+    return [activeBox as HTMLElement];
+  }
+
+  return [];
+}
+
+export function applyAlignmentToSelection(align: "left" | "center" | "right" | "justify"): boolean {
+  const paper = document.querySelector(".paper-document");
+  if (!paper) return false;
+
+  const targets = getTargetBlocksForAlignment();
+  if (targets.length === 0) {
+    return false;
+  }
+
+  pushEditorHistory(`align-${align}`);
+
+  targets.forEach((el) => {
+    el.style.setProperty("text-align", align, "important");
+  });
+
+  return true;
+}
+
+// ============================================================================
 // UNIFIED MICROSOFT WORD UNDO / REDO HISTORY ENGINE
 // Tracks both DOM mutations inside .paper-document AND React Shipment state
 // ============================================================================

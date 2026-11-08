@@ -72,6 +72,7 @@ import {
   resetEditorHistory,
   saveActiveSelection,
   stepSelectedBlockSpacingPx,
+  applyAlignmentToSelection,
 } from "@/lib/wordEditorEngine";
 
 export function DocumentsModule({
@@ -158,6 +159,26 @@ export function DocumentsModule({
           e.preventDefault();
           if (performEditorRedo()) {
             toast.info("Perubahan diulangi (Redo)");
+          }
+        } else if (key === "l") {
+          e.preventDefault();
+          if (applyAlignmentToSelection("left")) {
+            toast.success("Rata kiri diterapkan pada teks/sel terpilih");
+          }
+        } else if (key === "e") {
+          e.preventDefault();
+          if (applyAlignmentToSelection("center")) {
+            toast.success("Rata tengah diterapkan pada teks/sel terpilih");
+          }
+        } else if (key === "r") {
+          e.preventDefault();
+          if (applyAlignmentToSelection("right")) {
+            toast.success("Rata kanan diterapkan pada teks/sel terpilih");
+          }
+        } else if (key === "j") {
+          e.preventDefault();
+          if (applyAlignmentToSelection("justify")) {
+            toast.success("Rata justify diterapkan pada teks/sel terpilih");
           }
         }
       }
@@ -1214,7 +1235,7 @@ export function DocumentsModule({
             ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 11}pt`,
             ["--logo-scale" as any]: `${(shipment.letterheadLogoScale ?? 100) / 100}`,
             lineHeight: shipment.docEditorLineHeight || 1.35,
-            textAlign: shipment.docEditorTextAlign || "left",
+            textAlign: "left",
             paddingTop: `${docMargins.top}mm`,
             paddingBottom: `${docMargins.bottom}mm`,
             paddingLeft: `${docMargins.left}mm`,
