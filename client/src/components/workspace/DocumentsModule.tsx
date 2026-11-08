@@ -1450,7 +1450,7 @@ function OfficialLetterhead({
   const logoBorder = shipment.letterheadLogoBorder || "none";
   const logoShadow = shipment.letterheadLogoShadow ?? false;
 
-  const letterheadMode = shipment.letterheadMode || "standard";
+  const letterheadMode = (shipment.letterheadMode as string) || "standard";
   const bannerHeight = shipment.letterheadBannerHeight ?? 110;
   const lineSpacing = shipment.letterheadSpacing ?? 2;
   const kopLineHeight = Number((1.1 + lineSpacing * 0.05).toFixed(2));
@@ -1789,10 +1789,10 @@ function OfficialLetterhead({
 
   return (
     <div
-      className="paper-letterhead-wrap group/kop relative"
+      className={`paper-letterhead-wrap group/kop relative ${letterheadMode === "hidden" ? "letterhead-hidden" : ""}`}
       style={{
-        paddingTop: "4px",
-        marginBottom: `${Math.max(12, dividerGap + 10)}px`,
+        paddingTop: letterheadMode === "hidden" ? 0 : "4px",
+        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : `${Math.max(10, dividerGap + 6)}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -2260,11 +2260,59 @@ function OfficialLetterhead({
             <SlidersHorizontal size={11} />
             <span>Atur Kop</span>
           </button>
+
+          {/* Quick Toggle: Mode IncoDocs (Logo di dalam Kotak Seller) vs Kop Atas Standar */}
+          <button
+            type="button"
+            onClick={() => {
+              if (update) {
+                const nextMode = letterheadMode === "hidden" ? "standard" : "hidden";
+                update("letterheadMode", nextMode as any);
+                toast.success(
+                  nextMode === "hidden"
+                    ? "Mode IncoDocs aktif: Kop surat atas disembunyikan, logo resmi berada di dalam kotak Seller"
+                    : "Kop surat atas standar ditampilkan kembali"
+                );
+              }
+            }}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "4px",
+              background: letterheadMode === "hidden" ? "#eff6ff" : "#f8fafc",
+              border: letterheadMode === "hidden" ? "1px solid #3b82f6" : "1px solid #cbd5e1",
+              color: letterheadMode === "hidden" ? "#1d4ed8" : "#334155",
+              borderRadius: "5px",
+              padding: "2px 8px",
+              fontSize: "11px",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.15s ease",
+            }}
+            title="Gunakan format IncoDocs (logo langsung di dalam kotak Seller tanpa kop atas terpisah)"
+          >
+            <span>{letterheadMode === "hidden" ? "Tampilkan Kop Atas" : "Mode IncoDocs (Logo di Kotak Seller)"}</span>
+          </button>
         </div>
       )}
 
-      {/* MODE 1: FULL BANNER KOP SURAT IMPORTED FROM ANOTHER DOCUMENT */}
-      {letterheadMode === "banner" && shipment.letterheadBannerImage ? (
+      {/* MODE 0: HIDDEN INCODOCS MODE (Logo & Identitas menyatu di dalam kotak Seller) */}
+      {letterheadMode === "hidden" ? (
+        isEditMode ? (
+          <div className="no-print py-1.5 px-3 mb-2 bg-blue-50 border border-blue-200 rounded-md text-[11px] text-blue-900 flex items-center justify-between">
+            <span className="font-semibold">
+              Mode IncoDocs Aktif: Kop surat atas disembunyikan. Logo dan identitas eksportir tampil terintegrasi di dalam kotak Seller.
+            </span>
+            <button
+              type="button"
+              onClick={() => update && update("letterheadMode", "standard")}
+              className="text-blue-700 hover:text-blue-900 font-bold underline ml-2"
+            >
+              Tampilkan Kop Atas
+            </button>
+          </div>
+        ) : null
+      ) : letterheadMode === "banner" && shipment.letterheadBannerImage ? (
         <div className="letterhead-banner-wrap relative" contentEditable={false}>
           <img
             src={shipment.letterheadBannerImage}
@@ -3146,7 +3194,9 @@ function OfficialLetterhead({
         </div>
       )}
 
-      <div className="letterhead-divider-line" style={dividerLineStyles} />
+      {letterheadMode !== "hidden" && (
+        <div className="letterhead-divider-line" style={dividerLineStyles} />
+      )}
     </div>
   );
 }
@@ -3582,7 +3632,7 @@ function DocTitleBanner({ title }: { title: string }) {
 }
 
 // --------------------------------------------------------------------------
-// IncoDocs / UNLK Compact Signature & Stamp Box (Inside Right Footer Grid)
+// IncoDocs / UNLK Compact Signature Box (Inside Right Footer Grid — Box 7)
 // --------------------------------------------------------------------------
 function UnlkSignatureBox({
   shipment,
@@ -3598,83 +3648,77 @@ function UnlkSignatureBox({
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   const hasSignature = !!shipment?.sellerSignatureImage;
-  const includeStamp = shipment?.includeOfficialStamp ?? true;
-  const stampColor = shipment?.officialStampColor || "red";
 
   return (
     <div className="unlk-sig-zone">
       {hasSignature ? (
-        <div className="sig-rendered-wrap" style={{ minHeight: "64px", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", position: "relative" }}>
+        <div
+          className="sig-rendered-wrap"
+          style={{
+            minHeight: "52px",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "10px",
+            position: "relative",
+          }}
+        >
           <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
             <img
               src={shipment.sellerSignatureImage}
               alt="Digital Signature"
               className="doc-rendered-signature"
-              style={{ maxHeight: "46px", width: "auto", objectFit: "contain" }}
+              style={{ maxHeight: "48px", width: "auto", objectFit: "contain" }}
             />
-            <div className="sig-verify-badge">
+            <div className="sig-verify-badge no-print">
               <span className="sig-verify-check">✓</span>
-              <span>Verified Digital Signature ({shipment.sellerSignatureDate || "2026"})</span>
+              <span>Verified ({shipment.sellerSignatureDate || "2026"})</span>
             </div>
           </div>
-          {includeStamp && (
-            <div className={`doc-seal-overlay seal-${stampColor}`} title="Stempel Digital Resmi Validated">
-              <div className="seal-circle-outer">
-                <div className="seal-circle-inner">
-                  <span className="seal-txt-top">★ PT. INDICO EXPORT ★</span>
-                  <span className="seal-txt-star">★ VALIDATED ★</span>
-                  <span className="seal-txt-sub">OFFICIAL SEAL</span>
-                  <span className="seal-txt-bot">INDONESIA</span>
-                </div>
-              </div>
-            </div>
-          )}
           {onOpenSignatureModal && (
             <button
               type="button"
               className="sig-edit-hover-btn no-print"
               onClick={() => onOpenSignatureModal("seller")}
-              title="Ganti atau perbarui tanda tangan digital"
+              title="Ganti tanda tangan"
             >
-              Ubah Tanda Tangan
+              Ubah
             </button>
           )}
         </div>
       ) : (
-        <div className="sig-placeholder-wrap" style={{ minHeight: "64px", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
-          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "56px" }}>
-            <span style={{ fontSize: "7.8pt", color: "#475569", fontStyle: "italic" }}>
-              For and on behalf of {exporterName}
-            </span>
-            {onOpenSignatureModal ? (
-              <button
-                type="button"
-                className="doc-btn-click-sign no-print"
-                onClick={() => onOpenSignatureModal("seller")}
-                title="Klik untuk membubuhkan tanda tangan digital & stempel resmi"
-                style={{ margin: "3px 0", width: "fit-content" }}
-              >
-                <PenTool size={12} />
-                <span>+ Pasang Tanda Tangan Digital</span>
-              </button>
-            ) : null}
-            <div style={{ borderTop: "1px dashed #94a3b8", paddingTop: "2px", marginTop: "auto", width: "175px" }}>
-              <span style={{ fontSize: "8pt", fontWeight: 700, color: "#0f172a" }}>{signatoryName}</span>
-              <span style={{ fontSize: "7.5pt", color: "#475569" }}> — {signatoryRole}</span>
-            </div>
-          </div>
-
-          {includeStamp && (
-            <div className={`official-stamp-seal seal-tone-${stampColor}`} style={{ position: "relative", top: "0", right: "4px", transform: "rotate(-7deg)" }}>
-              <div className="stamp-outer-ring">
-                <div className="stamp-inner-ring">
-                  <span className="stamp-top-arc">PT. INDICO EXPORT</span>
-                  <div className="stamp-center-band">EXPORT DEPT</div>
-                  <span className="stamp-bottom-arc">★ INDONESIA ★</span>
-                </div>
-              </div>
-            </div>
-          )}
+        <div
+          className="sig-placeholder-wrap"
+          style={{
+            minHeight: "52px",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "flex-end",
+            position: "relative",
+          }}
+        >
+          {onOpenSignatureModal ? (
+            <button
+              type="button"
+              className="doc-btn-click-sign no-print"
+              onClick={() => onOpenSignatureModal("seller")}
+              title="Klik untuk membubuhkan tanda tangan digital"
+              style={{ margin: "2px 0 auto 0", width: "fit-content" }}
+            >
+              <PenTool size={12} />
+              <span>+ Pasang Tanda Tangan Digital</span>
+            </button>
+          ) : null}
+          <div
+            style={{
+              borderTop: "1px solid #94a3b8",
+              width: "100%",
+              marginTop: "auto",
+              paddingTop: "2px",
+            }}
+          />
         </div>
       )}
     </div>
@@ -3760,18 +3804,44 @@ function ProformaInvoiceDoc({
       <DocTitleBanner title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"} />
 
       <div className="unlk-trade-form">
-        {/* ROW 1: Seller (Left 50%) | Invoice No/Date + Buyer Ref/Due Date (Right 50% — No Pages Strip) */}
+        {/* ROW 1: Seller (Left 50%) | Invoice No/Date + Buyer Ref/Due Date (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Seller / Exporter" : "Seller / Exporter"}</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
+          <div
+            className="unlk-cell unlk-border-r"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "8px",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="unlk-lbl">{isId ? "Penjual / Seller" : "Seller"}</div>
+              <div className="unlk-val-bold">{exporterName}</div>
+              <div className="unlk-val">
+                Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
+              </div>
+              <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
+              <div className="unlk-val">
+                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+              </div>
+              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                {sigFull}
+              </div>
             </div>
-            <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+            {shipment.letterheadImage && (
+              <img
+                src={shipment.letterheadImage}
+                alt="Seller Logo"
+                style={{
+                  maxHeight: "56px",
+                  maxWidth: "115px",
+                  objectFit: "contain",
+                  flexShrink: 0,
+                  marginTop: "2px",
+                }}
+              />
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -4000,12 +4070,12 @@ function ProformaInvoiceDoc({
 
             <div className="unlk-subrow-2col-70-30 unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar, Indonesia</div>
+                <div className="unlk-lbl">Place and Date of Issue</div>
+                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Currency</div>
-                <div className="unlk-val-bold">{currency}</div>
+                <div className="unlk-lbl">Date of Issue</div>
+                <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
@@ -4023,7 +4093,7 @@ function ProformaInvoiceDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <div className="unlk-lbl">Signature</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -4653,16 +4723,42 @@ function CommercialInvoiceDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Exporter (Left 50%) | Pages + Invoice No & Date / B/L No + Reference / Buyer Ref (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Exporter</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
+          <div
+            className="unlk-cell unlk-border-r"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "8px",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
+              <div className="unlk-val-bold">{exporterName}</div>
+              <div className="unlk-val">
+                Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
+              </div>
+              <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
+              <div className="unlk-val">
+                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+              </div>
+              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                {sigFull}
+              </div>
             </div>
-            <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+            {shipment?.letterheadImage && (
+              <img
+                src={shipment.letterheadImage}
+                alt="Exporter Logo"
+                style={{
+                  maxHeight: "56px",
+                  maxWidth: "115px",
+                  objectFit: "contain",
+                  flexShrink: 0,
+                  marginTop: "2px",
+                }}
+              />
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -4882,12 +4978,12 @@ function CommercialInvoiceDoc({
 
             <div className="unlk-subrow-2col-70-30 unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar</div>
+                <div className="unlk-lbl">Place and Date of Issue</div>
+                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Currency</div>
-                <div className="unlk-val-bold">{currency}</div>
+                <div className="unlk-lbl">Date of Issue</div>
+                <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
@@ -4905,7 +5001,7 @@ function CommercialInvoiceDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <div className="unlk-lbl">Signature</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -5001,16 +5097,42 @@ function PackingListDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Exporter (Left 50%) | Pages + PL No/Date + Invoice Ref/Buyer Ref (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Exporter</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
+          <div
+            className="unlk-cell unlk-border-r"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "8px",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
+              <div className="unlk-val-bold">{exporterName}</div>
+              <div className="unlk-val">
+                Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
+              </div>
+              <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
+              <div className="unlk-val">
+                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+              </div>
+              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                {sigFull}
+              </div>
             </div>
-            <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+            {shipment?.letterheadImage && (
+              <img
+                src={shipment.letterheadImage}
+                alt="Exporter Logo"
+                style={{
+                  maxHeight: "56px",
+                  maxWidth: "115px",
+                  objectFit: "contain",
+                  flexShrink: 0,
+                  marginTop: "2px",
+                }}
+              />
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -5235,7 +5357,7 @@ function PackingListDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <div className="unlk-lbl">Signature</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -5331,15 +5453,41 @@ function ShippingInstructionDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Shipper / Exporter (Left 50%) | Pages + SI No/Date + Booking/Contract Ref (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Shipper / Exporter (To appear on B/L)</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
+          <div
+            className="unlk-cell unlk-border-r"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "8px",
+            }}
+          >
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div className="unlk-lbl">{isId ? "Pengirim / Shipper" : "Shipper / Exporter (To appear on B/L)"}</div>
+              <div className="unlk-val-bold">{exporterName}</div>
+              <div className="unlk-val">
+                {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
+              </div>
+              <div className="unlk-val">
+                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+              </div>
+              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+                {sigFull}
+              </div>
             </div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+            {shipment?.letterheadImage && (
+              <img
+                src={shipment.letterheadImage}
+                alt="Shipper Logo"
+                style={{
+                  maxHeight: "56px",
+                  maxWidth: "115px",
+                  objectFit: "contain",
+                  flexShrink: 0,
+                  marginTop: "2px",
+                }}
+              />
+            )}
           </div>
 
           <div className="unlk-col-stack">
@@ -5534,7 +5682,7 @@ function ShippingInstructionDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <div className="unlk-lbl">Signature</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}

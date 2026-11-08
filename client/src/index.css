@@ -10919,6 +10919,11 @@ textarea:focus-visible {
     padding-bottom: 0 !important;
     border-bottom: none !important;
   }
+  .paper-letterhead-wrap.letterhead-hidden {
+    display: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
   .letterhead-brand {
     gap: 16px !important;
   }
