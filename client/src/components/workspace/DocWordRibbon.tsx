@@ -2374,18 +2374,18 @@ export function DocWordRibbon({
                     <span style={{ fontSize: "9.5px", fontWeight: 700, padding: "0 4px", color: "#64748b" }}>Spasi</span>
                     <button
                       type="button"
-                      onClick={() => update("letterheadSpacing", Math.max(0, (shipment.letterheadSpacing ?? 2) - 1))}
+                      onClick={() => update("letterheadSpacing", Math.max(0, (shipment.letterheadSpacing ?? 1) - 1))}
                       style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
                       title="Kurangi spasi antar baris kop (-1px)"
                     >
                       −
                     </button>
                     <span style={{ fontSize: "9.5px", fontWeight: 700, minWidth: "22px", textAlign: "center", color: "#0f172a" }}>
-                      {shipment.letterheadSpacing ?? 2}px
+                      {shipment.letterheadSpacing ?? 1}px
                     </span>
                     <button
                       type="button"
-                      onClick={() => update("letterheadSpacing", Math.min(20, (shipment.letterheadSpacing ?? 2) + 1))}
+                      onClick={() => update("letterheadSpacing", Math.min(20, (shipment.letterheadSpacing ?? 1) + 1))}
                       style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
                       title="Tambah spasi antar baris kop (+1px)"
                     >
@@ -2498,20 +2498,20 @@ export function DocWordRibbon({
                     <span style={{ fontSize: "9.5px", fontWeight: 700, padding: "0 4px", color: "#64748b" }}>Jarak</span>
                     <button
                       type="button"
-                      onClick={() => update("letterheadDividerGap", Math.max(0, (shipment.letterheadDividerGap ?? 4) - 2))}
+                      onClick={() => update("letterheadDividerGap", Math.max(0, (shipment.letterheadDividerGap ?? 2) - 1))}
                       style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
-                      title="Kurangi jarak garis pembatas (-2px)"
+                      title="Kurangi jarak garis pembatas (-1px)"
                     >
                       −
                     </button>
                     <span style={{ fontSize: "9.5px", fontWeight: 700, minWidth: "22px", textAlign: "center", color: "#0f172a" }}>
-                      {shipment.letterheadDividerGap ?? 4}px
+                      {shipment.letterheadDividerGap ?? 2}px
                     </span>
                     <button
                       type="button"
-                      onClick={() => update("letterheadDividerGap", Math.min(28, (shipment.letterheadDividerGap ?? 4) + 2))}
+                      onClick={() => update("letterheadDividerGap", Math.min(28, (shipment.letterheadDividerGap ?? 2) + 1))}
                       style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
-                      title="Tambah jarak garis pembatas (+2px)"
+                      title="Tambah jarak garis pembatas (+1px)"
                     >
                       +
                     </button>

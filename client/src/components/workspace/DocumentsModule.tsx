@@ -1961,8 +1961,8 @@ function OfficialLetterhead({
 
   // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
   let dividerLineStyles: React.CSSProperties = {
-    marginTop: `${Math.max(4, dividerGap + 4)}px`,
-    marginBottom: "5px",
+    marginTop: `${Math.max(1, dividerGap)}px`,
+    marginBottom: "4px",
     boxSizing: "content-box",
     width: "100%",
   };
@@ -2589,7 +2589,7 @@ function OfficialLetterhead({
                       }
                     }}
                   >
-                    <strong contentEditable={false} style={{ fontWeight: 700, color: dividerColor }}>
+                    <strong style={{ fontWeight: 700, color: dividerColor }}>
                       {addressLabel}:{" "}
                     </strong>
                     {addressBody}
@@ -2597,7 +2597,7 @@ function OfficialLetterhead({
 
                   <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 8px" }}>
                     <span style={{ whiteSpace: "nowrap" }}>
-                      <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
+                      <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                         Tel:{" "}
                       </strong>
                       <span
@@ -2608,9 +2608,9 @@ function OfficialLetterhead({
                         {telVal}
                       </span>
                     </span>
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8pt" }}>|</span>
+                    <span style={{ color: "#94a3b8", fontSize: "8pt" }}>|</span>
                     <span style={{ whiteSpace: "nowrap" }}>
-                      <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
+                      <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                         Email:{" "}
                       </strong>
                       <span
@@ -2624,7 +2624,7 @@ function OfficialLetterhead({
                   </div>
 
                   <div style={{ whiteSpace: "nowrap" }}>
-                    <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
+                    <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                       Web:{" "}
                     </strong>
                     <span
@@ -2693,10 +2693,7 @@ function OfficialLetterhead({
                 </p>
 
                 <div style={{ marginTop: "2px", whiteSpace: "nowrap" }}>
-                  <strong
-                    contentEditable={false}
-                    style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
-                  >
+                  <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                     {addressLabel}:{" "}
                   </strong>
                   <span
@@ -2715,7 +2712,7 @@ function OfficialLetterhead({
 
                 <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px", whiteSpace: "nowrap" }}>
                   <span>
-                    <strong contentEditable={false} style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
+                    <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                       Tel:{" "}
                     </strong>
                     <span
@@ -2726,9 +2723,9 @@ function OfficialLetterhead({
                       {telVal}
                     </span>
                   </span>
-                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.5pt" }}>|</span>
+                  <span style={{ color: "#94a3b8", fontSize: "8.5pt" }}>|</span>
                   <span>
-                    <strong contentEditable={false} style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
+                    <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                       Email:{" "}
                     </strong>
                     <span
@@ -2739,9 +2736,9 @@ function OfficialLetterhead({
                       {emailVal}
                     </span>
                   </span>
-                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.5pt" }}>|</span>
+                  <span style={{ color: "#94a3b8", fontSize: "8.5pt" }}>|</span>
                   <span>
-                    <strong contentEditable={false} style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
+                    <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                       Web:{" "}
                     </strong>
                     <span
@@ -2821,7 +2818,7 @@ function OfficialLetterhead({
                     height: "1px",
                     width: "100%",
                     background: "#cbd5e1",
-                    margin: `${Math.max(4, lineSpacing + 2)}px 0`,
+                    margin: `${Math.max(1, Math.round(lineSpacing * 0.8))}px 0`,
                   }}
                 />
 
@@ -2830,104 +2827,77 @@ function OfficialLetterhead({
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${Math.max(2, lineSpacing)}px`,
+                    gap: `${Math.max(0, lineSpacing)}px`,
                   }}
                 >
-                  {/* Row 3: Head Office Address (1 Line) */}
-                  <div style={{ whiteSpace: "nowrap", lineHeight: 1.32 }}>
-                    <strong
-                      contentEditable={false}
-                      style={{
-                        fontSize: "8.6pt",
-                        fontWeight: 700,
-                        color: dividerColor,
-                      }}
-                    >
-                      Head Office:{" "}
+                  {/* Row 3: Head Office Address */}
+                  <div
+                    className="company-details"
+                    style={{
+                      fontSize: "8.6pt",
+                      lineHeight: 1.25,
+                      color: "#1e293b",
+                      fontWeight: 500,
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                    }}
+                    onBlur={(e) => {
+                      const text = e.currentTarget.innerText.trim();
+                      if (update && text) {
+                        update("letterheadText", text);
+                      }
+                    }}
+                  >
+                    <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
+                      {addressLabel}:{" "}
                     </strong>
-                    <span
-                      className="company-details"
-                      style={{
-                        fontSize: "8.6pt",
-                        color: "#1e293b",
-                        fontWeight: 500,
-                        lineHeight: 1.32,
-                        whiteSpace: "nowrap",
-                      }}
-                      onBlur={(e) => {
-                        const text = e.currentTarget.innerText.trim();
-                        if (update && text) {
-                          update("letterheadText", `Head Office: ${text}`);
-                        }
-                      }}
-                    >
-                      {addressBody}
-                    </span>
+                    <span>{addressBody}</span>
                   </div>
 
-                  {/* Row 4: Tel | Email | Web (1 Line) */}
+                  {/* Row 4: Tel | Email | Web */}
                   <div
+                    className="company-contact"
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      flexWrap: "nowrap",
-                      whiteSpace: "nowrap",
-                      gap: "10px",
-                      lineHeight: 1.32,
+                      flexWrap: "wrap",
+                      gap: "2px 8px",
+                      lineHeight: 1.25,
+                      fontSize: "8.6pt",
+                      color: "#1e293b",
                     }}
                   >
                     <span>
-                      <strong
-                        contentEditable={false}
-                        style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
-                      >
+                      <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                         Tel:{" "}
                       </strong>
-                      <span
-                        className="company-contact"
-                        style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
-                        onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
-                      >
+                      <span onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}>
                         {telVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 6px" }}>
+                    <span style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 2px" }}>
                       •
                     </span>
 
                     <span>
-                      <strong
-                        contentEditable={false}
-                        style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
-                      >
+                      <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                         Email:{" "}
                       </strong>
-                      <span
-                        className="company-contact"
-                        style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
-                        onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
-                      >
+                      <span onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}>
                         {emailVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 6px" }}>
+                    <span style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 2px" }}>
                       •
                     </span>
 
                     <span>
-                      <strong
-                        contentEditable={false}
-                        style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
-                      >
+                      <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                         Web:{" "}
                       </strong>
-                      <span
-                        className="company-contact"
-                        style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
-                        onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
-                      >
+                      <span onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}>
                         {webVal}
                       </span>
                     </span>
