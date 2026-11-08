@@ -947,7 +947,7 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 11mm 10mm 8mm 10mm;
+            margin: 6mm 8mm 5mm 8mm;
           }
           .paper-document {
             --doc-font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
@@ -1295,6 +1295,7 @@ export function DocumentsModule({
               amountInWords={amountInWords}
               isId={isId}
               onOpenSignatureModal={handleOpenSignatureModal}
+              update={trackedUpdate}
             />
           )}
 
@@ -1332,6 +1333,7 @@ export function DocumentsModule({
               contractSpecialTerms={shipment.contractSpecialTerms}
               isId={isId}
               onOpenSignatureModal={handleOpenSignatureModal}
+              update={trackedUpdate}
             />
           )}
 
@@ -1370,6 +1372,7 @@ export function DocumentsModule({
               amountInWords={amountInWords}
               isId={isId}
               onOpenSignatureModal={handleOpenSignatureModal}
+              update={trackedUpdate}
             />
           )}
 
@@ -1401,6 +1404,7 @@ export function DocumentsModule({
               totalCBM={totalCBM}
               isId={isId}
               onOpenSignatureModal={handleOpenSignatureModal}
+              update={trackedUpdate}
             />
           )}
 
@@ -1433,6 +1437,7 @@ export function DocumentsModule({
               totalCBM={totalCBM}
               isId={isId}
               onOpenSignatureModal={handleOpenSignatureModal}
+              update={trackedUpdate}
             />
           )}
         </div>
@@ -3234,14 +3239,45 @@ function UnlkSignatureBox({
   signatoryName = "Muhajirin Fatona",
   signatoryRole = "Export Director",
   onOpenSignatureModal,
+  update,
 }: {
   shipment?: Shipment;
   exporterName?: string;
   signatoryName?: string;
   signatoryRole?: string;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const hasSignature = !!shipment?.sellerSignatureImage;
+  const [sigHeight, setSigHeight] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("eksporflow_sig_height");
+      if (saved) {
+        const val = Number(saved);
+        if (!isNaN(val) && val >= 24 && val <= 80) return val;
+      }
+    }
+    return 44;
+  });
+
+  const handleStepHeight = (delta: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setSigHeight((prev) => {
+      const next = Math.max(24, Math.min(80, prev + delta));
+      if (typeof window !== "undefined") {
+        localStorage.setItem("eksporflow_sig_height", String(next));
+      }
+      return next;
+    });
+  };
+
+  const handleRemoveSignature = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (update) {
+      update("sellerSignatureImage", "" as any);
+      update("sellerSignatureDate", "" as any);
+    }
+  };
 
   return (
     <div className="unlk-sig-zone">
@@ -3249,43 +3285,166 @@ function UnlkSignatureBox({
         <div
           className="sig-rendered-wrap"
           style={{
-            minHeight: "52px",
+            minHeight: "44px",
             width: "100%",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: "10px",
+            gap: "8px",
             position: "relative",
           }}
         >
-          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "2px",
+              cursor: onOpenSignatureModal ? "pointer" : "default",
+            }}
+            onClick={() => onOpenSignatureModal?.("seller")}
+            title="Klik untuk mengubah atau mengganti tanda tangan digital"
+          >
             <img
               src={shipment.sellerSignatureImage}
               alt="Digital Signature"
               className="doc-rendered-signature"
-              style={{ maxHeight: "48px", width: "auto", objectFit: "contain" }}
+              style={{
+                height: `${sigHeight}px`,
+                maxHeight: "80px",
+                width: "auto",
+                objectFit: "contain",
+                display: "block",
+                transition: "height 0.15s ease",
+              }}
             />
-            <div className="sig-verify-badge no-print">
+            <div className="sig-verify-badge no-print" style={{ fontSize: "9px" }}>
               <span className="sig-verify-check">✓</span>
               <span>Verified ({shipment.sellerSignatureDate || "2026"})</span>
             </div>
           </div>
-          {onOpenSignatureModal && (
-            <button
-              type="button"
-              className="sig-edit-hover-btn no-print"
-              onClick={() => onOpenSignatureModal("seller")}
-              title="Ganti tanda tangan"
+
+          {/* Size Stepper [-] {px} [+] and Ubah/Hapus Action Buttons */}
+          <div
+            className="no-print"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              gap: "3px",
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                border: "1px solid #cbd5e1",
+                borderRadius: "3px",
+                overflow: "hidden",
+                height: "19px",
+                background: "#f8fafc",
+                fontSize: "9px",
+              }}
+              title="Atur ukuran tinggi tanda tangan"
             >
-              Ubah
-            </button>
-          )}
+              <button
+                type="button"
+                onClick={(e) => handleStepHeight(-4, e)}
+                style={{
+                  width: "15px",
+                  height: "100%",
+                  border: "none",
+                  borderRight: "1px solid #e2e8f0",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  color: "#334155",
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+                title="Perkecil tanda tangan (-4px)"
+              >
+                −
+              </button>
+              <span
+                style={{
+                  padding: "0 3px",
+                  fontWeight: 700,
+                  color: "#0f172a",
+                  minWidth: "24px",
+                  textAlign: "center",
+                }}
+              >
+                {sigHeight}px
+              </span>
+              <button
+                type="button"
+                onClick={(e) => handleStepHeight(4, e)}
+                style={{
+                  width: "15px",
+                  height: "100%",
+                  border: "none",
+                  borderLeft: "1px solid #e2e8f0",
+                  background: "transparent",
+                  cursor: "pointer",
+                  fontWeight: 700,
+                  color: "#334155",
+                  padding: 0,
+                  lineHeight: 1,
+                }}
+                title="Perbesar tanda tangan (+4px)"
+              >
+                +
+              </button>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+              {onOpenSignatureModal && (
+                <button
+                  type="button"
+                  className="sig-edit-hover-btn"
+                  onClick={() => onOpenSignatureModal("seller")}
+                  title="Ganti tanda tangan"
+                  style={{
+                    fontSize: "9px",
+                    padding: "1px 5px",
+                    borderRadius: "3px",
+                    background: "#eff6ff",
+                    color: "#1d4ed8",
+                    border: "1px solid #bfdbfe",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                  }}
+                >
+                  Ubah
+                </button>
+              )}
+              {update && (
+                <button
+                  type="button"
+                  onClick={handleRemoveSignature}
+                  title="Hapus tanda tangan"
+                  style={{
+                    fontSize: "9px",
+                    padding: "1px 4px",
+                    borderRadius: "3px",
+                    background: "#fef2f2",
+                    color: "#dc2626",
+                    border: "1px solid #fecaca",
+                    cursor: "pointer",
+                    fontWeight: 600,
+                  }}
+                >
+                  Hapus
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       ) : (
         <div
           className="sig-placeholder-wrap"
           style={{
-            minHeight: "52px",
+            minHeight: "44px",
             width: "100%",
             display: "flex",
             flexDirection: "column",
@@ -3299,9 +3458,23 @@ function UnlkSignatureBox({
               className="doc-btn-click-sign no-print"
               onClick={() => onOpenSignatureModal("seller")}
               title="Klik untuk membubuhkan tanda tangan digital"
-              style={{ margin: "2px 0 auto 0", width: "fit-content" }}
+              style={{
+                margin: "2px 0 auto 0",
+                width: "fit-content",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "2.5px 7px",
+                fontSize: "9.5px",
+                fontWeight: 600,
+                color: "#1e40af",
+                background: "#eff6ff",
+                border: "1px solid #bfdbfe",
+                borderRadius: "3px",
+                cursor: "pointer",
+              }}
             >
-              <PenTool size={12} />
+              <PenTool size={11} />
               <span>+ Pasang Tanda Tangan Digital</span>
             </button>
           ) : null}
@@ -3352,6 +3525,7 @@ function ProformaInvoiceDoc({
   amountInWords,
   isId = false,
   onOpenSignatureModal,
+  update,
 }: {
   shipment: Shipment;
   exporterName: string;
@@ -3382,6 +3556,7 @@ function ProformaInvoiceDoc({
   amountInWords: string;
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const fullBuyerAddress =
     buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
@@ -3662,6 +3837,7 @@ function ProformaInvoiceDoc({
                 signatoryName={sigFull}
                 signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
+                update={update}
               />
             </div>
           </div>
@@ -3707,6 +3883,7 @@ function SalesContractDoc({
   contractLayout = "1-page",
   isId = false,
   onOpenSignatureModal,
+  update,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -3740,6 +3917,7 @@ function SalesContractDoc({
   contractLayout?: "1-page" | "2-page";
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const is2Page = contractLayout === "2-page";
 
@@ -4228,6 +4406,7 @@ function CommercialInvoiceDoc({
   amountInWords,
   isId = false,
   onOpenSignatureModal,
+  update,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -4262,6 +4441,7 @@ function CommercialInvoiceDoc({
   amountInWords: string;
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const fullBuyerAddress =
     buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
@@ -4547,6 +4727,7 @@ function CommercialInvoiceDoc({
                 signatoryName={sigFull}
                 signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
+                update={update}
               />
             </div>
           </div>
@@ -4586,6 +4767,7 @@ function PackingListDoc({
   totalCBM,
   isId = false,
   onOpenSignatureModal,
+  update,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -4613,6 +4795,7 @@ function PackingListDoc({
   totalCBM: number;
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const fullBuyerAddress =
     buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
@@ -4884,6 +5067,7 @@ function PackingListDoc({
                 signatoryName={sigFull}
                 signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
+                update={update}
               />
             </div>
           </div>
@@ -4923,6 +5107,7 @@ function ShippingInstructionDoc({
   totalCBM,
   isId = false,
   onOpenSignatureModal,
+  update,
 }: {
   shipment?: Shipment;
   exporterName: string;
@@ -4950,6 +5135,7 @@ function ShippingInstructionDoc({
   totalCBM: number;
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const fullBuyerAddress =
     buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
@@ -5190,6 +5376,7 @@ function ShippingInstructionDoc({
                 signatoryName={sigFull}
                 signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
+                update={update}
               />
             </div>
           </div>

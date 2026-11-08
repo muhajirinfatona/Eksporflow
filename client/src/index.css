@@ -7345,7 +7345,7 @@ textarea:focus-visible {
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th {
   background: #0f2942 !important;
   color: #ffffff !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.03em !important;
   border-bottom: 1px solid #0f2942 !important;
@@ -7408,7 +7408,7 @@ textarea:focus-visible {
 .paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table thead th {
   background: #f1f5f9 !important;
   color: #0f2942 !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.03em !important;
   border-bottom: 1px solid #cbd5e1 !important;
@@ -10788,7 +10788,7 @@ textarea:focus-visible {
 @media print {
   @page {
     size: auto;
-    margin: 11mm 10mm 8mm 10mm;
+    margin: 6mm 8mm 5mm 8mm;
   }
 
   html,
@@ -11252,24 +11252,26 @@ textarea:focus-visible {
   /* IncoDocs / UNLK International Trade Form Grid Print Rules */
   .unlk-doc-wrapper {
     width: 100% !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
   .unlk-doc-wrapper .doc-title-bar {
-    margin: 3px 0 5px 0 !important;
-    padding-left: 10px !important;
-    padding-right: 10px !important;
+    margin: 2px 0 3px 0 !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    padding-top: 2px !important;
+    padding-bottom: 2px !important;
     line-height: 1.15 !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
   }
   .paper-document .unlk-main-heading {
-    font-size: 13.5pt !important;
+    font-size: 13pt !important;
     font-weight: 800 !important;
     letter-spacing: 0.04em !important;
     color: #0f172a !important;
     text-align: center !important;
-    margin: 2px 0 4px 0 !important;
+    margin: 1.5px 0 3px 0 !important;
     line-height: 1.15 !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
@@ -11279,8 +11281,8 @@ textarea:focus-visible {
     width: 100% !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
   .unlk-row-50-50 {
     display: grid !important;
@@ -11291,7 +11293,7 @@ textarea:focus-visible {
     page-break-inside: avoid !important;
   }
   .unlk-cell {
-    padding: 5px 8.5px !important;
+    padding: 3.5px 7px !important;
   }
   .unlk-pages-strip {
     display: none !important;
@@ -11300,32 +11302,32 @@ textarea:focus-visible {
     font-size: 9.5pt !important;
     font-weight: 400 !important;
     color: #475569 !important;
-    line-height: 1.16 !important;
-    margin-bottom: 1.5px !important;
+    line-height: 1.14 !important;
+    margin-bottom: 1px !important;
   }
   .paper-document .unlk-trade-form .unlk-val {
     font-size: 10.5pt !important;
     font-weight: 500 !important;
     color: #0f172a !important;
-    line-height: 1.28 !important;
+    line-height: 1.25 !important;
   }
   .paper-document .unlk-trade-form .unlk-val-bold {
     font-size: 10.5pt !important;
     font-weight: 700 !important;
     color: #0f172a !important;
-    line-height: 1.28 !important;
+    line-height: 1.25 !important;
   }
   .paper-document table.unlk-items-table {
     border-top: 1px solid #94a3b8 !important;
     border-bottom: 1px solid #94a3b8 !important;
     margin: 0 !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
   .paper-document table.unlk-items-table thead th {
     font-size: 9.5pt !important;
     font-weight: 500 !important;
-    padding: 4.5px 6px !important;
+    padding: 3.5px 6px !important;
     border-bottom: 1px solid #94a3b8 !important;
     border-right: 1px solid #94a3b8 !important;
     background: #f8fafc !important;
@@ -11335,8 +11337,8 @@ textarea:focus-visible {
   }
   .paper-document table.unlk-items-table tbody td {
     font-size: 10.5pt !important;
-    line-height: 1.3 !important;
-    padding: 7.5px 7px !important;
+    line-height: 1.25 !important;
+    padding: 3.5px 7px !important;
     border-right: 1px solid #94a3b8 !important;
   }
   .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
@@ -11344,13 +11346,13 @@ textarea:focus-visible {
   }
   .paper-document .unlk-trade-form .unlk-item-spec {
     font-size: 10.5pt !important;
-    line-height: 1.28 !important;
+    line-height: 1.25 !important;
   }
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
     border-top: 1px solid #94a3b8 !important;
     border-right: 1px solid #94a3b8 !important;
-    padding: 4px 6.5px !important;
+    padding: 3px 6px !important;
     font-size: 10.5pt !important;
     height: auto !important;
   }
@@ -11367,16 +11369,16 @@ textarea:focus-visible {
   .paper-document .unlk-trade-form .unlk-bank-lines span,
   .paper-document .unlk-trade-form .unlk-bank-lines strong {
     font-size: 10.5pt !important;
-    line-height: 1.28 !important;
+    line-height: 1.25 !important;
   }
   .unlk-total-bar {
-    padding: 4.5px 8.5px !important;
+    padding: 3.5px 7px !important;
   }
   .unlk-terms-footer {
-    padding: 5px 8.5px !important;
+    padding: 3.5px 7px !important;
   }
   .unlk-sig-zone {
-    min-height: 50px !important;
+    min-height: 42px !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */
