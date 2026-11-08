@@ -7140,7 +7140,7 @@ textarea:focus-visible {
 
 .paper-document .unlk-trade-form .unlk-lbl {
   font-size: 9.5pt !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
   color: #475569 !important;
   line-height: 1.25 !important;
   margin-bottom: 2px !important;
@@ -7178,7 +7178,7 @@ textarea:focus-visible {
   background: #f8fafc !important;
   color: #1e293b !important;
   font-size: 9.5pt !important;
-  font-weight: 700 !important;
+  font-weight: 500 !important;
   line-height: 1.25 !important;
   padding: 6px 6px !important;
   border-bottom: 1px solid #94a3b8 !important;
@@ -7251,7 +7251,7 @@ textarea:focus-visible {
 .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
 .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
   text-align: center !important;
-  font-weight: 600 !important;
+  font-weight: 500 !important;
   color: #334155 !important;
   font-size: 9.5pt !important;
 }
@@ -7333,7 +7333,7 @@ textarea:focus-visible {
 }
 .paper-document .unlk-trade-form.unlk-style-corporate .unlk-lbl {
   color: #0f2942 !important;
-  font-weight: 700 !important;
+  font-weight: 400 !important;
   text-transform: uppercase !important;
   font-size: 9.5pt !important;
   letter-spacing: 0.03em !important;
@@ -7399,7 +7399,7 @@ textarea:focus-visible {
 }
 .paper-document .unlk-trade-form.unlk-style-soft .unlk-lbl {
   color: #475569 !important;
-  font-weight: 600 !important;
+  font-weight: 400 !important;
 }
 .paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table {
   border-top: 1px solid #cbd5e1 !important;
@@ -11298,7 +11298,7 @@ textarea:focus-visible {
   }
   .paper-document .unlk-trade-form .unlk-lbl {
     font-size: 9.5pt !important;
-    font-weight: 600 !important;
+    font-weight: 400 !important;
     color: #475569 !important;
     line-height: 1.16 !important;
     margin-bottom: 1.5px !important;
@@ -11324,7 +11324,7 @@ textarea:focus-visible {
   }
   .paper-document table.unlk-items-table thead th {
     font-size: 9.5pt !important;
-    font-weight: 700 !important;
+    font-weight: 500 !important;
     padding: 4.5px 6px !important;
     border-bottom: 1px solid #94a3b8 !important;
     border-right: 1px solid #94a3b8 !important;
