@@ -16442,15 +16442,14 @@ table.unlk-items-table th.table-cell-selected {
 /* --- E. Document Rendered Signatures & E-Seals --- */
 .sig-rendered-wrap {
   position: relative;
-  display: inline-flex;
+  display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  min-height: 52px;
+  min-height: 44px;
 }
 
 .doc-rendered-signature {
-  max-height: 48px;
-  max-width: 170px;
+  max-height: 120px;
+  max-width: 260px;
   object-fit: contain;
   display: block;
 }

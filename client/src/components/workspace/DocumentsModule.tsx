@@ -3252,26 +3252,50 @@ function UnlkSignatureBox({
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
 }) {
   const hasSignature = !!shipment?.sellerSignatureImage;
-  const [sigHeight, setSigHeight] = useState<number>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("eksporflow_sig_height");
-      if (saved) {
-        const val = Number(saved);
-        if (!isNaN(val) && val >= 24 && val <= 80) return val;
-      }
-    }
-    return 44;
-  });
 
-  const handleStepHeight = (delta: number, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSigHeight((prev) => {
-      const next = Math.max(24, Math.min(80, prev + delta));
-      if (typeof window !== "undefined") {
-        localStorage.setItem("eksporflow_sig_height", String(next));
-      }
-      return next;
-    });
+  const sigHeight = shipment?.sellerSignatureHeight ?? 48;
+  const sigAlign = shipment?.sellerSignatureAlign || "left";
+  const sigX = shipment?.sellerSignatureX || 0;
+  const sigY = shipment?.sellerSignatureY || 0;
+
+  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleUpdateHeight = (newH: number, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    const clamped = Math.max(24, Math.min(110, newH));
+    if (update) {
+      update("sellerSignatureHeight", clamped);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem("eksporflow_sig_height", String(clamped));
+    }
+  };
+
+  const handleUpdateAlign = (align: "left" | "center" | "right", e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (update) {
+      update("sellerSignatureAlign", align);
+      update("sellerSignatureX", 0);
+    }
+  };
+
+  const handleNudge = (dx: number, dy: number, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (update) {
+      update("sellerSignatureX", Math.max(-120, Math.min(120, sigX + dx)));
+      update("sellerSignatureY", Math.max(-40, Math.min(40, sigY + dy)));
+    }
+  };
+
+  const handleResetPos = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (update) {
+      update("sellerSignatureAlign", "left");
+      update("sellerSignatureX", 0);
+      update("sellerSignatureY", 0);
+      update("sellerSignatureHeight", 48);
+    }
   };
 
   const handleRemoveSignature = (e: React.MouseEvent) => {
@@ -3282,134 +3306,225 @@ function UnlkSignatureBox({
     }
   };
 
-  return (
-    <div className="unlk-sig-zone">
-      {hasSignature ? (
-        <div
-          className="sig-rendered-wrap"
-          style={{
-            minHeight: "44px",
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "8px",
-            position: "relative",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: "2px",
-              cursor: onOpenSignatureModal ? "pointer" : "default",
-            }}
-            onClick={() => onOpenSignatureModal?.("seller")}
-            title="Klik untuk mengubah atau mengganti tanda tangan digital"
-          >
-            <img
-              src={shipment.sellerSignatureImage}
-              alt="Digital Signature"
-              className="doc-rendered-signature"
-              style={{
-                height: `${sigHeight}px`,
-                maxHeight: "80px",
-                width: "auto",
-                objectFit: "contain",
-                display: "block",
-                transition: "height 0.15s ease",
-              }}
-            />
-            <div className="sig-verify-badge no-print" style={{ fontSize: "9px" }}>
-              <span className="sig-verify-check">✓</span>
-              <span>Verified ({shipment.sellerSignatureDate || "2026"})</span>
-            </div>
-          </div>
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!update) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const initX = sigX;
+    const initY = sigY;
+    let finalX = initX;
+    let finalY = initY;
 
-          {/* Size Stepper [-] {px} [+] and Ubah/Hapus Action Buttons */}
+    const onMouseMove = (moveEv: MouseEvent) => {
+      const dx = moveEv.clientX - startX;
+      const dy = moveEv.clientY - startY;
+      finalX = Math.max(-140, Math.min(140, Math.round(initX + dx)));
+      finalY = Math.max(-50, Math.min(50, Math.round(initY + dy)));
+      setDragOffset({ x: finalX, y: finalY });
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsDragging(false);
+      setDragOffset(null);
+      update("sellerSignatureX", finalX);
+      update("sellerSignatureY", finalY);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const effectiveX = dragOffset !== null ? dragOffset.x : sigX;
+  const effectiveY = dragOffset !== null ? dragOffset.y : sigY;
+
+  return (
+    <div className="unlk-sig-zone" style={{ width: "100%", position: "relative", minHeight: "56px" }}>
+      {hasSignature ? (
+        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "4px" }}>
+          {/* Top Sleek Controls Bar (Only in Web View, completely hidden in print/PDF) */}
           <div
             className="no-print"
             style={{
               display: "flex",
-              flexDirection: "column",
-              alignItems: "flex-end",
-              gap: "3px",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: "4px",
+              padding: "3px 6px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "4px",
+              fontSize: "9px",
             }}
           >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                border: "1px solid #cbd5e1",
-                borderRadius: "3px",
-                overflow: "hidden",
-                height: "19px",
-                background: "#f8fafc",
-                fontSize: "9px",
-              }}
-              title="Atur ukuran tinggi tanda tangan"
-            >
+            {/* Position Alignment Buttons: Kiri, Tengah, Kanan */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
+              <span style={{ fontWeight: 700, color: "#64748b", marginRight: "2px" }}>Posisi:</span>
               <button
                 type="button"
-                onClick={(e) => handleStepHeight(-4, e)}
+                onClick={(e) => handleUpdateAlign("left", e)}
                 style={{
-                  width: "15px",
-                  height: "100%",
-                  border: "none",
-                  borderRight: "1px solid #e2e8f0",
-                  background: "transparent",
+                  padding: "1px 5px",
+                  borderRadius: "3px",
+                  border: sigAlign === "left" && sigX === 0 ? "1px solid #2563eb" : "1px solid #cbd5e1",
+                  background: sigAlign === "left" && sigX === 0 ? "#eff6ff" : "#ffffff",
+                  color: sigAlign === "left" && sigX === 0 ? "#1d4ed8" : "#475569",
+                  fontWeight: 600,
                   cursor: "pointer",
-                  fontWeight: 700,
-                  color: "#334155",
-                  padding: 0,
-                  lineHeight: 1,
                 }}
-                title="Perkecil tanda tangan (-4px)"
+                title="Ratakan Kiri"
               >
-                −
+                Kiri
               </button>
-              <span
-                style={{
-                  padding: "0 3px",
-                  fontWeight: 700,
-                  color: "#0f172a",
-                  minWidth: "24px",
-                  textAlign: "center",
-                }}
-              >
-                {sigHeight}px
-              </span>
               <button
                 type="button"
-                onClick={(e) => handleStepHeight(4, e)}
+                onClick={(e) => handleUpdateAlign("center", e)}
                 style={{
-                  width: "15px",
-                  height: "100%",
-                  border: "none",
-                  borderLeft: "1px solid #e2e8f0",
-                  background: "transparent",
+                  padding: "1px 5px",
+                  borderRadius: "3px",
+                  border: sigAlign === "center" && sigX === 0 ? "1px solid #2563eb" : "1px solid #cbd5e1",
+                  background: sigAlign === "center" && sigX === 0 ? "#eff6ff" : "#ffffff",
+                  color: sigAlign === "center" && sigX === 0 ? "#1d4ed8" : "#475569",
+                  fontWeight: 600,
                   cursor: "pointer",
-                  fontWeight: 700,
-                  color: "#334155",
-                  padding: 0,
-                  lineHeight: 1,
                 }}
-                title="Perbesar tanda tangan (+4px)"
+                title="Ratakan Tengah"
               >
-                +
+                Tengah
               </button>
+              <button
+                type="button"
+                onClick={(e) => handleUpdateAlign("right", e)}
+                style={{
+                  padding: "1px 5px",
+                  borderRadius: "3px",
+                  border: sigAlign === "right" && sigX === 0 ? "1px solid #2563eb" : "1px solid #cbd5e1",
+                  background: sigAlign === "right" && sigX === 0 ? "#eff6ff" : "#ffffff",
+                  color: sigAlign === "right" && sigX === 0 ? "#1d4ed8" : "#475569",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                title="Ratakan Kanan"
+              >
+                Kanan
+              </button>
+
+              {/* Nudge Arrows */}
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "3px",
+                  marginLeft: "3px",
+                  background: "#ffffff",
+                  overflow: "hidden",
+                }}
+                title="Geser posisi tanda tangan (kiri / kanan / atas / bawah)"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => handleNudge(-4, 0, e)}
+                  style={{ width: "15px", height: "18px", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
+                  title="Geser ke kiri (-4px)"
+                >
+                  ◀
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleNudge(4, 0, e)}
+                  style={{ width: "15px", height: "18px", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
+                  title="Geser ke kanan (+4px)"
+                >
+                  ▶
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleNudge(0, -3, e)}
+                  style={{ width: "15px", height: "18px", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
+                  title="Geser ke atas (-3px)"
+                >
+                  ▲
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => handleNudge(0, 3, e)}
+                  style={{ width: "15px", height: "18px", border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
+                  title="Geser ke bawah (+3px)"
+                >
+                  ▼
+                </button>
+              </div>
+
+              {(sigX !== 0 || sigY !== 0) && (
+                <button
+                  type="button"
+                  onClick={handleResetPos}
+                  style={{
+                    padding: "1px 4px",
+                    borderRadius: "3px",
+                    border: "1px solid #e2e8f0",
+                    background: "#ffffff",
+                    color: "#64748b",
+                    fontSize: "8.5px",
+                    cursor: "pointer",
+                    marginLeft: "2px",
+                  }}
+                  title="Reset ke posisi awal (0,0)"
+                >
+                  Reset
+                </button>
+              )}
             </div>
 
-            <div style={{ display: "flex", alignItems: "center", gap: "3px" }}>
+            {/* Size Stepper & Actions */}
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+              <span style={{ fontWeight: 700, color: "#64748b" }}>Ukuran:</span>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: "3px",
+                  overflow: "hidden",
+                  height: "19px",
+                  background: "#ffffff",
+                }}
+                title="Ubah ukuran tinggi tanda tangan"
+              >
+                <button
+                  type="button"
+                  onClick={(e) => handleUpdateHeight(sigHeight - 4, e)}
+                  style={{ width: "16px", height: "100%", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, color: "#334155", padding: 0 }}
+                  title="Perkecil tanda tangan (-4px)"
+                >
+                  −
+                </button>
+                <span style={{ padding: "0 4px", fontWeight: 700, color: "#0f172a", minWidth: "26px", textAlign: "center" }}>
+                  {sigHeight}px
+                </span>
+                <button
+                  type="button"
+                  onClick={(e) => handleUpdateHeight(sigHeight + 4, e)}
+                  style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, color: "#334155", padding: 0 }}
+                  title="Perbesar tanda tangan (+4px)"
+                >
+                  +
+                </button>
+              </div>
+
               {onOpenSignatureModal && (
                 <button
                   type="button"
-                  className="sig-edit-hover-btn"
                   onClick={() => onOpenSignatureModal("seller")}
-                  title="Ganti tanda tangan"
+                  title="Ganti gambar / model tanda tangan"
                   style={{
-                    fontSize: "9px",
-                    padding: "1px 5px",
+                    padding: "2px 5px",
                     borderRadius: "3px",
                     background: "#eff6ff",
                     color: "#1d4ed8",
@@ -3418,7 +3533,7 @@ function UnlkSignatureBox({
                     fontWeight: 600,
                   }}
                 >
-                  Ubah
+                  Ganti
                 </button>
               )}
               {update && (
@@ -3427,8 +3542,7 @@ function UnlkSignatureBox({
                   onClick={handleRemoveSignature}
                   title="Hapus tanda tangan"
                   style={{
-                    fontSize: "9px",
-                    padding: "1px 4px",
+                    padding: "2px 5px",
                     borderRadius: "3px",
                     background: "#fef2f2",
                     color: "#dc2626",
@@ -3440,6 +3554,52 @@ function UnlkSignatureBox({
                   Hapus
                 </button>
               )}
+            </div>
+          </div>
+
+          {/* Signature Canvas Area with Position & Size Applied */}
+          <div
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent:
+                sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
+              position: "relative",
+              padding: "2px 0",
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
+                transform: `translate(${effectiveX}px, ${effectiveY}px)`,
+                cursor: isDragging ? "grabbing" : "grab",
+                userSelect: "none",
+                transition: isDragging ? "none" : "transform 0.1s ease",
+              }}
+              onMouseDown={handleMouseDown}
+              title="Geser langsung / drag tanda tangan untuk mengatur posisinya bebas, atau gunakan tombol di atas"
+            >
+              <img
+                src={shipment.sellerSignatureImage}
+                alt="Digital Signature"
+                className="doc-rendered-signature"
+                draggable={false}
+                style={{
+                  height: `${sigHeight}px`,
+                  maxHeight: "120px",
+                  width: "auto",
+                  objectFit: "contain",
+                  display: "block",
+                  transition: isDragging ? "none" : "height 0.12s ease",
+                  filter: isDragging ? "drop-shadow(0 4px 8px rgba(37, 99, 235, 0.35))" : undefined,
+                }}
+              />
+              <div className="sig-verify-badge no-print" style={{ fontSize: "8.5px", marginTop: "2px" }}>
+                <span className="sig-verify-check">✓</span>
+                <span>Verified ({shipment.sellerSignatureDate || "2026"})</span>
+              </div>
             </div>
           </div>
         </div>

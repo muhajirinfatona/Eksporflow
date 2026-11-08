@@ -398,6 +398,10 @@ export type Shipment = {
   sellerSignatureImage?: string;
   sellerSignatureType?: "draw" | "upload" | "font" | "stamp";
   sellerSignatureDate?: string;
+  sellerSignatureHeight?: number;
+  sellerSignatureAlign?: "left" | "center" | "right";
+  sellerSignatureX?: number;
+  sellerSignatureY?: number;
   sellerVerificationCode?: string;
   buyerSignatureImage?: string;
   buyerSignatureType?: "draw" | "upload" | "font" | "stamp";
@@ -477,6 +481,10 @@ export const initialShipment: Shipment = {
   sellerSignatureImage: "",
   sellerSignatureType: "font",
   sellerSignatureDate: "",
+  sellerSignatureHeight: 48,
+  sellerSignatureAlign: "left",
+  sellerSignatureX: 0,
+  sellerSignatureY: 0,
   sellerVerificationCode: "IEI-DIGISIG-8849-DXB",
   buyerSignatureImage: "",
   buyerSignatureType: "font",
