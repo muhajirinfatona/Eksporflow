@@ -434,13 +434,13 @@ const BLOCK_SELECTOR =
  */
 export function mapLineHeightToGapPx(lh: number): number {
   if (lh <= 1.0) return 0;
-  if (lh <= 1.15) return 2;
-  if (lh <= 1.25) return 4;
-  if (lh <= 1.35) return 5;
-  if (lh <= 1.5) return 8;
-  if (lh <= 1.75) return 11;
-  if (lh <= 2.0) return 14;
-  return Math.max(0, Math.round((lh - 1.0) * 14));
+  if (lh <= 1.15) return 1;
+  if (lh <= 1.25) return 2;
+  if (lh <= 1.35) return 3;
+  if (lh <= 1.5) return 5;
+  if (lh <= 1.75) return 8;
+  if (lh <= 2.0) return 11;
+  return Math.max(0, Math.round((lh - 1.0) * 11));
 }
 
 /**
@@ -514,6 +514,10 @@ export function applyLineSpacingToSelection(lh: number): {
         kopSelectedCount++;
         blockEl.style.setProperty("margin-top", "0px", "important");
         blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
+        const parentCol = blockEl.closest(".company-details-wrap, .doc-layout-left > div, .letterhead-text > div") as HTMLElement | null;
+        if (parentCol) {
+          parentCol.style.setProperty("gap", `${mappedSpacingPx}px`, "important");
+        }
       } else if (blockEl.tagName !== "TD" && blockEl.tagName !== "TH") {
         blockEl.style.setProperty("margin-top", "0px", "important");
         blockEl.style.setProperty("margin-bottom", `${mappedSpacingPx}px`, "important");
@@ -777,6 +781,10 @@ export function adjustSelectionSpacing(
         el.style.setProperty("padding-top", `${next}px`, "important");
       } else {
         el.style.setProperty("margin-top", `${next}px`, "important");
+        const parentCol = el.closest(".company-details-wrap, .doc-layout-left > div, .letterhead-text > div") as HTMLElement | null;
+        if (parentCol) {
+          parentCol.style.setProperty("gap", `${next}px`, "important");
+        }
       }
     } else {
       el.setAttribute("data-space-after", String(next));
@@ -784,6 +792,10 @@ export function adjustSelectionSpacing(
         el.style.setProperty("padding-bottom", `${next}px`, "important");
       } else {
         el.style.setProperty("margin-bottom", `${next}px`, "important");
+        const parentCol = el.closest(".company-details-wrap, .doc-layout-left > div, .letterhead-text > div") as HTMLElement | null;
+        if (parentCol) {
+          parentCol.style.setProperty("gap", `${next}px`, "important");
+        }
       }
     }
   });

@@ -1689,8 +1689,8 @@ function OfficialLetterhead({
 
   const letterheadMode = (shipment.letterheadMode as string) || "standard";
   const bannerHeight = shipment.letterheadBannerHeight ?? 110;
-  const lineSpacing = shipment.letterheadSpacing ?? 2;
-  const kopLineHeight = Number((1.1 + lineSpacing * 0.05).toFixed(2));
+  const lineSpacing = shipment.letterheadSpacing !== undefined ? shipment.letterheadSpacing : 1;
+  const kopLineHeight = lineSpacing === 0 ? 1.05 : Number((1.06 + lineSpacing * 0.04).toFixed(2));
   const dividerGap = shipment.letterheadDividerGap ?? 4;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const dividerColor = shipment.letterheadDividerColor || "#0f2942";
@@ -2570,7 +2570,7 @@ function OfficialLetterhead({
                     paddingLeft: "12px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${Math.max(2, lineSpacing)}px`,
+                    gap: `${Math.max(0, lineSpacing)}px`,
                     textAlign: "left",
                     flex: "0 0 auto",
                     maxWidth: "285px",
@@ -2820,15 +2820,16 @@ function OfficialLetterhead({
                 <div
                   contentEditable={false}
                   style={{
-                    height: "1px",
+                    height: lineSpacing === 0 ? "0px" : "1px",
                     width: "100%",
-                    background: "#cbd5e1",
-                    margin: `${Math.max(1, Math.round(lineSpacing * 0.8))}px 0`,
+                    background: lineSpacing === 0 ? "transparent" : "#cbd5e1",
+                    margin: `${Math.round(lineSpacing * 0.4)}px 0`,
                   }}
                 />
 
                 {/* Row 3 & Row 4: Clean Executive Address & Contact Details */}
                 <div
+                  className="company-details-wrap"
                   style={{
                     display: "flex",
                     flexDirection: "column",
@@ -2840,11 +2841,12 @@ function OfficialLetterhead({
                     className="company-details"
                     style={{
                       fontSize: "8.6pt",
-                      lineHeight: 1.25,
+                      lineHeight: lineSpacing === 0 ? 1.05 : 1.16,
                       color: "#1e293b",
                       fontWeight: 500,
                       whiteSpace: "normal",
                       wordBreak: "break-word",
+                      margin: 0,
                     }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
@@ -2866,10 +2868,11 @@ function OfficialLetterhead({
                       display: "flex",
                       alignItems: "center",
                       flexWrap: "wrap",
-                      gap: "2px 8px",
-                      lineHeight: 1.25,
+                      gap: "0 8px",
+                      lineHeight: lineSpacing === 0 ? 1.05 : 1.16,
                       fontSize: "8.6pt",
                       color: "#1e293b",
+                      margin: 0,
                     }}
                   >
                     <span>

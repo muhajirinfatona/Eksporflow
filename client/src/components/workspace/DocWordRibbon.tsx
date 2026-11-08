@@ -785,7 +785,7 @@ export function DocWordRibbon({
     if (isTextSelected()) {
       const res = applyLineSpacingToSelection(cleanLh);
       setSelectedLineHeight(cleanLh);
-      if (res.isLetterhead && res.allLetterheadSelected) {
+      if (res.isLetterhead) {
         update("letterheadSpacing", res.mappedSpacingPx);
       }
       if (res.applied) {
@@ -814,6 +814,10 @@ export function DocWordRibbon({
     const res = adjustSelectionSpacing("before", deltaOrVal, isAbsolute);
     if (res.applied) {
       setSpaceBeforeVal(res.valuePx);
+      const isKop = !!document.querySelector(".paper-document")?.querySelector(".company-details[data-space-before], .company-contact[data-space-before]");
+      if (isKop) {
+        update("letterheadSpacing", res.valuePx);
+      }
       toast.success(`Spasi atas (Space Before) diatur ke ${res.valuePx}px`);
     } else {
       toast.info("Klik atau blok teks/kotak yang ingin diatur spasi atasnya.");
@@ -825,6 +829,10 @@ export function DocWordRibbon({
     const res = adjustSelectionSpacing("after", deltaOrVal, isAbsolute);
     if (res.applied) {
       setSpaceAfterVal(res.valuePx);
+      const isKop = !!document.querySelector(".paper-document")?.querySelector(".company-details[data-space-after], .company-contact[data-space-after]");
+      if (isKop) {
+        update("letterheadSpacing", res.valuePx);
+      }
       toast.success(`Spasi bawah (Space After) diatur ke ${res.valuePx}px`);
     } else {
       toast.info("Klik atau blok teks/kotak yang ingin diatur spasi bawahnya.");
@@ -2059,7 +2067,7 @@ export function DocWordRibbon({
                   {/* Line Spacing Selector */}
                   <select
                     className="doc-ribbon-select line-spacing-select"
-                    value={[1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].some(v => Math.abs(v - activeLineHeight) < 0.01) ? [1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].find(v => Math.abs(v - activeLineHeight) < 0.01)!.toString() : "custom"}
+                    value={[0.85, 0.9, 1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].some(v => Math.abs(v - activeLineHeight) < 0.01) ? [0.85, 0.9, 1.0, 1.15, 1.25, 1.35, 1.5, 1.75, 2.0, 2.5, 3.0].find(v => Math.abs(v - activeLineHeight) < 0.01)!.toString() : "custom"}
                     onFocus={() => saveActiveSelection()}
                     onMouseDown={() => saveActiveSelection()}
                     onChange={(e) => {
@@ -2073,7 +2081,9 @@ export function DocWordRibbon({
                     title="Spasi Antar Baris (Pilih spasi untuk teks yang diblok atau seluruh dokumen)"
                     style={{ minWidth: "68px" }}
                   >
-                    <option value="1">↕ 1.0</option>
+                    <option value="0.85">↕ 0.85 (Sangat Rapat)</option>
+                    <option value="0.9">↕ 0.9 (Rapat)</option>
+                    <option value="1">↕ 1.0 (Standar Rapat)</option>
                     <option value="1.15">↕ 1.15</option>
                     <option value="1.25">↕ 1.25</option>
                     <option value="1.35">↕ 1.35</option>

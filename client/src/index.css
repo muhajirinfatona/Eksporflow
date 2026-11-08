@@ -6550,8 +6550,8 @@ textarea:focus-visible {
   font-size: 8.5pt;
   font-weight: 400;
   color: #334155;
-  margin: 0 0 var(--kop-line-spacing, 2px) 0;
-  line-height: var(--kop-line-height, 1.35);
+  margin: 0 0 var(--kop-line-spacing, 0px) 0;
+  line-height: var(--kop-line-height, 1.15);
 }
 
 .company-contact,
@@ -6560,7 +6560,7 @@ textarea:focus-visible {
   font-weight: 500;
   color: #334155;
   margin: 0;
-  line-height: var(--kop-line-height, 1.35);
+  line-height: var(--kop-line-height, 1.15);
 }
 
 .letterhead-divider-line {
