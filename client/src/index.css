@@ -10523,8 +10523,8 @@ textarea:focus-visible {
 
   /* Title bar print */
   .doc-title-bar {
-    margin-bottom: 6px !important;
-    padding: 4.5px 10px !important;
+    margin: 5px 0 6px !important;
+    padding: 4px 10px !important;
     background: #0f2942 !important;
     color: #ffffff !important;
   }
@@ -10691,45 +10691,49 @@ textarea:focus-visible {
 
   /* Rincian rekening bank eksportir */
   .doc-bank-card {
-    padding: 5px 8px !important;
-    margin-bottom: 12px !important;
+    padding: 4px 8px !important;
+    margin-bottom: 6px !important;
     border: 1px solid #cbd5e1 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
   }
   .bank-card-title {
-    font-size: 10px !important;
+    font-size: 9.5px !important;
     font-weight: 800 !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 1.5px !important;
     color: #0f2942 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
   }
   .bank-card-table td {
-    padding: 1px 4px !important;
-    font-size: var(--doc-font-size, 12pt) !important;
-    line-height: 1.3 !important;
+    padding: 0.5px 4px !important;
+    font-size: var(--doc-font-size, 9pt) !important;
+    line-height: 1.24 !important;
   }
   .bank-lbl {
-    font-size: var(--doc-font-size, 12pt) !important;
+    font-size: var(--doc-font-size, 9pt) !important;
     font-weight: 500 !important;
     color: #1e293b !important;
   }
   .bank-val {
-    font-size: var(--doc-font-size, 12pt) !important;
+    font-size: var(--doc-font-size, 9pt) !important;
     font-weight: 700 !important;
     color: #0f172a !important;
   }
 
   /* Blok tanda tangan & stempel eksportir - tetap pas di Halaman 1 tanpa garis atas */
   .doc-single-signature-wrap {
-    margin-top: 12px !important;
+    margin-top: 6px !important;
     padding-top: 0 !important;
     display: flex !important;
     justify-content: flex-end !important;
     border-top: none !important;
     break-before: avoid !important;
     page-break-before: avoid !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
   }
   .official-sig-block {
     display: flex !important;

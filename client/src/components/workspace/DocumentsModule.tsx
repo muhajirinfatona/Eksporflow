@@ -496,6 +496,11 @@ export function DocumentsModule({
 
   const handlePrint = () => {
     setIsSettingsOpen(false);
+    const scrollEl = document.querySelector(".doc-paper-workspace-scroll");
+    if (scrollEl) {
+      scrollEl.scrollTop = 0;
+    }
+    window.scrollTo(0, 0);
     printDocument();
   };
 
@@ -708,11 +713,11 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm;
+            margin: 6mm 10mm 6mm 10mm;
           }
           .paper-document {
-            --doc-font-size: ${shipment.docEditorFontSize || 11}pt !important;
-            font-size: ${shipment.docEditorFontSize || 11}pt !important;
+            --doc-font-size: ${Math.min(9.5, Number(((shipment.docEditorFontSize || 11) * 0.77).toFixed(1)))}pt !important;
+            font-size: ${Math.min(9.5, Number(((shipment.docEditorFontSize || 11) * 0.77).toFixed(1)))}pt !important;
           }
         }
       `}</style>
