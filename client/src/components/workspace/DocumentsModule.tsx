@@ -1678,6 +1678,9 @@ function OfficialLetterhead({
     window.addEventListener("mouseup", onMouseUp);
   };
 
+  const isLogoCentered =
+    layoutMode === "center" && (!shipment.letterheadImage || shipment.letterheadLogoAlign === "center");
+
   // Compute Word Wrap & Positioning CSS Styles
   let wrapStyles: React.CSSProperties = {};
   const isFloatingWrap = wrapMode === "behind" || wrapMode === "front";
@@ -1738,15 +1741,17 @@ function OfficialLetterhead({
 
   // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
   let dividerLineStyles: React.CSSProperties = {
-    marginTop: `${dividerGap + 6}px`,
+    marginTop: `${Math.max(4, dividerGap + 4)}px`,
+    marginBottom: "5px",
     boxSizing: "content-box",
+    width: "100%",
   };
   if (dividerStyle === "none") {
     dividerLineStyles.display = "none";
   } else if (dividerStyle === "double") {
-    dividerLineStyles.borderTop = `2.5px solid ${dividerColor}`;
-    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
-    dividerLineStyles.height = "2.5px";
+    dividerLineStyles.borderTop = `2px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `0.75px solid ${dividerColor}`;
+    dividerLineStyles.height = "2px";
   } else if (dividerStyle === "thick-thin") {
     dividerLineStyles.borderTop = `3.5px solid ${dividerColor}`;
     dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
@@ -2300,11 +2305,25 @@ function OfficialLetterhead({
             className="letterhead-brand"
             style={{
               display: "flex",
-              flexDirection: layoutMode === "center" ? "column" : "row",
+              flexDirection:
+                layoutMode === "center" && (!shipment.letterheadImage || shipment.letterheadLogoAlign === "center")
+                  ? "column"
+                  : "row",
               alignItems: "center",
-              justifyContent: layoutMode === "split" ? "space-between" : layoutMode === "center" ? "center" : "flex-start",
-              textAlign: layoutMode === "center" ? "center" : "left",
-              gap: layoutMode === "center" ? "6px" : "14px",
+              justifyContent:
+                layoutMode === "split"
+                  ? "space-between"
+                  : layoutMode === "center" && (!shipment.letterheadImage || shipment.letterheadLogoAlign === "center")
+                  ? "center"
+                  : "flex-start",
+              textAlign:
+                layoutMode === "center" && (!shipment.letterheadImage || shipment.letterheadLogoAlign === "center")
+                  ? "center"
+                  : "left",
+              gap:
+                layoutMode === "center" && (!shipment.letterheadImage || shipment.letterheadLogoAlign === "center")
+                  ? "6px"
+                  : "14px",
               width: "100%",
             }}
           >
@@ -2677,13 +2696,13 @@ function OfficialLetterhead({
               </div>
             ) : null}
 
-            {shipment.letterheadImage && layoutMode !== "center" && (
+            {shipment.letterheadImage && !isLogoCentered && (
               <div
                 className="letterhead-logo-divider"
                 contentEditable={false}
                 style={{
                   width: "1.5px",
-                  height: layoutMode === "split" ? "56px" : "64px",
+                  height: layoutMode === "split" ? "56px" : "62px",
                   background: "#cbd5e1",
                   margin: "0 16px 0 6px",
                   flexShrink: 0,
@@ -2827,8 +2846,8 @@ function OfficialLetterhead({
                   </div>
                 </div>
               </div>
-            ) : layoutMode === "center" ? (
-              /* MODE CENTER: Classic Diplomatic / Chamber of Commerce Symmetrical Header */
+            ) : isLogoCentered ? (
+              /* MODE CENTER: Classic Diplomatic / Chamber of Commerce Symmetrical Header (only when logo is centered on top or no logo) */
               <div
                 className="letterhead-text doc-layout-center"
                 style={{
@@ -3080,8 +3099,8 @@ function OfficialLetterhead({
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt" }}>
-                      |
+                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 6px" }}>
+                      •
                     </span>
 
                     <span>
@@ -3100,8 +3119,8 @@ function OfficialLetterhead({
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt" }}>
-                      |
+                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 6px" }}>
+                      •
                     </span>
 
                     <span>
@@ -4015,15 +4034,6 @@ function ProformaInvoiceDoc({
             </div>
           </div>
         </div>
-
-        {/* ROW 6: FULL-WIDTH EXPORT TERMS & COMPLIANCE DECLARATION FOOTER */}
-        <div className="unlk-cell unlk-border-t unlk-terms-footer">
-          <div className="unlk-lbl">Commercial Terms &amp; Export Compliance Declaration</div>
-          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
-            1. <b>Export Documents:</b> Seller shall provide Full Set (3/3) Original Clean on Board Ocean Bill of Lading, Signed Commercial Invoice, Packing List, Certificate of Origin (Form), and Phytosanitary / Health Certificate.{" "}
-            2. <b>Quality &amp; Origin:</b> We hereby certify that the goods described above are of Indonesian Origin, Grade-A Export Standard, and that the prices stated are true and correct.
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -4906,14 +4916,6 @@ function CommercialInvoiceDoc({
             </div>
           </div>
         </div>
-
-        {/* ROW 6: FULL-WIDTH CUSTOMS & EXPORT COMPLIANCE DECLARATION */}
-        <div className="unlk-cell unlk-border-t unlk-terms-footer">
-          <div className="unlk-lbl">Customs &amp; Origin Declaration</div>
-          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
-            We hereby certify that the goods described in this Commercial Invoice are wholly produced in Indonesia, conform to Grade-A Export Standard, and that no other invoice has been or will be issued for this consignment.
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -5244,14 +5246,6 @@ function PackingListDoc({
             </div>
           </div>
         </div>
-
-        {/* ROW 6: FULL-WIDTH PACKING & PHYTOSANITARY COMPLIANCE FOOTER */}
-        <div className="unlk-cell unlk-border-t unlk-terms-footer">
-          <div className="unlk-lbl">Packing &amp; Container Stuffing Certification</div>
-          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
-            We hereby certify that the goods described above have been packed in new, clean, dry 3-ply Multiwall Kraft Paper Bags with Food-Grade PE Inner Liner and stuffed into a clean, odorless, food-grade container suitable for international ocean transport.
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -5549,14 +5543,6 @@ function ShippingInstructionDoc({
                 onOpenSignatureModal={onOpenSignatureModal}
               />
             </div>
-          </div>
-        </div>
-
-        {/* ROW 6: FULL-WIDTH PACKING & PHYTOSANITARY COMPLIANCE FOOTER */}
-        <div className="unlk-cell unlk-border-t unlk-terms-footer">
-          <div className="unlk-lbl">Packing &amp; Container Stuffing Certification</div>
-          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
-            We hereby certify that the goods described above have been packed in new, clean, dry 3-ply Multiwall Kraft Paper Bags with Food-Grade PE Inner Liner and stuffed into a clean, odorless, food-grade container suitable for international ocean transport.
           </div>
         </div>
       </div>
