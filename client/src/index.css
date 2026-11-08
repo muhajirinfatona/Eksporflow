@@ -7139,28 +7139,28 @@ textarea:focus-visible {
 }
 
 .paper-document .unlk-trade-form .unlk-lbl {
-  font-size: 7.9pt !important;
+  font-size: 8.5pt !important;
   font-weight: 600 !important;
   color: #475569 !important;
-  line-height: 1.18 !important;
+  line-height: 1.25 !important;
   margin-bottom: 2px !important;
   text-transform: none !important;
   letter-spacing: 0.01em !important;
 }
 
 .paper-document .unlk-trade-form .unlk-val {
-  font-size: 9.4pt !important;
+  font-size: 8.8pt !important;
   font-weight: 500 !important;
   color: #0f172a !important;
-  line-height: 1.3 !important;
+  line-height: 1.32 !important;
   word-break: break-word;
 }
 
 .paper-document .unlk-trade-form .unlk-val-bold {
-  font-size: 9.6pt !important;
+  font-size: 8.8pt !important;
   font-weight: 700 !important;
   color: #0f172a !important;
-  line-height: 1.3 !important;
+  line-height: 1.32 !important;
   word-break: break-word;
 }
 
@@ -7177,10 +7177,10 @@ textarea:focus-visible {
 .paper-document table.unlk-items-table thead th {
   background: #f8fafc !important;
   color: #1e293b !important;
-  font-size: 8.3pt !important;
+  font-size: 9.5pt !important;
   font-weight: 700 !important;
-  line-height: 1.2 !important;
-  padding: 5.5px 6px !important;
+  line-height: 1.25 !important;
+  padding: 6px 6px !important;
   border-bottom: 1px solid #94a3b8 !important;
   border-right: 1px solid #94a3b8 !important;
   border-top: none !important;
@@ -7200,8 +7200,8 @@ textarea:focus-visible {
 }
 
 .paper-document table.unlk-items-table tbody td {
-  padding: 8px 8px !important;
-  font-size: 9.3pt !important;
+  padding: 7px 8px !important;
+  font-size: 8.8pt !important;
   line-height: 1.32 !important;
   color: #0f172a !important;
   border-right: 1px solid #94a3b8 !important;
@@ -7217,9 +7217,9 @@ textarea:focus-visible {
 }
 
 .paper-document .unlk-trade-form .unlk-item-spec {
-  font-size: 8.7pt !important;
+  font-size: 8.8pt !important;
   color: #334155 !important;
-  line-height: 1.3 !important;
+  line-height: 1.32 !important;
   margin-top: 2px !important;
 }
 
@@ -7229,8 +7229,8 @@ textarea:focus-visible {
   border-right: 1px solid #94a3b8 !important;
   border-bottom: none !important;
   border-left: none !important;
-  padding: 4.5px 7px !important;
-  font-size: 9.2pt !important;
+  padding: 5px 7px !important;
+  font-size: 8.8pt !important;
   height: auto !important;
   vertical-align: middle !important;
   color: #0f172a !important;
@@ -7260,7 +7260,7 @@ textarea:focus-visible {
   flex-direction: column !important;
   gap: 2px !important;
   font-size: 8.8pt !important;
-  line-height: 1.3 !important;
+  line-height: 1.32 !important;
   color: #0f172a !important;
 }
 
@@ -7268,7 +7268,7 @@ textarea:focus-visible {
 .paper-document .unlk-trade-form .unlk-bank-lines span,
 .paper-document .unlk-trade-form .unlk-bank-lines strong {
   font-size: 8.8pt !important;
-  line-height: 1.3 !important;
+  line-height: 1.32 !important;
 }
 
 .unlk-total-bar {
@@ -7276,6 +7276,7 @@ textarea:focus-visible {
   justify-content: space-between !important;
   align-items: center !important;
   padding: 5px 9px !important;
+  font-size: 8.8pt !important;
   background: #f8fafc !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7284,6 +7285,7 @@ textarea:focus-visible {
 .unlk-terms-footer {
   background: #f8fafc !important;
   padding: 5.5px 9px !important;
+  font-size: 8.8pt !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }

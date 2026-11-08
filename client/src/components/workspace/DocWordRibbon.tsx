@@ -1079,6 +1079,104 @@ export function DocWordRibbon({
     toast.info("Tabel berhasil dihapus dari dokumen.");
   };
 
+  // Merge Table & Cell Operations (Microsoft Word style)
+  const mergeTableCells = () => {
+    const { cell, row } = getTargetTableAndCell();
+    if (!cell || !row) {
+      toast.error("Klik sel di tabel yang ingin digabung terlebih dahulu");
+      return;
+    }
+    const nextCell = cell.nextElementSibling as HTMLTableCellElement | null;
+    if (!nextCell) {
+      toast.info("Tidak ada sel berikutnya di sebelah kanan untuk digabungkan.");
+      return;
+    }
+    pushEditorHistory("table:merge-cells");
+    const currentSpan = cell.colSpan || 1;
+    const nextSpan = nextCell.colSpan || 1;
+    cell.colSpan = currentSpan + nextSpan;
+    if (nextCell.innerText.trim()) {
+      cell.innerHTML = `${cell.innerHTML} ${nextCell.innerHTML}`;
+    }
+    nextCell.remove();
+    toast.success(`Sel berhasil digabung! (Colspan: ${cell.colSpan})`);
+  };
+
+  const splitTableCells = () => {
+    const { cell, row } = getTargetTableAndCell();
+    if (!cell || !row) {
+      toast.error("Klik sel yang ingin dipisah terlebih dahulu");
+      return;
+    }
+    const currentSpan = cell.colSpan || 1;
+    if (currentSpan <= 1) {
+      toast.info("Sel ini belum digabung (Colspan = 1).");
+      return;
+    }
+    pushEditorHistory("table:split-cells");
+    cell.colSpan = 1;
+    for (let i = 1; i < currentSpan; i++) {
+      const newCell = document.createElement(cell.tagName.toLowerCase() === "th" ? "th" : "td") as HTMLTableCellElement;
+      newCell.style.padding = cell.style.padding || "6px 8px";
+      newCell.style.border = cell.style.border || "1px solid #cbd5e1";
+      newCell.style.verticalAlign = "top";
+      newCell.innerText = "-";
+      row.insertBefore(newCell, cell.nextSibling);
+    }
+    toast.success(`Sel berhasil dipisah kembali menjadi ${currentSpan} kolom!`);
+  };
+
+  const mergeTableRows = () => {
+    const { table, cell, row } = getTargetTableAndCell();
+    if (!table || !cell || !row) {
+      toast.error("Klik sel yang ingin digabung dengan baris bawahnya");
+      return;
+    }
+    const nextRow = row.nextElementSibling as HTMLTableRowElement | null;
+    if (!nextRow) {
+      toast.info("Tidak ada baris di bawahnya untuk digabungkan.");
+      return;
+    }
+    const cIndex = cell.cellIndex;
+    const cellBelow = nextRow.cells[cIndex];
+    if (!cellBelow) {
+      toast.info("Tidak ditemukan sel tepat di bawah sel ini.");
+      return;
+    }
+    pushEditorHistory("table:merge-rows");
+    const currentSpan = cell.rowSpan || 1;
+    const belowSpan = cellBelow.rowSpan || 1;
+    cell.rowSpan = currentSpan + belowSpan;
+    if (cellBelow.innerText.trim()) {
+      cell.innerHTML = `${cell.innerHTML}<br/>${cellBelow.innerHTML}`;
+    }
+    cellBelow.remove();
+    toast.success(`Baris sel berhasil digabung vertikal! (Rowspan: ${cell.rowSpan})`);
+  };
+
+  const mergeTables = () => {
+    const { table } = getTargetTableAndCell();
+    if (!table) {
+      toast.error("Klik tabel yang ingin digabung terlebih dahulu");
+      return;
+    }
+    const parent = table.closest(".paper-document") || table.parentElement;
+    if (!parent) return;
+    const allTables = Array.from(parent.querySelectorAll("table"));
+    const myIndex = allTables.indexOf(table);
+    const nextTable = allTables[myIndex + 1];
+    if (!nextTable) {
+      toast.info("Tidak ditemukan tabel lain di bawah tabel ini untuk digabungkan.");
+      return;
+    }
+    pushEditorHistory("table:merge-tables");
+    const myTbody = table.querySelector("tbody") || table;
+    const nextRows = Array.from(nextTable.querySelectorAll("tbody tr, tr"));
+    nextRows.forEach((r) => myTbody.appendChild(r));
+    nextTable.remove();
+    toast.success("Dua tabel berhasil disatukan menjadi satu tabel berlanjut (Merge Table)!");
+  };
+
   const adjustColWidth = (deltaPx: number) => {
     const { table, cell } = getTargetTableAndCell();
     if (!table || !cell) {
@@ -2657,6 +2755,55 @@ export function DocWordRibbon({
                 </div>
 
                 <span className="doc-ribbon-group-label">Baris & Kolom</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 1B. Gabung & Pisah Sel / Merge Table (Microsoft Word Style) */}
+              <div className="doc-ribbon-group group-table-merge">
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={mergeTableCells}
+                    title="Gabung Sel Horisontal (Merge Cells ke Kanan)"
+                  >
+                    <Columns size={11} />
+                    <span>Gabung Sel</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={splitTableCells}
+                    title="Pisah Sel (Split Cells kembali normal)"
+                  >
+                    <Rows size={11} />
+                    <span>Pisah Sel</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={mergeTableRows}
+                    title="Gabung Sel Vertikal (Merge Baris Bawah)"
+                  >
+                    <ArrowDown size={11} />
+                    <span>Gabung Bwh</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={mergeTables}
+                    title="Gabung Dua Tabel Menjadi Satu (Merge Table)"
+                  >
+                    <Table size={11} />
+                    <span>Gabung Tabel</span>
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label" style={{ color: "#0284c7" }}>Gabung Sel &amp; Tabel</span>
               </div>
 
               <div className="doc-ribbon-divider" />

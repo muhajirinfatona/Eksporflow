@@ -3578,6 +3578,78 @@ function DocTitleBanner({ title }: { title: string }) {
             </button>
           );
         })}
+
+        {/* Fitur Gabung Tabel & Gabung Sel ala Microsoft Word */}
+        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginLeft: "4px", paddingLeft: "5px", borderLeft: "1px solid #e2e8f0" }}>
+          Gabung:
+        </span>
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            const table = barRef.current?.closest(".unlk-doc-wrapper")?.querySelector("table.unlk-items-table") || document.querySelector("table.unlk-items-table");
+            if (!table) return;
+            const sel = window.getSelection();
+            const activeCell = ((sel?.anchorNode as HTMLElement)?.closest?.("td, th") as HTMLTableCellElement) || table.querySelector("tbody tr td:first-child");
+            if (activeCell) {
+              const next = activeCell.nextElementSibling as HTMLTableCellElement | null;
+              if (next) {
+                activeCell.colSpan = (activeCell.colSpan || 1) + (next.colSpan || 1);
+                if (next.innerText.trim()) activeCell.innerHTML = `${activeCell.innerHTML} ${next.innerHTML}`;
+                next.remove();
+                toast.success(`Sel tabel berhasil digabungkan (Colspan: ${activeCell.colSpan})!`);
+                return;
+              }
+            }
+            toast.info("Klik sel tabel yang ingin digabung terlebih dahulu.");
+          }}
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            padding: "1.5px 6px",
+            borderRadius: "3px",
+            border: "1px solid #bfdbfe",
+            background: "#eff6ff",
+            color: "#1e40af",
+            cursor: "pointer",
+          }}
+          title="Gabung Sel (Merge Cells): Menggabungkan sel yang aktif dengan sel di sampingnya seperti di Word"
+        >
+          🔀 Gabung Sel
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => {
+            const table = barRef.current?.closest(".unlk-doc-wrapper")?.querySelector("table.unlk-items-table") || document.querySelector("table.unlk-items-table");
+            if (!table) return;
+            const parent = table.closest(".unlk-trade-form") || table.parentElement;
+            const tables = parent ? Array.from(parent.querySelectorAll("table")) : [];
+            const idx = tables.indexOf(table as HTMLTableElement);
+            const nextTable = tables[idx + 1];
+            if (nextTable) {
+              const myTbody = table.querySelector("tbody") || table;
+              Array.from(nextTable.querySelectorAll("tbody tr, tr")).forEach((r) => myTbody.appendChild(r));
+              nextTable.remove();
+              toast.success("Tabel berhasil digabungkan (Merge Table)!");
+            } else {
+              toast.info("Seluruh baris tabel sudah berada dalam satu tabel terpadu.");
+            }
+          }}
+          style={{
+            fontSize: "9px",
+            fontWeight: 700,
+            padding: "1.5px 6px",
+            borderRadius: "3px",
+            border: "1px solid #cbd5e1",
+            background: "#f8fafc",
+            color: "#334155",
+            cursor: "pointer",
+          }}
+          title="Gabung Tabel (Merge Table): Menyatukan tabel-tabel terpisah menjadi satu tabel berlanjut"
+        >
+          🔗 Gabung Tabel
+        </button>
       </div>
 
       <h2 ref={h2Ref}>{title}</h2>
@@ -3784,50 +3856,39 @@ function ProformaInvoiceDoc({
         {/* ROW 1: Seller (Left 50%) | Invoice No/Date + Buyer Ref/Due Date (Right 50%) */}
         <div className="unlk-row-50-50">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Penjual / Seller" : "Seller"}</div>
+            <div className="unlk-lbl">{isId ? "Penjual / Eksportir (Seller)" : "Seller"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            {hasTopLetterhead ? (
-              <>
-                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact: {sigFull} ({sigRoleText})
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="unlk-val">
-                  Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
-                </div>
-                <div className="unlk-val">
-                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-                </div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact Person: {sigFull} ({sigRoleText})
-                </div>
-              </>
-            )}
+            <div className="unlk-val">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
+            </div>
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              {isId ? "Narahubung:" : "Contact Person:"} {sigFull} ({sigRoleText})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Invoice Number</div>
+                <div className="unlk-lbl">{isId ? "Nomor Faktur (Invoice No)" : "Invoice Number"}</div>
                 <div className="unlk-val-bold">PI/IEI-DXB/X/2026/001</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Issue Date</div>
+                <div className="unlk-lbl">{isId ? "Tanggal Penerbitan" : "Issue Date"}</div>
                 <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Buyer Reference</div>
+                <div className="unlk-lbl">{isId ? "Referensi Pembeli (Buyer Ref)" : "Buyer Reference"}</div>
                 <div className="unlk-val-bold">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Validity / Due Date</div>
-                <div className="unlk-val-bold">22 Nov 2026 (14 Days)</div>
+                <div className="unlk-lbl">{isId ? "Masa Berlaku / Jatuh Tempo" : "Validity / Due Date"}</div>
+                <div className="unlk-val-bold">{isId ? "22 Nov 2026 (14 Hari)" : "22 Nov 2026 (14 Days)"}</div>
               </div>
             </div>
           </div>
@@ -3836,20 +3897,20 @@ function ProformaInvoiceDoc({
         {/* ROW 2: Buyer (Left 50%) | Delivery Schedule & Notify Party (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Buyer / Consignee</div>
+            <div className="unlk-lbl">{isId ? "Pembeli / Penerima Barang (Buyer / Consignee)" : "Buyer / Consignee"}</div>
             <div className="unlk-val-bold">{buyerName}</div>
             <div className="unlk-val">{fullBuyerAddress}</div>
             <div className="unlk-val">
               Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
             </div>
             <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPicRole || "Procurement Director"})
+              {isId ? "U.p. (Attn):" : "Attn:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")})
             </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Estimated Shipment &amp; Delivery</div>
+              <div className="unlk-lbl">{isId ? "Estimasi Pengapalan & Pengiriman" : "Estimated Shipment & Delivery"}</div>
               <div className="unlk-val-bold">
                 {isId
                   ? "Maksimal 21 hari setelah Pembayaran Uang Muka (DP)"
@@ -3857,8 +3918,11 @@ function ProformaInvoiceDoc({
               </div>
             </div>
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Notify Party</div>
-              <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
+              <div className="unlk-lbl">{isId ? "Pihak yang Diberitahu (Notify Party)" : "Notify Party"}</div>
+              <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
+              <div className="unlk-val">
+                {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+              </div>
             </div>
           </div>
         </div>
@@ -3868,34 +3932,34 @@ function ProformaInvoiceDoc({
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (Ocean FCL)</div>
+                <div className="unlk-lbl">{isId ? "Metode Pengiriman" : "Method of Dispatch"}</div>
+                <div className="unlk-val-bold">{isId ? "Muatan Laut (Ocean FCL)" : "Sea Freight (Ocean FCL)"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Type of Shipment</div>
+                <div className="unlk-lbl">{isId ? "Jenis Pengapalan" : "Type of Shipment"}</div>
                 <div className="unlk-val-bold">1 x 20&apos; FCL Food-Grade</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading (POL)</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Muat (POL)" : "Port of Loading (POL)"}</div>
                 <div className="unlk-val-bold">{pol}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge (POD)</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Bongkar (POD)" : "Port of Discharge (POD)"}</div>
                 <div className="unlk-val-bold">{pod}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Packing Mode</div>
-                <div className="unlk-val-bold">20 Kg Multiwall Kraft Bag</div>
+                <div className="unlk-lbl">{isId ? "Jenis Kemasan" : "Packing Mode"}</div>
+                <div className="unlk-val-bold">{isId ? "Karung Kertas Kraft 20 Kg" : "20 Kg Multiwall Kraft Bag"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Container Load</div>
-                <div className="unlk-val-bold">{formatNumber(bagsCount)} Bags ({formatNumber(netWeightMT, 2)} MT)</div>
+                <div className="unlk-lbl">{isId ? "Muatan Kontainer" : "Container Load"}</div>
+                <div className="unlk-val-bold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"} ({formatNumber(netWeightMT, 2)} MT)</div>
               </div>
             </div>
           </div>
@@ -3903,17 +3967,17 @@ function ProformaInvoiceDoc({
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Country of Origin of Goods</div>
+                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country of Origin of Goods"}</div>
                 <div className="unlk-val-bold">Indonesia</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Country of Final Destination</div>
+                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
                 <div className="unlk-val-bold">{buyerCountry || "United Arab Emirates"}</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Terms / Method of Payment</div>
+              <div className="unlk-lbl">{isId ? "Syarat / Metode Pembayaran" : "Terms / Method of Payment"}</div>
               <div className="unlk-val-bold">
                 {paymentTerms ||
                   (isId
@@ -3924,11 +3988,15 @@ function ProformaInvoiceDoc({
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Marine Insurance</div>
-                <div className="unlk-val-bold">{incoterm === "CIF" ? "Covered by Seller (110%)" : "Buyer Coverage (FOB)"}</div>
+                <div className="unlk-lbl">{isId ? "Asuransi Laut" : "Marine Insurance"}</div>
+                <div className="unlk-val-bold">
+                  {incoterm === "CIF"
+                    ? (isId ? "Ditanggung Penjual (110%)" : "Covered by Seller (110%)")
+                    : (isId ? "Ditanggung Pembeli (FOB)" : "Buyer Coverage (FOB)")}
+                </div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Trade Incoterm</div>
+                <div className="unlk-lbl">{isId ? "Incoterm Perdagangan" : "Trade Incoterm"}</div>
                 <div className="unlk-val-bold">{incoterm} Makassar (2020)</div>
               </div>
             </div>
@@ -3939,13 +4007,13 @@ function ProformaInvoiceDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "11%" }}>Product Code</th>
-              <th style={{ width: "35%" }}>Description of Goods</th>
-              <th style={{ width: "10%" }}>HS Code</th>
-              <th style={{ width: "11%" }}>Unit Quantity</th>
-              <th style={{ width: "8%" }}>Unit Type</th>
-              <th style={{ width: "11%" }}>Unit Price</th>
-              <th style={{ width: "14%" }}>Amount</th>
+              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "35%" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "10%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Kuantitas" : "Unit Quantity"}</th>
+              <th style={{ width: "8%" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+              <th style={{ width: "14%" }}>{isId ? "Total Harga" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -3960,8 +4028,13 @@ function ProformaInvoiceDoc({
                 </div>
                 <div className="unlk-item-spec">
                   • {isId
-                    ? "Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE Food-Grade"
-                    : "Packing: 20 kg Net Multiwall Kraft Paper Bag with Food-Grade PE Inner Liner"}
+                    ? `Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE Food-Grade (${formatNumber(bagsCount)} Karung)`
+                    : `Packing: 20 kg net / Multiwall Kraft Paper Bag with Food-Grade PE Inner Liner (${formatNumber(bagsCount)} Bags)`}
+                </div>
+                <div className="unlk-item-spec">
+                  • {isId
+                    ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kgs | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kgs | Muatan: 1 x 20' FCL`
+                    : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs | Load: 1 x 20' FCL`}
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
@@ -3973,14 +4046,14 @@ function ProformaInvoiceDoc({
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Total This Page</td>
+              <td colSpan={3} className="unlk-subtotal-label">{isId ? "Total Halaman Ini" : "Total This Page"}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
               <td />
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total</td>
+              <td colSpan={3} className="unlk-subtotal-label font-bold">{isId ? "Total Konsinyasi" : "Consignment Total"} ({incoterm} Makassar)</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
               <td />
@@ -3994,23 +4067,25 @@ function ProformaInvoiceDoc({
           {/* Left 50%: Additional Info + Bank Details */}
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info &amp; Amount in Words</div>
+              <div className="unlk-lbl">{isId ? "Informasi Tambahan & Terbilang" : "Additional Info & Amount in Words"}</div>
               <div className="unlk-val">
-                <b>Say:</b> <i>{amountInWords}</i>
+                <b>{isId ? "Terbilang:" : "Say:"}</b> <i>{amountInWords}</i>
               </div>
-              <div className="unlk-val" style={{ marginTop: "2px", color: "#334155" }}>
-                <b>Remarks:</b> Partial Shipment: Not Allowed • Transhipment: Allowed • Overseas banking charges for buyer&apos;s account.
+              <div className="unlk-val" style={{ marginTop: "2px" }}>
+                {isId
+                  ? `Total Muatan: ${formatNumber(bagsCount)} Karung Kertas Kraft Multiwall @ 20 kg Neto dimuat dalam Kontainer 1 x 20' FCL Food-Grade.`
+                  : `Total Volume: ${formatNumber(bagsCount)} Multiwall Kraft Paper Bags @ 20 kg Net loaded in 1 x 20' FCL Food-Grade Container.`}
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Beneficiary Bank Details</div>
+              <div className="unlk-lbl">{isId ? "Rincian Bank Penerima (Beneficiary Bank)" : "Beneficiary Bank Details"}</div>
               <div className="unlk-bank-lines">
-                <div><b>Bank Name:</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
-                <div><b>Bank Address:</b> {shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
-                <div><b>Account Name:</b> {exporterName}</div>
-                <div><b>Account Number:</b> {bankAccountNo || "152-00-9876543-2"} (USD Account)</div>
-                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>Currency:</b> {currency} (United States Dollar)</div>
+                <div><b>{isId ? "Nama Bank:" : "Bank Name:"}</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
+                <div><b>{isId ? "Alamat Bank:" : "Bank Address:"}</b> {shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
+                <div><b>{isId ? "Nama Rekening:" : "Account Name:"}</b> {exporterName}</div>
+                <div><b>{isId ? "Nomor Rekening:" : "Account Number:"}</b> {bankAccountNo || "152-00-9876543-2"} ({isId ? "Rekening USD" : "USD Account"})</div>
+                <div><b>{isId ? "Kode SWIFT:" : "SWIFT Code:"}</b> {bankSwift || "BMRIIDJA"} | <b>{isId ? "Mata Uang:" : "Currency:"}</b> {currency} ({isId ? "Dolar Amerika Serikat" : "United States Dollar"})</div>
               </div>
             </div>
           </div>
@@ -4018,27 +4093,30 @@ function ProformaInvoiceDoc({
           {/* Right 50%: TOTAL + Incoterms/Currency + Signatory Company + Authorized Signatory + Signature */}
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">INVOICE TOTAL ({incoterm} MAKASSAR):</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt", whiteSpace: "nowrap" }}>
+              <span className="unlk-val-bold">TOTAL ({incoterm} MAKASSAR):</span>
+              <span className="unlk-val-bold" style={{ whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Place and Date of Issue</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
-                <span className="unlk-val-bold">08 Nov 2026</span>
+            <div className="unlk-subrow-2col-70-30 unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Tempat & Tanggal Penerbitan" : "Place and Date of Issue"}</div>
+                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Tanggal Penerbitan" : "Date of Issue"}</div>
+                <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
+              <div className="unlk-lbl">{isId ? "Perusahaan Penandatangan" : "Signatory Company"}</div>
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
+              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
               <div className="unlk-signatory-split">
                 <span className="unlk-val-bold">{sigFull}</span>
                 <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
@@ -4046,7 +4124,7 @@ function ProformaInvoiceDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
+              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Signature"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -4659,11 +4737,8 @@ function CommercialInvoiceDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
-  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
+  const sigRoleText = signatoryRole || (isId ? "Direktur Ekspor" : "Export Director");
 
   const rawVessel = vesselName || "KMTC SHIMIZU V.2611N";
   const vParts = rawVessel.split(/\s+V\./i);
@@ -4675,55 +4750,44 @@ function CommercialInvoiceDoc({
       <DocTitleBanner title={isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"} />
 
       <div className="unlk-trade-form">
-        {/* ROW 1: Exporter (Left 50%) | Pages + Invoice No & Date / B/L No + Reference / Buyer Ref (Right 50%) */}
+        {/* ROW 1: Exporter (Left 50%) | Invoice No & Date / B/L No + Reference / Buyer Ref (Right 50%) */}
         <div className="unlk-row-50-50">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
+            <div className="unlk-lbl">{isId ? "Penjual / Eksportir (Seller / Exporter)" : "Exporter"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            {hasTopLetterhead ? (
-              <>
-                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact: {sigFull} ({signatoryRole || "Export Director"})
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="unlk-val">
-                  Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
-                </div>
-                <div className="unlk-val">
-                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-                </div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact Person: {sigFull} ({signatoryRole || "Export Director"})
-                </div>
-              </>
-            )}
+            <div className="unlk-val">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
+            </div>
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              {isId ? "Narahubung:" : "Contact Person:"} {sigFull} ({sigRoleText})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Invoice Number &amp; Date</div>
+                <div className="unlk-lbl">{isId ? "Nomor & Tanggal Faktur" : "Invoice Number & Date"}</div>
                 <div className="unlk-signatory-split">
                   <span className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</span>
                   <span className="unlk-val-bold">08 Nov 2026</span>
                 </div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Bill of Lading Number</div>
+                <div className="unlk-lbl">{isId ? "Nomor Bill of Lading (B/L)" : "Bill of Lading Number"}</div>
                 <div className="unlk-val-bold">{shipment?.blNumber || "KMTC-MKS0091827"}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Reference</div>
+                <div className="unlk-lbl">{isId ? "Referensi Kontrak" : "Reference"}</div>
                 <div className="unlk-val-bold">SC/IEI-ABF/XI/2026/001</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Buyer Reference</div>
+                <div className="unlk-lbl">{isId ? "Referensi Pembeli" : "Buyer Reference"}</div>
                 <div className="unlk-val-bold">{poNumber || shipment?.poNumber || "ABF/LOI/2026/108"}</div>
               </div>
             </div>
@@ -4733,7 +4797,7 @@ function CommercialInvoiceDoc({
         {/* ROW 2: Consignee (Left 50%) | Buyer (If not Consignee) (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Consignee</div>
+            <div className="unlk-lbl">{isId ? "Penerima Barang (Consignee)" : "Consignee"}</div>
             <div className="unlk-val-bold">{buyerName}</div>
             <div className="unlk-val">{fullBuyerAddress}</div>
             <div className="unlk-val">
@@ -4742,8 +4806,11 @@ function CommercialInvoiceDoc({
           </div>
 
           <div className="unlk-cell">
-            <div className="unlk-lbl">Buyer (If not Consignee)</div>
-            <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
+            <div className="unlk-lbl">{isId ? "Pembeli (Jika Bukan Penerima)" : "Buyer (If not Consignee)"}</div>
+            <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
+            <div className="unlk-val">
+              {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+            </div>
           </div>
         </div>
 
@@ -4752,44 +4819,44 @@ function CommercialInvoiceDoc({
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (FCL)</div>
+                <div className="unlk-lbl">{isId ? "Metode Pengiriman" : "Method of Dispatch"}</div>
+                <div className="unlk-val-bold">{isId ? "Muatan Laut (Ocean FCL)" : "Sea Freight (FCL)"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Type of Shipment</div>
+                <div className="unlk-lbl">{isId ? "Jenis Pengapalan" : "Type of Shipment"}</div>
                 <div className="unlk-val-bold">1 x 20&apos; FCL Dry Container</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Vessel / Aircraft</div>
+                <div className="unlk-lbl">{isId ? "Kapal / Pesawat" : "Vessel / Aircraft"}</div>
                 <div className="unlk-val-bold">{vesselOnly}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Voyage No</div>
+                <div className="unlk-lbl">{isId ? "Nomor Pelayaran" : "Voyage No"}</div>
                 <div className="unlk-val-bold">{voyageOnly}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Muat" : "Port of Loading"}</div>
                 <div className="unlk-val-bold">{pol}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Date of Departure</div>
+                <div className="unlk-lbl">{isId ? "Tanggal Keberangkatan" : "Date of Departure"}</div>
                 <div className="unlk-val-bold">21 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Discharge</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Bongkar" : "Port of Discharge"}</div>
                 <div className="unlk-val-bold">{pod}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Final Destination</div>
+                <div className="unlk-lbl">{isId ? "Tujuan Akhir" : "Final Destination"}</div>
                 <div className="unlk-val-bold">{buyerCountry}</div>
               </div>
             </div>
@@ -4798,30 +4865,37 @@ function CommercialInvoiceDoc({
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Country Of Origin of Goods</div>
+                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country Of Origin of Goods"}</div>
                 <div className="unlk-val-bold">Indonesia</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Country of Final Destination</div>
+                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
                 <div className="unlk-val-bold">{buyerCountry}</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-border-b unlk-flex-fill">
-              <div className="unlk-lbl">Terms / Method of Payment</div>
+              <div className="unlk-lbl">{isId ? "Syarat / Metode Pembayaran" : "Terms / Method of Payment"}</div>
               <div className="unlk-val-bold">
-                {paymentTerms || "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L"}
+                {paymentTerms ||
+                  (isId
+                    ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% saat Salinan B/L Diterima"
+                    : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
               </div>
             </div>
 
             <div className="unlk-subrow-2col">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Marine Cover Policy No</div>
-                <div className="unlk-val-bold">{incoterm === "CIF" ? "MC-IEI-2026-881" : "FOB Buyer Coverage"}</div>
+                <div className="unlk-lbl">{isId ? "Polis Asuransi Laut" : "Marine Cover Policy No"}</div>
+                <div className="unlk-val-bold">
+                  {incoterm === "CIF"
+                    ? "MC-IEI-2026-881"
+                    : (isId ? "Ditanggung Pembeli (FOB)" : "FOB Buyer Coverage")}
+                </div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Letter Of Credit No</div>
-                <div className="unlk-val-bold">N/A (T/T Remittance)</div>
+                <div className="unlk-lbl">{isId ? "Nomor Letter of Credit (L/C)" : "Letter Of Credit No"}</div>
+                <div className="unlk-val-bold">{isId ? "Tidak Ada (Remitansi T/T)" : "N/A (T/T Remittance)"}</div>
               </div>
             </div>
           </div>
@@ -4831,13 +4905,13 @@ function CommercialInvoiceDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "11%" }}>Product Code</th>
-              <th style={{ width: "35%" }}>Description of Goods</th>
-              <th style={{ width: "10%" }}>HS Code</th>
-              <th style={{ width: "11%" }}>Unit Quantity</th>
-              <th style={{ width: "8%" }}>Unit Type</th>
-              <th style={{ width: "11%" }}>Unit Price</th>
-              <th style={{ width: "14%" }}>Amount</th>
+              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "35%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "10%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Jumlah Kuantitas" : "Unit Quantity"}</th>
+              <th style={{ width: "8%" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+              <th style={{ width: "14%" }}>{isId ? "Jumlah Total" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -4846,13 +4920,16 @@ function CommercialInvoiceDoc({
               <td>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
-                  • Specification: Grade A Export Quality, Moisture Max 2.5%, Mesh 16-18, Purity 99%
+                  • {isId ? "Spesifikasi:" : "Specification:"} Grade A Export Quality, Moisture Max 2.5%, Mesh 16-18, Purity 99%
                 </div>
                 <div className="unlk-item-spec">
-                  • Packing: 20 Kg Net Multiwall Kraft Paper Bag with Food-Grade PE Liner
+                  • {isId ? "Kemasan:" : "Packing:"} 20 Kg Net Multiwall Kraft Paper Bag with Food-Grade PE Liner ({formatNumber(bagsCount)} Bags)
                 </div>
                 <div className="unlk-item-spec">
-                  • Shipping Marks: {buyerName.split(" ")[0] || "AL BARAKAH"} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
+                  • {isId ? "Berat Bersih:" : "Net Weight:"} {formatNumber(netWeightKgs, 2)} Kgs | {isId ? "Berat Kotor:" : "Gross Weight:"} {formatNumber(grossWeightKgs, 2)} Kgs | Muat 1 x 20&apos; FCL
+                </div>
+                <div className="unlk-item-spec">
+                  • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
@@ -4864,14 +4941,16 @@ function CommercialInvoiceDoc({
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Total This Page</td>
+              <td colSpan={3} className="unlk-subtotal-label">{isId ? "Total Halaman Ini" : "Total This Page"}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
               <td />
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total</td>
+              <td colSpan={3} className="unlk-subtotal-label font-bold">
+                {isId ? `Total Konsinyasi (${incoterm} Makassar)` : `Consignment Total (${incoterm} Makassar)`}
+              </td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
               <td />
@@ -4884,63 +4963,73 @@ function CommercialInvoiceDoc({
         <div className="unlk-row-50-50">
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info &amp; Amount in Words</div>
+              <div className="unlk-lbl">{isId ? "Informasi Tambahan & Terbilang" : "Additional Info & Amount in Words"}</div>
               <div className="unlk-val">
-                <b>Say:</b> <i>{amountInWords}</i>
+                <b>{isId ? "Terbilang:" : "Say:"}</b> <i>{amountInWords}</i>
               </div>
               <div className="unlk-val" style={{ marginTop: "2px" }}>
-                We hereby certify that this invoice shows the actual price of the goods described and that all particulars are true and correct.
+                {isId
+                  ? "Total Volume: 900 Karung Multiwall Kraft Paper Bag @ 20 Kg dimuat ke dalam 1 x 20' FCL Food-Grade Container."
+                  : "Total Volume: 900 Multiwall Kraft Paper Bags @ 20 Kg net loaded in 1 x 20' FCL Food-Grade Container."}
+              </div>
+              <div className="unlk-val" style={{ marginTop: "2px" }}>
+                {isId
+                  ? "Dengan ini kami menyatakan bahwa faktur ini menunjukkan harga sebenarnya dari barang yang diuraikan dan bahwa semua keterangan adalah benar dan tepat."
+                  : "We hereby certify that this invoice shows the actual price of the goods described and that all particulars are true and correct."}
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Beneficiary Bank Details</div>
+              <div className="unlk-lbl">{isId ? "Rincian Bank Penerima (Beneficiary)" : "Beneficiary Bank Details"}</div>
               <div className="unlk-bank-lines">
-                <div><b>Bank Name:</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
-                <div><b>Bank Address:</b> {shipment?.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
-                <div><b>Account Name:</b> {exporterName}</div>
-                <div><b>Account Number:</b> {bankAccountNo || "152-00-9876543-2"} (USD Account)</div>
-                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>Currency:</b> {currency}</div>
+                <div><b>{isId ? "Nama Bank:" : "Bank Name:"}</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
+                <div><b>{isId ? "Alamat Bank:" : "Bank Address:"}</b> {shipment?.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
+                <div><b>{isId ? "Nama Pemilik Rekening:" : "Account Name:"}</b> {exporterName}</div>
+                <div><b>{isId ? "Nomor Rekening:" : "Account Number:"}</b> {bankAccountNo || "152-00-9876543-2"} ({isId ? "Rekening USD" : "USD Account"})</div>
+                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>{isId ? "Mata Uang:" : "Currency:"}</b> {currency}</div>
               </div>
             </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">INVOICE TOTAL ({incoterm} MAKASSAR):</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt", whiteSpace: "nowrap" }}>
+              <span className="unlk-val-bold">{isId ? `TOTAL FAKTUR (${incoterm} MAKASSAR):` : `INVOICE TOTAL (${incoterm} MAKASSAR):`}</span>
+              <span className="unlk-val-bold" style={{ fontSize: "8.8pt", whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Place and Date of Issue</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
-                <span className="unlk-val-bold">08 Nov 2026</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Tempat & Tanggal Penerbitan" : "Place and Date of Issue"}</div>
+                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Tanggal Penerbitan" : "Date of Issue"}</div>
+                <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
+              <div className="unlk-lbl">{isId ? "Perusahaan Penandatangan" : "Signatory Company"}</div>
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
+              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
               <div className="unlk-signatory-split">
                 <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{signatoryRole || "Export Director"}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
+              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
                 signatoryName={sigFull}
-                signatoryRole={signatoryRole || "Export Director"}
+                signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
               />
             </div>
@@ -5014,11 +5103,8 @@ function PackingListDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
-  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
+  const sigRoleText = signatoryRole || (isId ? "Direktur Ekspor" : "Export Director");
 
   const rawVessel = vesselName || "KMTC SHIMIZU V.2611N";
   const vParts = rawVessel.split(/\s+V\./i);
@@ -5033,52 +5119,41 @@ function PackingListDoc({
         {/* ROW 1: Exporter (Left 50%) | Pages + PL No/Date + Invoice Ref/Buyer Ref (Right 50%) */}
         <div className="unlk-row-50-50">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
+            <div className="unlk-lbl">{isId ? "Penjual / Eksportir (Seller / Exporter)" : "Exporter"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            {hasTopLetterhead ? (
-              <>
-                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact: {sigFull} ({signatoryRole || "Export Director"})
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="unlk-val">
-                  Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
-                </div>
-                <div className="unlk-val">
-                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-                </div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact Person: {sigFull} ({signatoryRole || "Export Director"})
-                </div>
-              </>
-            )}
+            <div className="unlk-val">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
+            </div>
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              {isId ? "Narahubung:" : "Contact Person:"} {sigFull} ({sigRoleText})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Packing List Number &amp; Date</div>
+                <div className="unlk-lbl">{isId ? "Nomor & Tanggal Packing List" : "Packing List Number & Date"}</div>
                 <div className="unlk-signatory-split">
                   <span className="unlk-val-bold">PL/IEI-DXB/XI/2026/001</span>
                   <span className="unlk-val-bold">08 Nov 2026</span>
                 </div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Bill of Lading Number</div>
+                <div className="unlk-lbl">{isId ? "Nomor Bill of Lading (B/L)" : "Bill of Lading Number"}</div>
                 <div className="unlk-val-bold">{shipment?.blNumber || "KMTC-MKS0091827"}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Invoice Reference</div>
+                <div className="unlk-lbl">{isId ? "Referensi Faktur (Invoice Ref)" : "Invoice Reference"}</div>
                 <div className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Buyer Reference</div>
+                <div className="unlk-lbl">{isId ? "Referensi Pembeli" : "Buyer Reference"}</div>
                 <div className="unlk-val-bold">{poNumber || shipment?.poNumber || "ABF/LOI/2026/108"}</div>
               </div>
             </div>
@@ -5088,7 +5163,7 @@ function PackingListDoc({
         {/* ROW 2: Consignee (Left 50%) | Notify Party (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Consignee</div>
+            <div className="unlk-lbl">{isId ? "Penerima Barang (Consignee)" : "Consignee"}</div>
             <div className="unlk-val-bold">{buyerName}</div>
             <div className="unlk-val">{fullBuyerAddress}</div>
             <div className="unlk-val">
@@ -5097,8 +5172,11 @@ function PackingListDoc({
           </div>
 
           <div className="unlk-cell">
-            <div className="unlk-lbl">Notify Party / Buyer</div>
-            <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
+            <div className="unlk-lbl">{isId ? "Pihak yang Diberitahu (Notify Party)" : "Notify Party / Buyer"}</div>
+            <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
+            <div className="unlk-val">
+              {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+            </div>
           </div>
         </div>
 
@@ -5107,33 +5185,33 @@ function PackingListDoc({
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (FCL)</div>
+                <div className="unlk-lbl">{isId ? "Metode Pengiriman" : "Method of Dispatch"}</div>
+                <div className="unlk-val-bold">{isId ? "Muatan Laut (Ocean FCL)" : "Sea Freight (FCL)"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Type of Shipment</div>
+                <div className="unlk-lbl">{isId ? "Jenis Pengapalan" : "Type of Shipment"}</div>
                 <div className="unlk-val-bold">1 x 20&apos; FCL Dry Container</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Vessel / Aircraft</div>
+                <div className="unlk-lbl">{isId ? "Kapal / Pesawat" : "Vessel / Aircraft"}</div>
                 <div className="unlk-val-bold">{vesselOnly}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Voyage No</div>
+                <div className="unlk-lbl">{isId ? "Nomor Pelayaran" : "Voyage No"}</div>
                 <div className="unlk-val-bold">{voyageOnly}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Muat" : "Port of Loading"}</div>
                 <div className="unlk-val-bold">{pol}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Bongkar" : "Port of Discharge"}</div>
                 <div className="unlk-val-bold">{pod}</div>
               </div>
             </div>
@@ -5142,30 +5220,32 @@ function PackingListDoc({
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Country Of Origin of Goods</div>
+                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country Of Origin of Goods"}</div>
                 <div className="unlk-val-bold">Indonesia</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Country of Final Destination</div>
+                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
                 <div className="unlk-val-bold">{buyerCountry}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Container Number</div>
+                <div className="unlk-lbl">{isId ? "Nomor Kontainer" : "Container Number"}</div>
                 <div className="unlk-val-bold">{containerNumber || "TGHU 2468135"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Seal Number</div>
+                <div className="unlk-lbl">{isId ? "Nomor Segel" : "Seal Number"}</div>
                 <div className="unlk-val-bold">{sealNumber || "IDMKS998877"}</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Packing &amp; Bag Dimension</div>
+              <div className="unlk-lbl">{isId ? "Dimensi & Kemasan Karung" : "Packing & Bag Dimension"}</div>
               <div className="unlk-val-bold">
-                3-Ply Multiwall Kraft Paper Bag with Food-Grade PE Liner (60 x 40 x 12 cm)
+                {isId
+                  ? "Karung Kertas Kraft Multiwall 3 Lapis dengan Lapisan PE Food-Grade (60 x 40 x 12 cm)"
+                  : "3-Ply Multiwall Kraft Paper Bag with Food-Grade PE Liner (60 x 40 x 12 cm)"}
               </div>
             </div>
           </div>
@@ -5175,13 +5255,13 @@ function PackingListDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "12%" }}>Product Code</th>
-              <th style={{ width: "34%" }}>Description of Goods</th>
-              <th style={{ width: "10%" }}>HS Code</th>
-              <th style={{ width: "11%" }}>Unit Qty</th>
-              <th style={{ width: "11%" }}>Net Weight</th>
-              <th style={{ width: "11%" }}>Gross Weight</th>
-              <th style={{ width: "11%" }}>Meas. (CBM)</th>
+              <th style={{ width: "12%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "34%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "10%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Jumlah Karung" : "Unit Qty"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Berat Bersih" : "Net Weight"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Berat Kotor" : "Gross Weight"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Ukuran (CBM)" : "Meas. (CBM)"}</th>
             </tr>
           </thead>
           <tbody>
@@ -5190,14 +5270,14 @@ function PackingListDoc({
               <td>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
-                  • Unit Net Weight: 20.00 Kg / Bag | Unit Gross Weight: 20.25 Kg / Bag
+                  • {isId ? "Berat Bersih Satuan: 20,00 Kg / Karung | Berat Kotor Satuan: 20,25 Kg / Karung" : "Unit Net Weight: 20.00 Kg / Bag | Unit Gross Weight: 20.25 Kg / Bag"}
                 </div>
                 <div className="unlk-item-spec">
-                  • Shipping Marks: {buyerName.split(" ")[0] || "AL BARAKAH"} / DUBAI - UAE / BATCH 11/26 / MADE IN INDONESIA
+                  • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / DUBAI - UAE / BATCH 11/26 / MADE IN INDONESIA
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
-              <td className="text-right font-semibold">{formatNumber(bagsCount)} Bags</td>
+              <td className="text-right font-semibold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightKgs, 2)} Kgs</td>
               <td className="text-right font-semibold">{formatNumber(grossWeightKgs, 2)} Kgs</td>
               <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
@@ -5205,15 +5285,15 @@ function PackingListDoc({
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Total This Page</td>
-              <td className="text-right font-semibold">{formatNumber(bagsCount)} Bags</td>
+              <td colSpan={3} className="unlk-subtotal-label">{isId ? "Total Halaman Ini" : "Total This Page"}</td>
+              <td className="text-right font-semibold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightKgs, 2)} Kgs</td>
               <td className="text-right font-semibold">{formatNumber(grossWeightKgs, 2)} Kgs</td>
               <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
-              <td className="text-right font-bold">{formatNumber(bagsCount)} Bags</td>
+            <tr className="unlk-subtotal-row unlk-consignment-total-row">
+              <td colSpan={3} className="unlk-subtotal-label font-bold">{isId ? "Total Konsinyasi" : "Consignment Total"}</td>
+              <td className="text-right font-bold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)} MT</td>
               <td className="text-right font-bold">{formatNumber(grossWeightMT, 3)} MT</td>
               <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
@@ -5225,57 +5305,68 @@ function PackingListDoc({
         <div className="unlk-row-50-50">
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info</div>
+              <div className="unlk-lbl">{isId ? "Informasi Tambahan" : "Additional Info"}</div>
               <div className="unlk-val">
-                <b>Total Consignment:</b> {formatNumber(bagsCount)} Multiwall Kraft Paper Bags stuffed into 1 x 20&apos; FCL Food-Grade Container.
+                <b>{isId ? "Total Konsinyasi:" : "Total Consignment:"}</b> {formatNumber(bagsCount)} {isId ? "Karung Kertas Kraft Multiwall dimuat dalam 1 x 20' FCL Food-Grade Container." : "Multiwall Kraft Paper Bags stuffed into 1 x 20' FCL Food-Grade Container."}
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Packing &amp; Seaworthy Compliance Declaration</div>
+              <div className="unlk-lbl">{isId ? "Deklarasi Kemasan & Kelaiklautan (Seaworthy)" : "Packing & Seaworthy Compliance Declaration"}</div>
               <div className="unlk-bank-lines">
-                <div>We hereby certify that the goods mentioned above are packed in seaworthy export multiwall kraft paper bags with inner food-grade PE liner.</div>
-                <div>All particulars concerning quantity, packaging, and gross/net weights are verified, true, and correct.</div>
+                <div>
+                  {isId
+                    ? "Dengan ini kami menyatakan bahwa barang yang disebutkan di atas dikemas dalam karung kertas kraft multiwall standar ekspor kelaiklautan dengan lapisan dalam PE food-grade."
+                    : "We hereby certify that the goods mentioned above are packed in seaworthy export multiwall kraft paper bags with inner food-grade PE liner."}
+                </div>
+                <div>
+                  {isId
+                    ? "Semua rincian mengenai kuantitas, kemasan, serta berat kotor dan bersih telah diverifikasi dengan tepat, benar, dan sah."
+                    : "All particulars concerning quantity, packaging, and gross/net weights are verified, true, and correct."}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL PACKAGES:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt" }}>
-                {formatNumber(bagsCount)} BAGS ({formatNumber(grossWeightKgs, 2)} KGS)
+              <span className="unlk-val-bold">{isId ? "TOTAL KEMASAN:" : "TOTAL PACKAGES:"}</span>
+              <span className="unlk-val-bold" style={{ fontSize: "8.8pt" }}>
+                {formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"} ({formatNumber(grossWeightKgs, 2)} KGS)
               </span>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Place and Date of Issue</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
-                <span className="unlk-val-bold">08 Nov 2026</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Tempat & Tanggal Penerbitan" : "Place and Date of Issue"}</div>
+                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Tanggal Penerbitan" : "Date of Issue"}</div>
+                <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
+              <div className="unlk-lbl">{isId ? "Perusahaan Penandatangan" : "Signatory Company"}</div>
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
+              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
               <div className="unlk-signatory-split">
                 <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{signatoryRole || "Export Director"}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
+              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
                 signatoryName={sigFull}
-                signatoryRole={signatoryRole || "Export Director"}
+                signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
               />
             </div>
@@ -5349,11 +5440,8 @@ function ShippingInstructionDoc({
       ? `${buyerAddress}, ${buyerCountry}`
       : buyerAddress;
 
-  const hasTopLetterhead = ((shipment?.letterheadMode as string) || "standard") !== "hidden";
   const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
+  const sigRoleText = signatoryRole || (isId ? "Direktur Ekspor" : "Export Director");
 
   const rawVessel = vesselName || "KMTC SHIMIZU V.2611N";
   const vParts = rawVessel.split(/\s+V\./i);
@@ -5368,52 +5456,41 @@ function ShippingInstructionDoc({
         {/* ROW 1: Shipper / Exporter (Left 50%) | Pages + SI No/Date + Booking/Contract Ref (Right 50%) */}
         <div className="unlk-row-50-50">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Pengirim / Shipper" : "Shipper / Exporter (To appear on B/L)"}</div>
+            <div className="unlk-lbl">{isId ? "Pengirim / Eksportir (Shipper / Exporter)" : "Shipper / Exporter (To appear on B/L)"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
-            {hasTopLetterhead ? (
-              <>
-                <div className="unlk-val">Makassar, South Sulawesi – Indonesia</div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact: {sigFull} ({signatoryRole || "Export Director"})
-                </div>
-              </>
-            ) : (
-              <>
-                <div className="unlk-val">
-                  {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
-                </div>
-                <div className="unlk-val">
-                  Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-                </div>
-                <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                  Contact Person: {sigFull} ({signatoryRole || "Export Director"})
-                </div>
-              </>
-            )}
+            <div className="unlk-val">
+              {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
+            </div>
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              {isId ? "Narahubung:" : "Contact Person:"} {sigFull} ({sigRoleText})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">SI Number &amp; Date</div>
+                <div className="unlk-lbl">{isId ? "Nomor & Tanggal SI" : "SI Number & Date"}</div>
                 <div className="unlk-signatory-split">
                   <span className="unlk-val-bold">SI/IEI/XI/2026/001</span>
                   <span className="unlk-val-bold">16 Nov 2026</span>
                 </div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">To (Forwarder / Shipping Line)</div>
+                <div className="unlk-lbl">{isId ? "Kepada (Forwarder / Pelayaran)" : "To (Forwarder / Shipping Line)"}</div>
                 <div className="unlk-val-bold">PT. Samudera Logistik Nusantara</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Contract / Invoice Ref</div>
+                <div className="unlk-lbl">{isId ? "Referensi Kontrak / Faktur" : "Contract / Invoice Ref"}</div>
                 <div className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Buyer Reference</div>
+                <div className="unlk-lbl">{isId ? "Referensi Pembeli" : "Buyer Reference"}</div>
                 <div className="unlk-val-bold">{poNumber || shipment?.poNumber || "ABF/LOI/2026/108"}</div>
               </div>
             </div>
@@ -5423,7 +5500,7 @@ function ShippingInstructionDoc({
         {/* ROW 2: Consignee (Left 50%) | Notify Party (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Consignee (To appear on B/L)</div>
+            <div className="unlk-lbl">{isId ? "Penerima Barang (Untuk B/L)" : "Consignee (To appear on B/L)"}</div>
             <div className="unlk-val-bold">{buyerName}</div>
             <div className="unlk-val">{fullBuyerAddress}</div>
             <div className="unlk-val">
@@ -5432,8 +5509,11 @@ function ShippingInstructionDoc({
           </div>
 
           <div className="unlk-cell">
-            <div className="unlk-lbl">Notify Party (To appear on B/L)</div>
-            <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
+            <div className="unlk-lbl">{isId ? "Pihak yang Diberitahu (Untuk B/L)" : "Notify Party (To appear on B/L)"}</div>
+            <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
+            <div className="unlk-val">
+              {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+            </div>
           </div>
         </div>
 
@@ -5442,22 +5522,22 @@ function ShippingInstructionDoc({
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Vessel / Aircraft</div>
+                <div className="unlk-lbl">{isId ? "Kapal / Pesawat" : "Vessel / Aircraft"}</div>
                 <div className="unlk-val-bold">{vesselOnly}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Voyage No / ETD</div>
+                <div className="unlk-lbl">{isId ? "Nomor Pelayaran / ETD" : "Voyage No / ETD"}</div>
                 <div className="unlk-val-bold">{voyageOnly} (ETD: 21 Nov 2026)</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Muat" : "Port of Loading"}</div>
                 <div className="unlk-val-bold">{pol}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge</div>
+                <div className="unlk-lbl">{isId ? "Pelabuhan Bongkar" : "Port of Discharge"}</div>
                 <div className="unlk-val-bold">{pod}</div>
               </div>
             </div>
@@ -5466,22 +5546,26 @@ function ShippingInstructionDoc({
           <div className="unlk-col-stack">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Type of Bill of Lading</div>
-                <div className="unlk-val-bold">Full Set (3/3) Original Clean on Board</div>
+                <div className="unlk-lbl">{isId ? "Jenis Bill of Lading" : "Type of Bill of Lading"}</div>
+                <div className="unlk-val-bold">{isId ? "Set Lengkap (3/3) Asli Clean on Board" : "Full Set (3/3) Original Clean on Board"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Freight Terms</div>
-                <div className="unlk-val-bold">{incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"}</div>
+                <div className="unlk-lbl">{isId ? "Syarat Uang Tambang (Freight Terms)" : "Freight Terms"}</div>
+                <div className="unlk-val-bold">
+                  {incoterm === "FOB"
+                    ? (isId ? "ONGKOS DIBAYAR DI TUJUAN (FREIGHT COLLECT)" : "FREIGHT COLLECT")
+                    : (isId ? "ONGKOS DIBAYAR DI MUKA (FREIGHT PREPAID)" : "FREIGHT PREPAID")}
+                </div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Container / Seal No</div>
+                <div className="unlk-lbl">{isId ? "Nomor Kontainer / Segel" : "Container / Seal No"}</div>
                 <div className="unlk-val-bold">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Stuffing Mode</div>
+                <div className="unlk-lbl">{isId ? "Mode Muat (Stuffing Mode)" : "Stuffing Mode"}</div>
                 <div className="unlk-val-bold">1 x 20&apos; GP Food-Grade (CY / CY)</div>
               </div>
             </div>
@@ -5492,12 +5576,12 @@ function ShippingInstructionDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "16%" }}>Marks &amp; Numbers</th>
-              <th style={{ width: "36%" }}>Description of Goods (On B/L)</th>
-              <th style={{ width: "11%" }}>HS Code</th>
-              <th style={{ width: "12%" }}>No. of Pkgs</th>
-              <th style={{ width: "13%" }}>Gross Weight</th>
-              <th style={{ width: "12%" }}>Measurement</th>
+              <th style={{ width: "16%" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
+              <th style={{ width: "36%" }}>{isId ? "Uraian Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Berat Kotor (Bruto)" : "Gross Weight"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Ukuran (CBM)" : "Measurement"}</th>
             </tr>
           </thead>
           <tbody>
@@ -5511,22 +5595,22 @@ function ShippingInstructionDoc({
               <td>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
-                  • Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner.
+                  • {isId ? "Dikemas dalam Karung Kertas Kraft Multiwall 20 Kg Neto dengan Lapisan PE Food-Grade." : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
                 </div>
                 <div className="unlk-item-spec">
-                  • Clean on Board, Stowed Under Deck in FCL Container.
+                  • {isId ? "Clean on Board, Dimuat di Bawah Geladak dalam Kontainer FCL." : "Clean on Board, Stowed Under Deck in FCL Container."}
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
-              <td className="text-right font-semibold">{formatNumber(bagsCount)} BAGS</td>
+              <td className="text-right font-semibold">{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</td>
               <td className="text-right font-semibold">{formatNumber(grossWeightKgs, 2)} KGS</td>
               <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
-              <td className="text-right font-bold">{formatNumber(bagsCount)} BAGS</td>
+              <td colSpan={3} className="unlk-subtotal-label">{isId ? "Total Konsinyasi" : "Consignment Total"}</td>
+              <td className="text-right font-bold">{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</td>
               <td className="text-right font-bold">{formatNumber(grossWeightKgs, 2)} KGS</td>
               <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
@@ -5537,52 +5621,55 @@ function ShippingInstructionDoc({
         <div className="unlk-row-50-50">
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Special Documentary &amp; Handling Instructions</div>
+              <div className="unlk-lbl">{isId ? "Instruksi Khusus Dokumen & Penanganan" : "Special Documentary & Handling Instructions"}</div>
               <div className="unlk-bank-lines">
-                <div>1. Issue <b>Full Set (3/3) Original Clean on Board Ocean B/L</b> + 3 Non-Negotiable Copies.</div>
-                <div>2. Freight Term: <b>{incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"}</b> ({incoterm} Makassar, Incoterms® 2020).</div>
-                <div>3. Container: Clean, Dry, Odorless, Food-Grade 20ft GP Container suitable for foodstuff.</div>
-                <div>4. Send Draft B/L &amp; Draft PEB for verification prior to final issuance.</div>
+                <div>1. {isId ? "Terbitkan Set Lengkap (3/3) Asli Clean on Board Ocean B/L + 3 Salinan Non-Negotiable." : "Issue Full Set (3/3) Original Clean on Board Ocean B/L + 3 Non-Negotiable Copies."}</div>
+                <div>2. {isId ? `Ketentuan Freight: ${incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"} (${incoterm} Makassar, Incoterms® 2020).` : `Freight Term: ${incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"} (${incoterm} Makassar, Incoterms® 2020).`}</div>
+                <div>3. {isId ? "Kontainer: Bersih, Kering, Tidak Berbau, Standar Food-Grade 20ft GP Container sesuai untuk bahan pangan." : "Container: Clean, Dry, Odorless, Food-Grade 20ft GP Container suitable for foodstuff."}</div>
+                <div>4. {isId ? "Kirim Draf B/L & Draf PEB untuk verifikasi sebelum penerbitan final." : "Send Draft B/L & Draft PEB for verification prior to final issuance."}</div>
               </div>
             </div>
           </div>
 
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL CARGO:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10pt" }}>
-                {formatNumber(bagsCount)} BAGS | {formatNumber(grossWeightKgs, 2)} KGS | {formatNumber(totalCBM, 3)} CBM
+              <span className="unlk-val-bold">{isId ? "TOTAL KARGO:" : "TOTAL CARGO:"}</span>
+              <span className="unlk-val-bold" style={{ fontSize: "8.8pt" }}>
+                {formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"} | {formatNumber(grossWeightKgs, 2)} KGS | {formatNumber(totalCBM, 3)} CBM
               </span>
             </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Place and Date of Issue</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">MAKASSAR, INDONESIA</span>
-                <span className="unlk-val-bold">16 Nov 2026</span>
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Tempat & Tanggal Penerbitan" : "Place and Date of Issue"}</div>
+                <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Tanggal Penerbitan" : "Date of Issue"}</div>
+                <div className="unlk-val-bold">16 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
+              <div className="unlk-lbl">{isId ? "Perusahaan Penandatangan" : "Signatory Company"}</div>
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
+              <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
               <div className="unlk-signatory-split">
                 <span className="unlk-val-bold">{sigFull}</span>
-                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{signatoryRole || "Export Director"}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
+              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
                 signatoryName={sigFull}
-                signatoryRole={signatoryRole || "Export Director"}
+                signatoryRole={sigRoleText}
                 onOpenSignatureModal={onOpenSignatureModal}
               />
             </div>
