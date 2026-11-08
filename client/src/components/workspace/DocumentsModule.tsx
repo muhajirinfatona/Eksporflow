@@ -1117,9 +1117,6 @@ export function DocumentsModule({
               containerNumber={containerNumber}
               sealNumber={sealNumber}
               poNumber={poNumber}
-              bankName={bankName}
-              bankAccountNo={bankAccountNo}
-              bankSwift={bankSwift}
               paymentTerms={paymentTerms}
               pol={pol}
               pod={pod}
@@ -3362,78 +3359,7 @@ function DocTitleBanner({ title }: { title: string }) {
 }
 
 // --------------------------------------------------------------------------
-// IncoDocs / UNLK Compact Signature & Stamp Box (Inside Right Footer Grid)
-// --------------------------------------------------------------------------
-function UnlkSignatureBox({
-  shipment,
-  onOpenSignatureModal,
-}: {
-  shipment?: Shipment;
-  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
-}) {
-  const hasSignature = !!shipment?.sellerSignatureImage;
-  const includeStamp = shipment?.includeOfficialStamp ?? true;
-  const stampColor = shipment?.officialStampColor || "red";
-
-  return (
-    <div className="unlk-sig-zone">
-      {hasSignature ? (
-        <div className="sig-rendered-wrap" style={{ minHeight: "52px", display: "flex", alignItems: "center", gap: "10px", position: "relative" }}>
-          <img
-            src={shipment.sellerSignatureImage}
-            alt="Digital Signature"
-            className="doc-rendered-signature"
-            style={{ maxHeight: "48px", width: "auto" }}
-          />
-          {includeStamp && (
-            <div className={`doc-seal-overlay seal-${stampColor}`} title="Stempel Digital Resmi Validated">
-              <div className="seal-circle-outer">
-                <div className="seal-circle-inner">
-                  <span className="seal-txt-top">★ PT. INDICO EXPORT ★</span>
-                  <span className="seal-txt-star">★ VALIDATED ★</span>
-                  <span className="seal-txt-sub">OFFICIAL SEAL</span>
-                  <span className="seal-txt-bot">INDONESIA</span>
-                </div>
-              </div>
-            </div>
-          )}
-          <div className="sig-verify-badge">
-            <span className="sig-verify-check">✓</span>
-            <span>Terverifikasi Digital ({shipment.sellerSignatureDate || "2026"})</span>
-          </div>
-          {onOpenSignatureModal && (
-            <button
-              type="button"
-              className="sig-edit-hover-btn no-print"
-              onClick={() => onOpenSignatureModal("seller")}
-              title="Ganti atau perbarui tanda tangan digital"
-            >
-              Ubah Tanda Tangan
-            </button>
-          )}
-        </div>
-      ) : (
-        <div className="sig-placeholder-wrap" style={{ minHeight: "52px", display: "flex", alignItems: "center" }}>
-          {onOpenSignatureModal ? (
-            <button
-              type="button"
-              className="doc-btn-click-sign no-print"
-              onClick={() => onOpenSignatureModal("seller")}
-              title="Klik untuk membubuhkan tanda tangan digital & stempel resmi"
-            >
-              <PenTool size={13} />
-              <span>+ Klik Tanda Tangan Digital & Stempel</span>
-            </button>
-          ) : null}
-          <div className="sig-box-space" style={{ height: "48px" }} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// --------------------------------------------------------------------------
-// 1. PROFORMA INVOICE (PI) COMPONENT — INCODOCS / UNLK SINGLE-PAGE FORMAT
+// 1. PROFORMA INVOICE (PI) COMPONENT
 // --------------------------------------------------------------------------
 function ProformaInvoiceDoc({
   shipment,
@@ -3496,251 +3422,193 @@ function ProformaInvoiceDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
-  const fullBuyerAddress =
-    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-      ? `${buyerAddress}, ${buyerCountry}`
-      : buyerAddress;
-
-  const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
-
   return (
-    <div className="doc-content-wrapper unlk-doc-wrapper">
-      <h2 className="unlk-main-heading">
-        {isId ? "PROFORMA INVOICE" : "PROFORMA INVOICE"}
-      </h2>
+    <div className="doc-content-wrapper">
+      <DocTitleBanner title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"} />
 
-      <div className="unlk-trade-form">
-        {/* ROW 1: Seller (Left 50%) | Pages + Invoice No/Date + Buyer Ref/Due Date (Right 50%) */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Seller (Eksportir)" : "Seller"}</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
-            </div>
-            <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Invoice Number" : "Invoice Number"}</div>
-                <div className="unlk-val-bold">PI/IEI-DXB/X/2026/001</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Issue Date" : "Issue Date"}</div>
-                <div className="unlk-val-bold">08 Nov 2026</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Buyer Reference" : "Buyer Reference"}</div>
-                <div className="unlk-val-bold">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Due Date" : "Due Date"}</div>
-                <div className="unlk-val-bold">22 Nov 2026 (14 Days)</div>
-              </div>
-            </div>
-          </div>
+      <div className="doc-two-col-grid">
+        <div className="doc-box">
+          <span className="doc-box-tag">
+            {isId ? "PEMBELI / PENERIMA (BUYER / CONSIGNEE):" : "BUYER / CONSIGNEE:"}
+          </span>
+          <b className="doc-entity-name">{buyerName}</b>
+          <p className="doc-entity-address">
+            {buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
+              ? `${buyerAddress}, ${buyerCountry}`
+              : buyerAddress}
+          </p>
+          <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          <p className="doc-entity-contact">
+            {isId ? "Narahubung:" : "Contact Person:"}{" "}
+            <span>
+              {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
+              {isId ? `(${buyerPicRole || "Direktur Pengadaan"})` : `(${buyerPicRole || "Procurement Director"})`}
+            </span>
+          </p>
         </div>
 
-        {/* ROW 2: Buyer (Left 50%) | Delivery Date (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Buyer (Pembeli)" : "Buyer"}</div>
-            <div className="unlk-val-bold">{buyerName}</div>
-            <div className="unlk-val">{fullBuyerAddress}</div>
-            <div className="unlk-val">
-              Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
-            </div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPicRole || "Procurement Director"})
-            </div>
+        <div className="doc-box">
+          <div className="meta-pair">
+            <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>
+            <b className="meta-value meta-value-primary">PI/IEI-DXB/X/2026/001</b>
           </div>
-
-          <div className="unlk-cell">
-            <div className="unlk-lbl">{isId ? "Delivery Date" : "Delivery Date"}</div>
-            <div className="unlk-val-bold">
-              {isId
-                ? "Maksimal 21 hari setelah Pembayaran Uang Muka (DP)"
-                : "Within 21 days after Advance Payment"}
-            </div>
-            <div className="unlk-val" style={{ marginTop: "3px" }}>
-              Country of Origin of Goods: <b>Indonesia</b>
-            </div>
+          <div className="meta-pair">
+            <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>
+            <span className="meta-value">{isId ? "31 Oktober 2026" : "October 31, 2026"}</span>
+          </div>
+          <div className="meta-pair">
+            <span className="meta-label">{isId ? "Masa Berlaku:" : "Validity:"}</span>
+            <span className="meta-value">{isId ? "14 November 2026 (14 Hari)" : "November 14, 2026 (14 Days)"}</span>
+          </div>
+          <div className="meta-pair">
+            <span className="meta-label">{isId ? "Ref. Pembeli:" : "Buyer Ref:"}</span>
+            <span className="meta-value">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</span>
           </div>
         </div>
+      </div>
 
-        {/* ROW 3: Dispatch & Ports (Left 50% 2x2) | Terms / Method of Payment (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (FCL)</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Type of Shipment</div>
-                <div className="unlk-val-bold">1 x 20&apos; FCL Dry Container</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
-                <div className="unlk-val-bold">{pol}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge</div>
-                <div className="unlk-val-bold">{pod}</div>
-              </div>
-            </div>
+      <div className="doc-terms-panel">
+        <div className="doc-terms-header">
+          {isId ? "KETENTUAN PENGIRIMAN & KOMERSIAL" : "SHIPPING & COMMERCIAL TERMS"}
+        </div>
+        <div className="doc-terms-grid">
+          <div>
+            <span className="terms-lbl">{isId ? "Pelabuhan Muat (POL):" : "Port of Loading:"}</span>
+            <span className="terms-val">{pol}</span>
           </div>
-
-          <div className="unlk-cell">
-            <div className="unlk-lbl">Terms / Method of Payment</div>
-            <div className="unlk-val-bold">
+          <div>
+            <span className="terms-lbl">{isId ? "Ketentuan Penyerahan:" : "Incoterm:"}</span>
+            <span className="terms-val">{incoterm} Makassar (Incoterms 2020)</span>
+          </div>
+          <div>
+            <span className="terms-lbl">{isId ? "Pelabuhan Bongkar (POD):" : "Port of Discharge:"}</span>
+            <span className="terms-val">{pod}</span>
+          </div>
+          <div>
+            <span className="terms-lbl">{isId ? "Estimasi Pengapalan:" : "Est. Shipment:"}</span>
+            <span className="terms-val">
+              {isId ? "Maksimal 21 hari setelah Pembayaran Uang Muka" : "Within 21 days after Advance Payment"}
+            </span>
+          </div>
+          <div className="col-span-full">
+            <span className="terms-lbl">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>
+            <span className="terms-val">
               {paymentTerms ||
                 (isId
                   ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
                   : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
-            </div>
+            </span>
           </div>
         </div>
+      </div>
 
-        {/* ROW 4: LINE ITEMS TABLE (IncoDocs UNLK Columns) */}
-        <table className="unlk-items-table">
-          <thead>
-            <tr>
-              <th style={{ width: "12%" }}>Product Code</th>
-              <th style={{ width: "36%" }}>Description of Goods</th>
-              <th style={{ width: "11%" }}>HS Code</th>
-              <th style={{ width: "11%" }}>Unit Quantity</th>
-              <th style={{ width: "8%" }}>Unit Type</th>
-              <th style={{ width: "11%" }}>Price</th>
-              <th style={{ width: "11%" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="unlk-item-main-row">
-              <td className="text-center font-semibold">IEI-PS-01</td>
-              <td>
-                <div className="unlk-val-bold">{productName}</div>
-                <div className="unlk-item-spec">
-                  • {isId
+      <table className="doc-table-pro">
+        <thead>
+          <tr>
+            <th style={{ width: "36px", textAlign: "center" }}>No</th>
+            <th style={{ width: "42%" }}>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
+            <th style={{ width: "85px", textAlign: "center" }}>{isId ? "Kode HS" : "HS Code"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Jumlah (MT)" : "Qty (MT)"}</th>
+            <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+            <th style={{ width: "105px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td className="text-center font-normal">1</td>
+            <td>
+              <b className="table-product-title">{productName}</b>
+              <ul className="table-product-specs">
+                <li>
+                  {isId
                     ? "Spesifikasi: Mutu Ekspor Grade A, Kadar Air ≤ 2.5%, Mesh 16-18, Kemurnian 99%"
                     : "Specification: Grade A Export Quality, Moisture Max 2.5%, Mesh 16-18, Purity 99%"}
-                </div>
-                <div className="unlk-item-spec">
-                  • {isId
-                    ? `Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE (${formatNumber(bagsCount)} Karung / 1 x 20' FCL)`
-                    : `Packing: 20 kg net / Multiwall Kraft Paper Bag with PE Inner Liner (${formatNumber(bagsCount)} Bags / 1 x 20' FCL)`}
-                </div>
-              </td>
-              <td className="text-center font-semibold">{hsCode}</td>
-              <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center">MT</td>
-              <td className="text-right">{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Total This Page</td>
-              <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center">MT</td>
-              <td />
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
-            </tr>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
-              <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center font-bold">MT</td>
-              <td />
-              <td className="text-right font-bold">{currency} {formatNumber(totalAmount, 2)}</td>
-            </tr>
-          </tfoot>
-        </table>
+                </li>
+                <li>
+                  {isId
+                    ? "Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE Food-Grade"
+                    : "Packing: 20 kg net / Multiwall Kraft Paper Bag with PE Inner Liner"}
+                </li>
+                <li>
+                  {isId
+                    ? `Total Muatan: ${formatNumber(bagsCount)} Karung dimuat dalam 1 x 20' Kontainer Kering (Food Grade)`
+                    : `Total Volume: ${formatNumber(bagsCount)} Bags loaded in 1 x 20' FCL (Dry Food Grade Container)`}
+                </li>
+              </ul>
+            </td>
+            <td className="text-center font-normal">{hsCode}</td>
+            <td className="text-right font-normal">{formatNumber(netWeightMT, 2)} MT</td>
+            <td className="text-right font-normal">{formatMoney(unitPricePerMT, currency)} / MT</td>
+            <td className="text-right font-normal text-slate-900">{formatMoney(totalAmount, currency)}</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr className="doc-table-total-row">
+            <td colSpan={4} className="text-right font-bold">
+              TOTAL {incoterm} MAKASSAR (INCOTERMS 2020)
+            </td>
+            <td colSpan={2} className="text-right font-bold text-blue-900">
+              {currency} {formatNumber(totalAmount, 2)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
 
-        {/* ROW 5: BOTTOM 50/50 SPLIT FOOTER (Additional Info + Bank Details LEFT | Total + Incoterms + Signatory + Signature RIGHT) */}
-        <div className="unlk-row-50-50">
-          {/* Left 50%: Additional Info + Bank Details */}
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info</div>
-              <div className="unlk-val">
-                <b>Say:</b> <i>{amountInWords}</i>
-              </div>
-              <div className="unlk-val" style={{ marginTop: "2px" }}>
-                Total Volume: {formatNumber(bagsCount)} Multiwall Kraft Paper Bags @ 20 kg Net loaded in 1 x 20&apos; FCL Food-Grade Container.
-              </div>
-            </div>
+      <div className="doc-words-banner">
+        <span className="words-lbl">{isId ? "Terbilang:" : "Say:"}</span>{" "}
+        <span className="words-val italic">{amountInWords}</span>
+      </div>
 
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Bank Details</div>
-              <div className="unlk-bank-lines">
-                <div><b>Bank Name:</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
-                <div><b>Bank Address:</b> {shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
-                <div><b>Account Name:</b> {exporterName}</div>
-                <div><b>Account Number:</b> {bankAccountNo || "152-00-9876543-2"} (USD Account)</div>
-                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>Currency:</b> {currency}</div>
-              </div>
-            </div>
-          </div>
+      <div className="doc-footer-split-grid">
+        <div className="doc-bank-card">
+          <table className="bank-card-table">
+            <thead>
+              <tr>
+                <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                  <span>{isId ? "RINCIAN REKENING BANK PENERIMA (BENEFICIARY)" : "BANK DETAILS FOR BENEFICIARY"}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="bank-lbl">{isId ? "Nama Bank:" : "Bank Name:"}</td>
+                <td className="bank-val">{bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"}</td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Alamat Bank:" : "Bank Address:"}</td>
+                <td className="bank-val">
+                  {shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Nama Rekening:" : "Account Name:"}</td>
+                <td className="bank-val font-semibold">{exporterName}</td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Nomor Rekening:" : "Account Number:"}</td>
+                <td className="bank-val font-semibold">{bankAccountNo || "152-00-9876543-2"} {isId ? "(Rekening Valas USD)" : "(USD Account)"}</td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Kode SWIFT / BIC:" : "SWIFT Code:"}</td>
+                <td className="bank-val">{bankSwift || "BMRIIDJA"}</td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Mata Uang:" : "Currency:"}</td>
+                <td className="bank-val">{currency} {isId ? "(Dolar Amerika Serikat)" : "(United States Dollar)"}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
-          {/* Right 50%: TOTAL + Incoterms/Currency + Signatory Company + Authorized Signatory + Signature */}
-          <div className="unlk-col-stack">
-            <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt" }}>
-                {currency} {formatNumber(totalAmount, 2)}
-              </span>
-            </div>
-
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Currency</div>
-                <div className="unlk-val-bold">{currency}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
-            </div>
-          </div>
+        <div className="doc-single-signature-wrap">
+          <OfficialStampAndSignature
+            exporterName={exporterName}
+            signatoryName={signatoryName}
+            role={signatoryRole}
+            isId={isId}
+            shipment={shipment}
+            onOpenSignatureModal={onOpenSignatureModal}
+          />
         </div>
       </div>
     </div>
@@ -4267,8 +4135,7 @@ function SalesContractDoc({
 }
 
 // --------------------------------------------------------------------------
-// --------------------------------------------------------------------------
-// 3. COMMERCIAL INVOICE (CI) COMPONENT — INCODOCS / UNLK SINGLE-PAGE FORMAT
+// 3. COMMERCIAL INVOICE (CI) COMPONENT
 // --------------------------------------------------------------------------
 function CommercialInvoiceDoc({
   shipment,
@@ -4285,9 +4152,6 @@ function CommercialInvoiceDoc({
   containerNumber,
   sealNumber,
   poNumber,
-  bankName,
-  bankAccountNo,
-  bankSwift,
   paymentTerms,
   pol,
   pod,
@@ -4319,9 +4183,6 @@ function CommercialInvoiceDoc({
   containerNumber?: string;
   sealNumber?: string;
   poNumber?: string;
-  bankName?: string;
-  bankAccountNo?: string;
-  bankSwift?: string;
   paymentTerms?: string;
   pol: string;
   pod: string;
@@ -4339,290 +4200,190 @@ function CommercialInvoiceDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
-  const fullBuyerAddress =
-    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-      ? `${buyerAddress}, ${buyerCountry}`
-      : buyerAddress;
-
-  const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
-
-  const rawVessel = vesselName || "KMTC SHIMIZU V.2611N";
-  const vParts = rawVessel.split(/\s+V\./i);
-  const vesselOnly = vParts[0] || rawVessel;
-  const voyageOnly = vParts[1] ? `V.${vParts[1]}` : "V.2611N";
-
   return (
-    <div className="doc-content-wrapper unlk-doc-wrapper">
-      <h2 className="unlk-main-heading">
-        {isId ? "COMMERCIAL INVOICE" : "COMMERCIAL INVOICE"}
-      </h2>
+    <div className="doc-content-wrapper">
+      <DocTitleBanner title={isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"} />
 
-      <div className="unlk-trade-form">
-        {/* ROW 1: Exporter (Left 50%) | Pages + Invoice No & Date / B/L No + Reference / Buyer Ref (Right 50%) */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Exporter</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
-            </div>
-            <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+      <div className="doc-two-col-grid">
+        <div className="doc-parties-column">
+          <div className="doc-box">
+            <span className="doc-box-tag">
+              {isId ? "PENGIRIM / EKSPORTIR (SHIPPER / EXPORTER):" : "SHIPPER / EXPORTER:"}
+            </span>
+            <b className="doc-entity-name">{exporterName}</b>
+            <p className="doc-entity-address">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia
+            </p>
           </div>
 
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
+          <div className="doc-box">
+            <span className="doc-box-tag">
+              {isId ? "PENERIMA / PEMBELI (CONSIGNEE / BUYER):" : "CONSIGNEE / BUYER:"}
+            </span>
+            <b className="doc-entity-name">{buyerName}</b>
+            <p className="doc-entity-address">
+              {buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
+                ? `${buyerAddress}, ${buyerCountry}`
+                : buyerAddress}
+            </p>
+            <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Invoice Number &amp; Date</div>
-                <div className="unlk-signatory-split">
-                  <span className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</span>
-                  <span className="unlk-val-bold">08 Nov 2026</span>
-                </div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Bill of Lading Number</div>
-                <div className="unlk-val-bold">{shipment?.blNumber || "KMTC-MKS0091827"}</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Reference</div>
-                <div className="unlk-val-bold">SC/IEI-ABF/XI/2026/001</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Buyer Reference</div>
-                <div className="unlk-val-bold">{poNumber || shipment?.poNumber || "ABF/LOI/2026/108"}</div>
-              </div>
-            </div>
+          <div className="doc-box">
+            <span className="doc-box-tag">
+              {isId ? "PIHAK DIBERITAHU (NOTIFY PARTY):" : "NOTIFY PARTY:"}
+            </span>
+            <b className="doc-entity-name">
+              {isId ? "Sama dengan Penerima (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}
+            </b>
+            <p className="doc-entity-address">{buyerName} — {buyerCountry}</p>
+            <p className="doc-entity-contact">
+              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} | Telp: {buyerPhone || "+971 4 223 4567"}
+            </p>
           </div>
         </div>
 
-        {/* ROW 2: Consignee (Left 50%) | Buyer (If not Consignee) (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Consignee</div>
-            <div className="unlk-val-bold">{buyerName}</div>
-            <div className="unlk-val">{fullBuyerAddress}</div>
-            <div className="unlk-val">
-              Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
+        <div className="doc-reference-column">
+          <div className="doc-box">
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>{" "}
+              <b className="meta-value meta-value-primary">INV/IEI-DXB/XI/2026/001</b>
+            </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
+              <span className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</span>
+            </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
+              <span className="meta-value">SC/IEI-ABF/XI/2026/001</span>
+            </div>
+            {poNumber && (
+              <div className="meta-pair">
+                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
+                <span className="meta-value">{poNumber}</span>
+              </div>
+            )}
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>{" "}
+              <span className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</span>
             </div>
           </div>
 
-          <div className="unlk-cell">
-            <div className="unlk-lbl">Buyer (If not Consignee)</div>
-            <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-            <div className="unlk-val">{buyerName} — {buyerCountry}</div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} | Tel: {buyerPhone || "+971 4 223 4567"}
+          <div className="doc-box transport-box">
+            <span className="doc-box-tag">
+              {isId ? "RINCIAN PENGANGKUTAN (TRANSPORT DETAILS):" : "TRANSPORT DETAILS:"}
+            </span>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
+              <span className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</span>
             </div>
-          </div>
-        </div>
-
-        {/* ROW 3: 4x2 Logistics Grid (Left 50%) | Origin/Destination + Terms of Payment + Policy/LC (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (FCL)</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Type of Shipment</div>
-                <div className="unlk-val-bold">1 x 20&apos; FCL Dry Container</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
+              <span className="meta-value">{pol}</span>
             </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Vessel / Aircraft</div>
-                <div className="unlk-val-bold">{vesselOnly}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Voyage No</div>
-                <div className="unlk-val-bold">{voyageOnly}</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
+              <span className="meta-value">{pod}</span>
             </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
-                <div className="unlk-val-bold">{pol}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Date of Departure</div>
-                <div className="unlk-val-bold">21 Nov 2026</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
+              <span className="meta-value">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</span>
             </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Discharge</div>
-                <div className="unlk-val-bold">{pod}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Final Destination</div>
-                <div className="unlk-val-bold">{buyerCountry}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Country Of Origin of Goods</div>
-                <div className="unlk-val-bold">Indonesia</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Country of Final Destination</div>
-                <div className="unlk-val-bold">{buyerCountry}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b unlk-flex-fill">
-              <div className="unlk-lbl">Terms / Method of Payment</div>
-              <div className="unlk-val-bold">
-                {paymentTerms || "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L"}
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Marine Cover Policy No</div>
-                <div className="unlk-val-bold">{incoterm === "CIF" ? "MC-IEI-2026-881" : "FOB Buyer Coverage"}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Letter Of Credit No</div>
-                <div className="unlk-val-bold">N/A (T/T Remittance)</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
+              <span className="meta-value">KMTC-MKS0091827</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ROW 4: LINE ITEMS TABLE */}
-        <table className="unlk-items-table">
-          <thead>
-            <tr>
-              <th style={{ width: "12%" }}>Product Code</th>
-              <th style={{ width: "36%" }}>Description of Goods</th>
-              <th style={{ width: "11%" }}>HS Code</th>
-              <th style={{ width: "11%" }}>Unit Quantity</th>
-              <th style={{ width: "8%" }}>Unit Type</th>
-              <th style={{ width: "11%" }}>Price</th>
-              <th style={{ width: "11%" }}>Amount</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="unlk-item-main-row">
-              <td className="text-center font-semibold">IEI-PS-01</td>
-              <td>
-                <div className="unlk-val-bold">{productName.toUpperCase()}</div>
-                <div className="unlk-item-spec">
-                  • Packing: 20 Kg Net Multiwall Kraft Paper Bag ({formatNumber(bagsCount)} Bags) | Net: {formatNumber(netWeightKgs, 2)} Kgs | Gross: {formatNumber(grossWeightKgs, 2)} Kgs
-                </div>
-                <div className="unlk-item-spec">
-                  • Container / Seal No.: {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} | Origin: Indonesia
-                </div>
-              </td>
-              <td className="text-center font-semibold">{hsCode}</td>
-              <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center">MT</td>
-              <td className="text-right">{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Total This Page</td>
-              <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center">MT</td>
-              <td />
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
-            </tr>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
-              <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center font-bold">MT</td>
-              <td />
-              <td className="text-right font-bold">{currency} {formatNumber(totalAmount, 2)}</td>
-            </tr>
-          </tfoot>
-        </table>
-
-        {/* ROW 5: BOTTOM 50/50 SPLIT FOOTER */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info</div>
-              <div className="unlk-val">
-                <b>Say:</b> <i>{amountInWords}</i>
-              </div>
-              <div className="unlk-val" style={{ marginTop: "2px" }}>
-                We hereby certify that this invoice shows the actual price of the goods described and that all particulars are true and correct.
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Bank Details</div>
-              <div className="unlk-bank-lines">
-                <div><b>Bank Name:</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
-                <div><b>Bank Address:</b> {shipment?.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
-                <div><b>Account Name:</b> {exporterName}</div>
-                <div><b>Account Number:</b> {bankAccountNo || "152-00-9876543-2"} (USD Account)</div>
-                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>Currency:</b> {currency}</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt" }}>
-                {currency} {formatNumber(totalAmount, 2)}
+      <table className="doc-table-pro">
+        <thead>
+          <tr>
+            <th style={{ width: "130px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
+            <th style={{ width: "42%" }}>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Kuantitas" : "Quantity"}</th>
+            <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+            <th style={{ width: "105px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
+              DUBAI - UAE<br />
+              BATCH: 11/26<br />
+              PROD: 11/2026<br />
+              EXP: 11/2028<br />
+              MADE IN INDONESIA
+            </td>
+            <td>
+              <b className="table-product-title">{productName.toUpperCase()}</b>
+              <p className="text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
+              <p className="text-slate-800">
+                {isId ? "Kemasan: Karung Kertas Kraft Multiwall 20 Kg Neto" : "Packing: 20 Kg Net / Multiwall Kraft Paper Bag"}
+              </p>
+              <p className="text-slate-800">
+                {isId ? `Total Kemasan: ${formatNumber(bagsCount)} Karung` : `Total Packages: ${formatNumber(bagsCount)} Bags`}
+              </p>
+              <p className="text-slate-800 mt-1">
+                {isId
+                  ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kg | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kg`
+                  : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs`}
+              </p>
+              <p className="text-slate-800">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
+            </td>
+            <td className="text-right font-normal">
+              {formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}<br />
+              <span className="text-slate-700">
+                ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : "Net"})
               </span>
-            </div>
+            </td>
+            <td className="text-right font-normal">
+              {currency} {formatNumber(unitPricePerMT, 2)}<br />
+              <span className="text-slate-700">/ MT</span>
+            </td>
+            <td className="text-right font-normal text-slate-900">
+              {currency} {formatNumber(totalAmount, 2)}
+            </td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr className="doc-table-total-row">
+            <td colSpan={4} className="text-right font-bold">
+              TOTAL {incoterm} MAKASSAR (INCOTERMS 2020)
+            </td>
+            <td className="text-right font-bold text-blue-900">
+              {currency} {formatNumber(totalAmount, 2)}
+            </td>
+          </tr>
+        </tfoot>
+      </table>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Currency</div>
-                <div className="unlk-val-bold">{currency}</div>
-              </div>
-            </div>
+      <div className="doc-words-banner">
+        <span className="words-lbl">{isId ? "Terbilang:" : "Amount in Words:"}</span>{" "}
+        <span className="words-val italic">{amountInWords}</span>
+      </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-            </div>
+      <div className="doc-footer-split-grid">
+        <div className="doc-cert-banner">
+          <ShieldCheck size={16} className="text-blue-700 flex-shrink-0" />
+          <p>
+            {isId
+              ? "Dengan ini kami menyatakan bahwa faktur ini mencantumkan harga barang yang sebenarnya dan tidak ada faktur lain yang diterbitkan, serta seluruh rincian di dalamnya adalah benar dan sah sesuai ketentuan pabean."
+              : "We hereby certify that this invoice shows the actual price of the goods described, that no other invoice has been or will be issued, and that all particulars are true and correct."}
+          </p>
+        </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
-            </div>
-          </div>
+        <div className="doc-single-signature-wrap">
+          <OfficialStampAndSignature
+            exporterName={exporterName}
+            signatoryName={signatoryName}
+            role={signatoryRole}
+            isId={isId}
+            shipment={shipment}
+            onOpenSignatureModal={onOpenSignatureModal}
+          />
         </div>
       </div>
     </div>
@@ -4630,7 +4391,7 @@ function CommercialInvoiceDoc({
 }
 
 // --------------------------------------------------------------------------
-// 4. PACKING LIST (PL) COMPONENT — INCODOCS / UNLK SINGLE-PAGE FORMAT
+// 4. PACKING LIST (PL) COMPONENT
 // --------------------------------------------------------------------------
 function PackingListDoc({
   shipment,
@@ -4687,283 +4448,180 @@ function PackingListDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
-  const fullBuyerAddress =
-    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-      ? `${buyerAddress}, ${buyerCountry}`
-      : buyerAddress;
-
-  const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
-
-  const rawVessel = vesselName || "KMTC SHIMIZU V.2611N";
-  const vParts = rawVessel.split(/\s+V\./i);
-  const vesselOnly = vParts[0] || rawVessel;
-  const voyageOnly = vParts[1] ? `V.${vParts[1]}` : "V.2611N";
-
   return (
-    <div className="doc-content-wrapper unlk-doc-wrapper">
-      <h2 className="unlk-main-heading">
-        {isId ? "PACKING LIST" : "PACKING LIST"}
-      </h2>
+    <div className="doc-content-wrapper">
+      <DocTitleBanner title={isId ? "DAFTAR KEMASAN (PACKING LIST)" : "PACKING LIST"} />
 
-      <div className="unlk-trade-form">
-        {/* ROW 1: Exporter (Left 50%) | Pages + PL No/Date + Invoice Ref/Buyer Ref (Right 50%) */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Exporter</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
-            </div>
-            <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+      <div className="doc-two-col-grid">
+        <div className="doc-parties-column">
+          <div className="doc-box">
+            <span className="doc-box-tag">
+              {isId ? "PENGIRIM / EKSPORTIR (SHIPPER / EXPORTER):" : "SHIPPER / EXPORTER:"}
+            </span>
+            <b className="doc-entity-name">{exporterName}</b>
+            <p className="doc-entity-address">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia
+            </p>
           </div>
 
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
+          <div className="doc-box">
+            <span className="doc-box-tag">
+              {isId ? "PENERIMA (CONSIGNEE):" : "CONSIGNEE:"}
+            </span>
+            <b className="doc-entity-name">{buyerName}</b>
+            <p className="doc-entity-address">
+              {buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
+                ? `${buyerAddress}, ${buyerCountry}`
+                : buyerAddress}
+            </p>
+            <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
+          </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Packing List Number &amp; Date</div>
-                <div className="unlk-signatory-split">
-                  <span className="unlk-val-bold">PL/IEI-DXB/XI/2026/001</span>
-                  <span className="unlk-val-bold">08 Nov 2026</span>
-                </div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Bill of Lading Number</div>
-                <div className="unlk-val-bold">{shipment?.blNumber || "KMTC-MKS0091827"}</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Invoice Reference</div>
-                <div className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Buyer Reference</div>
-                <div className="unlk-val-bold">{poNumber || shipment?.poNumber || "ABF/LOI/2026/108"}</div>
-              </div>
-            </div>
+          <div className="doc-box">
+            <span className="doc-box-tag">
+              {isId ? "PIHAK DIBERITAHU (NOTIFY PARTY):" : "NOTIFY PARTY:"}
+            </span>
+            <b className="doc-entity-name">
+              {isId ? "Sama dengan Penerima (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}
+            </b>
+            <p className="doc-entity-address">{buyerName} — {buyerCountry}</p>
+            <p className="doc-entity-contact">
+              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} | Telp: {buyerPhone || "+971 4 223 4567"}
+            </p>
           </div>
         </div>
 
-        {/* ROW 2: Consignee (Left 50%) | Notify Party (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Consignee</div>
-            <div className="unlk-val-bold">{buyerName}</div>
-            <div className="unlk-val">{fullBuyerAddress}</div>
-            <div className="unlk-val">
-              Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
+        <div className="doc-reference-column">
+          <div className="doc-box">
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Daftar Kemasan:" : "Packing List No.:"}</span>{" "}
+              <b className="meta-value meta-value-primary">PL/IEI-DXB/XI/2026/001</b>
             </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>{" "}
+              <span className="meta-value">INV/IEI-DXB/XI/2026/001</span>
+            </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
+              <span className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</span>
+            </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
+              <span className="meta-value">SC/IEI-ABF/XI/2026/001</span>
+            </div>
+            {poNumber && (
+              <div className="meta-pair">
+                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
+                <span className="meta-value">{poNumber}</span>
+              </div>
+            )}
           </div>
 
-          <div className="unlk-cell">
-            <div className="unlk-lbl">Notify Party / Buyer</div>
-            <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-            <div className="unlk-val">{buyerName} — {buyerCountry}</div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} | Tel: {buyerPhone || "+971 4 223 4567"}
+          <div className="doc-box transport-box">
+            <span className="doc-box-tag">
+              {isId ? "RINCIAN PENGANGKUTAN (TRANSPORT DETAILS):" : "TRANSPORT DETAILS:"}
+            </span>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
+              <span className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</span>
             </div>
-          </div>
-        </div>
-
-        {/* ROW 3: Transport & Container Grid */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (FCL)</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Type of Shipment</div>
-                <div className="unlk-val-bold">1 x 20&apos; FCL Dry Container</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
+              <span className="meta-value">{pol}</span>
             </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Vessel / Aircraft</div>
-                <div className="unlk-val-bold">{vesselOnly}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Voyage No</div>
-                <div className="unlk-val-bold">{voyageOnly}</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
+              <span className="meta-value">{pod}</span>
             </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
-                <div className="unlk-val-bold">{pol}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge</div>
-                <div className="unlk-val-bold">{pod}</div>
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
+              <span className="meta-value">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</span>
             </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Country Of Origin of Goods</div>
-                <div className="unlk-val-bold">Indonesia</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Country of Final Destination</div>
-                <div className="unlk-val-bold">{buyerCountry}</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Container Number</div>
-                <div className="unlk-val-bold">{containerNumber || "TGHU 2468135"}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Seal Number</div>
-                <div className="unlk-val-bold">{sealNumber || "IDMKS998877"}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Packing &amp; Bag Dimension</div>
-              <div className="unlk-val-bold">
-                3-Ply Multiwall Kraft Paper Bag with Food-Grade PE Liner (60 x 40 x 12 cm)
-              </div>
+            <div className="meta-pair">
+              <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
+              <span className="meta-value">KMTC-MKS0091827</span>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* ROW 4: PACKING ITEMS TABLE */}
-        <table className="unlk-items-table">
-          <thead>
-            <tr>
-              <th style={{ width: "12%" }}>Product Code</th>
-              <th style={{ width: "34%" }}>Description of Goods</th>
-              <th style={{ width: "10%" }}>HS Code</th>
-              <th style={{ width: "11%" }}>Unit Qty</th>
-              <th style={{ width: "11%" }}>Net Weight</th>
-              <th style={{ width: "11%" }}>Gross Weight</th>
-              <th style={{ width: "11%" }}>Meas. (CBM)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="unlk-item-main-row">
-              <td className="text-center font-semibold">IEI-PS-01</td>
-              <td>
-                <div className="unlk-val-bold">{productName.toUpperCase()}</div>
-                <div className="unlk-item-spec">
-                  • Unit Net Weight: 20.00 Kg / Bag | Unit Gross Weight: 20.25 Kg / Bag
-                </div>
-                <div className="unlk-item-spec">
-                  • Shipping Marks: {buyerName.split(" ")[0] || "AL BARAKAH"} / DUBAI - UAE / BATCH 11/26 / MADE IN INDONESIA
-                </div>
-              </td>
-              <td className="text-center font-semibold">{hsCode}</td>
-              <td className="text-right font-semibold">{formatNumber(bagsCount)} Bags</td>
-              <td className="text-right font-semibold">{formatNumber(netWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-semibold">{formatNumber(grossWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Total This Page</td>
-              <td className="text-right font-semibold">{formatNumber(bagsCount)} Bags</td>
-              <td className="text-right font-semibold">{formatNumber(netWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-semibold">{formatNumber(grossWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
-            </tr>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
-              <td className="text-right font-bold">{formatNumber(bagsCount)} Bags</td>
-              <td className="text-right font-bold">{formatNumber(netWeightMT, 2)} MT</td>
-              <td className="text-right font-bold">{formatNumber(grossWeightMT, 3)} MT</td>
-              <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
-            </tr>
-          </tfoot>
-        </table>
-
-        {/* ROW 5: BOTTOM 50/50 SPLIT FOOTER */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info</div>
-              <div className="unlk-val">
-                <b>Total Packages:</b> {formatNumber(bagsCount)} Multiwall Kraft Paper Bags loaded in 1 x 20&apos; FCL Dry Food-Grade Container.
+      <table className="doc-table-pro">
+        <thead>
+          <tr>
+            <th style={{ width: "120px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
+            <th style={{ width: "40%" }}>{isId ? "Deskripsi Barang & Spesifikasi Kemasan" : "Description of Goods & Packing Spec"}</th>
+            <th style={{ width: "70px", textAlign: "right" }}>{isId ? "Jumlah (Koli)" : "Qty (Bags)"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Neto (Net Weight)" : "Net Weight"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Bruto (Gross Weight)" : "Gross Weight"}</th>
+            <th style={{ width: "75px", textAlign: "right" }}>{isId ? "Volume (CBM)" : "Meas. (CBM)"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
+              DUBAI - UAE<br />
+              BATCH: 11/26<br />
+              PROD: 11/2026<br />
+              EXP: 11/2028
+            </td>
+            <td>
+              <b className="table-product-title">{productName}</b>
+              <p className="text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
+              <div className="text-slate-800 mt-2">
+                <span className="font-semibold">{isId ? "Spesifikasi Kemasan:" : "Packing Specification:"}</span>
+                <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
+                  <li>{isId ? "@ 20,00 Kg Berat Neto / Karung" : "@ 20.00 Kg Net Weight / Bag"}</li>
+                  <li>{isId ? "@ 20,25 Kg Berat Bruto / Karung" : "@ 20.25 Kg Gross Weight / Bag"}</li>
+                  <li>{isId ? "Dimensi Karung: 60 x 40 x 12 cm" : "Bag Dimension: 60 x 40 x 12 cm"}</li>
+                  <li>{isId ? "Lapisan Dalam: Plastik PE Food Grade" : "Inner: Food Grade PE Plastic Liner"}</li>
+                  <li>{isId ? "Lapisan Luar: Karung Kertas Kraft 3 Lapis (Heavy Duty)" : "Outer: 3-Ply Heavy Duty Kraft Paper Bag"}</li>
+                </ul>
               </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Packing &amp; Phytosanitary Declaration</div>
-              <div className="unlk-bank-lines">
-                <div><b>Container No.:</b> {containerNumber || "TGHU 2468135"} | <b>Seal No.:</b> {sealNumber || "IDMKS998877"}</div>
-                <div><b>Net Weight:</b> {formatNumber(netWeightKgs, 2)} Kgs ({formatNumber(netWeightMT, 2)} MT)</div>
-                <div><b>Gross Weight:</b> {formatNumber(grossWeightKgs, 2)} Kgs ({formatNumber(grossWeightMT, 3)} MT)</div>
-                <div><b>Total Volume:</b> {formatNumber(totalCBM, 3)} CBM | <b>Origin:</b> Indonesia</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL PACKAGES:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt" }}>
-                {formatNumber(bagsCount)} BAGS ({formatNumber(grossWeightKgs, 2)} KGS)
+            </td>
+            <td className="text-right font-normal">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
+            <td className="text-right font-normal">
+              {formatNumber(netWeightKgs, 2)} Kgs<br />
+              <span className="text-slate-600">
+                ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : ""})
               </span>
-            </div>
+            </td>
+            <td className="text-right font-normal">
+              {formatNumber(grossWeightKgs, 2)} Kgs<br />
+              <span className="text-slate-600">
+                ({formatNumber(grossWeightMT, 3)} MT {isId ? "Bruto" : ""})
+              </span>
+            </td>
+            <td className="text-right font-normal text-slate-900">{formatNumber(totalCBM, 3)} CBM</td>
+          </tr>
+        </tbody>
+        <tfoot>
+          <tr className="doc-table-total-row">
+            <td colSpan={2} className="text-right font-bold">{isId ? "TOTAL KESELURUHAN:" : "TOTAL:"}</td>
+            <td className="text-right font-bold text-blue-900">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
+            <td className="text-right font-bold text-blue-900">{formatNumber(netWeightKgs, 2)} Kgs</td>
+            <td className="text-right font-bold text-blue-900">{formatNumber(grossWeightKgs, 2)} Kgs</td>
+            <td className="text-right font-bold text-blue-900">{formatNumber(totalCBM, 3)} CBM</td>
+          </tr>
+        </tfoot>
+      </table>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Total Net Weight</div>
-                <div className="unlk-val-bold">{formatNumber(netWeightKgs, 2)} KGS</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Volume</div>
-                <div className="unlk-val-bold">{formatNumber(totalCBM, 3)} CBM</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
-            </div>
-          </div>
-        </div>
+      <div className="doc-single-signature-wrap">
+        <OfficialStampAndSignature
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole}
+          isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
+        />
       </div>
     </div>
   );
 }
 
 // --------------------------------------------------------------------------
-// 5. SHIPPING INSTRUCTION (SI) COMPONENT — INCODOCS / UNLK SINGLE-PAGE FORMAT
+// 5. SHIPPING INSTRUCTION (SI) COMPONENT
 // --------------------------------------------------------------------------
 function ShippingInstructionDoc({
   shipment,
@@ -4971,7 +4629,6 @@ function ShippingInstructionDoc({
   exporterAddress,
   buyerName,
   buyerAddress,
-  buyerCountry = "United Arab Emirates",
   buyerPicName,
   buyerPhone,
   buyerEmail,
@@ -5020,244 +4677,202 @@ function ShippingInstructionDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
-  const fullBuyerAddress =
-    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-      ? `${buyerAddress}, ${buyerCountry}`
-      : buyerAddress;
-
-  const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
-
-  const rawVessel = vesselName || "KMTC SHIMIZU V.2611N";
-  const vParts = rawVessel.split(/\s+V\./i);
-  const vesselOnly = vParts[0] || rawVessel;
-  const voyageOnly = vParts[1] ? `V.${vParts[1]}` : "V.2611N";
-
   return (
-    <div className="doc-content-wrapper unlk-doc-wrapper">
-      <h2 className="unlk-main-heading">
-        {isId ? "SHIPPING INSTRUCTION (SI)" : "SHIPPING INSTRUCTION"}
-      </h2>
+    <div className="doc-content-wrapper">
+      <DocTitleBanner title={isId ? "INSTRUKSI PENGAPALAN (SHIPPING INSTRUCTION)" : "SHIPPING INSTRUCTION (SI)"} />
 
-      <div className="unlk-trade-form">
-        {/* ROW 1: Shipper / Exporter (Left 50%) | Pages + SI No/Date + Booking/Contract Ref (Right 50%) */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Shipper / Exporter (To appear on B/L)</div>
-            <div className="unlk-val-bold">{exporterName}</div>
-            <div className="unlk-val">
-              {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
-            </div>
-            <div className="unlk-val">
-              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-            </div>
+      <div className="doc-si-header-grid">
+        <div>
+          <span className="si-lbl">{isId ? "No. SI:" : "SI Number:"}</span>{" "}
+          <b>SI/IEI/XI/2026/001</b>
+        </div>
+        <div>
+          <span className="si-lbl">{isId ? "Kepada (Forwarder/Pelayaran):" : "To (Forwarder/Line):"}</span>{" "}
+          <b>PT. Samudera Logistik Nusantara</b>
+        </div>
+        <div>
+          <span className="si-lbl">{isId ? "Tanggal:" : "Date:"}</span>{" "}
+          <span>{isId ? "16 November 2026" : "November 16, 2026"}</span>
+        </div>
+        <div>
+          <span className="si-lbl">{isId ? "Ditujukan Kepada:" : "Attention:"}</span>{" "}
+          <span>{isId ? "Bagian Booking & Dokumentasi Ekspor" : "Export Booking & Documentation Dept."}</span>
+        </div>
+        <div>
+          <span className="si-lbl">{isId ? "Ref. Kontrak:" : "Contract Ref:"}</span>{" "}
+          <span>SC/IEI-ABF/XI/2026/001</span>
+        </div>
+        <div>
+          <span className="si-lbl">{isId ? "Ref. Faktur:" : "Invoice Ref:"}</span>{" "}
+          <span>INV/IEI-DXB/XI/2026/001</span>
+        </div>
+      </div>
+
+      <div className="doc-three-col-parties">
+        <div className="si-party-card">
+          <div className="si-party-tag">
+            {isId ? "SHIPPER / PENGIRIM (Dicantumkan pada B/L)" : "SHIPPER (To appear on B/L)"}
           </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">SI Number &amp; Date</div>
-                <div className="unlk-signatory-split">
-                  <span className="unlk-val-bold">SI/IEI/XI/2026/001</span>
-                  <span className="unlk-val-bold">16 Nov 2026</span>
-                </div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">To (Forwarder / Shipping Line)</div>
-                <div className="unlk-val-bold">PT. Samudera Logistik Nusantara</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Contract / Invoice Ref</div>
-                <div className="unlk-val-bold">INV/IEI-DXB/XI/2026/001</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Buyer Reference</div>
-                <div className="unlk-val-bold">{poNumber || shipment?.poNumber || "ABF/LOI/2026/108"}</div>
-              </div>
-            </div>
-          </div>
+          <b className="party-title">{exporterName}</b>
+          <p className="party-txt">
+            {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
+          </p>
+          <p className="party-txt">
+            Telp: +62 812 3456 7890 | Email: official@indicoexport.com
+          </p>
         </div>
 
-        {/* ROW 2: Consignee (Left 50%) | Notify Party (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">Consignee (To appear on B/L)</div>
-            <div className="unlk-val-bold">{buyerName}</div>
-            <div className="unlk-val">{fullBuyerAddress}</div>
-            <div className="unlk-val">
-              Tel: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}
-            </div>
+        <div className="si-party-card">
+          <div className="si-party-tag">
+            {isId ? "CONSIGNEE / PENERIMA (Dicantumkan pada B/L)" : "CONSIGNEE (To appear on B/L)"}
           </div>
-
-          <div className="unlk-cell">
-            <div className="unlk-lbl">Notify Party (To appear on B/L)</div>
-            <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
-            <div className="unlk-val">{buyerName} — {buyerCountry}</div>
-            <div className="unlk-val">
-              Attn: {buyerPicName || "Mr. Tariq Al-Mansoor"} | Tel: {buyerPhone || "+971 4 223 4567"}
-            </div>
-          </div>
+          <b className="party-title">{buyerName}</b>
+          <p className="party-txt">{buyerAddress}</p>
+          <p className="party-txt">Telp: {buyerPhone || "+971 4 223 4567"}</p>
+          <p className="party-txt">Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
         </div>
 
-        {/* ROW 3: Vessel, Ports & B/L Terms */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Vessel / Aircraft</div>
-                <div className="unlk-val-bold">{vesselOnly}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Voyage No / ETD</div>
-                <div className="unlk-val-bold">{voyageOnly} (ETD: 21 Nov 2026)</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
-                <div className="unlk-val-bold">{pol}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge</div>
-                <div className="unlk-val-bold">{pod}</div>
-              </div>
-            </div>
+        <div className="si-party-card">
+          <div className="si-party-tag">
+            {isId ? "NOTIFY PARTY (Dicantumkan pada B/L)" : "NOTIFY PARTY (To appear on B/L)"}
           </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Type of Bill of Lading</div>
-                <div className="unlk-val-bold">Full Set (3/3) Original Clean on Board</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Freight Terms</div>
-                <div className="unlk-val-bold">{incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"}</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Container / Seal No</div>
-                <div className="unlk-val-bold">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Stuffing Mode</div>
-                <div className="unlk-val-bold">1 x 20&apos; GP Food-Grade (CY / CY)</div>
-              </div>
-            </div>
-          </div>
+          <b className="party-title">{isId ? "SAMA DENGAN PENERIMA" : "SAME AS CONSIGNEE"}</b>
+          <p className="party-txt mt-2">{buyerName}</p>
+          <p className="party-txt">
+            {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}
+          </p>
+          <p className="party-txt">Telp: {buyerPhone || "+971 4 223 4567"}</p>
         </div>
+      </div>
 
-        {/* ROW 4: CARGO DESCRIPTION TABLE */}
-        <table className="unlk-items-table">
-          <thead>
-            <tr>
-              <th style={{ width: "16%" }}>Marks &amp; Numbers</th>
-              <th style={{ width: "36%" }}>Description of Goods (On B/L)</th>
-              <th style={{ width: "11%" }}>HS Code</th>
-              <th style={{ width: "12%" }}>No. of Pkgs</th>
-              <th style={{ width: "13%" }}>Gross Weight</th>
-              <th style={{ width: "12%" }}>Measurement</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr className="unlk-item-main-row">
-              <td>
-                <div className="unlk-val-bold">{buyerName.split(" ")[0] || "AL BARAKAH"}</div>
-                <div className="unlk-item-spec">DUBAI - UAE</div>
-                <div className="unlk-item-spec">BATCH: 11/26</div>
-                <div className="unlk-item-spec">MADE IN INDONESIA</div>
-              </td>
-              <td>
-                <div className="unlk-val-bold">{productName.toUpperCase()}</div>
-                <div className="unlk-item-spec">
-                  • Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner.
-                </div>
-                <div className="unlk-item-spec">
-                  • Net Weight: {formatNumber(netWeightKgs, 2)} KGS | Container / Seal: {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
-                </div>
-              </td>
-              <td className="text-center font-semibold">{hsCode}</td>
-              <td className="text-right font-semibold">{formatNumber(bagsCount)} BAGS</td>
-              <td className="text-right font-semibold">{formatNumber(grossWeightKgs, 2)} KGS</td>
-              <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
-            </tr>
-          </tbody>
-          <tfoot>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
-              <td className="text-right font-bold">{formatNumber(bagsCount)} BAGS</td>
-              <td className="text-right font-bold">{formatNumber(grossWeightKgs, 2)} KGS</td>
-              <td className="text-right font-bold">{formatNumber(totalCBM, 3)} CBM</td>
-            </tr>
-          </tfoot>
-        </table>
+      <div className="doc-transport-row-strip">
+        <div className="strip-item">
+          <span className="strip-lbl">{isId ? "Kapal / Pelayaran" : "Vessel / Voyage"}</span>
+          <span className="strip-val">{vesselName || "KMTC SHIMIZU V.2611N"}</span>
+          <small className="strip-sub">ETD: Nov 21, 2026</small>
+        </div>
+        <div className="strip-item">
+          <span className="strip-lbl">{isId ? "Pelabuhan Muat (POL)" : "Port of Loading (POL)"}</span>
+          <span className="strip-val">{pol}</span>
+        </div>
+        <div className="strip-item">
+          <span className="strip-lbl">{isId ? "Pelabuhan Bongkar (POD)" : "Port of Discharge (POD)"}</span>
+          <span className="strip-val">{pod}</span>
+        </div>
+        <div className="strip-item">
+          <span className="strip-lbl">{isId ? "Kontainer & Muat" : "Container & Stuffing"}</span>
+          <span className="strip-val">1 x 20&apos; GP (Food Grade)</span>
+          <small className="strip-sub">{isId ? "Muat: 18 Nov 2026" : "Stuffing: Nov 18, 2026"}</small>
+        </div>
+      </div>
 
-        {/* ROW 5: BOTTOM 50/50 SPLIT FOOTER */}
-        <div className="unlk-row-50-50">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Special Documentary &amp; Handling Instructions</div>
-              <div className="unlk-bank-lines">
-                <div>1. Issue <b>Full Set (3/3) Original Clean on Board Ocean B/L</b> + 3 Non-Negotiable Copies.</div>
-                <div>2. Freight Term: <b>{incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"}</b> ({incoterm} Makassar, Incoterms® 2020).</div>
-                <div>3. Container: Clean, Dry, Odorless, Food-Grade 20ft GP Container suitable for foodstuff.</div>
-                <div>4. Send Draft B/L &amp; Draft PEB for verification prior to final issuance.</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL CARGO:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10pt" }}>
-                {formatNumber(bagsCount)} BAGS | {formatNumber(grossWeightKgs, 2)} KGS | {formatNumber(totalCBM, 3)} CBM
+      <table className="doc-table-pro">
+        <thead>
+          <tr>
+            <th style={{ width: "120px" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
+            <th style={{ width: "100px" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
+            <th style={{ width: "44%" }}>{isId ? "Deskripsi Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat (Kg)" : "Weight (Kgs)"}</th>
+            <th style={{ width: "80px", textAlign: "right" }}>{isId ? "Dimensi / Volume" : "Measurement"}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <b>{buyerName.split(" ")[0] || "AL BARAKAH"}</b><br />
+              DUBAI - UAE<br />
+              BATCH: 11/26<br />
+              PROD: 11/2026<br />
+              EXP: 11/2028<br />
+              MADE IN INDONESIA
+            </td>
+            <td>
+              <b>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</b><br />
+              <span className="text-slate-700">
+                {isId ? "(Sembilan Ratus Karung Kertas Kraft Multiwall)" : "(Nine Hundred Multiwall Kraft Paper Bags)"}
               </span>
-            </div>
+            </td>
+            <td>
+              <b className="table-product-title">{productName.toUpperCase()}</b>
+              <p className="text-slate-800 mt-1">
+                {isId
+                  ? "Dikemas dalam Karung Kertas Kraft Multiwall 20 Kg Neto dengan Lapisan Dalam Plastik PE Food-Grade."
+                  : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
+              </p>
+              <p className="text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
+              <p className="text-slate-800">
+                {isId ? "No. Kontainer / Segel:" : "Cont / Seal No.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
+              </p>
+              <p className="text-slate-800">
+                {isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}
+              </p>
+            </td>
+            <td className="text-right">
+              <div className="font-semibold text-slate-700">{isId ? "NETO:" : "NET:"}</div>
+              <span>{formatNumber(netWeightKgs, 2)} KGS</span>
+              <div className="font-semibold text-slate-700 mt-2">{isId ? "BRUTO:" : "GROSS:"}</div>
+              <span>{formatNumber(grossWeightKgs, 2)} KGS</span>
+            </td>
+            <td className="text-right font-normal text-slate-900 text-sm">
+              {formatNumber(totalCBM, 3)} CBM
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">Freight</div>
-                <div className="unlk-val-bold">{incoterm === "FOB" ? "COLLECT" : "PREPAID"}</div>
-              </div>
-            </div>
+      <div className="doc-footer-split-grid">
+        <div className="doc-instructions-box">
+          <h4 className="instructions-title">
+            {isId ? "INSTRUKSI BILL OF LADING & PENGAPALAN (FREIGHT):" : "BILL OF LADING & FREIGHT INSTRUCTIONS:"}
+          </h4>
+          <ol className="instructions-list">
+            <li>
+              <b>{isId ? "Jenis Bill of Lading:" : "Type of Bill of Lading:"}</b>{" "}
+              {isId
+                ? "1 Set Lengkap (3/3) Original Clean on Board Ocean Bill of Lading + 3 Salinan Non-Negotiable."
+                : "Full Set (3/3) Original Clean on Board Ocean Bill of Lading + 3 Non-Negotiable Copies."}
+            </li>
+            <li>
+              <b>{isId ? "Ketentuan Freight:" : "Freight Term:"}</b>{" "}
+              {incoterm === "FOB"
+                ? isId
+                  ? "FREIGHT COLLECT (Dibayar di Pelabuhan Tujuan)"
+                  : "FREIGHT COLLECT"
+                : isId
+                  ? "FREIGHT PREPAID (Dibayar di Pelabuhan Muat)"
+                  : "FREIGHT PREPAID"}{" "}
+              (Incoterm: {incoterm} Pelabuhan Makassar, Incoterms 2020).
+            </li>
+            <li>
+              <b>{isId ? "Standar Kontainer:" : "Container Requirement:"}</b>{" "}
+              {isId
+                ? "Mohon sediakan kontainer 20ft GP Food-Grade yang bersih, kering, tidak berbau, dan layak untuk produk bahan makanan."
+                : "Please provide a Clean, Dry, Odorless, Food-Grade 20ft GP Container suitable for foodstuff."}
+            </li>
+            <li>
+              <b>{isId ? "Verifikasi Dokumen:" : "Verification:"}</b>{" "}
+              {isId
+                ? "Mohon kirimkan Draft B/L dan Draft Pemberitahuan Ekspor Barang (PEB) kepada kami untuk diverifikasi sebelum penerbitan final."
+                : "Please send us the Draft B/L and Draft PEB (Pemberitahuan Ekspor Barang) for our verification and approval prior to final issuance."}
+            </li>
+            <li>
+              <b>{isId ? "Koordinasi Pengambilan:" : "Release Coordination:"}</b>{" "}
+              {isId
+                ? "Mohon konfirmasi Release Order kontainer kosong (RO/DO Empty) dan jadwal closing time kepada tim logistik kami."
+                : "Please confirm container release order (RO/DO Empty) and closing time schedule to our warehouse team."}
+            </li>
+          </ol>
+        </div>
 
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Signatory Company</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Name of Authorized Signatory</div>
-              <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
-            </div>
-          </div>
+        <div className="doc-single-signature-wrap">
+          <OfficialStampAndSignature
+            exporterName={exporterName}
+            signatoryName={signatoryName}
+            role={signatoryRole || (isId ? "Manajer Logistik & Ekspor" : "Logistics & Export Manager")}
+            isId={isId}
+            shipment={shipment}
+            onOpenSignatureModal={onOpenSignatureModal}
+          />
         </div>
       </div>
     </div>
