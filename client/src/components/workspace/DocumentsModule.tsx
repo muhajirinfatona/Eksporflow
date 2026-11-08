@@ -713,11 +713,11 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 14mm 13mm 12mm 13mm;
+            margin: 11mm 10mm 8mm 10mm;
           }
           .paper-document {
-            --doc-font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
-            font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
+            --doc-font-size: ${Math.min(9.2, Number(((shipment.docEditorFontSize || 11) * 0.82).toFixed(1)))}pt !important;
+            font-size: ${Math.min(9.2, Number(((shipment.docEditorFontSize || 11) * 0.82).toFixed(1)))}pt !important;
           }
         }
       `}</style>
@@ -3041,72 +3041,40 @@ function OfficialLetterhead({
                   display: "flex",
                   flexDirection: "column",
                   textAlign: "left",
-                  paddingTop: "3px",
+                  paddingTop: "2px",
                 }}
               >
-                {/* Upper Identity Tier: Company Name + Verified Exporter Badge */}
+                {/* Row 1: Company Name + Verified Exporter Badge on same horizontal row */}
                 <div
                   style={{
                     display: "flex",
-                    alignItems: "flex-start",
+                    alignItems: "center",
                     justifyContent: "space-between",
-                    gap: "10px",
-                    marginBottom: `${Math.max(2, lineSpacing)}px`,
+                    gap: "8px",
+                    marginBottom: "2px",
                   }}
                 >
-                  <div style={{ minWidth: 0, flex: 1 }}>
-                    <h1
-                      className="company-name"
-                      style={{
-                        fontSize: "16pt",
-                        fontWeight: 800,
-                        letterSpacing: "0.035em",
-                        color: dividerColor,
-                        margin: "0 0 3.5px 0",
-                        lineHeight: 1.14,
-                        fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
-                      }}
-                      onBlur={(e) => {
-                        const text = e.currentTarget.innerText.trim();
-                        if (update && text && text !== exporterName) {
-                          update("exporter", text);
-                        }
-                      }}
-                    >
-                      {exporterName}
-                    </h1>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span
-                        contentEditable={false}
-                        style={{
-                          width: "12px",
-                          height: "2.5px",
-                          background: "#059669",
-                          borderRadius: "1px",
-                          flexShrink: 0,
-                        }}
-                      />
-                      <p
-                        className="company-tagline"
-                        style={{
-                          fontSize: "8pt",
-                          fontWeight: 700,
-                          letterSpacing: "0.075em",
-                          color: "#047857",
-                          margin: 0,
-                          lineHeight: 1.25,
-                        }}
-                        onBlur={(e) => {
-                          const text = e.currentTarget.innerText.trim();
-                          if (text !== exporterTagline) {
-                            setCustomTagline(text);
-                          }
-                        }}
-                      >
-                        {exporterTagline}
-                      </p>
-                    </div>
-                  </div>
+                  <h1
+                    className="company-name"
+                    style={{
+                      fontSize: "15.5pt",
+                      fontWeight: 800,
+                      letterSpacing: "0.03em",
+                      color: dividerColor,
+                      margin: 0,
+                      lineHeight: 1.1,
+                      whiteSpace: "nowrap",
+                      fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
+                    }}
+                    onBlur={(e) => {
+                      const text = e.currentTarget.innerText.trim();
+                      if (update && text && text !== exporterName) {
+                        update("exporter", text);
+                      }
+                    }}
+                  >
+                    {exporterName}
+                  </h1>
 
                   {/* Corporate Trade Pill (Top-Right of Kop) */}
                   <div
@@ -3115,35 +3083,69 @@ function OfficialLetterhead({
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "5px",
-                      padding: "3px 8px",
+                      padding: "2px 7px",
                       background: "#f8fafc",
                       border: "1px solid #cbd5e1",
-                      borderLeft: "3px solid #059669",
+                      borderLeft: "2.5px solid #059669",
                       borderRadius: "3px",
                       flexShrink: 0,
-                      marginTop: "2px",
                     }}
                   >
                     <span
                       style={{
-                        width: "5px",
-                        height: "5px",
+                        width: "4.5px",
+                        height: "4.5px",
                         borderRadius: "999px",
                         background: "#059669",
                       }}
                     />
                     <span
                       style={{
-                        fontSize: "6.5pt",
+                        fontSize: "6pt",
                         fontWeight: 800,
-                        letterSpacing: "0.1em",
+                        letterSpacing: "0.09em",
                         color: "#0f2942",
                         textTransform: "uppercase",
+                        whiteSpace: "nowrap",
                       }}
                     >
                       {isId ? "EKSPORTIR RESMI • ID" : "VERIFIED EXPORTER • ID"}
                     </span>
                   </div>
+                </div>
+
+                {/* Row 2: Full-Width Tagline (Never squeezed by right badge) */}
+                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span
+                    contentEditable={false}
+                    style={{
+                      width: "12px",
+                      height: "2.5px",
+                      background: "#059669",
+                      borderRadius: "1px",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <p
+                    className="company-tagline"
+                    style={{
+                      fontSize: "7.3pt",
+                      fontWeight: 700,
+                      letterSpacing: "0.065em",
+                      color: "#047857",
+                      margin: 0,
+                      lineHeight: 1.2,
+                      whiteSpace: "nowrap",
+                    }}
+                    onBlur={(e) => {
+                      const text = e.currentTarget.innerText.trim();
+                      if (text !== exporterTagline) {
+                        setCustomTagline(text);
+                      }
+                    }}
+                  >
+                    {exporterTagline}
+                  </p>
                 </div>
 
                 {/* Hairline Corporate Separator */}
@@ -3152,26 +3154,26 @@ function OfficialLetterhead({
                   style={{
                     height: "1px",
                     background: "linear-gradient(90deg, #cbd5e1 0%, #e2e8f0 85%, transparent 100%)",
-                    margin: `${Math.max(5, lineSpacing + 3)}px 0`,
+                    margin: `${Math.max(4, lineSpacing + 2)}px 0`,
                   }}
                 />
 
-                {/* Lower Metadata Tier: Structured Address & 3-Pillar Contact Bar */}
+                {/* Lower Metadata Tier: Single-Line Address & Single-Line 3-Pillar Contact Bar */}
                 <div
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${Math.max(4, lineSpacing + 2)}px`,
+                    gap: `${Math.max(3, lineSpacing + 1)}px`,
                   }}
                 >
-                  {/* Address Row with MapPin Badge */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  {/* Address Row with MapPin Badge (Strictly 1 Line) */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px", whiteSpace: "nowrap" }}>
                     <span
                       contentEditable={false}
                       style={{
-                        width: "16px",
-                        height: "16px",
-                        borderRadius: "3.5px",
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "3px",
                         background: "#f1f5f9",
                         border: "1px solid #cbd5e1",
                         display: "inline-flex",
@@ -3181,14 +3183,14 @@ function OfficialLetterhead({
                         flexShrink: 0,
                       }}
                     >
-                      <MapPin size={9.5} strokeWidth={2.5} />
+                      <MapPin size={8.5} strokeWidth={2.5} />
                     </span>
                     <span
                       contentEditable={false}
                       style={{
-                        fontSize: "7.6pt",
+                        fontSize: "7pt",
                         fontWeight: 800,
-                        letterSpacing: "0.05em",
+                        letterSpacing: "0.04em",
                         color: dividerColor,
                         textTransform: "uppercase",
                         flexShrink: 0,
@@ -3199,10 +3201,11 @@ function OfficialLetterhead({
                     <span
                       className="company-details"
                       style={{
-                        fontSize: "8.8pt",
+                        fontSize: "8pt",
                         color: "#334155",
                         fontWeight: 500,
-                        lineHeight: 1.32,
+                        lineHeight: 1.25,
+                        whiteSpace: "nowrap",
                       }}
                       onBlur={(e) => {
                         const text = e.currentTarget.innerText.trim();
@@ -3215,23 +3218,24 @@ function OfficialLetterhead({
                     </span>
                   </div>
 
-                  {/* Contact Bar with 3 Structured Icon Pillars */}
+                  {/* Contact Bar with 3 Structured Icon Pillars (Strictly 1 Line) */}
                   <div
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      flexWrap: "wrap",
-                      gap: "11px",
+                      flexWrap: "nowrap",
+                      whiteSpace: "nowrap",
+                      gap: "9px",
                     }}
                   >
                     {/* Pillar 1: Phone */}
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4.5px" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                       <span
                         contentEditable={false}
                         style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "3.5px",
+                          width: "14px",
+                          height: "14px",
+                          borderRadius: "3px",
                           background: "#f1f5f9",
                           border: "1px solid #cbd5e1",
                           display: "inline-flex",
@@ -3241,35 +3245,35 @@ function OfficialLetterhead({
                           flexShrink: 0,
                         }}
                       >
-                        <Phone size={9} strokeWidth={2.5} />
+                        <Phone size={8} strokeWidth={2.5} />
                       </span>
                       <span
                         contentEditable={false}
-                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#64748b" }}
+                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
                       >
                         Tel:
                       </span>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8.6pt", fontWeight: 700, color: "#0f172a" }}
+                        style={{ fontSize: "8pt", fontWeight: 700, color: "#0f172a" }}
                         onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
                       >
                         {telVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8.5pt", fontWeight: 700 }}>
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8pt", fontWeight: 700 }}>
                       |
                     </span>
 
                     {/* Pillar 2: Email */}
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4.5px" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                       <span
                         contentEditable={false}
                         style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "3.5px",
+                          width: "14px",
+                          height: "14px",
+                          borderRadius: "3px",
                           background: "#ecfdf5",
                           border: "1px solid #a7f3d0",
                           display: "inline-flex",
@@ -3279,34 +3283,34 @@ function OfficialLetterhead({
                           flexShrink: 0,
                         }}
                       >
-                        <Mail size={9} strokeWidth={2.5} />
+                        <Mail size={8} strokeWidth={2.5} />
                       </span>
                       <span
                         contentEditable={false}
-                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#64748b" }}
+                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
                       >
                         Email:
                       </span>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8.6pt", fontWeight: 600, color: dividerColor }}
+                        style={{ fontSize: "8pt", fontWeight: 600, color: dividerColor }}
                         onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
                       >
                         {emailVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8.5pt", fontWeight: 700 }}>
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8pt", fontWeight: 700 }}>
                       |
                     </span>
 
                     {/* Pillar 3: Website */}
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4.5px" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
                       <span
                         contentEditable={false}
                         style={{
-                          width: "16px",
-                          height: "16px",
+                          width: "14px",
+                          height: "14px",
                           borderRadius: "3.5px",
                           background: "#eff6ff",
                           border: "1px solid #bfdbfe",
@@ -3317,17 +3321,17 @@ function OfficialLetterhead({
                           flexShrink: 0,
                         }}
                       >
-                        <Globe size={9} strokeWidth={2.5} />
+                        <Globe size={8} strokeWidth={2.5} />
                       </span>
                       <span
                         contentEditable={false}
-                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#64748b" }}
+                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
                       >
                         Web:
                       </span>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8.6pt", fontWeight: 700, color: "#047857" }}
+                        style={{ fontSize: "8pt", fontWeight: 700, color: "#047857" }}
                         onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
                       >
                         {webVal}
