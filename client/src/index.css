@@ -6979,75 +6979,6 @@ textarea:focus-visible {
   color: #334155;
 }
 
-.doc-parties-column .doc-bank-card,
-.doc-reference-column .doc-bank-card {
-  margin-bottom: 0 !important;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.doc-parties-column .bank-card-table,
-.doc-reference-column .bank-card-table {
-  flex: 1;
-}
-
-.doc-parties-column .bank-lbl,
-.doc-reference-column .bank-lbl {
-  width: 116px;
-  min-width: 95px;
-  padding: 4.5px 10px;
-}
-
-.doc-parties-column .bank-val,
-.doc-reference-column .bank-val {
-  padding: 4.5px 10px;
-}
-
-.doc-footer-split-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  align-items: stretch;
-  margin-top: 4px;
-}
-
-.doc-footer-split-grid .doc-bank-card,
-.doc-footer-split-grid .doc-cert-banner,
-.doc-footer-split-grid .doc-instructions-box {
-  margin-bottom: 0 !important;
-  height: 100%;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-}
-
-.doc-footer-split-grid .bank-card-table {
-  flex: 1;
-}
-
-.doc-footer-split-grid .bank-lbl {
-  width: 124px;
-  min-width: 100px;
-  padding: 4.5px 10px;
-}
-
-.doc-footer-split-grid .bank-val {
-  padding: 4.5px 10px;
-}
-
-.doc-footer-split-grid .doc-single-signature-wrap {
-  margin-top: 0 !important;
-  padding: 10px 14px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-}
-
 .doc-single-signature-wrap {
   display: flex;
   justify-content: flex-end;
@@ -7107,6 +7038,245 @@ textarea:focus-visible {
   font-weight: 400;
   color: #334155;
   margin-top: 1px;
+}
+
+/* ============================================================================
+   INCODOCS / UNLK INTERNATIONAL TRADE FORM GRID (.unlk-*)
+   ============================================================================ */
+.unlk-doc-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+  color: #0f172a;
+}
+
+.unlk-doc-wrapper .doc-title-bar {
+  margin: 4px 0 6px 0 !important;
+}
+
+.paper-document .unlk-main-heading {
+  font-size: 14pt !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.04em !important;
+  color: #0f172a !important;
+  text-align: center !important;
+  text-transform: uppercase !important;
+  margin: 4px 0 6px 0 !important;
+  line-height: 1.2 !important;
+}
+
+.unlk-trade-form {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid #0f172a !important;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.unlk-row-50-50 {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  width: 100%;
+  align-items: stretch;
+}
+
+.unlk-col-stack {
+  display: flex !important;
+  flex-direction: column !important;
+  min-width: 0;
+  height: 100%;
+}
+
+.unlk-flex-fill {
+  flex: 1 1 auto !important;
+}
+
+.unlk-subrow {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.unlk-subrow-2col {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  width: 100%;
+  align-items: stretch;
+}
+
+.unlk-subrow-2col-70-30 {
+  display: grid !important;
+  grid-template-columns: 2fr 1fr !important;
+  width: 100%;
+  align-items: stretch;
+}
+
+.unlk-border-r {
+  border-right: 1px solid #0f172a !important;
+}
+
+.unlk-border-t {
+  border-top: 1px solid #0f172a !important;
+}
+
+.unlk-border-b {
+  border-bottom: 1px solid #0f172a !important;
+}
+
+.unlk-cell {
+  padding: 5px 8px !important;
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.unlk-pages-strip {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  padding: 3px 8px !important;
+  box-sizing: border-box;
+}
+
+.unlk-pages-box {
+  text-align: right !important;
+}
+
+.paper-document .unlk-trade-form .unlk-lbl {
+  font-size: 8pt !important;
+  font-weight: 500 !important;
+  color: #334155 !important;
+  line-height: 1.18 !important;
+  margin-bottom: 2px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+}
+
+.paper-document .unlk-trade-form .unlk-val {
+  font-size: 9.4pt !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  line-height: 1.28 !important;
+  word-break: break-word;
+}
+
+.paper-document .unlk-trade-form .unlk-val-bold {
+  font-size: 9.6pt !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.28 !important;
+  word-break: break-word;
+}
+
+/* Line Items Table inside UNLK Form */
+.paper-document table.unlk-items-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  border-top: 1px solid #0f172a !important;
+  border-bottom: 1px solid #0f172a !important;
+  margin: 0 !important;
+  table-layout: fixed !important;
+}
+
+.paper-document table.unlk-items-table thead th {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 8.3pt !important;
+  font-weight: 600 !important;
+  line-height: 1.2 !important;
+  padding: 5px 6px !important;
+  border-bottom: 1px solid #0f172a !important;
+  border-right: 1px solid #0f172a !important;
+  border-top: none !important;
+  border-left: none !important;
+  text-align: center !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  vertical-align: middle !important;
+}
+
+.paper-document table.unlk-items-table thead th:last-child,
+.paper-document table.unlk-items-table tbody td:last-child {
+  border-right: none !important;
+}
+
+.paper-document table.unlk-items-table tbody td {
+  padding: 7px 7px !important;
+  font-size: 9.3pt !important;
+  line-height: 1.3 !important;
+  color: #0f172a !important;
+  border-right: 1px solid #0f172a !important;
+  border-bottom: none !important;
+  border-top: none !important;
+  border-left: none !important;
+  vertical-align: top !important;
+  background: #ffffff !important;
+}
+
+.paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
+  height: 112px !important;
+}
+
+.paper-document .unlk-trade-form .unlk-item-spec {
+  font-size: 8.7pt !important;
+  color: #1e293b !important;
+  line-height: 1.28 !important;
+  margin-top: 2px !important;
+}
+
+.paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td {
+  border-top: 1px solid #0f172a !important;
+  padding: 4px 7px !important;
+  font-size: 9.2pt !important;
+  height: auto !important;
+  vertical-align: middle !important;
+}
+
+.paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label {
+  text-align: center !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+}
+
+.paper-document .unlk-trade-form .unlk-bank-lines {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1.5px !important;
+  font-size: 8.8pt !important;
+  line-height: 1.28 !important;
+  color: #0f172a !important;
+}
+
+.paper-document .unlk-trade-form .unlk-bank-lines > div,
+.paper-document .unlk-trade-form .unlk-bank-lines span,
+.paper-document .unlk-trade-form .unlk-bank-lines strong {
+  font-size: 8.8pt !important;
+  line-height: 1.28 !important;
+}
+
+.unlk-total-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 4.5px 8px !important;
+}
+
+.unlk-signatory-split {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.unlk-sig-zone {
+  position: relative;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding-top: 2px;
+}
+
+.unlk-sig-zone .official-stamp-seal {
+  top: -10px;
+  right: 16px;
 }
 
 /* Official Stamp Seal */
@@ -10806,82 +10976,6 @@ textarea:focus-visible {
     color: #0f172a !important;
   }
 
-  /* Split Mode Top & Footer (50/50 Table Cards) agar pas 1 halaman */
-  .doc-parties-column .doc-bank-card,
-  .doc-reference-column .doc-bank-card {
-    margin-bottom: 0 !important;
-    flex: 1 !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  .doc-parties-column .bank-card-table,
-  .doc-reference-column .bank-card-table {
-    flex: 1 !important;
-  }
-  .doc-parties-column .bank-lbl,
-  .doc-reference-column .bank-lbl {
-    width: 104px !important;
-    min-width: 88px !important;
-    padding: 2px 7px !important;
-  }
-  .doc-parties-column .bank-val,
-  .doc-reference-column .bank-val {
-    padding: 2px 7px !important;
-    font-weight: 500 !important;
-  }
-  .doc-parties-column .bank-val.font-bold,
-  .doc-reference-column .bank-val.font-bold,
-  .doc-footer-split-grid .bank-val.font-bold {
-    font-weight: 700 !important;
-  }
-  .doc-parties-column .bank-val.font-semibold,
-  .doc-reference-column .bank-val.font-semibold,
-  .doc-footer-split-grid .bank-val.font-semibold {
-    font-weight: 600 !important;
-  }
-
-  .doc-footer-split-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 8px !important;
-    align-items: stretch !important;
-    margin-top: 2px !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
-  }
-  .doc-footer-split-grid .doc-bank-card,
-  .doc-footer-split-grid .doc-cert-banner,
-  .doc-footer-split-grid .doc-instructions-box {
-    margin-bottom: 0 !important;
-    height: 100% !important;
-    box-sizing: border-box !important;
-    display: flex !important;
-    flex-direction: column !important;
-  }
-  .doc-footer-split-grid .bank-card-table {
-    flex: 1 !important;
-  }
-  .doc-footer-split-grid .bank-lbl {
-    width: 110px !important;
-    min-width: 92px !important;
-    padding: 2px 7px !important;
-  }
-  .doc-footer-split-grid .bank-val {
-    padding: 2px 7px !important;
-    font-weight: 500 !important;
-  }
-  .doc-footer-split-grid .doc-single-signature-wrap {
-    margin-top: 0 !important;
-    padding: 8px 12px !important;
-    border: 1px solid #cbd5e1 !important;
-    border-radius: 4px !important;
-    background: #ffffff !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
-  }
-
   /* Blok tanda tangan & stempel eksportir - tetap pas di Halaman 1 tanpa garis atas */
   .doc-single-signature-wrap {
     margin-top: 8px !important;
@@ -10938,6 +11032,119 @@ textarea:focus-visible {
     color: #334155 !important;
     margin-top: 1px !important;
     text-align: left !important;
+  }
+
+  /* IncoDocs / UNLK International Trade Form Grid Print Rules */
+  .unlk-doc-wrapper {
+    width: 100% !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .unlk-doc-wrapper .doc-title-bar {
+    margin: 3px 0 5px 0 !important;
+    padding: 4.5px 12px !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+  .paper-document .unlk-main-heading {
+    font-size: 13.5pt !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.04em !important;
+    color: #0f172a !important;
+    text-align: center !important;
+    margin: 2px 0 4px 0 !important;
+    line-height: 1.15 !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+  .unlk-trade-form {
+    border: 1.5px solid #0f172a !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    background: #ffffff !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .unlk-row-50-50 {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    width: 100% !important;
+    align-items: stretch !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .unlk-cell {
+    padding: 3.5px 6.5px !important;
+  }
+  .unlk-pages-strip {
+    padding: 2px 6.5px !important;
+  }
+  .paper-document .unlk-trade-form .unlk-lbl {
+    font-size: 7.8pt !important;
+    font-weight: 500 !important;
+    color: #334155 !important;
+    line-height: 1.15 !important;
+    margin-bottom: 1.5px !important;
+  }
+  .paper-document .unlk-trade-form .unlk-val {
+    font-size: 9.2pt !important;
+    font-weight: 500 !important;
+    color: #0f172a !important;
+    line-height: 1.24 !important;
+  }
+  .paper-document .unlk-trade-form .unlk-val-bold {
+    font-size: 9.4pt !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.24 !important;
+  }
+  .paper-document table.unlk-items-table {
+    border-top: 1px solid #0f172a !important;
+    border-bottom: 1px solid #0f172a !important;
+    margin: 0 !important;
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+  .paper-document table.unlk-items-table thead th {
+    font-size: 8.1pt !important;
+    font-weight: 600 !important;
+    padding: 4px 5px !important;
+    border-bottom: 1px solid #0f172a !important;
+    border-right: 1px solid #0f172a !important;
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+  .paper-document table.unlk-items-table tbody td {
+    font-size: 9.1pt !important;
+    line-height: 1.26 !important;
+    padding: 5px 6px !important;
+    border-right: 1px solid #0f172a !important;
+  }
+  .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
+    height: 96px !important;
+  }
+  .paper-document .unlk-trade-form .unlk-item-spec {
+    font-size: 8.5pt !important;
+    line-height: 1.24 !important;
+  }
+  .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td {
+    border-top: 1px solid #0f172a !important;
+    padding: 3.5px 6px !important;
+    font-size: 9pt !important;
+    height: auto !important;
+  }
+  .paper-document .unlk-trade-form .unlk-bank-lines,
+  .paper-document .unlk-trade-form .unlk-bank-lines > div,
+  .paper-document .unlk-trade-form .unlk-bank-lines span,
+  .paper-document .unlk-trade-form .unlk-bank-lines strong {
+    font-size: 8.6pt !important;
+    line-height: 1.24 !important;
+  }
+  .unlk-total-bar {
+    padding: 3.5px 6.5px !important;
+  }
+  .unlk-sig-zone {
+    min-height: 44px !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */
