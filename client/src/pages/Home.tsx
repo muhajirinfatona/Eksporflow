@@ -122,7 +122,7 @@ export default function Home() {
     style.id = "eksporflow-print-page";
     const paperSpec = getPaperSizeSpec(shipment.paperSize);
     const orientationVal = shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait";
-    style.textContent = `@media print { @page { size: ${paperSpec.cssSize} ${orientationVal}; margin: 6mm 10mm 6mm 10mm; } }`;
+    style.textContent = `@media print { @page { size: ${paperSpec.cssSize} ${orientationVal}; margin: 14mm 13mm 12mm 13mm; } }`;
     document.head.appendChild(style);
 
     const handleAfterPrint = () => {

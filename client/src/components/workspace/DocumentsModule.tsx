@@ -713,11 +713,11 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 6mm 10mm 6mm 10mm;
+            margin: 14mm 13mm 12mm 13mm;
           }
           .paper-document {
-            --doc-font-size: ${Math.min(9.5, Number(((shipment.docEditorFontSize || 11) * 0.77).toFixed(1)))}pt !important;
-            font-size: ${Math.min(9.5, Number(((shipment.docEditorFontSize || 11) * 0.77).toFixed(1)))}pt !important;
+            --doc-font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
+            font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
           }
         }
       `}</style>
@@ -1735,7 +1735,7 @@ function OfficialLetterhead({
 
   // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
   let dividerLineStyles: React.CSSProperties = {
-    marginTop: `${dividerGap + 3}px`,
+    marginTop: `${dividerGap + 6}px`,
     boxSizing: "content-box",
   };
   if (dividerStyle === "none") {
@@ -1783,7 +1783,8 @@ function OfficialLetterhead({
     <div
       className="paper-letterhead-wrap group/kop relative"
       style={{
-        marginBottom: `${Math.max(10, dividerGap + 8)}px`,
+        paddingTop: "4px",
+        marginBottom: `${Math.max(12, dividerGap + 10)}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -3040,6 +3041,7 @@ function OfficialLetterhead({
                   display: "flex",
                   flexDirection: "column",
                   textAlign: "left",
+                  paddingTop: "3px",
                 }}
               >
                 {/* Upper Identity Tier: Company Name + Verified Exporter Badge */}
@@ -3049,19 +3051,19 @@ function OfficialLetterhead({
                     alignItems: "flex-start",
                     justifyContent: "space-between",
                     gap: "10px",
-                    marginBottom: `${Math.max(1, lineSpacing)}px`,
+                    marginBottom: `${Math.max(2, lineSpacing)}px`,
                   }}
                 >
                   <div style={{ minWidth: 0, flex: 1 }}>
                     <h1
                       className="company-name"
                       style={{
-                        fontSize: "15.5pt",
+                        fontSize: "16pt",
                         fontWeight: 800,
                         letterSpacing: "0.035em",
                         color: dividerColor,
-                        margin: "0 0 2px 0",
-                        lineHeight: 1.08,
+                        margin: "0 0 3.5px 0",
+                        lineHeight: 1.14,
                         fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                       }}
                       onBlur={(e) => {
@@ -3087,12 +3089,12 @@ function OfficialLetterhead({
                       <p
                         className="company-tagline"
                         style={{
-                          fontSize: "7.5pt",
+                          fontSize: "8pt",
                           fontWeight: 700,
-                          letterSpacing: "0.08em",
+                          letterSpacing: "0.075em",
                           color: "#047857",
                           margin: 0,
-                          lineHeight: 1.2,
+                          lineHeight: 1.25,
                         }}
                         onBlur={(e) => {
                           const text = e.currentTarget.innerText.trim();
@@ -3113,13 +3115,13 @@ function OfficialLetterhead({
                       display: "inline-flex",
                       alignItems: "center",
                       gap: "5px",
-                      padding: "2.5px 8px",
+                      padding: "3px 8px",
                       background: "#f8fafc",
                       border: "1px solid #cbd5e1",
                       borderLeft: "3px solid #059669",
                       borderRadius: "3px",
                       flexShrink: 0,
-                      marginTop: "1px",
+                      marginTop: "2px",
                     }}
                   >
                     <span
@@ -3132,7 +3134,7 @@ function OfficialLetterhead({
                     />
                     <span
                       style={{
-                        fontSize: "6.2pt",
+                        fontSize: "6.5pt",
                         fontWeight: 800,
                         letterSpacing: "0.1em",
                         color: "#0f2942",
@@ -3150,7 +3152,7 @@ function OfficialLetterhead({
                   style={{
                     height: "1px",
                     background: "linear-gradient(90deg, #cbd5e1 0%, #e2e8f0 85%, transparent 100%)",
-                    margin: `${Math.max(3, lineSpacing + 1)}px 0`,
+                    margin: `${Math.max(5, lineSpacing + 3)}px 0`,
                   }}
                 />
 
@@ -3159,7 +3161,7 @@ function OfficialLetterhead({
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: `${Math.max(2, lineSpacing)}px`,
+                    gap: `${Math.max(4, lineSpacing + 2)}px`,
                   }}
                 >
                   {/* Address Row with MapPin Badge */}
@@ -3167,8 +3169,8 @@ function OfficialLetterhead({
                     <span
                       contentEditable={false}
                       style={{
-                        width: "15px",
-                        height: "15px",
+                        width: "16px",
+                        height: "16px",
                         borderRadius: "3.5px",
                         background: "#f1f5f9",
                         border: "1px solid #cbd5e1",
@@ -3179,12 +3181,12 @@ function OfficialLetterhead({
                         flexShrink: 0,
                       }}
                     >
-                      <MapPin size={9} strokeWidth={2.5} />
+                      <MapPin size={9.5} strokeWidth={2.5} />
                     </span>
                     <span
                       contentEditable={false}
                       style={{
-                        fontSize: "7pt",
+                        fontSize: "7.6pt",
                         fontWeight: 800,
                         letterSpacing: "0.05em",
                         color: dividerColor,
@@ -3197,10 +3199,10 @@ function OfficialLetterhead({
                     <span
                       className="company-details"
                       style={{
-                        fontSize: "8.2pt",
+                        fontSize: "8.8pt",
                         color: "#334155",
                         fontWeight: 500,
-                        lineHeight: 1.28,
+                        lineHeight: 1.32,
                       }}
                       onBlur={(e) => {
                         const text = e.currentTarget.innerText.trim();
@@ -3219,7 +3221,7 @@ function OfficialLetterhead({
                       display: "flex",
                       alignItems: "center",
                       flexWrap: "wrap",
-                      gap: "10px",
+                      gap: "11px",
                     }}
                   >
                     {/* Pillar 1: Phone */}
@@ -3227,8 +3229,8 @@ function OfficialLetterhead({
                       <span
                         contentEditable={false}
                         style={{
-                          width: "15px",
-                          height: "15px",
+                          width: "16px",
+                          height: "16px",
                           borderRadius: "3.5px",
                           background: "#f1f5f9",
                           border: "1px solid #cbd5e1",
@@ -3239,24 +3241,24 @@ function OfficialLetterhead({
                           flexShrink: 0,
                         }}
                       >
-                        <Phone size={8.5} strokeWidth={2.5} />
+                        <Phone size={9} strokeWidth={2.5} />
                       </span>
                       <span
                         contentEditable={false}
-                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
+                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#64748b" }}
                       >
                         Tel:
                       </span>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 700, color: "#0f172a" }}
+                        style={{ fontSize: "8.6pt", fontWeight: 700, color: "#0f172a" }}
                         onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
                       >
                         {telVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8pt", fontWeight: 700 }}>
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8.5pt", fontWeight: 700 }}>
                       |
                     </span>
 
@@ -3265,8 +3267,8 @@ function OfficialLetterhead({
                       <span
                         contentEditable={false}
                         style={{
-                          width: "15px",
-                          height: "15px",
+                          width: "16px",
+                          height: "16px",
                           borderRadius: "3.5px",
                           background: "#ecfdf5",
                           border: "1px solid #a7f3d0",
@@ -3277,24 +3279,24 @@ function OfficialLetterhead({
                           flexShrink: 0,
                         }}
                       >
-                        <Mail size={8.5} strokeWidth={2.5} />
+                        <Mail size={9} strokeWidth={2.5} />
                       </span>
                       <span
                         contentEditable={false}
-                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
+                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#64748b" }}
                       >
                         Email:
                       </span>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 600, color: dividerColor }}
+                        style={{ fontSize: "8.6pt", fontWeight: 600, color: dividerColor }}
                         onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
                       >
                         {emailVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8pt", fontWeight: 700 }}>
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8.5pt", fontWeight: 700 }}>
                       |
                     </span>
 
@@ -3303,8 +3305,8 @@ function OfficialLetterhead({
                       <span
                         contentEditable={false}
                         style={{
-                          width: "15px",
-                          height: "15px",
+                          width: "16px",
+                          height: "16px",
                           borderRadius: "3.5px",
                           background: "#eff6ff",
                           border: "1px solid #bfdbfe",
@@ -3315,17 +3317,17 @@ function OfficialLetterhead({
                           flexShrink: 0,
                         }}
                       >
-                        <Globe size={8.5} strokeWidth={2.5} />
+                        <Globe size={9} strokeWidth={2.5} />
                       </span>
                       <span
                         contentEditable={false}
-                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
+                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#64748b" }}
                       >
                         Web:
                       </span>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 700, color: "#047857" }}
+                        style={{ fontSize: "8.6pt", fontWeight: 700, color: "#047857" }}
                         onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
                       >
                         {webVal}
