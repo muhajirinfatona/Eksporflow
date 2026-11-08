@@ -24,6 +24,7 @@ import {
   RotateCcw,
   Check,
   Edit3,
+  Heading,
   SlidersHorizontal,
   Sparkles,
   Table,
@@ -261,6 +262,61 @@ export function DocWordRibbon({
     window.addEventListener("eksporflow:table-style-change", handleTableStyleExternal);
     return () => window.removeEventListener("eksporflow:table-style-change", handleTableStyleExternal);
   }, []);
+
+  // Document Title Box Styling & Height (Controlled from Top Ribbon)
+  const [titleBoxHeight, setTitleBoxHeight] = useState<number>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("eksporflow_title_box_pady");
+      if (saved) return Number(saved) || 6;
+    }
+    return 6;
+  });
+
+  const handleUpdateTitleHeight = (delta: number) => {
+    const next = Math.max(1, Math.min(20, titleBoxHeight + delta));
+    setTitleBoxHeight(next);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("eksporflow_title_box_pady", String(next));
+      window.dispatchEvent(new CustomEvent("eksporflow:title-box-height", { detail: { height: next } }));
+      const bar = document.querySelector(".doc-title-bar") as HTMLElement | null;
+      if (bar) {
+        bar.style.setProperty("padding-top", `${next}px`, "important");
+        bar.style.setProperty("padding-bottom", `${next}px`, "important");
+      }
+    }
+  };
+
+  const handleApplyTitleBoxStyle = (bg: string, textColor: string, border: string) => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("eksporflow_title_box_style", JSON.stringify({ bg, color: textColor, border }));
+      window.dispatchEvent(new CustomEvent("eksporflow:title-box-style", { detail: { bg, textColor, border } }));
+      const bar = document.querySelector(".doc-title-bar") as HTMLElement | null;
+      if (bar) {
+        bar.style.setProperty("background-color", bg, "important");
+        bar.style.setProperty("border", border, "important");
+      }
+      const h2 = document.querySelector(".doc-title-bar h2") as HTMLElement | null;
+      if (h2) {
+        h2.style.setProperty("color", textColor, "important");
+      }
+    }
+    toast.success("Desain kotak judul diubah");
+  };
+
+  const handleSelectTitleText = () => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("eksporflow:select-title-text"));
+      const h2 = document.querySelector(".doc-title-bar h2") as HTMLElement | null;
+      if (h2) {
+        const range = document.createRange();
+        range.selectNodeContents(h2);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(range);
+        toast.info("Teks judul dipilih. Anda dapat mengganti ukuran atau jenis huruf di menu Font.");
+      }
+    }
+  };
 
   useEffect(() => {
     const handleTableFocus = (e: any) => {
@@ -2186,6 +2242,111 @@ export function DocWordRibbon({
                 </div>
 
                 <span className="doc-ribbon-group-label">Spasi Atas/Bwh</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* Kotak Judul Dokumen (Title Box Controls) */}
+              <div className="doc-ribbon-group group-title-box">
+                <div className="doc-ribbon-row-top" style={{ alignItems: "center", gap: "4px" }}>
+                  <button
+                    type="button"
+                    onClick={handleSelectTitleText}
+                    style={{
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      color: "#1e40af",
+                      background: "#eff6ff",
+                      border: "1px solid #bfdbfe",
+                      borderRadius: "3px",
+                      padding: "0 6px",
+                      cursor: "pointer",
+                      height: "22px",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "3px",
+                    }}
+                    title="Blok / pilih seluruh teks judul dokumen untuk diubah huruf atau ukurannya"
+                  >
+                    <Heading size={11} />
+                    <span>Pilih Teks</span>
+                  </button>
+                  <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "3px", overflow: "hidden", height: "22px", background: "#f8fafc" }}>
+                    <span style={{ fontSize: "9.5px", fontWeight: 700, padding: "0 4px", color: "#64748b" }}>Tinggi</span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateTitleHeight(-1)}
+                      style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
+                      title="Perkecil tinggi kotak judul (-1px)"
+                    >
+                      −
+                    </button>
+                    <span style={{ fontSize: "9.5px", fontWeight: 700, minWidth: "22px", textAlign: "center", color: "#0f172a" }}>
+                      {titleBoxHeight}px
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateTitleHeight(1)}
+                      style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, fontSize: "11px", color: "#334155" }}
+                      title="Perbesar tinggi kotak judul (+1px)"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ alignItems: "center", gap: "3px" }}>
+                  <span style={{ fontSize: "9.5px", fontWeight: 700, color: "#64748b", marginRight: "1px" }}>Kotak:</span>
+                  {[
+                    { label: "Navy Korporat", bg: "#0f2942", text: "#ffffff", border: "1px solid #0f2942", swatch: "#0f2942" },
+                    { label: "Biru Royal", bg: "#1e40af", text: "#ffffff", border: "1px solid #1e40af", swatch: "#1e40af" },
+                    { label: "Hijau Ekspor", bg: "#065f46", text: "#ffffff", border: "1px solid #065f46", swatch: "#065f46" },
+                    { label: "Slate Modern", bg: "#334155", text: "#ffffff", border: "1px solid #334155", swatch: "#334155" },
+                    { label: "Kotak Garis Resmi", bg: "#ffffff", text: "#0f172a", border: "1.5px solid #0f172a", swatch: "#ffffff" },
+                    { label: "Tanpa Kotak", bg: "transparent", text: "#0f172a", border: "none", swatch: "linear-gradient(135deg, #fff 45%, #ef4444 50%, #fff 55%)" },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => handleApplyTitleBoxStyle(preset.bg, preset.text, preset.border)}
+                      title={preset.label}
+                      style={{
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "2.5px",
+                        background: preset.swatch,
+                        border: preset.swatch === "#ffffff" ? "1.5px solid #0f2942" : "1px solid rgba(0,0,0,0.25)",
+                        cursor: "pointer",
+                        padding: 0,
+                      }}
+                    />
+                  ))}
+                  <label
+                    title="Pilih warna bebas untuk kotak judul dokumen"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "14px",
+                      height: "14px",
+                      borderRadius: "2.5px",
+                      border: "1px solid #94a3b8",
+                      background: "conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444)",
+                      cursor: "pointer",
+                      position: "relative",
+                      overflow: "hidden",
+                    }}
+                  >
+                    <input
+                      type="color"
+                      defaultValue="#0f2942"
+                      onChange={(e) => handleApplyTitleBoxStyle(e.target.value, "#ffffff", `1px solid ${e.target.value}`)}
+                      style={{ opacity: 0, width: "20px", height: "20px", position: "absolute", cursor: "pointer" }}
+                    />
+                  </label>
+                </div>
+
+                <span className="doc-ribbon-group-label">Kotak Judul</span>
               </div>
 
               <div className="doc-ribbon-divider" />

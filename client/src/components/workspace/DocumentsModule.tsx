@@ -3084,8 +3084,31 @@ function DocTitleBanner({ title }: { title: string }) {
         setTableStyle(e.detail.styleKey);
       }
     };
+    const handleExtBoxStyle = (e: any) => {
+      if (e.detail) {
+        applyTitleBoxStyle(e.detail.bg, e.detail.textColor, e.detail.border);
+      }
+    };
+    const handleExtBoxHeight = (e: any) => {
+      if (typeof e.detail?.height === "number") {
+        updateBoxHeight(e.detail.height);
+      }
+    };
+    const handleExtSelectText = () => {
+      selectTitleText();
+    };
+
     window.addEventListener("eksporflow:table-style-change", handleExtTableStyle);
-    return () => window.removeEventListener("eksporflow:table-style-change", handleExtTableStyle);
+    window.addEventListener("eksporflow:title-box-style", handleExtBoxStyle);
+    window.addEventListener("eksporflow:title-box-height", handleExtBoxHeight);
+    window.addEventListener("eksporflow:select-title-text", handleExtSelectText);
+
+    return () => {
+      window.removeEventListener("eksporflow:table-style-change", handleExtTableStyle);
+      window.removeEventListener("eksporflow:title-box-style", handleExtBoxStyle);
+      window.removeEventListener("eksporflow:title-box-height", handleExtBoxHeight);
+      window.removeEventListener("eksporflow:select-title-text", handleExtSelectText);
+    };
   }, []);
 
   const applyDocumentTableStyle = (styleKey: string, label: string) => {
@@ -3191,314 +3214,12 @@ function DocTitleBanner({ title }: { title: string }) {
       }}
       onClick={(e) => {
         const target = e.target as HTMLElement;
-        if (target.closest(".titlebar-quick-tools") || target.closest(".titlebar-resize-handle")) return;
+        if (target.closest(".titlebar-resize-handle")) return;
         if (target === barRef.current && h2Ref.current) {
           selectTitleText();
         }
       }}
     >
-      <div
-        className="titlebar-quick-tools no-print opacity-0 group-hover/titlebar:opacity-100 group-focus-within/titlebar:opacity-100 transition-opacity duration-150"
-        contentEditable={false}
-        style={{
-          position: "absolute",
-          top: "-34px",
-          right: "0",
-          display: "inline-flex",
-          alignItems: "center",
-          flexWrap: "nowrap",
-          gap: "5px",
-          background: "rgba(255, 255, 255, 0.98)",
-          backdropFilter: "blur(6px)",
-          border: "1px solid #cbd5e1",
-          borderRadius: "6px",
-          padding: "2.5px 8px",
-          boxShadow: "0 4px 14px rgba(15, 23, 42, 0.12)",
-          zIndex: 30,
-          whiteSpace: "nowrap",
-        }}
-      >
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={selectTitleText}
-          style={{
-            fontSize: "9.5px",
-            fontWeight: 700,
-            color: "#1e40af",
-            background: "#eff6ff",
-            border: "1px solid #bfdbfe",
-            borderRadius: "3px",
-            padding: "1.5px 6px",
-            cursor: "pointer",
-            height: "21px",
-          }}
-          title="Blok / pilih seluruh teks judul untuk diubah ukuran atau jenis hurufnya"
-        >
-          Pilih Teks
-        </button>
-
-        {/* Tinggi Kotak Judul */}
-        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b" }}>
-          Tinggi:
-        </span>
-        <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "3px", overflow: "hidden", height: "21px" }}>
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => updateBoxHeight(boxPadY - 1, true)}
-            style={{ fontSize: "11px", fontWeight: 800, padding: "0 5px", background: "#f8fafc", color: "#334155", border: "none", cursor: "pointer", height: "100%" }}
-            title="Perkecil tinggi kotak judul"
-          >
-            −
-          </button>
-          <span style={{ fontSize: "9px", fontWeight: 700, padding: "0 4px", color: "#0f172a", background: "#ffffff", minWidth: "20px", textAlign: "center" }}>
-            {boxPadY}px
-          </span>
-          <button
-            type="button"
-            onMouseDown={(e) => e.preventDefault()}
-            onClick={() => updateBoxHeight(boxPadY + 1, true)}
-            style={{ fontSize: "11px", fontWeight: 800, padding: "0 5px", background: "#f8fafc", color: "#334155", border: "none", cursor: "pointer", height: "100%" }}
-            title="Perbesar tinggi kotak judul"
-          >
-            +
-          </button>
-        </div>
-
-        {/* Bentuk & Warna Kotak Judul */}
-        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b" }}>
-          Kotak:
-        </span>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: "3px" }}>
-          {[
-            { label: "Navy Korporat", bg: "#0f2942", text: "#ffffff", border: "1px solid #0f2942", swatch: "#0f2942" },
-            { label: "Biru Royal", bg: "#1e40af", text: "#ffffff", border: "1px solid #1e40af", swatch: "#1e40af" },
-            { label: "Hijau Ekspor", bg: "#065f46", text: "#ffffff", border: "1px solid #065f46", swatch: "#065f46" },
-            { label: "Slate Modern", bg: "#334155", text: "#ffffff", border: "1px solid #334155", swatch: "#334155" },
-            { label: "Kotak Garis Resmi", bg: "#ffffff", text: "#0f172a", border: "1.5px solid #0f172a", swatch: "#ffffff" },
-            { label: "Tanpa Kotak (Teks Saja)", bg: "transparent", text: "#0f172a", border: "none", swatch: "linear-gradient(135deg, #fff 45%, #ef4444 50%, #fff 55%)" },
-          ].map((preset) => (
-            <button
-              key={preset.label}
-              type="button"
-              onMouseDown={(e) => e.preventDefault()}
-              onClick={() => applyTitleBoxStyle(preset.bg, preset.text, preset.border)}
-              title={preset.label}
-              style={{
-                width: "13px",
-                height: "13px",
-                borderRadius: "3px",
-                background: preset.swatch,
-                border: preset.swatch === "#ffffff" ? "1.5px solid #0f2942" : "1px solid rgba(0,0,0,0.25)",
-                cursor: "pointer",
-                padding: 0,
-              }}
-            />
-          ))}
-          <label
-            title="Pilih warna kotak judul bebas"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: "13px",
-              height: "13px",
-              borderRadius: "3px",
-              border: "1px solid #94a3b8",
-              background: "conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444)",
-              cursor: "pointer",
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            <input
-              type="color"
-              defaultValue="#0f2942"
-              onChange={(e) => applyTitleBoxStyle(e.target.value, "#ffffff", `1px solid ${e.target.value}`)}
-              style={{ opacity: 0, width: "20px", height: "20px", position: "absolute", cursor: "pointer" }}
-            />
-          </label>
-        </div>
-
-        {/* Separator */}
-        <span style={{ width: "1px", height: "16px", background: "#e2e8f0", margin: "0 1px" }} />
-
-        {/* Pemilih Gaya Tabel Dokumen (Dropdown Ringkas) */}
-        <select
-          value={tableStyle}
-          onChange={(e) => {
-            const labels: Record<string, string> = {
-              unlk: "Referensi",
-              corporate: "Korporat",
-              soft: "Soft Card",
-              minimal: "Minimalis",
-            };
-            applyDocumentTableStyle(e.target.value, labels[e.target.value] || e.target.value);
-          }}
-          style={{
-            fontSize: "9.5px",
-            fontWeight: 600,
-            padding: "1px 5px",
-            borderRadius: "3px",
-            border: "1px solid #cbd5e1",
-            background: "#f8fafc",
-            color: "#1e293b",
-            cursor: "pointer",
-            height: "21px",
-          }}
-          title="Gaya Desain Tabel Dokumen (UNLK, Korporat, Soft, Minimalis)"
-        >
-          <option value="unlk">Grid Referensi (UNLK)</option>
-          <option value="corporate">Tabel Korporat (Navy)</option>
-          <option value="soft">Tabel Soft Card</option>
-          <option value="minimal">Tabel Minimalis</option>
-        </select>
-
-        {/* Separator */}
-        <span style={{ width: "1px", height: "16px", background: "#e2e8f0", margin: "0 1px" }} />
-
-        {/* Fitur Gabung Tabel & Gabung Sel ala Microsoft Word */}
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            if ((window as any).__eksporflow_merge_cells) {
-              (window as any).__eksporflow_merge_cells();
-              return;
-            }
-            const table = barRef.current?.closest(".unlk-doc-wrapper")?.querySelector("table.unlk-items-table") || document.querySelector("table.unlk-items-table");
-            if (!table) return;
-            const sel = window.getSelection();
-            const activeCell = ((sel?.anchorNode as HTMLElement)?.closest?.("td, th") as HTMLTableCellElement) || table.querySelector("tbody tr td:first-child");
-            if (activeCell) {
-              const next = activeCell.nextElementSibling as HTMLTableCellElement | null;
-              if (next) {
-                activeCell.colSpan = (activeCell.colSpan || 1) + (next.colSpan || 1);
-                if (next.innerText.trim()) activeCell.innerHTML = `${activeCell.innerHTML} ${next.innerHTML}`;
-                next.remove();
-                toast.success(`Sel tabel berhasil digabungkan (Colspan: ${activeCell.colSpan})!`);
-                return;
-              }
-            }
-            toast.info("Klik sel tabel yang ingin digabung terlebih dahulu.");
-          }}
-          style={{
-            fontSize: "9.5px",
-            fontWeight: 600,
-            padding: "1px 6px",
-            borderRadius: "3px",
-            border: "1px solid #bfdbfe",
-            background: "#eff6ff",
-            color: "#1d4ed8",
-            cursor: "pointer",
-            height: "21px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "3px",
-          }}
-          title="Gabung Sel (Merge Cells): Menggabungkan sel yang aktif dengan sel di sampingnya seperti di Word"
-        >
-          <span>🔀</span> Gabung Sel
-        </button>
-        <button
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => {
-            const table = barRef.current?.closest(".unlk-doc-wrapper")?.querySelector("table.unlk-items-table") || document.querySelector("table.unlk-items-table");
-            if (!table) return;
-            const parent = table.closest(".unlk-trade-form") || table.parentElement;
-            const tables = parent ? Array.from(parent.querySelectorAll("table")) : [];
-            const idx = tables.indexOf(table as HTMLTableElement);
-            const nextTable = tables[idx + 1];
-            if (nextTable) {
-              const myTbody = table.querySelector("tbody") || table;
-              Array.from(nextTable.querySelectorAll("tbody tr, tr")).forEach((r) => myTbody.appendChild(r));
-              nextTable.remove();
-              toast.success("Tabel berhasil digabungkan (Merge Table)!");
-            } else {
-              toast.info("Seluruh baris tabel sudah berada dalam satu tabel terpadu.");
-            }
-          }}
-          style={{
-            fontSize: "9.5px",
-            fontWeight: 600,
-            padding: "1px 6px",
-            borderRadius: "3px",
-            border: "1px solid #cbd5e1",
-            background: "#f8fafc",
-            color: "#334155",
-            cursor: "pointer",
-            height: "21px",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "3px",
-          }}
-          title="Gabung Tabel (Merge Table): Menyatukan tabel-tabel terpisah menjadi satu tabel berlanjut"
-        >
-          <span>🔗</span> Gabung Tabel
-        </button>
-
-        {/* Quick Spasi Atas & Bawah ala Word */}
-        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b" }}>
-          Spasi:
-        </span>
-        <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "3px", overflow: "hidden", height: "21px", background: "#f8fafc" }}>
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              if (typeof (window as any).__eksporflow_space_before === "function") {
-                (window as any).__eksporflow_space_before(2);
-              }
-            }}
-            style={{ fontSize: "9px", fontWeight: 700, padding: "0 4px", background: "transparent", color: "#334155", border: "none", borderRight: "1px solid #e2e8f0", cursor: "pointer", height: "100%" }}
-            title="Tambah Spasi Atas (+2px) pada teks/kotak yang aktif"
-          >
-            ⬆+
-          </button>
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              if (typeof (window as any).__eksporflow_space_before === "function") {
-                (window as any).__eksporflow_space_before(-2);
-              }
-            }}
-            style={{ fontSize: "9px", fontWeight: 700, padding: "0 4px", background: "transparent", color: "#334155", border: "none", borderRight: "1px solid #cbd5e1", cursor: "pointer", height: "100%" }}
-            title="Kurangi Spasi Atas (-2px) pada teks/kotak yang aktif"
-          >
-            ⬆−
-          </button>
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              if (typeof (window as any).__eksporflow_space_after === "function") {
-                (window as any).__eksporflow_space_after(2);
-              }
-            }}
-            style={{ fontSize: "9px", fontWeight: 700, padding: "0 4px", background: "transparent", color: "#334155", border: "none", borderRight: "1px solid #e2e8f0", cursor: "pointer", height: "100%" }}
-            title="Tambah Spasi Bawah (+2px) pada teks/kotak yang aktif"
-          >
-            ⬇+
-          </button>
-          <button
-            type="button"
-            onMouseDown={(e) => {
-              e.preventDefault();
-              if (typeof (window as any).__eksporflow_space_after === "function") {
-                (window as any).__eksporflow_space_after(-2);
-              }
-            }}
-            style={{ fontSize: "9px", fontWeight: 700, padding: "0 4px", background: "transparent", color: "#334155", border: "none", cursor: "pointer", height: "100%" }}
-            title="Kurangi Spasi Bawah (-2px) pada teks/kotak yang aktif"
-          >
-            ⬇−
-          </button>
-        </div>
-      </div>
-
       <h2 ref={h2Ref}>{title}</h2>
 
       {/* Bottom Drag Handle to resize title box height directly */}
