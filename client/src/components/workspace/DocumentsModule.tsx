@@ -30,7 +30,11 @@ import {
   FileCode,
   Landmark,
   Languages,
+  LayoutTemplate,
+  Mail,
+  MapPin,
   PenTool,
+  Phone,
   Edit3,
   Printer,
   Ruler,
@@ -1452,6 +1456,30 @@ function OfficialLetterhead({
     rawExporterContact.trim() === "Telp: +62 812 3456 7890 · Email: official@indicoexport.com"
       ? "Tel: +62 812-3456-7890  |  Email: official@indicoexport.com  |  Web: www.indicoexport.com"
       : rawExporterContact;
+
+  // Parse structured address label & body for executive corporate header
+  const addressMatch = exporterAddress.match(/^(Head Office|Kantor Pusat|Office|Alamat)\s*:\s*(.+)$/i);
+  const addressLabel = addressMatch ? addressMatch[1].toUpperCase() : isId ? "KANTOR PUSAT" : "HEAD OFFICE";
+  const addressBody = addressMatch ? addressMatch[2].trim() : exporterAddress;
+
+  // Parse structured contact pillars (Tel, Email, Web)
+  const telMatch = exporterContact.match(/(?:Telp?|Phone|HP|WA)\s*:\s*([^|·•\n]+)/i);
+  const emailMatch = exporterContact.match(/(?:Email|E-mail|Mail)\s*:\s*([^|·•\n]+)/i);
+  const webMatch = exporterContact.match(/(?:Web|Website|Site)\s*:\s*([^|·•\n]+)/i);
+  const telVal = telMatch ? telMatch[1].trim() : "+62 812-3456-7890";
+  const emailVal = emailMatch ? emailMatch[1].trim() : "official@indicoexport.com";
+  const webVal = webMatch ? webMatch[1].trim() : "www.indicoexport.com";
+
+  const updateContactPart = (part: "tel" | "email" | "web", newVal: string) => {
+    if (!update) return;
+    const clean = newVal.trim();
+    if (!clean) return;
+    const nextTel = part === "tel" ? clean : telVal;
+    const nextEmail = part === "email" ? clean : emailVal;
+    const nextWeb = part === "web" ? clean : webVal;
+    update("exporterContact", `Tel: ${nextTel}  |  Email: ${nextEmail}  |  Web: ${nextWeb}`);
+  };
+
   const defaultTagline = isId
     ? "EKSPORTIR & PEMASOK KOMODITAS PERTANIAN & KELAPA INDONESIA"
     : "EXPORTER & SUPPLIER OF INDONESIAN AGRICULTURAL & COCONUT COMMODITIES";
@@ -1700,24 +1728,25 @@ function OfficialLetterhead({
     ? { boxShadow: "0 8px 20px rgba(15, 23, 42, 0.22)" }
     : {};
 
-  // Compute divider line style
+  // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
   let dividerLineStyles: React.CSSProperties = {
-    marginTop: `${dividerGap}px`,
+    marginTop: `${dividerGap + 3}px`,
+    boxSizing: "content-box",
   };
   if (dividerStyle === "none") {
     dividerLineStyles.display = "none";
   } else if (dividerStyle === "double") {
     dividerLineStyles.borderTop = `2.5px solid ${dividerColor}`;
     dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
-    dividerLineStyles.height = "4px";
+    dividerLineStyles.height = "2.5px";
   } else if (dividerStyle === "thick-thin") {
     dividerLineStyles.borderTop = `3.5px solid ${dividerColor}`;
     dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
-    dividerLineStyles.height = "5px";
+    dividerLineStyles.height = "2.5px";
   } else if (dividerStyle === "thin-thick") {
     dividerLineStyles.borderTop = `1px solid ${dividerColor}`;
     dividerLineStyles.borderBottom = `3px solid ${dividerColor}`;
-    dividerLineStyles.height = "4.5px";
+    dividerLineStyles.height = "2.5px";
   } else if (dividerStyle === "single") {
     dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
     dividerLineStyles.height = "0px";
@@ -1734,9 +1763,9 @@ function OfficialLetterhead({
     dividerLineStyles.borderBottom = `2.5px dotted ${dividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "accent-gradient") {
-    dividerLineStyles.background = `linear-gradient(90deg, ${dividerColor} 0%, ${dividerColor} 65%, transparent 100%)`;
-    dividerLineStyles.height = "3px";
-    dividerLineStyles.borderRadius = "2px";
+    dividerLineStyles.background = `linear-gradient(90deg, ${dividerColor} 0%, ${dividerColor} 74%, #059669 74%, #059669 91%, #d97706 91%, #d97706 100%)`;
+    dividerLineStyles.height = "3.5px";
+    dividerLineStyles.borderRadius = "1px";
   } else {
     dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
     dividerLineStyles.height = "0px";
@@ -1749,7 +1778,7 @@ function OfficialLetterhead({
     <div
       className="paper-letterhead-wrap group/kop relative"
       style={{
-        marginBottom: `${Math.max(4, dividerGap + 4)}px`,
+        marginBottom: `${Math.max(10, dividerGap + 8)}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -1780,7 +1809,7 @@ function OfficialLetterhead({
             boxShadow: "0 4px 16px -2px rgba(15, 23, 42, 0.14), 0 2px 4px -1px rgba(15, 23, 42, 0.06)",
           }}
         >
-          {/* Quick hidden file input for Upload Logo */}
+            {/* Quick hidden file input for Upload Logo */}
           <input
             ref={quickFileInputRef}
             type="file"
@@ -1794,6 +1823,57 @@ function OfficialLetterhead({
               }
             }}
           />
+
+          {/* Quick Pinterest Corporate Layout Switcher */}
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "2px",
+              background: "#f8fafc",
+              border: "1px solid #e2e8f0",
+              borderRadius: "5px",
+              padding: "2px 4px",
+              fontSize: "10.5px",
+            }}
+            title="Pilih desain tata letak kop surat standar korporat internasional"
+          >
+            <LayoutTemplate size={11} style={{ color: "#1e40af", margin: "0 2px" }} />
+            {(
+              [
+                { id: "left", label: "Grid Eksekutif" },
+                { id: "split", label: "Split Korporat" },
+                { id: "center", label: "Simetris" },
+              ] as const
+            ).map((ly) => {
+              const active = layoutMode === ly.id;
+              return (
+                <button
+                  key={ly.id}
+                  type="button"
+                  onClick={() => {
+                    if (update) {
+                      update("letterheadLayout", ly.id);
+                      toast.success(`Desain kop surat: ${ly.label}`);
+                    }
+                  }}
+                  style={{
+                    padding: "2px 6px",
+                    borderRadius: "3.5px",
+                    border: active ? "1px solid #1e40af" : "1px solid transparent",
+                    background: active ? "#1e40af" : "transparent",
+                    color: active ? "#ffffff" : "#475569",
+                    fontWeight: active ? 700 : 600,
+                    fontSize: "10px",
+                    cursor: "pointer",
+                    transition: "all 0.12s ease",
+                  }}
+                >
+                  {ly.label}
+                </button>
+              );
+            })}
+          </div>
 
           {/* Stepper: Spasi Teks */}
           <div
@@ -2593,35 +2673,267 @@ function OfficialLetterhead({
                 className="letterhead-logo-divider"
                 contentEditable={false}
                 style={{
-                  height: layoutMode === "split" ? "42px" : "50px",
-                  margin: "0 10px",
+                  width: "3px",
+                  height: layoutMode === "split" ? "54px" : "64px",
+                  background: `linear-gradient(180deg, ${dividerColor} 0%, ${dividerColor} 68%, #059669 68%, #059669 100%)`,
+                  borderRadius: "2px",
+                  margin: "0 14px 0 6px",
+                  flexShrink: 0,
                 }}
               />
             )}
 
-            <div
-              className={`letterhead-text doc-layout-${layoutMode}`}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                display: layoutMode === "split" ? "flex" : "block",
-                justifyContent: layoutMode === "split" ? "space-between" : undefined,
-                alignItems: layoutMode === "split" ? "center" : undefined,
-                gap: layoutMode === "split" ? "16px" : undefined,
-              }}
-            >
+            {/* PINTEREST / BEHANCE CORPORATE LETTERHEAD TEMPLATES */}
+            {layoutMode === "split" ? (
+              /* MODE SPLIT: Asymmetric Global Trade Corporate Header */
               <div
+                className="letterhead-text doc-layout-split"
                 style={{
-                  textAlign: layoutMode === "center" ? "center" : "left",
-                  minWidth: layoutMode === "split" ? "fit-content" : undefined,
-                  flexShrink: layoutMode === "split" ? 0 : undefined,
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "16px",
+                }}
+              >
+                {/* Left Identity Column */}
+                <div style={{ textAlign: "left", flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", marginBottom: `${lineSpacing}px` }}>
+                    <h1
+                      className="company-name"
+                      style={{
+                        fontSize: "14pt",
+                        fontWeight: 800,
+                        letterSpacing: "0.03em",
+                        color: dividerColor,
+                        margin: 0,
+                        lineHeight: 1.12,
+                        fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
+                      }}
+                      onBlur={(e) => {
+                        const text = e.currentTarget.innerText.trim();
+                        if (update && text && text !== exporterName) {
+                          update("exporter", text);
+                        }
+                      }}
+                    >
+                      {exporterName}
+                    </h1>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "4px" }}>
+                    <span
+                      contentEditable={false}
+                      style={{
+                        width: "10px",
+                        height: "2.5px",
+                        background: "#059669",
+                        borderRadius: "1px",
+                        flexShrink: 0,
+                      }}
+                    />
+                    <p
+                      className="company-tagline"
+                      style={{
+                        fontSize: "7.2pt",
+                        fontWeight: 700,
+                        letterSpacing: "0.07em",
+                        color: "#047857",
+                        margin: 0,
+                        lineHeight: 1.25,
+                      }}
+                      onBlur={(e) => {
+                        const text = e.currentTarget.innerText.trim();
+                        if (text !== exporterTagline) {
+                          setCustomTagline(text);
+                        }
+                      }}
+                    >
+                      {exporterTagline}
+                    </p>
+                  </div>
+                  <div
+                    contentEditable={false}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      padding: "1.5px 7px",
+                      background: "#f8fafc",
+                      border: "1px solid #cbd5e1",
+                      borderLeft: "2.5px solid #059669",
+                      borderRadius: "3px",
+                    }}
+                  >
+                    <span style={{ width: "4.5px", height: "4.5px", borderRadius: "999px", background: "#059669" }} />
+                    <span style={{ fontSize: "6pt", fontWeight: 800, letterSpacing: "0.1em", color: "#334155", textTransform: "uppercase" }}>
+                      {isId ? "EKSPORTIR TERDAFTAR • INDONESIA" : "REGISTERED EXPORTER • INDONESIA"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Right Corporate Contact Card */}
+                <div
+                  style={{
+                    maxWidth: "46%",
+                    borderLeft: `2px solid ${dividerColor}`,
+                    paddingLeft: "12px",
+                    background: "linear-gradient(90deg, #f8fafc 0%, transparent 100%)",
+                    paddingTop: "3px",
+                    paddingBottom: "3px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: `${Math.max(2, lineSpacing)}px`,
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: "6px" }}>
+                    <span
+                      contentEditable={false}
+                      style={{
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "3px",
+                        background: "#f1f5f9",
+                        border: "1px solid #cbd5e1",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: dividerColor,
+                        flexShrink: 0,
+                        marginTop: "1px",
+                      }}
+                    >
+                      <MapPin size={8.5} strokeWidth={2.5} />
+                    </span>
+                    <p
+                      className="company-details"
+                      style={{
+                        fontSize: "7.8pt",
+                        lineHeight: 1.28,
+                        color: "#334155",
+                        fontWeight: 500,
+                        margin: 0,
+                      }}
+                      onBlur={(e) => {
+                        const text = e.currentTarget.innerText.trim();
+                        if (update && text) {
+                          update("letterheadText", `Head Office: ${text}`);
+                        }
+                      }}
+                    >
+                      {addressBody}
+                    </p>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      <span
+                        contentEditable={false}
+                        style={{
+                          width: "14px",
+                          height: "14px",
+                          borderRadius: "3px",
+                          background: "#f1f5f9",
+                          border: "1px solid #cbd5e1",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: dividerColor,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Phone size={8} strokeWidth={2.5} />
+                      </span>
+                      <span
+                        className="company-contact"
+                        style={{ fontSize: "7.8pt", fontWeight: 700, color: "#0f172a" }}
+                        onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
+                      >
+                        {telVal}
+                      </span>
+                    </span>
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "7.5pt" }}>•</span>
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                      <span
+                        contentEditable={false}
+                        style={{
+                          width: "14px",
+                          height: "14px",
+                          borderRadius: "3px",
+                          background: "#ecfdf5",
+                          border: "1px solid #a7f3d0",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#047857",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Mail size={8} strokeWidth={2.5} />
+                      </span>
+                      <span
+                        className="company-contact"
+                        style={{ fontSize: "7.8pt", fontWeight: 600, color: dividerColor }}
+                        onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
+                      >
+                        {emailVal}
+                      </span>
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                    <span
+                      contentEditable={false}
+                      style={{
+                        width: "14px",
+                        height: "14px",
+                        borderRadius: "3px",
+                        background: "#eff6ff",
+                        border: "1px solid #bfdbfe",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#1d4ed8",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Globe size={8} strokeWidth={2.5} />
+                    </span>
+                    <span
+                      className="company-contact"
+                      style={{ fontSize: "7.8pt", fontWeight: 700, color: "#047857", letterSpacing: "0.02em" }}
+                      onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
+                    >
+                      {webVal}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : layoutMode === "center" ? (
+              /* MODE CENTER: Diplomatic / Chamber of Commerce Symmetrical Header */
+              <div
+                className="letterhead-text doc-layout-center"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textAlign: "center",
+                  gap: `${Math.max(2, lineSpacing)}px`,
                 }}
               >
                 <h1
                   className="company-name"
                   style={{
-                    fontSize: layoutMode === "split" ? "13pt" : layoutMode === "center" ? "16pt" : "15pt",
-                    whiteSpace: layoutMode === "split" ? "nowrap" : undefined,
+                    fontSize: "16pt",
+                    fontWeight: 800,
+                    letterSpacing: "0.06em",
+                    color: dividerColor,
+                    margin: 0,
+                    lineHeight: 1.12,
+                    fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                   }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
@@ -2632,66 +2944,392 @@ function OfficialLetterhead({
                 >
                   {exporterName}
                 </h1>
-                <p
-                  className="company-tagline"
-                  style={{
-                    fontSize: layoutMode === "split" ? "7.5pt" : "8pt",
-                    whiteSpace: layoutMode === "split" ? "nowrap" : undefined,
-                  }}
-                  onBlur={(e) => {
-                    const text = e.currentTarget.innerText.trim();
-                    if (text !== exporterTagline) {
-                      setCustomTagline(text);
-                    }
-                  }}
-                >
-                  {exporterTagline}
-                </p>
-              </div>
 
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "8px" }}>
+                  <span contentEditable={false} style={{ width: "22px", height: "1.5px", background: "#059669" }} />
+                  <p
+                    className="company-tagline"
+                    style={{
+                      fontSize: "7.5pt",
+                      fontWeight: 700,
+                      letterSpacing: "0.085em",
+                      color: "#047857",
+                      margin: 0,
+                    }}
+                    onBlur={(e) => {
+                      const text = e.currentTarget.innerText.trim();
+                      if (text !== exporterTagline) {
+                        setCustomTagline(text);
+                      }
+                    }}
+                  >
+                    {exporterTagline}
+                  </p>
+                  <span contentEditable={false} style={{ width: "22px", height: "1.5px", background: "#059669" }} />
+                </div>
+
+                <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "5px", marginTop: "1px" }}>
+                  <MapPin size={10} color={dividerColor} strokeWidth={2.4} />
+                  <span
+                    contentEditable={false}
+                    style={{ fontSize: "7.2pt", fontWeight: 800, letterSpacing: "0.05em", color: dividerColor }}
+                  >
+                    {addressLabel}:
+                  </span>
+                  <span
+                    className="company-details"
+                    style={{ fontSize: "8.2pt", color: "#334155", fontWeight: 500 }}
+                    onBlur={(e) => {
+                      const text = e.currentTarget.innerText.trim();
+                      if (update && text) {
+                        update("letterheadText", `Head Office: ${text}`);
+                      }
+                    }}
+                  >
+                    {addressBody}
+                  </span>
+                </div>
+
+                <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px", flexWrap: "wrap", marginTop: "1px" }}>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <Phone size={9.5} color={dividerColor} strokeWidth={2.4} />
+                    <span
+                      className="company-contact"
+                      style={{ fontSize: "8pt", fontWeight: 700, color: "#0f172a" }}
+                      onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
+                    >
+                      {telVal}
+                    </span>
+                  </span>
+                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8pt" }}>•</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <Mail size={9.5} color="#047857" strokeWidth={2.4} />
+                    <span
+                      className="company-contact"
+                      style={{ fontSize: "8pt", fontWeight: 600, color: dividerColor }}
+                      onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
+                    >
+                      {emailVal}
+                    </span>
+                  </span>
+                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8pt" }}>•</span>
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
+                    <Globe size={9.5} color="#1d4ed8" strokeWidth={2.4} />
+                    <span
+                      className="company-contact"
+                      style={{ fontSize: "8pt", fontWeight: 700, color: "#047857" }}
+                      onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
+                    >
+                      {webVal}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            ) : (
+              /* MODE LEFT (DEFAULT): Pinterest Modern Corporate Grid with Icon Badges & Verified Exporter Pill */
               <div
+                className="letterhead-text doc-layout-left"
                 style={{
-                  textAlign:
-                    layoutMode === "split"
-                      ? "right"
-                      : layoutMode === "center"
-                        ? "center"
-                        : "left",
-                  maxWidth: layoutMode === "split" ? "55%" : undefined,
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  flexDirection: "column",
+                  textAlign: "left",
                 }}
               >
-                <p
-                  className="company-details"
+                {/* Upper Identity Tier: Company Name + Verified Exporter Badge */}
+                <div
                   style={{
-                    fontSize: layoutMode === "split" ? "8pt" : "8.5pt",
-                    lineHeight: layoutMode === "split" ? 1.3 : undefined,
-                  }}
-                  onBlur={(e) => {
-                    const text = e.currentTarget.innerText.trim();
-                    if (update && text && text !== exporterAddress) {
-                      update("letterheadText", text);
-                    }
+                    display: "flex",
+                    alignItems: "flex-start",
+                    justifyContent: "space-between",
+                    gap: "10px",
+                    marginBottom: `${Math.max(1, lineSpacing)}px`,
                   }}
                 >
-                  {exporterAddress}
-                </p>
-                <p
-                  className="company-contact"
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <h1
+                      className="company-name"
+                      style={{
+                        fontSize: "15.5pt",
+                        fontWeight: 800,
+                        letterSpacing: "0.035em",
+                        color: dividerColor,
+                        margin: "0 0 2px 0",
+                        lineHeight: 1.08,
+                        fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
+                      }}
+                      onBlur={(e) => {
+                        const text = e.currentTarget.innerText.trim();
+                        if (update && text && text !== exporterName) {
+                          update("exporter", text);
+                        }
+                      }}
+                    >
+                      {exporterName}
+                    </h1>
+                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                      <span
+                        contentEditable={false}
+                        style={{
+                          width: "12px",
+                          height: "2.5px",
+                          background: "#059669",
+                          borderRadius: "1px",
+                          flexShrink: 0,
+                        }}
+                      />
+                      <p
+                        className="company-tagline"
+                        style={{
+                          fontSize: "7.5pt",
+                          fontWeight: 700,
+                          letterSpacing: "0.08em",
+                          color: "#047857",
+                          margin: 0,
+                          lineHeight: 1.2,
+                        }}
+                        onBlur={(e) => {
+                          const text = e.currentTarget.innerText.trim();
+                          if (text !== exporterTagline) {
+                            setCustomTagline(text);
+                          }
+                        }}
+                      >
+                        {exporterTagline}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Corporate Trade Pill (Top-Right of Kop) */}
+                  <div
+                    contentEditable={false}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "5px",
+                      padding: "2.5px 8px",
+                      background: "#f8fafc",
+                      border: "1px solid #cbd5e1",
+                      borderLeft: "3px solid #059669",
+                      borderRadius: "3px",
+                      flexShrink: 0,
+                      marginTop: "1px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: "5px",
+                        height: "5px",
+                        borderRadius: "999px",
+                        background: "#059669",
+                      }}
+                    />
+                    <span
+                      style={{
+                        fontSize: "6.2pt",
+                        fontWeight: 800,
+                        letterSpacing: "0.1em",
+                        color: "#0f2942",
+                        textTransform: "uppercase",
+                      }}
+                    >
+                      {isId ? "EKSPORTIR RESMI • ID" : "VERIFIED EXPORTER • ID"}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Hairline Corporate Separator */}
+                <div
+                  contentEditable={false}
                   style={{
-                    fontSize: layoutMode === "split" ? "8pt" : "8.5pt",
-                    lineHeight: layoutMode === "split" ? 1.3 : undefined,
+                    height: "1px",
+                    background: "linear-gradient(90deg, #cbd5e1 0%, #e2e8f0 85%, transparent 100%)",
+                    margin: `${Math.max(3, lineSpacing + 1)}px 0`,
                   }}
-                  onBlur={(e) => {
-                    const text = e.currentTarget.innerText.trim();
-                    if (update && text && text !== exporterContact) {
-                      update("exporterContact", text);
-                    }
+                />
+
+                {/* Lower Metadata Tier: Structured Address & 3-Pillar Contact Bar */}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: `${Math.max(2, lineSpacing)}px`,
                   }}
                 >
-                  {exporterContact}
-                </p>
+                  {/* Address Row with MapPin Badge */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    <span
+                      contentEditable={false}
+                      style={{
+                        width: "15px",
+                        height: "15px",
+                        borderRadius: "3.5px",
+                        background: "#f1f5f9",
+                        border: "1px solid #cbd5e1",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: dividerColor,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <MapPin size={9} strokeWidth={2.5} />
+                    </span>
+                    <span
+                      contentEditable={false}
+                      style={{
+                        fontSize: "7pt",
+                        fontWeight: 800,
+                        letterSpacing: "0.05em",
+                        color: dividerColor,
+                        textTransform: "uppercase",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {addressLabel}:
+                    </span>
+                    <span
+                      className="company-details"
+                      style={{
+                        fontSize: "8.2pt",
+                        color: "#334155",
+                        fontWeight: 500,
+                        lineHeight: 1.28,
+                      }}
+                      onBlur={(e) => {
+                        const text = e.currentTarget.innerText.trim();
+                        if (update && text) {
+                          update("letterheadText", `Head Office: ${text}`);
+                        }
+                      }}
+                    >
+                      {addressBody}
+                    </span>
+                  </div>
+
+                  {/* Contact Bar with 3 Structured Icon Pillars */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      flexWrap: "wrap",
+                      gap: "10px",
+                    }}
+                  >
+                    {/* Pillar 1: Phone */}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4.5px" }}>
+                      <span
+                        contentEditable={false}
+                        style={{
+                          width: "15px",
+                          height: "15px",
+                          borderRadius: "3.5px",
+                          background: "#f1f5f9",
+                          border: "1px solid #cbd5e1",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: dividerColor,
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Phone size={8.5} strokeWidth={2.5} />
+                      </span>
+                      <span
+                        contentEditable={false}
+                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
+                      >
+                        Tel:
+                      </span>
+                      <span
+                        className="company-contact"
+                        style={{ fontSize: "8pt", fontWeight: 700, color: "#0f172a" }}
+                        onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
+                      >
+                        {telVal}
+                      </span>
+                    </span>
+
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8pt", fontWeight: 700 }}>
+                      |
+                    </span>
+
+                    {/* Pillar 2: Email */}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4.5px" }}>
+                      <span
+                        contentEditable={false}
+                        style={{
+                          width: "15px",
+                          height: "15px",
+                          borderRadius: "3.5px",
+                          background: "#ecfdf5",
+                          border: "1px solid #a7f3d0",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#047857",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Mail size={8.5} strokeWidth={2.5} />
+                      </span>
+                      <span
+                        contentEditable={false}
+                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
+                      >
+                        Email:
+                      </span>
+                      <span
+                        className="company-contact"
+                        style={{ fontSize: "8pt", fontWeight: 600, color: dividerColor }}
+                        onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
+                      >
+                        {emailVal}
+                      </span>
+                    </span>
+
+                    <span contentEditable={false} style={{ color: "#cbd5e1", fontSize: "8pt", fontWeight: 700 }}>
+                      |
+                    </span>
+
+                    {/* Pillar 3: Website */}
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "4.5px" }}>
+                      <span
+                        contentEditable={false}
+                        style={{
+                          width: "15px",
+                          height: "15px",
+                          borderRadius: "3.5px",
+                          background: "#eff6ff",
+                          border: "1px solid #bfdbfe",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          color: "#1d4ed8",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Globe size={8.5} strokeWidth={2.5} />
+                      </span>
+                      <span
+                        contentEditable={false}
+                        style={{ fontSize: "7.2pt", fontWeight: 700, color: "#64748b" }}
+                      >
+                        Web:
+                      </span>
+                      <span
+                        className="company-contact"
+                        style={{ fontSize: "8pt", fontWeight: 700, color: "#047857" }}
+                        onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
+                      >
+                        {webVal}
+                      </span>
+                    </span>
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}
