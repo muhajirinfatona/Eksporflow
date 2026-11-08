@@ -3235,6 +3235,8 @@ function DocTitleBanner({ title }: { title: string }) {
 
 // --------------------------------------------------------------------------
 // IncoDocs / UNLK Compact Signature Box (Inside Right Footer Grid — Box 7)
+// Microsoft Word Style interactive image box (8 resize handles, free drag move,
+// floating pill options on selection, zero layout shift/expansion on document grid)
 // --------------------------------------------------------------------------
 function UnlkSignatureBox({
   shipment,
@@ -3258,350 +3260,557 @@ function UnlkSignatureBox({
   const sigX = shipment?.sellerSignatureX || 0;
   const sigY = shipment?.sellerSignatureY || 0;
 
-  const [dragOffset, setDragOffset] = useState<{ x: number; y: number } | null>(null);
+  const [isSelected, setIsSelected] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [isMoving, setIsMoving] = useState(false);
+  const [dragHeight, setDragHeight] = useState<number | null>(null);
+  const [dragMoveOffset, setDragMoveOffset] = useState<{ x: number; y: number } | null>(null);
 
-  const handleUpdateHeight = (newH: number, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    const clamped = Math.max(24, Math.min(110, newH));
-    if (update) {
-      update("sellerSignatureHeight", clamped);
-    }
-    if (typeof window !== "undefined") {
-      localStorage.setItem("eksporflow_sig_height", String(clamped));
-    }
-  };
+  const containerRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
 
-  const handleUpdateAlign = (align: "left" | "center" | "right", e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (update) {
-      update("sellerSignatureAlign", align);
-      update("sellerSignatureX", 0);
-    }
-  };
+  // Outside click & keyboard listener (Escape to deselect, Delete to remove)
+  useEffect(() => {
+    if (!isSelected) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsSelected(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsSelected(false);
+      } else if ((e.key === "Delete" || e.key === "Backspace") && isSelected && update) {
+        const activeTag = (document.activeElement?.tagName || "").toLowerCase();
+        if (
+          activeTag === "input" ||
+          activeTag === "textarea" ||
+          (document.activeElement as HTMLElement)?.isContentEditable
+        ) {
+          return;
+        }
+        e.preventDefault();
+        update("sellerSignatureImage", "" as any);
+        update("sellerSignatureDate", "" as any);
+        setIsSelected(false);
+        toast.success("Tanda tangan berhasil dihapus.");
+      }
+    };
+    window.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isSelected, update]);
 
-  const handleNudge = (dx: number, dy: number, e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (update) {
-      update("sellerSignatureX", Math.max(-120, Math.min(120, sigX + dx)));
-      update("sellerSignatureY", Math.max(-40, Math.min(40, sigY + dy)));
-    }
-  };
-
-  const handleResetPos = (e?: React.MouseEvent) => {
-    e?.stopPropagation();
-    if (update) {
-      update("sellerSignatureAlign", "left");
-      update("sellerSignatureX", 0);
-      update("sellerSignatureY", 0);
-      update("sellerSignatureHeight", 48);
-    }
-  };
-
-  const handleRemoveSignature = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (update) {
-      update("sellerSignatureImage", "" as any);
-      update("sellerSignatureDate", "" as any);
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // Direct Drag Move across Document Canvas (similar to MS Word image repositioning)
+  const startDragMove = (e: React.MouseEvent) => {
     if (!update) return;
+    if ((e.target as HTMLElement).classList.contains("word-resize-handle")) return;
+    if ((e.target as HTMLElement).closest(".word-sig-floating-pill, .no-drag")) return;
     e.preventDefault();
     e.stopPropagation();
-    setIsDragging(true);
+
+    setIsSelected(true);
+    setIsMoving(true);
     const startX = e.clientX;
     const startY = e.clientY;
     const initX = sigX;
     const initY = sigY;
     let finalX = initX;
     let finalY = initY;
+    let moved = false;
 
     const onMouseMove = (moveEv: MouseEvent) => {
       const dx = moveEv.clientX - startX;
       const dy = moveEv.clientY - startY;
-      finalX = Math.max(-140, Math.min(140, Math.round(initX + dx)));
-      finalY = Math.max(-50, Math.min(50, Math.round(initY + dy)));
-      setDragOffset({ x: finalX, y: finalY });
+      if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+        moved = true;
+        finalX = Math.max(-180, Math.min(180, Math.round(initX + dx)));
+        finalY = Math.max(-60, Math.min(60, Math.round(initY + dy)));
+        setDragMoveOffset({ x: finalX, y: finalY });
+      }
     };
 
     const onMouseUp = () => {
       window.removeEventListener("mousemove", onMouseMove);
       window.removeEventListener("mouseup", onMouseUp);
-      setIsDragging(false);
-      setDragOffset(null);
-      update("sellerSignatureX", finalX);
-      update("sellerSignatureY", finalY);
+      setIsMoving(false);
+      setDragMoveOffset(null);
+      if (moved) {
+        update("sellerSignatureX", finalX);
+        update("sellerSignatureY", finalY);
+      }
     };
 
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
   };
 
-  const effectiveX = dragOffset !== null ? dragOffset.x : sigX;
-  const effectiveY = dragOffset !== null ? dragOffset.y : sigY;
+  // 8 Resize Handles (Corner & Edge pulling identical to OfficialLetterhead logo resize)
+  const startDragHandle = (
+    e: React.MouseEvent,
+    handle: "nw" | "n" | "ne" | "e" | "se" | "s" | "sw" | "w"
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!update || !imgRef.current) return;
+
+    setIsDragging(true);
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startRect = imgRef.current.getBoundingClientRect();
+    const aspectRatio = (startRect.width || 1) / (startRect.height || 1);
+    const startH = startRect.height;
+    const initX = sigX;
+    const initY = sigY;
+    let latestH = sigHeight;
+    let latestShiftX = 0;
+    let latestShiftY = 0;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startX;
+      const dy = moveEvent.clientY - startY;
+
+      let deltaH = 0;
+      if (handle === "se") {
+        deltaH = (dx / aspectRatio + dy) / 2;
+      } else if (handle === "nw") {
+        deltaH = (-dx / aspectRatio - dy) / 2;
+      } else if (handle === "ne") {
+        deltaH = (dx / aspectRatio - dy) / 2;
+      } else if (handle === "sw") {
+        deltaH = (-dx / aspectRatio + dy) / 2;
+      } else if (handle === "e") {
+        deltaH = dx / aspectRatio;
+      } else if (handle === "w") {
+        deltaH = -dx / aspectRatio;
+      } else if (handle === "s") {
+        deltaH = dy;
+      } else if (handle === "n") {
+        deltaH = -dy;
+      }
+
+      const newH = Math.max(24, Math.min(130, Math.round(startH + deltaH)));
+      const deltaHeight = newH - startH;
+      const deltaWidth = deltaHeight * aspectRatio;
+
+      let sx = 0;
+      let sy = 0;
+      if (handle === "nw" || handle === "w" || handle === "sw") {
+        sx = -deltaWidth;
+      }
+      if (handle === "nw" || handle === "n" || handle === "ne") {
+        sy = -deltaHeight;
+      }
+
+      latestH = newH;
+      latestShiftX = Math.round(sx);
+      latestShiftY = Math.round(sy);
+      setDragHeight(newH);
+      setDragMoveOffset({ x: initX + latestShiftX, y: initY + latestShiftY });
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsDragging(false);
+      setDragHeight(null);
+      setDragMoveOffset(null);
+      update("sellerSignatureHeight", latestH);
+      if (latestShiftX !== 0 || latestShiftY !== 0) {
+        update("sellerSignatureX", initX + latestShiftX);
+        update("sellerSignatureY", initY + latestShiftY);
+      }
+      if (typeof window !== "undefined") {
+        localStorage.setItem("eksporflow_sig_height", String(latestH));
+      }
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const currentH = dragHeight ?? sigHeight;
+  const currentX = dragMoveOffset !== null ? dragMoveOffset.x : sigX;
+  const currentY = dragMoveOffset !== null ? dragMoveOffset.y : sigY;
 
   return (
-    <div className="unlk-sig-zone" style={{ width: "100%", position: "relative", minHeight: "56px" }}>
+    <div
+      className="unlk-sig-zone"
+      style={{
+        width: "100%",
+        position: "relative",
+        minHeight: "44px",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        alignItems: sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
+        padding: "2px 0",
+      }}
+    >
       {hasSignature ? (
-        <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "4px" }}>
-          {/* Top Sleek Controls Bar (Only in Web View, completely hidden in print/PDF) */}
-          <div
-            className="no-print"
+        <div
+          ref={containerRef}
+          className={`sig-interactive-wrap ${isSelected ? "word-image-selected" : ""}`}
+          contentEditable={false}
+          style={{
+            display: "inline-flex",
+            flexDirection: "column",
+            alignItems: sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
+            position: "relative",
+            transform: `translate(${currentX}px, ${currentY}px)`,
+            outline: isSelected ? "1.5px solid #2563eb" : undefined,
+            outlineOffset: "2px",
+            cursor: isMoving ? "grabbing" : "grab",
+            userSelect: "none",
+            transition: isDragging || isMoving ? "none" : "transform 0.1s ease",
+          }}
+          onMouseDown={startDragMove}
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsSelected(true);
+          }}
+          onDoubleClick={(e) => {
+            e.stopPropagation();
+            if (update) {
+              update("sellerSignatureHeight", 48);
+              update("sellerSignatureX", 0);
+              update("sellerSignatureY", 0);
+              update("sellerSignatureAlign", "left");
+              toast.success("Ukuran & posisi tanda tangan di-reset ke standar");
+            }
+          }}
+          title="Klik tanda tangan untuk memilih & mengatur ukuran (tarik titik sudut), atau geser posisi bebas (seperti di Microsoft Word)"
+        >
+          <img
+            ref={imgRef}
+            src={shipment.sellerSignatureImage}
+            alt="Digital Signature"
+            className="doc-rendered-signature"
+            draggable={false}
             style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "4px",
-              padding: "3px 6px",
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: "4px",
-              fontSize: "9px",
+              height: `${currentH}px`,
+              maxHeight: "140px",
+              width: "auto",
+              objectFit: "contain",
+              display: "block",
+              transition: isDragging || isMoving ? "none" : "height 0.12s ease",
+              filter: isMoving ? "drop-shadow(0 4px 8px rgba(37, 99, 235, 0.35))" : undefined,
+              pointerEvents: isDragging ? "none" : "auto",
             }}
-          >
-            {/* Position Alignment Buttons: Kiri, Tengah, Kanan */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
-              <span style={{ fontWeight: 700, color: "#64748b", marginRight: "2px" }}>Posisi:</span>
-              <button
-                type="button"
-                onClick={(e) => handleUpdateAlign("left", e)}
-                style={{
-                  padding: "1px 5px",
-                  borderRadius: "3px",
-                  border: sigAlign === "left" && sigX === 0 ? "1px solid #2563eb" : "1px solid #cbd5e1",
-                  background: sigAlign === "left" && sigX === 0 ? "#eff6ff" : "#ffffff",
-                  color: sigAlign === "left" && sigX === 0 ? "#1d4ed8" : "#475569",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-                title="Ratakan Kiri"
-              >
-                Kiri
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleUpdateAlign("center", e)}
-                style={{
-                  padding: "1px 5px",
-                  borderRadius: "3px",
-                  border: sigAlign === "center" && sigX === 0 ? "1px solid #2563eb" : "1px solid #cbd5e1",
-                  background: sigAlign === "center" && sigX === 0 ? "#eff6ff" : "#ffffff",
-                  color: sigAlign === "center" && sigX === 0 ? "#1d4ed8" : "#475569",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-                title="Ratakan Tengah"
-              >
-                Tengah
-              </button>
-              <button
-                type="button"
-                onClick={(e) => handleUpdateAlign("right", e)}
-                style={{
-                  padding: "1px 5px",
-                  borderRadius: "3px",
-                  border: sigAlign === "right" && sigX === 0 ? "1px solid #2563eb" : "1px solid #cbd5e1",
-                  background: sigAlign === "right" && sigX === 0 ? "#eff6ff" : "#ffffff",
-                  color: sigAlign === "right" && sigX === 0 ? "#1d4ed8" : "#475569",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-                title="Ratakan Kanan"
-              >
-                Kanan
-              </button>
+          />
 
-              {/* Nudge Arrows */}
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  border: "1px solid #cbd5e1",
-                  borderRadius: "3px",
-                  marginLeft: "3px",
-                  background: "#ffffff",
-                  overflow: "hidden",
-                }}
-                title="Geser posisi tanda tangan (kiri / kanan / atas / bawah)"
-              >
+          <div className="sig-verify-badge no-print" style={{ fontSize: "8.5px", marginTop: "2px" }}>
+            <span className="sig-verify-check">✓</span>
+            <span>Verified ({shipment.sellerSignatureDate || "8 Nov 2026"})</span>
+          </div>
+
+          {/* Floating Word-style Action Pill (Zero document flow space, only visible when selected) */}
+          {isSelected && (
+            <div
+              className="word-sig-floating-pill no-print"
+              contentEditable={false}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "absolute",
+                top: "-34px",
+                left: sigAlign === "right" ? "auto" : "0",
+                right: sigAlign === "right" ? "0" : "auto",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "4px",
+                padding: "3px 7px",
+                background: "#ffffff",
+                border: "1px solid #cbd5e1",
+                borderRadius: "6px",
+                boxShadow: "0 4px 14px rgba(15, 23, 42, 0.16)",
+                fontSize: "9px",
+                zIndex: 45,
+                whiteSpace: "nowrap",
+              }}
+            >
+              {/* Align options */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
                 <button
                   type="button"
-                  onClick={(e) => handleNudge(-4, 0, e)}
-                  style={{ width: "15px", height: "18px", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
-                  title="Geser ke kiri (-4px)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (update) {
+                      update("sellerSignatureAlign", "left");
+                      update("sellerSignatureX", 0);
+                    }
+                  }}
+                  style={{
+                    padding: "1.5px 5px",
+                    borderRadius: "3px",
+                    border: sigAlign === "left" && sigX === 0 ? "1px solid #2563eb" : "1px solid #e2e8f0",
+                    background: sigAlign === "left" && sigX === 0 ? "#eff6ff" : "#ffffff",
+                    color: sigAlign === "left" && sigX === 0 ? "#1d4ed8" : "#475569",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  title="Ratakan Kiri"
                 >
-                  ◀
+                  Kiri
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => handleNudge(4, 0, e)}
-                  style={{ width: "15px", height: "18px", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
-                  title="Geser ke kanan (+4px)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (update) {
+                      update("sellerSignatureAlign", "center");
+                      update("sellerSignatureX", 0);
+                    }
+                  }}
+                  style={{
+                    padding: "1.5px 5px",
+                    borderRadius: "3px",
+                    border: sigAlign === "center" && sigX === 0 ? "1px solid #2563eb" : "1px solid #e2e8f0",
+                    background: sigAlign === "center" && sigX === 0 ? "#eff6ff" : "#ffffff",
+                    color: sigAlign === "center" && sigX === 0 ? "#1d4ed8" : "#475569",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  title="Ratakan Tengah"
                 >
-                  ▶
+                  Tengah
                 </button>
                 <button
                   type="button"
-                  onClick={(e) => handleNudge(0, -3, e)}
-                  style={{ width: "15px", height: "18px", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
-                  title="Geser ke atas (-3px)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (update) {
+                      update("sellerSignatureAlign", "right");
+                      update("sellerSignatureX", 0);
+                    }
+                  }}
+                  style={{
+                    padding: "1.5px 5px",
+                    borderRadius: "3px",
+                    border: sigAlign === "right" && sigX === 0 ? "1px solid #2563eb" : "1px solid #e2e8f0",
+                    background: sigAlign === "right" && sigX === 0 ? "#eff6ff" : "#ffffff",
+                    color: sigAlign === "right" && sigX === 0 ? "#1d4ed8" : "#475569",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  title="Ratakan Kanan"
                 >
-                  ▲
-                </button>
-                <button
-                  type="button"
-                  onClick={(e) => handleNudge(0, 3, e)}
-                  style={{ width: "15px", height: "18px", border: "none", background: "transparent", cursor: "pointer", fontWeight: 700, padding: 0, color: "#334155" }}
-                  title="Geser ke bawah (+3px)"
-                >
-                  ▼
+                  Kanan
                 </button>
               </div>
 
-              {(sigX !== 0 || sigY !== 0) && (
-                <button
-                  type="button"
-                  onClick={handleResetPos}
-                  style={{
-                    padding: "1px 4px",
-                    borderRadius: "3px",
-                    border: "1px solid #e2e8f0",
-                    background: "#ffffff",
-                    color: "#64748b",
-                    fontSize: "8.5px",
-                    cursor: "pointer",
-                    marginLeft: "2px",
-                  }}
-                  title="Reset ke posisi awal (0,0)"
-                >
-                  Reset
-                </button>
-              )}
-            </div>
+              <div style={{ width: "1px", height: "14px", background: "#cbd5e1", margin: "0 2px" }} />
 
-            {/* Size Stepper & Actions */}
-            <div style={{ display: "inline-flex", alignItems: "center", gap: "4px" }}>
-              <span style={{ fontWeight: 700, color: "#64748b" }}>Ukuran:</span>
-              <div
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  border: "1px solid #cbd5e1",
-                  borderRadius: "3px",
-                  overflow: "hidden",
-                  height: "19px",
-                  background: "#ffffff",
-                }}
-                title="Ubah ukuran tinggi tanda tangan"
-              >
+              {/* Height adjustment */}
+              <div style={{ display: "inline-flex", alignItems: "center", gap: "2px" }}>
                 <button
                   type="button"
-                  onClick={(e) => handleUpdateHeight(sigHeight - 4, e)}
-                  style={{ width: "16px", height: "100%", border: "none", borderRight: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, color: "#334155", padding: 0 }}
-                  title="Perkecil tanda tangan (-4px)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = Math.max(24, currentH - 4);
+                    if (update) update("sellerSignatureHeight", next);
+                    if (typeof window !== "undefined") localStorage.setItem("eksporflow_sig_height", String(next));
+                  }}
+                  style={{
+                    width: "16px",
+                    height: "17px",
+                    border: "1px solid #cbd5e1",
+                    background: "#ffffff",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    color: "#334155",
+                    padding: 0,
+                  }}
+                  title="Perkecil tinggi tanda tangan (-4px)"
                 >
                   −
                 </button>
-                <span style={{ padding: "0 4px", fontWeight: 700, color: "#0f172a", minWidth: "26px", textAlign: "center" }}>
-                  {sigHeight}px
+                <span style={{ fontWeight: 700, color: "#0f172a", minWidth: "26px", textAlign: "center" }}>
+                  {currentH}px
                 </span>
                 <button
                   type="button"
-                  onClick={(e) => handleUpdateHeight(sigHeight + 4, e)}
-                  style={{ width: "16px", height: "100%", border: "none", borderLeft: "1px solid #e2e8f0", background: "transparent", cursor: "pointer", fontWeight: 700, color: "#334155", padding: 0 }}
-                  title="Perbesar tanda tangan (+4px)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const next = Math.min(130, currentH + 4);
+                    if (update) update("sellerSignatureHeight", next);
+                    if (typeof window !== "undefined") localStorage.setItem("eksporflow_sig_height", String(next));
+                  }}
+                  style={{
+                    width: "16px",
+                    height: "17px",
+                    border: "1px solid #cbd5e1",
+                    background: "#ffffff",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontWeight: 700,
+                    color: "#334155",
+                    padding: 0,
+                  }}
+                  title="Perbesar tinggi tanda tangan (+4px)"
                 >
                   +
                 </button>
               </div>
 
+              <div style={{ width: "1px", height: "14px", background: "#cbd5e1", margin: "0 2px" }} />
+
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (update) {
+                    update("sellerSignatureAlign", "left");
+                    update("sellerSignatureX", 0);
+                    update("sellerSignatureY", 0);
+                    update("sellerSignatureHeight", 48);
+                    toast.success("Ukuran & posisi tanda tangan di-reset ke standar");
+                  }
+                }}
+                style={{
+                  padding: "1.5px 5px",
+                  borderRadius: "3px",
+                  border: "1px solid #e2e8f0",
+                  background: "#ffffff",
+                  color: "#64748b",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+                title="Reset ke posisi & ukuran standar"
+              >
+                Reset
+              </button>
+
               {onOpenSignatureModal && (
                 <button
                   type="button"
-                  onClick={() => onOpenSignatureModal("seller")}
-                  title="Ganti gambar / model tanda tangan"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onOpenSignatureModal("seller");
+                  }}
                   style={{
-                    padding: "2px 5px",
+                    padding: "1.5px 6px",
                     borderRadius: "3px",
+                    border: "1px solid #bfdbfe",
                     background: "#eff6ff",
                     color: "#1d4ed8",
-                    border: "1px solid #bfdbfe",
-                    cursor: "pointer",
                     fontWeight: 600,
+                    cursor: "pointer",
                   }}
+                  title="Ganti tanda tangan"
                 >
                   Ganti
                 </button>
               )}
+
               {update && (
                 <button
                   type="button"
-                  onClick={handleRemoveSignature}
-                  title="Hapus tanda tangan"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    update("sellerSignatureImage", "" as any);
+                    update("sellerSignatureDate", "" as any);
+                    setIsSelected(false);
+                    toast.success("Tanda tangan berhasil dihapus.");
+                  }}
                   style={{
-                    padding: "2px 5px",
+                    padding: "1.5px 5px",
                     borderRadius: "3px",
+                    border: "1px solid #fecaca",
                     background: "#fef2f2",
                     color: "#dc2626",
-                    border: "1px solid #fecaca",
-                    cursor: "pointer",
                     fontWeight: 600,
+                    cursor: "pointer",
                   }}
+                  title="Hapus tanda tangan"
                 >
                   Hapus
                 </button>
               )}
             </div>
-          </div>
+          )}
 
-          {/* Signature Canvas Area with Position & Size Applied */}
-          <div
-            style={{
-              width: "100%",
-              display: "flex",
-              justifyContent:
-                sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
-              position: "relative",
-              padding: "2px 0",
-            }}
-          >
-            <div
-              style={{
-                display: "inline-flex",
-                flexDirection: "column",
-                alignItems: sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
-                transform: `translate(${effectiveX}px, ${effectiveY}px)`,
-                cursor: isDragging ? "grabbing" : "grab",
-                userSelect: "none",
-                transition: isDragging ? "none" : "transform 0.1s ease",
-              }}
-              onMouseDown={handleMouseDown}
-              title="Geser langsung / drag tanda tangan untuk mengatur posisinya bebas, atau gunakan tombol di atas"
-            >
-              <img
-                src={shipment.sellerSignatureImage}
-                alt="Digital Signature"
-                className="doc-rendered-signature"
-                draggable={false}
-                style={{
-                  height: `${sigHeight}px`,
-                  maxHeight: "120px",
-                  width: "auto",
-                  objectFit: "contain",
-                  display: "block",
-                  transition: isDragging ? "none" : "height 0.12s ease",
-                  filter: isDragging ? "drop-shadow(0 4px 8px rgba(37, 99, 235, 0.35))" : undefined,
-                }}
+          {/* 8 Resize Handles (NW, N, NE, E, SE, S, SW, W) */}
+          {isSelected && (
+            <>
+              <div
+                className="word-resize-handle no-print"
+                style={{ top: "-5px", left: "-5px", cursor: "nwse-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "nw")}
+                title="Tarik sudut kiri-atas"
               />
-              <div className="sig-verify-badge no-print" style={{ fontSize: "8.5px", marginTop: "2px" }}>
-                <span className="sig-verify-check">✓</span>
-                <span>Verified ({shipment.sellerSignatureDate || "2026"})</span>
-              </div>
-            </div>
-          </div>
+              <div
+                className="word-resize-handle no-print"
+                style={{ top: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "n")}
+                title="Tarik sisi atas"
+              />
+              <div
+                className="word-resize-handle no-print"
+                style={{ top: "-5px", right: "-5px", cursor: "nesw-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "ne")}
+                title="Tarik sudut kanan-atas"
+              />
+              <div
+                className="word-resize-handle no-print"
+                style={{ top: "calc(50% - 4.5px)", right: "-5px", cursor: "ew-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "e")}
+                title="Tarik sisi kanan"
+              />
+              <div
+                className="word-resize-handle no-print"
+                style={{ bottom: "-5px", right: "-5px", cursor: "nwse-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "se")}
+                title="Tarik sudut kanan-bawah"
+              />
+              <div
+                className="word-resize-handle no-print"
+                style={{ bottom: "-5px", left: "calc(50% - 4.5px)", cursor: "ns-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "s")}
+                title="Tarik sisi bawah"
+              />
+              <div
+                className="word-resize-handle no-print"
+                style={{ bottom: "-5px", left: "-5px", cursor: "nesw-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "sw")}
+                title="Tarik sudut kiri-bawah"
+              />
+              <div
+                className="word-resize-handle no-print"
+                style={{ top: "calc(50% - 4.5px)", left: "-5px", cursor: "ew-resize" }}
+                onMouseDown={(e) => startDragHandle(e, "w")}
+                title="Tarik sisi kiri"
+              />
+
+              {isDragging && (
+                <div
+                  className="word-resize-tooltip no-print"
+                  contentEditable={false}
+                  style={{
+                    position: "absolute",
+                    bottom: "-24px",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    background: "rgba(15, 23, 42, 0.9)",
+                    color: "#ffffff",
+                    padding: "2px 7px",
+                    borderRadius: "4px",
+                    fontSize: "9.5px",
+                    fontWeight: 600,
+                    whiteSpace: "nowrap",
+                    pointerEvents: "none",
+                    zIndex: 45,
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  {currentH}px
+                </div>
+              )}
+            </>
+          )}
         </div>
       ) : (
         <div
