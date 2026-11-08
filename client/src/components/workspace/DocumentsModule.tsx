@@ -2506,21 +2506,23 @@ function OfficialLetterhead({
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  gap: "18px",
+                  gap: "16px",
                 }}
               >
                 {/* Left Identity Column */}
-                <div style={{ textAlign: "left", flex: 1, minWidth: 0 }}>
+                <div style={{ textAlign: "left", flex: "1 1 auto", minWidth: 0, paddingRight: "4px" }}>
                   <h1
                     className="company-name"
                     style={{
-                      fontSize: "15.5pt",
+                      fontSize: "13.5pt",
                       fontWeight: 800,
-                      letterSpacing: "0.035em",
+                      letterSpacing: "0.03em",
                       color: dividerColor,
                       margin: `0 0 ${Math.max(2, lineSpacing)}px 0`,
-                      lineHeight: 1.1,
-                      whiteSpace: "nowrap",
+                      lineHeight: 1.15,
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                      overflowWrap: "break-word",
                       fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                     }}
                     onBlur={(e) => {
@@ -2537,10 +2539,12 @@ function OfficialLetterhead({
                     style={{
                       fontSize: "7.2pt",
                       fontWeight: 700,
-                      letterSpacing: "0.06em",
+                      letterSpacing: "0.05em",
                       color: "#334155",
                       margin: 0,
                       lineHeight: 1.25,
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
                       textTransform: "uppercase",
                     }}
                     onBlur={(e) => {
@@ -2558,12 +2562,14 @@ function OfficialLetterhead({
                 <div
                   style={{
                     borderLeft: "1.5px solid #cbd5e1",
-                    paddingLeft: "14px",
+                    paddingLeft: "12px",
                     display: "flex",
                     flexDirection: "column",
                     gap: `${Math.max(2, lineSpacing)}px`,
                     textAlign: "left",
-                    flexShrink: 0,
+                    flex: "0 0 auto",
+                    maxWidth: "285px",
+                    minWidth: "220px",
                   }}
                 >
                   <p
@@ -2574,7 +2580,7 @@ function OfficialLetterhead({
                       color: "#1e293b",
                       fontWeight: 500,
                       margin: 0,
-                      maxWidth: "290px",
+                      wordBreak: "break-word",
                     }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
@@ -2589,8 +2595,8 @@ function OfficialLetterhead({
                     {addressBody}
                   </p>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap" }}>
-                    <span>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "4px 8px" }}>
+                    <span style={{ whiteSpace: "nowrap" }}>
                       <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                         Tel:{" "}
                       </strong>
@@ -2603,7 +2609,7 @@ function OfficialLetterhead({
                       </span>
                     </span>
                     <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8pt" }}>|</span>
-                    <span>
+                    <span style={{ whiteSpace: "nowrap" }}>
                       <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                         Email:{" "}
                       </strong>
@@ -2764,13 +2770,14 @@ function OfficialLetterhead({
                 <h1
                   className="company-name"
                   style={{
-                    fontSize: "17.5pt",
+                    fontSize: "17pt",
                     fontWeight: 800,
-                    letterSpacing: "0.04em",
+                    letterSpacing: "0.035em",
                     color: dividerColor,
                     margin: 0,
-                    lineHeight: 1.08,
-                    whiteSpace: "nowrap",
+                    lineHeight: 1.12,
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
                     fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                   }}
                   onBlur={(e) => {
@@ -2789,11 +2796,12 @@ function OfficialLetterhead({
                   style={{
                     fontSize: "7.8pt",
                     fontWeight: 700,
-                    letterSpacing: "0.08em",
+                    letterSpacing: "0.06em",
                     color: "#334155",
                     margin: "2px 0 0 0",
                     lineHeight: 1.25,
-                    whiteSpace: "nowrap",
+                    whiteSpace: "normal",
+                    wordBreak: "break-word",
                     textTransform: "uppercase",
                   }}
                   onBlur={(e) => {
