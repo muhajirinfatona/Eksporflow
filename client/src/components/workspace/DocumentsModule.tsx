@@ -1437,7 +1437,7 @@ function OfficialLetterhead({
   const quickFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const activeScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
-  const baseLogoHeight = 56;
+  const baseLogoHeight = 68;
   const scaledHeight = Math.round(baseLogoHeight * (activeScale / 100));
 
   const wrapMode = shipment.letterheadLogoWrap || "inline";
@@ -1741,8 +1741,8 @@ function OfficialLetterhead({
 
   // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
   let dividerLineStyles: React.CSSProperties = {
-    marginTop: `${Math.max(3, dividerGap + 1)}px`,
-    marginBottom: "4px",
+    marginTop: `${Math.max(4, dividerGap + 4)}px`,
+    marginBottom: "5px",
     boxSizing: "content-box",
     width: "100%",
   };
@@ -1791,8 +1791,8 @@ function OfficialLetterhead({
     <div
       className={`paper-letterhead-wrap group/kop relative ${letterheadMode === "hidden" ? "letterhead-hidden" : ""}`}
       style={{
-        paddingTop: letterheadMode === "hidden" ? 0 : "2px",
-        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : "6px",
+        paddingTop: letterheadMode === "hidden" ? 0 : "4px",
+        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : `${Math.max(10, dividerGap + 6)}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -2744,6 +2744,20 @@ function OfficialLetterhead({
               </div>
             ) : null}
 
+            {shipment.letterheadImage && !isLogoCentered && (
+              <div
+                className="letterhead-logo-divider"
+                contentEditable={false}
+                style={{
+                  width: "1.5px",
+                  height: layoutMode === "split" ? "56px" : "62px",
+                  background: "#cbd5e1",
+                  margin: "0 16px 0 6px",
+                  flexShrink: 0,
+                }}
+              />
+            )}
+
             {/* CLEAN EXECUTIVE CORPORATE LETTERHEAD TEMPLATES */}
             {layoutMode === "split" ? (
               /* MODE SPLIT: Executive Left-Right Corporate Header */
@@ -2763,12 +2777,12 @@ function OfficialLetterhead({
                   <h1
                     className="company-name"
                     style={{
-                      fontSize: "14pt",
+                      fontSize: "15.5pt",
                       fontWeight: 800,
                       letterSpacing: "0.035em",
                       color: dividerColor,
-                      margin: "0 0 1px 0",
-                      lineHeight: 1.15,
+                      margin: `0 0 ${Math.max(2, lineSpacing)}px 0`,
+                      lineHeight: 1.1,
                       whiteSpace: "nowrap",
                       fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                     }}
@@ -2784,12 +2798,12 @@ function OfficialLetterhead({
                   <p
                     className="company-tagline"
                     style={{
-                      fontSize: "7pt",
+                      fontSize: "7.2pt",
                       fontWeight: 700,
                       letterSpacing: "0.06em",
-                      color: "#475569",
+                      color: "#334155",
                       margin: 0,
-                      lineHeight: 1.2,
+                      lineHeight: 1.25,
                       textTransform: "uppercase",
                     }}
                     onBlur={(e) => {
@@ -2807,10 +2821,10 @@ function OfficialLetterhead({
                 <div
                   style={{
                     borderLeft: "1.5px solid #cbd5e1",
-                    paddingLeft: "12px",
+                    paddingLeft: "14px",
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1.5px",
+                    gap: `${Math.max(2, lineSpacing)}px`,
                     textAlign: "left",
                     flexShrink: 0,
                   }}
@@ -2818,9 +2832,9 @@ function OfficialLetterhead({
                   <p
                     className="company-details"
                     style={{
-                      fontSize: "8pt",
-                      lineHeight: 1.25,
-                      color: "#334155",
+                      fontSize: "8.2pt",
+                      lineHeight: 1.3,
+                      color: "#1e293b",
                       fontWeight: 500,
                       margin: 0,
                       maxWidth: "290px",
@@ -2840,25 +2854,25 @@ function OfficialLetterhead({
 
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", whiteSpace: "nowrap" }}>
                     <span>
-                      <strong contentEditable={false} style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}>
+                      <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                         Tel:{" "}
                       </strong>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                        style={{ fontSize: "8.2pt", fontWeight: 500, color: "#1e293b" }}
                         onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
                       >
                         {telVal}
                       </span>
                     </span>
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "7.5pt" }}>•</span>
+                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8pt" }}>|</span>
                     <span>
-                      <strong contentEditable={false} style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}>
+                      <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                         Email:{" "}
                       </strong>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                        style={{ fontSize: "8.2pt", fontWeight: 500, color: "#1e293b" }}
                         onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
                       >
                         {emailVal}
@@ -2867,12 +2881,12 @@ function OfficialLetterhead({
                   </div>
 
                   <div style={{ whiteSpace: "nowrap" }}>
-                    <strong contentEditable={false} style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}>
+                    <strong contentEditable={false} style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
                       Web:{" "}
                     </strong>
                     <span
                       className="company-contact"
-                      style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                      style={{ fontSize: "8.2pt", fontWeight: 500, color: "#1e293b" }}
                       onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
                     >
                       {webVal}
@@ -2891,18 +2905,18 @@ function OfficialLetterhead({
                   flexDirection: "column",
                   alignItems: "center",
                   textAlign: "center",
-                  gap: "2px",
+                  gap: `${Math.max(2, lineSpacing)}px`,
                 }}
               >
                 <h1
                   className="company-name"
                   style={{
-                    fontSize: "14pt",
+                    fontSize: "17pt",
                     fontWeight: 800,
-                    letterSpacing: "0.035em",
+                    letterSpacing: "0.055em",
                     color: dividerColor,
                     margin: 0,
-                    lineHeight: 1.15,
+                    lineHeight: 1.1,
                     fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                   }}
                   onBlur={(e) => {
@@ -2918,10 +2932,10 @@ function OfficialLetterhead({
                 <p
                   className="company-tagline"
                   style={{
-                    fontSize: "7pt",
+                    fontSize: "7.8pt",
                     fontWeight: 700,
-                    letterSpacing: "0.06em",
-                    color: "#475569",
+                    letterSpacing: "0.08em",
+                    color: "#334155",
                     margin: 0,
                     textTransform: "uppercase",
                   }}
@@ -2938,13 +2952,13 @@ function OfficialLetterhead({
                 <div style={{ marginTop: "2px", whiteSpace: "nowrap" }}>
                   <strong
                     contentEditable={false}
-                    style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}
+                    style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
                   >
                     {addressLabel}:{" "}
                   </strong>
                   <span
                     className="company-details"
-                    style={{ fontSize: "8pt", color: "#334155", fontWeight: 500 }}
+                    style={{ fontSize: "8.6pt", color: "#1e293b", fontWeight: 500 }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
                       if (update && text) {
@@ -2956,40 +2970,40 @@ function OfficialLetterhead({
                   </span>
                 </div>
 
-                <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", whiteSpace: "nowrap" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "10px", whiteSpace: "nowrap" }}>
                   <span>
-                    <strong contentEditable={false} style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}>
+                    <strong contentEditable={false} style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                       Tel:{" "}
                     </strong>
                     <span
                       className="company-contact"
-                      style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                      style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
                       onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
                     >
                       {telVal}
                     </span>
                   </span>
-                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "7.5pt" }}>•</span>
+                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.5pt" }}>|</span>
                   <span>
-                    <strong contentEditable={false} style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}>
+                    <strong contentEditable={false} style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                       Email:{" "}
                     </strong>
                     <span
                       className="company-contact"
-                      style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                      style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
                       onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
                     >
                       {emailVal}
                     </span>
                   </span>
-                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "7.5pt" }}>•</span>
+                  <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.5pt" }}>|</span>
                   <span>
-                    <strong contentEditable={false} style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}>
+                    <strong contentEditable={false} style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
                       Web:{" "}
                     </strong>
                     <span
                       className="company-contact"
-                      style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                      style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
                       onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
                     >
                       {webVal}
@@ -3013,12 +3027,12 @@ function OfficialLetterhead({
                 <h1
                   className="company-name"
                   style={{
-                    fontSize: "14pt",
+                    fontSize: "17.5pt",
                     fontWeight: 800,
-                    letterSpacing: "0.035em",
+                    letterSpacing: "0.04em",
                     color: dividerColor,
                     margin: 0,
-                    lineHeight: 1.15,
+                    lineHeight: 1.08,
                     whiteSpace: "nowrap",
                     fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                   }}
@@ -3036,12 +3050,12 @@ function OfficialLetterhead({
                 <p
                   className="company-tagline"
                   style={{
-                    fontSize: "7pt",
+                    fontSize: "7.8pt",
                     fontWeight: 700,
-                    letterSpacing: "0.06em",
-                    color: "#475569",
-                    margin: "1px 0 0 0",
-                    lineHeight: 1.2,
+                    letterSpacing: "0.08em",
+                    color: "#334155",
+                    margin: "2px 0 0 0",
+                    lineHeight: 1.25,
                     whiteSpace: "nowrap",
                     textTransform: "uppercase",
                   }}
@@ -3055,21 +3069,31 @@ function OfficialLetterhead({
                   {exporterTagline}
                 </p>
 
+                {/* Full-Width Structural Hairline */}
+                <div
+                  contentEditable={false}
+                  style={{
+                    height: "1px",
+                    width: "100%",
+                    background: "#cbd5e1",
+                    margin: `${Math.max(4, lineSpacing + 2)}px 0`,
+                  }}
+                />
+
                 {/* Row 3 & Row 4: Clean Executive Address & Contact Details */}
                 <div
                   style={{
                     display: "flex",
                     flexDirection: "column",
-                    gap: "1px",
-                    marginTop: "3px",
+                    gap: `${Math.max(2, lineSpacing)}px`,
                   }}
                 >
                   {/* Row 3: Head Office Address (1 Line) */}
-                  <div style={{ whiteSpace: "nowrap", lineHeight: 1.25 }}>
+                  <div style={{ whiteSpace: "nowrap", lineHeight: 1.32 }}>
                     <strong
                       contentEditable={false}
                       style={{
-                        fontSize: "8pt",
+                        fontSize: "8.6pt",
                         fontWeight: 700,
                         color: dividerColor,
                       }}
@@ -3079,10 +3103,10 @@ function OfficialLetterhead({
                     <span
                       className="company-details"
                       style={{
-                        fontSize: "8pt",
-                        color: "#334155",
+                        fontSize: "8.6pt",
+                        color: "#1e293b",
                         fontWeight: 500,
-                        lineHeight: 1.25,
+                        lineHeight: 1.32,
                         whiteSpace: "nowrap",
                       }}
                       onBlur={(e) => {
@@ -3103,60 +3127,60 @@ function OfficialLetterhead({
                       alignItems: "center",
                       flexWrap: "nowrap",
                       whiteSpace: "nowrap",
-                      gap: "8px",
-                      lineHeight: 1.25,
+                      gap: "10px",
+                      lineHeight: 1.32,
                     }}
                   >
                     <span>
                       <strong
                         contentEditable={false}
-                        style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}
+                        style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
                       >
                         Tel:{" "}
                       </strong>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                        style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
                         onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}
                       >
                         {telVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "7.5pt" }}>
+                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 6px" }}>
                       •
                     </span>
 
                     <span>
                       <strong
                         contentEditable={false}
-                        style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}
+                        style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
                       >
                         Email:{" "}
                       </strong>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                        style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
                         onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}
                       >
                         {emailVal}
                       </span>
                     </span>
 
-                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "7.5pt" }}>
+                    <span contentEditable={false} style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 6px" }}>
                       •
                     </span>
 
                     <span>
                       <strong
                         contentEditable={false}
-                        style={{ fontSize: "8pt", fontWeight: 700, color: dividerColor }}
+                        style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}
                       >
                         Web:{" "}
                       </strong>
                       <span
                         className="company-contact"
-                        style={{ fontSize: "8pt", fontWeight: 500, color: "#334155" }}
+                        style={{ fontSize: "8.6pt", fontWeight: 500, color: "#1e293b" }}
                         onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}
                       >
                         {webVal}

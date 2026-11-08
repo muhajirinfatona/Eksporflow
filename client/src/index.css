@@ -6363,27 +6363,27 @@ textarea:focus-visible {
 /* Letterhead */
 .paper-letterhead-wrap {
   width: 100%;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
 }
 
 .paper-letterhead-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
 }
 
 .letterhead-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
 }
 
 .letterhead-logo {
-  max-width: calc(200px * var(--logo-scale, 1)) !important;
-  max-height: calc(90px * var(--logo-scale, 1)) !important;
-  height: calc(56px * var(--logo-scale, 1)) !important;
+  max-width: calc(240px * var(--logo-scale, 1)) !important;
+  max-height: calc(120px * var(--logo-scale, 1)) !important;
+  height: calc(68px * var(--logo-scale, 1)) !important;
   width: auto !important;
   object-fit: contain !important;
   flex-shrink: 0;
