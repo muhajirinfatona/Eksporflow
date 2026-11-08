@@ -207,7 +207,169 @@ export function DocumentsModule({
     if (!paperEl) return;
 
     // 1. Cell, Table & Document Box Focus Tracking (Word Table & Box Mode)
-    const handleCellFocus = (e: Event) => {
+    // State and handlers for Word-style Table Cell Blocking & Merging
+    let isCellSelecting = false;
+    let selectStartCell: HTMLTableCellElement | null = null;
+    let selectStartTable: HTMLTableElement | null = null;
+
+    const clearCellSelection = () => {
+      paperEl.querySelectorAll("td.table-cell-selected, th.table-cell-selected").forEach((el) => {
+        el.classList.remove("table-cell-selected");
+      });
+      const pill = document.querySelector(".floating-merge-pill");
+      if (pill) pill.remove();
+    };
+
+    const updateFloatingMergePill = () => {
+      const selected = Array.from(
+        paperEl.querySelectorAll("td.table-cell-selected, th.table-cell-selected")
+      ) as HTMLTableCellElement[];
+      let pill = document.querySelector(".floating-merge-pill") as HTMLElement | null;
+      if (selected.length < 2) {
+        if (pill) pill.remove();
+        return;
+      }
+      if (!pill) {
+        pill = document.createElement("div");
+        pill.className = "floating-merge-pill";
+        document.body.appendChild(pill);
+      }
+      const lastCell = selected[selected.length - 1];
+      const rect = lastCell.getBoundingClientRect();
+      pill.style.position = "absolute";
+      pill.style.zIndex = "9999";
+      pill.style.top = `${Math.max(10, rect.top + window.scrollY - 36)}px`;
+      pill.style.left = `${rect.left + window.scrollX}px`;
+      pill.innerHTML = `
+        <span style="display:flex;align-items:center;gap:4px;">🔀 <b>${selected.length} Sel Terpilih</b></span>
+        <button type="button" class="btn-merge-action" style="background:#0284c7;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-weight:700;cursor:pointer;">Gabung Sel</button>
+        <button type="button" class="btn-merge-cancel" style="background:transparent;color:#94a3b8;border:none;padding:2px 6px;cursor:pointer;">✕</button>
+      `;
+      pill.querySelector(".btn-merge-action")?.addEventListener("mousedown", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        mergeSelectedCells();
+      });
+      pill.querySelector(".btn-merge-cancel")?.addEventListener("mousedown", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        clearCellSelection();
+      });
+    };
+
+    const selectCellsBetween = (startCell: HTMLTableCellElement, endCell: HTMLTableCellElement) => {
+      const table = startCell.closest("table");
+      if (!table || table !== endCell.closest("table")) return;
+
+      const rows = Array.from(table.querySelectorAll("tr")) as HTMLTableRowElement[];
+      const r1 = rows.indexOf(startCell.closest("tr") as HTMLTableRowElement);
+      const r2 = rows.indexOf(endCell.closest("tr") as HTMLTableRowElement);
+      if (r1 === -1 || r2 === -1) return;
+
+      const minR = Math.min(r1, r2);
+      const maxR = Math.max(r1, r2);
+
+      const c1 = Array.from(startCell.parentElement?.children || []).indexOf(startCell);
+      const c2 = Array.from(endCell.parentElement?.children || []).indexOf(endCell);
+      const minC = Math.min(c1, c2);
+      const maxC = Math.max(c1, c2);
+
+      paperEl.querySelectorAll("td.table-cell-selected, th.table-cell-selected").forEach((el) => {
+        el.classList.remove("table-cell-selected");
+      });
+
+      for (let r = minR; r <= maxR; r++) {
+        const rowCells = Array.from(rows[r].children) as HTMLTableCellElement[];
+        for (let c = minC; c <= maxC; c++) {
+          if (rowCells[c]) {
+            rowCells[c].classList.add("table-cell-selected");
+          }
+        }
+      }
+    };
+
+    const mergeSelectedCells = () => {
+      const blockedCells = Array.from(
+        paperEl.querySelectorAll("td.table-cell-selected, th.table-cell-selected, td.active-cell, th.active-cell")
+      ) as HTMLTableCellElement[];
+      const uniqueSelected = Array.from(new Set(blockedCells));
+
+      if (uniqueSelected.length >= 2) {
+        const rowGroups = new Map<HTMLTableRowElement, HTMLTableCellElement[]>();
+        uniqueSelected.forEach((c) => {
+          const tr = c.closest("tr");
+          if (tr) {
+            if (!rowGroups.has(tr)) rowGroups.set(tr, []);
+            rowGroups.get(tr)!.push(c);
+          }
+        });
+
+        let totalMerged = 0;
+        let firstBaseCell: HTMLTableCellElement | null = null;
+
+        rowGroups.forEach((cellsInRow, tr) => {
+          if (cellsInRow.length >= 2) {
+            const allTrCells = Array.from(tr.children) as HTMLTableCellElement[];
+            cellsInRow.sort((a, b) => allTrCells.indexOf(a) - allTrCells.indexOf(b));
+
+            const baseCell = cellsInRow[0];
+            if (!firstBaseCell) firstBaseCell = baseCell;
+
+            for (let i = 1; i < cellsInRow.length; i++) {
+              const nextCell = cellsInRow[i];
+              baseCell.colSpan = (baseCell.colSpan || 1) + (nextCell.colSpan || 1);
+              if (nextCell.innerText.trim()) {
+                baseCell.innerHTML = baseCell.innerHTML.trim()
+                  ? `${baseCell.innerHTML} ${nextCell.innerHTML}`
+                  : nextCell.innerHTML;
+              }
+              nextCell.remove();
+              totalMerged++;
+            }
+          }
+        });
+
+        clearCellSelection();
+        const finalBase = firstBaseCell as HTMLTableCellElement | null;
+        if (finalBase) {
+          finalBase.classList.add("active-cell");
+          (window as any).__eksporflow_active_cell = finalBase;
+        }
+        toast.success(`🎉 Berhasil menggabungkan ${totalMerged + 1} sel tabel! (Colspan: ${finalBase?.colSpan || 1})`);
+        return;
+      }
+
+      // Single active cell fallback: merge with next or previous sibling
+      const activeCell =
+        ((window as any).__eksporflow_active_cell as HTMLTableCellElement | null) ||
+        (paperEl.querySelector("td.active-cell, th.active-cell") as HTMLTableCellElement | null);
+      if (activeCell) {
+        const next =
+          (activeCell.nextElementSibling as HTMLTableCellElement | null) ||
+          (activeCell.previousElementSibling as HTMLTableCellElement | null);
+        if (next) {
+          const targetBase = activeCell.nextElementSibling ? activeCell : next;
+          const toRemove = activeCell.nextElementSibling ? next : activeCell;
+          targetBase.colSpan = (targetBase.colSpan || 1) + (toRemove.colSpan || 1);
+          if (toRemove.innerText.trim()) {
+            targetBase.innerHTML = targetBase.innerHTML.trim()
+              ? `${targetBase.innerHTML} ${toRemove.innerHTML}`
+              : toRemove.innerHTML;
+          }
+          toRemove.remove();
+          clearCellSelection();
+          targetBase.classList.add("active-cell");
+          (window as any).__eksporflow_active_cell = targetBase;
+          toast.success(`🎉 Sel berhasil digabungkan (Colspan: ${targetBase.colSpan})!`);
+          return;
+        }
+      }
+      toast.info("Klik atau blok sel di tabel yang ingin digabung terlebih dahulu.");
+    };
+
+    (window as any).__eksporflow_merge_cells = mergeSelectedCells;
+
+    const handleCellMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const box = target.closest(
         ".doc-title-bar, .doc-box, .contract-party-card, .doc-terms-panel, .doc-bank-card"
@@ -220,25 +382,63 @@ export function DocumentsModule({
       }
 
       const cell = target.closest("td, th") as HTMLTableCellElement | null;
-      if (cell) {
-        const currentTable = cell.closest("table");
-        (window as any).__eksporflow_active_cell = cell;
-        (window as any).__eksporflow_active_table = currentTable;
-        window.dispatchEvent(
-          new CustomEvent("eksporflow:table-focus", {
-            detail: { hasTable: true, table: currentTable, cell },
-          })
-        );
-        paperEl.querySelectorAll("table.active-table").forEach((el) => {
-          el.classList.remove("active-table");
-        });
-        paperEl.querySelectorAll("td.active-cell, th.active-cell").forEach((el) => {
-          el.classList.remove("active-cell");
-        });
-        if (currentTable) {
-          currentTable.classList.add("active-table");
-        }
-        cell.classList.add("active-cell");
+      if (!cell) {
+        clearCellSelection();
+        return;
+      }
+
+      const currentTable = cell.closest("table");
+      if (!currentTable) return;
+
+      (window as any).__eksporflow_active_cell = cell;
+      (window as any).__eksporflow_active_table = currentTable;
+      window.dispatchEvent(
+        new CustomEvent("eksporflow:table-focus", {
+          detail: { hasTable: true, table: currentTable, cell },
+        })
+      );
+
+      if (e.shiftKey && selectStartCell && selectStartCell.closest("table") === currentTable) {
+        e.preventDefault();
+        selectCellsBetween(selectStartCell, cell);
+        updateFloatingMergePill();
+        return;
+      }
+
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        cell.classList.toggle("table-cell-selected");
+        updateFloatingMergePill();
+        return;
+      }
+
+      // Normal click: start fresh selection
+      paperEl.querySelectorAll("table.active-table").forEach((el) => el.classList.remove("active-table"));
+      currentTable.classList.add("active-table");
+      paperEl.querySelectorAll("td.active-cell, th.active-cell").forEach((el) => el.classList.remove("active-cell"));
+      cell.classList.add("active-cell");
+      cell.classList.add("table-cell-selected");
+
+      selectStartCell = cell;
+      selectStartTable = currentTable;
+      isCellSelecting = true;
+    };
+
+    const handleCellMouseOver = (e: MouseEvent) => {
+      if (!isCellSelecting || !selectStartCell || !selectStartTable) return;
+      const target = e.target as HTMLElement;
+      const cell = target.closest("td, th") as HTMLTableCellElement | null;
+      if (!cell || cell.closest("table") !== selectStartTable) return;
+
+      window.getSelection()?.removeAllRanges();
+      selectCellsBetween(selectStartCell, cell);
+      updateFloatingMergePill();
+    };
+
+    const handleDocumentMouseUp = () => {
+      if (isCellSelecting) {
+        isCellSelecting = false;
+        updateFloatingMergePill();
       }
     };
 
@@ -346,8 +546,9 @@ export function DocumentsModule({
     };
 
     attachColResizers();
-    (paperEl as HTMLElement).addEventListener("mousedown", handleCellFocus as EventListener);
-    (paperEl as HTMLElement).addEventListener("focusin", handleCellFocus as EventListener);
+    (paperEl as HTMLElement).addEventListener("mousedown", handleCellMouseDown as EventListener);
+    (paperEl as HTMLElement).addEventListener("mousemove", handleCellMouseOver as EventListener);
+    document.addEventListener("mouseup", handleDocumentMouseUp);
 
     // 3. Tab Key Navigation inside Table Cells (Word experience)
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -393,8 +594,12 @@ export function DocumentsModule({
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
-      (paperEl as HTMLElement).removeEventListener("mousedown", handleCellFocus as EventListener);
+      (paperEl as HTMLElement).removeEventListener("mousedown", handleCellMouseDown as EventListener);
+      (paperEl as HTMLElement).removeEventListener("mousemove", handleCellMouseOver as EventListener);
+      document.removeEventListener("mouseup", handleDocumentMouseUp);
       document.removeEventListener("keydown", handleKeyDown);
+      const pill = document.querySelector(".floating-merge-pill");
+      if (pill) pill.remove();
     };
   }, [isEditMode, selectedDocument, shipment.contractLayout, editorKey]);
 
@@ -3611,6 +3816,10 @@ function DocTitleBanner({ title }: { title: string }) {
           type="button"
           onMouseDown={(e) => e.preventDefault()}
           onClick={() => {
+            if ((window as any).__eksporflow_merge_cells) {
+              (window as any).__eksporflow_merge_cells();
+              return;
+            }
             const table = barRef.current?.closest(".unlk-doc-wrapper")?.querySelector("table.unlk-items-table") || document.querySelector("table.unlk-items-table");
             if (!table) return;
             const sel = window.getSelection();

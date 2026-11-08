@@ -1081,25 +1081,33 @@ export function DocWordRibbon({
 
   // Merge Table & Cell Operations (Microsoft Word style)
   const mergeTableCells = () => {
+    if (typeof (window as any).__eksporflow_merge_cells === "function") {
+      (window as any).__eksporflow_merge_cells();
+      return;
+    }
+
     const { cell, row } = getTargetTableAndCell();
     if (!cell || !row) {
       toast.error("Klik sel di tabel yang ingin digabung terlebih dahulu");
       return;
     }
-    const nextCell = cell.nextElementSibling as HTMLTableCellElement | null;
+    const nextCell = (cell.nextElementSibling as HTMLTableCellElement | null) ||
+                     (cell.previousElementSibling as HTMLTableCellElement | null);
     if (!nextCell) {
-      toast.info("Tidak ada sel berikutnya di sebelah kanan untuk digabungkan.");
+      toast.info("Tidak ada sel di sampingnya untuk digabungkan.");
       return;
     }
     pushEditorHistory("table:merge-cells");
-    const currentSpan = cell.colSpan || 1;
-    const nextSpan = nextCell.colSpan || 1;
-    cell.colSpan = currentSpan + nextSpan;
-    if (nextCell.innerText.trim()) {
-      cell.innerHTML = `${cell.innerHTML} ${nextCell.innerHTML}`;
+    const targetBase = cell.nextElementSibling ? cell : nextCell;
+    const toRemove = cell.nextElementSibling ? nextCell : cell;
+    targetBase.colSpan = (targetBase.colSpan || 1) + (toRemove.colSpan || 1);
+    if (toRemove.innerText.trim()) {
+      targetBase.innerHTML = targetBase.innerHTML.trim()
+        ? `${targetBase.innerHTML} ${toRemove.innerHTML}`
+        : toRemove.innerHTML;
     }
-    nextCell.remove();
-    toast.success(`Sel berhasil digabung! (Colspan: ${cell.colSpan})`);
+    toRemove.remove();
+    toast.success(`Sel berhasil digabung! (Colspan: ${targetBase.colSpan})`);
   };
 
   const splitTableCells = () => {

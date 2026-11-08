@@ -14851,10 +14851,61 @@ textarea:focus-visible {
 .word-editable-mode table td:focus,
 .word-editable-mode table th:focus,
 .word-editable-mode table td.active-cell,
-.word-editable-mode table th.active-cell {
-  outline: 2px solid #0284c7 !important;
+.word-editable-mode table th.active-cell,
+.word-editable-mode table td.table-cell-selected,
+.word-editable-mode table th.table-cell-selected,
+table.unlk-items-table td.active-cell,
+table.unlk-items-table th.active-cell,
+table.unlk-items-table td.table-cell-selected,
+table.unlk-items-table th.table-cell-selected {
+  outline: 2.5px solid #0284c7 !important;
   outline-offset: -1px;
-  background-color: rgba(2, 132, 199, 0.05) !important;
+  background-color: #dbeafe !important;
+  user-select: none !important;
+}
+
+.floating-merge-pill {
+  position: absolute;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 4px 8px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  font-size: 11px;
+  font-weight: 700;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.floating-merge-pill button {
+  border: none;
+  border-radius: 4px;
+  padding: 2.5px 7px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.floating-merge-pill .btn-merge-action {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.floating-merge-pill .btn-merge-action:hover {
+  background: #0369a1;
+}
+
+.floating-merge-pill .btn-merge-cancel {
+  background: transparent;
+  color: #94a3b8;
+}
+
+.floating-merge-pill .btn-merge-cancel:hover {
+  color: #ffffff;
 }
 
 /* Page Margins Group */
