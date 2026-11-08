@@ -3806,42 +3806,18 @@ function ProformaInvoiceDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Seller (Left 50%) | Invoice No/Date + Buyer Ref/Due Date (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div
-            className="unlk-cell unlk-border-r"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "8px",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="unlk-lbl">{isId ? "Penjual / Seller" : "Seller"}</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-              <div className="unlk-val">
-                Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
-              </div>
-              <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-              <div className="unlk-val">
-                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-              </div>
-              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                {sigFull}
-              </div>
+          <div className="unlk-cell unlk-border-r">
+            <div className="unlk-lbl">{isId ? "Penjual / Seller" : "Seller"}</div>
+            <div className="unlk-val-bold">{exporterName}</div>
+            <div className="unlk-val">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
             </div>
-            {shipment.letterheadImage && (
-              <img
-                src={shipment.letterheadImage}
-                alt="Seller Logo"
-                style={{
-                  maxHeight: "56px",
-                  maxWidth: "115px",
-                  objectFit: "contain",
-                  flexShrink: 0,
-                  marginTop: "2px",
-                }}
-              />
-            )}
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              Contact Person: {sigFull} ({sigRoleText})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
@@ -4723,42 +4699,18 @@ function CommercialInvoiceDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Exporter (Left 50%) | Pages + Invoice No & Date / B/L No + Reference / Buyer Ref (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div
-            className="unlk-cell unlk-border-r"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "8px",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-              <div className="unlk-val">
-                Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
-              </div>
-              <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-              <div className="unlk-val">
-                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-              </div>
-              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                {sigFull}
-              </div>
+          <div className="unlk-cell unlk-border-r">
+            <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
+            <div className="unlk-val-bold">{exporterName}</div>
+            <div className="unlk-val">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
             </div>
-            {shipment?.letterheadImage && (
-              <img
-                src={shipment.letterheadImage}
-                alt="Exporter Logo"
-                style={{
-                  maxHeight: "56px",
-                  maxWidth: "115px",
-                  objectFit: "contain",
-                  flexShrink: 0,
-                  marginTop: "2px",
-                }}
-              />
-            )}
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              Contact Person: {sigFull} ({signatoryRole || "Export Director"})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
@@ -5097,42 +5049,18 @@ function PackingListDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Exporter (Left 50%) | Pages + PL No/Date + Invoice Ref/Buyer Ref (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div
-            className="unlk-cell unlk-border-r"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "8px",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-              <div className="unlk-val">
-                Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
-              </div>
-              <div className="unlk-val">Sulawesi Selatan 90231 – Indonesia</div>
-              <div className="unlk-val">
-                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-              </div>
-              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                {sigFull}
-              </div>
+          <div className="unlk-cell unlk-border-r">
+            <div className="unlk-lbl">{isId ? "Eksportir / Exporter" : "Exporter"}</div>
+            <div className="unlk-val-bold">{exporterName}</div>
+            <div className="unlk-val">
+              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia
             </div>
-            {shipment?.letterheadImage && (
-              <img
-                src={shipment.letterheadImage}
-                alt="Exporter Logo"
-                style={{
-                  maxHeight: "56px",
-                  maxWidth: "115px",
-                  objectFit: "contain",
-                  flexShrink: 0,
-                  marginTop: "2px",
-                }}
-              />
-            )}
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              Contact Person: {sigFull} ({signatoryRole || "Export Director"})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
@@ -5453,41 +5381,18 @@ function ShippingInstructionDoc({
       <div className="unlk-trade-form">
         {/* ROW 1: Shipper / Exporter (Left 50%) | Pages + SI No/Date + Booking/Contract Ref (Right 50%) */}
         <div className="unlk-row-50-50">
-          <div
-            className="unlk-cell unlk-border-r"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "8px",
-            }}
-          >
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div className="unlk-lbl">{isId ? "Pengirim / Shipper" : "Shipper / Exporter (To appear on B/L)"}</div>
-              <div className="unlk-val-bold">{exporterName}</div>
-              <div className="unlk-val">
-                {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
-              </div>
-              <div className="unlk-val">
-                Tel: +62 812-3456-7890 | Email: official@indicoexport.com
-              </div>
-              <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
-                {sigFull}
-              </div>
+          <div className="unlk-cell unlk-border-r">
+            <div className="unlk-lbl">{isId ? "Pengirim / Shipper" : "Shipper / Exporter (To appear on B/L)"}</div>
+            <div className="unlk-val-bold">{exporterName}</div>
+            <div className="unlk-val">
+              {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia"}
             </div>
-            {shipment?.letterheadImage && (
-              <img
-                src={shipment.letterheadImage}
-                alt="Shipper Logo"
-                style={{
-                  maxHeight: "56px",
-                  maxWidth: "115px",
-                  objectFit: "contain",
-                  flexShrink: 0,
-                  marginTop: "2px",
-                }}
-              />
-            )}
+            <div className="unlk-val">
+              Tel: +62 812-3456-7890 | Email: official@indicoexport.com
+            </div>
+            <div className="unlk-val" style={{ color: "#334155", fontWeight: 600, marginTop: "2px" }}>
+              Contact Person: {sigFull} ({signatoryRole || "Export Director"})
+            </div>
           </div>
 
           <div className="unlk-col-stack">
