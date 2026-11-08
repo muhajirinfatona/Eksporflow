@@ -3567,9 +3567,15 @@ function DocTitleBanner({ title }: { title: string }) {
 // --------------------------------------------------------------------------
 function UnlkSignatureBox({
   shipment,
+  exporterName = "PT. INDICO EXPORT INDONESIA",
+  signatoryName = "Muhajirin Fatona",
+  signatoryRole = "Export Director",
   onOpenSignatureModal,
 }: {
   shipment?: Shipment;
+  exporterName?: string;
+  signatoryName?: string;
+  signatoryRole?: string;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
   const hasSignature = !!shipment?.sellerSignatureImage;
@@ -3579,13 +3585,19 @@ function UnlkSignatureBox({
   return (
     <div className="unlk-sig-zone">
       {hasSignature ? (
-        <div className="sig-rendered-wrap" style={{ minHeight: "52px", display: "flex", alignItems: "center", gap: "10px", position: "relative" }}>
-          <img
-            src={shipment.sellerSignatureImage}
-            alt="Digital Signature"
-            className="doc-rendered-signature"
-            style={{ maxHeight: "48px", width: "auto" }}
-          />
+        <div className="sig-rendered-wrap" style={{ minHeight: "64px", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "10px", position: "relative" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+            <img
+              src={shipment.sellerSignatureImage}
+              alt="Digital Signature"
+              className="doc-rendered-signature"
+              style={{ maxHeight: "46px", width: "auto", objectFit: "contain" }}
+            />
+            <div className="sig-verify-badge">
+              <span className="sig-verify-check">✓</span>
+              <span>Verified Digital Signature ({shipment.sellerSignatureDate || "2026"})</span>
+            </div>
+          </div>
           {includeStamp && (
             <div className={`doc-seal-overlay seal-${stampColor}`} title="Stempel Digital Resmi Validated">
               <div className="seal-circle-outer">
@@ -3598,10 +3610,6 @@ function UnlkSignatureBox({
               </div>
             </div>
           )}
-          <div className="sig-verify-badge">
-            <span className="sig-verify-check">✓</span>
-            <span>Terverifikasi Digital ({shipment.sellerSignatureDate || "2026"})</span>
-          </div>
           {onOpenSignatureModal && (
             <button
               type="button"
@@ -3614,19 +3622,40 @@ function UnlkSignatureBox({
           )}
         </div>
       ) : (
-        <div className="sig-placeholder-wrap" style={{ minHeight: "52px", display: "flex", alignItems: "center" }}>
-          {onOpenSignatureModal ? (
-            <button
-              type="button"
-              className="doc-btn-click-sign no-print"
-              onClick={() => onOpenSignatureModal("seller")}
-              title="Klik untuk membubuhkan tanda tangan digital & stempel resmi"
-            >
-              <PenTool size={13} />
-              <span>+ Klik Tanda Tangan Digital & Stempel</span>
-            </button>
-          ) : null}
-          <div className="sig-box-space" style={{ height: "48px" }} />
+        <div className="sig-placeholder-wrap" style={{ minHeight: "64px", width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between", position: "relative" }}>
+          <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", minHeight: "56px" }}>
+            <span style={{ fontSize: "7.8pt", color: "#475569", fontStyle: "italic" }}>
+              For and on behalf of {exporterName}
+            </span>
+            {onOpenSignatureModal ? (
+              <button
+                type="button"
+                className="doc-btn-click-sign no-print"
+                onClick={() => onOpenSignatureModal("seller")}
+                title="Klik untuk membubuhkan tanda tangan digital & stempel resmi"
+                style={{ margin: "3px 0", width: "fit-content" }}
+              >
+                <PenTool size={12} />
+                <span>+ Pasang Tanda Tangan Digital</span>
+              </button>
+            ) : null}
+            <div style={{ borderTop: "1px dashed #94a3b8", paddingTop: "2px", marginTop: "auto", width: "175px" }}>
+              <span style={{ fontSize: "8pt", fontWeight: 700, color: "#0f172a" }}>{signatoryName}</span>
+              <span style={{ fontSize: "7.5pt", color: "#475569" }}> — {signatoryRole}</span>
+            </div>
+          </div>
+
+          {includeStamp && (
+            <div className={`official-stamp-seal seal-tone-${stampColor}`} style={{ position: "relative", top: "0", right: "4px", transform: "rotate(-7deg)" }}>
+              <div className="stamp-outer-ring">
+                <div className="stamp-inner-ring">
+                  <span className="stamp-top-arc">PT. INDICO EXPORT</span>
+                  <div className="stamp-center-band">EXPORT DEPT</div>
+                  <span className="stamp-bottom-arc">★ INDONESIA ★</span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -3703,19 +3732,19 @@ function ProformaInvoiceDoc({
       : buyerAddress;
 
   const sigFull = signatoryName || "Muhajirin Fatona";
-  const sigParts = sigFull.trim().split(/\s+/);
-  const sigFirst = sigParts[0] || "Muhajirin";
-  const sigLast = sigParts.slice(1).join(" ") || "Fatona";
+  const sigRoleText = signatoryRole || (isId ? "Direktur Ekspor" : "Export Director");
+  const netWeightKgs = netWeightMT * 1000;
+  const grossWeightKgs = bagsCount * 20.25;
 
   return (
     <div className="doc-content-wrapper unlk-doc-wrapper">
       <DocTitleBanner title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"} />
 
       <div className="unlk-trade-form">
-        {/* ROW 1: Seller (Left 50%) | Pages + Invoice No/Date + Buyer Ref/Due Date (Right 50%) */}
+        {/* ROW 1: Seller (Left 50%) | Invoice No/Date + Buyer Ref/Due Date (Right 50% — No Pages Strip) */}
         <div className="unlk-row-50-50">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Seller (Eksportir)" : "Seller"}</div>
+            <div className="unlk-lbl">{isId ? "Seller / Exporter" : "Seller / Exporter"}</div>
             <div className="unlk-val-bold">{exporterName}</div>
             <div className="unlk-val">
               Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar
@@ -3727,41 +3756,34 @@ function ProformaInvoiceDoc({
           </div>
 
           <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Invoice Number" : "Invoice Number"}</div>
+                <div className="unlk-lbl">Invoice Number</div>
                 <div className="unlk-val-bold">PI/IEI-DXB/X/2026/001</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Issue Date" : "Issue Date"}</div>
+                <div className="unlk-lbl">Issue Date</div>
                 <div className="unlk-val-bold">08 Nov 2026</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Buyer Reference" : "Buyer Reference"}</div>
+                <div className="unlk-lbl">Buyer Reference</div>
                 <div className="unlk-val-bold">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Due Date" : "Due Date"}</div>
+                <div className="unlk-lbl">Validity / Due Date</div>
                 <div className="unlk-val-bold">22 Nov 2026 (14 Days)</div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* ROW 2: Buyer (Left 50%) | Delivery Date (Right 50%) */}
+        {/* ROW 2: Buyer (Left 50%) | Delivery Schedule & Notify Party (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
-            <div className="unlk-lbl">{isId ? "Buyer (Pembeli)" : "Buyer"}</div>
+            <div className="unlk-lbl">Buyer / Consignee</div>
             <div className="unlk-val-bold">{buyerName}</div>
             <div className="unlk-val">{fullBuyerAddress}</div>
             <div className="unlk-val">
@@ -3772,67 +3794,108 @@ function ProformaInvoiceDoc({
             </div>
           </div>
 
-          <div className="unlk-cell">
-            <div className="unlk-lbl">{isId ? "Delivery Date" : "Delivery Date"}</div>
-            <div className="unlk-val-bold">
-              {isId
-                ? "Maksimal 21 hari setelah Pembayaran Uang Muka (DP)"
-                : "Within 21 days after Advance Payment"}
+          <div className="unlk-col-stack">
+            <div className="unlk-cell unlk-border-b">
+              <div className="unlk-lbl">Estimated Shipment &amp; Delivery</div>
+              <div className="unlk-val-bold">
+                {isId
+                  ? "Maksimal 21 hari setelah Pembayaran Uang Muka (DP)"
+                  : "Within 21 days after receipt of Advance Payment"}
+              </div>
             </div>
-            <div className="unlk-val" style={{ marginTop: "3px" }}>
-              Country of Origin of Goods: <b>Indonesia</b>
+            <div className="unlk-cell unlk-flex-fill">
+              <div className="unlk-lbl">Notify Party</div>
+              <div className="unlk-val-bold">SAME AS CONSIGNEE</div>
+              <div className="unlk-val">
+                {buyerName} — Contact: {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ROW 3: Dispatch & Ports (Left 50% 2x2) | Terms / Method of Payment (Right 50%) */}
+        {/* ROW 3: Dispatch, Container & Ports (Left 50%) | Origin, Destination & Payment Terms (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">Method of Dispatch</div>
-                <div className="unlk-val-bold">Sea Freight (FCL)</div>
+                <div className="unlk-val-bold">Sea Freight (Ocean FCL)</div>
               </div>
               <div className="unlk-cell">
                 <div className="unlk-lbl">Type of Shipment</div>
-                <div className="unlk-val-bold">1 x 20&apos; FCL Dry Container</div>
+                <div className="unlk-val-bold">1 x 20&apos; FCL Food-Grade</div>
+              </div>
+            </div>
+
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">Port of Loading (POL)</div>
+                <div className="unlk-val-bold">{pol}</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">Port of Discharge (POD)</div>
+                <div className="unlk-val-bold">{pod}</div>
               </div>
             </div>
 
             <div className="unlk-subrow-2col unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">Port of Loading</div>
-                <div className="unlk-val-bold">{pol}</div>
+                <div className="unlk-lbl">Packing Mode</div>
+                <div className="unlk-val-bold">20 Kg Multiwall Kraft Bag</div>
               </div>
               <div className="unlk-cell">
-                <div className="unlk-lbl">Port of Discharge</div>
-                <div className="unlk-val-bold">{pod}</div>
+                <div className="unlk-lbl">Container Load</div>
+                <div className="unlk-val-bold">{formatNumber(bagsCount)} Bags ({formatNumber(netWeightMT, 2)} MT)</div>
               </div>
             </div>
           </div>
 
-          <div className="unlk-cell">
-            <div className="unlk-lbl">Terms / Method of Payment</div>
-            <div className="unlk-val-bold">
-              {paymentTerms ||
-                (isId
-                  ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
-                  : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
+          <div className="unlk-col-stack">
+            <div className="unlk-subrow-2col unlk-border-b">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">Country of Origin of Goods</div>
+                <div className="unlk-val-bold">Indonesia</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">Country of Final Destination</div>
+                <div className="unlk-val-bold">{buyerCountry || "United Arab Emirates"}</div>
+              </div>
+            </div>
+
+            <div className="unlk-cell unlk-border-b">
+              <div className="unlk-lbl">Terms / Method of Payment</div>
+              <div className="unlk-val-bold">
+                {paymentTerms ||
+                  (isId
+                    ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+                    : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
+              </div>
+            </div>
+
+            <div className="unlk-subrow-2col unlk-flex-fill">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">Marine Insurance</div>
+                <div className="unlk-val-bold">{incoterm === "CIF" ? "Covered by Seller (110%)" : "Buyer Coverage (FOB)"}</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">Trade Incoterm</div>
+                <div className="unlk-val-bold">{incoterm} Makassar (2020)</div>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* ROW 4: LINE ITEMS TABLE (IncoDocs UNLK Columns) */}
+        {/* ROW 4: LINE ITEMS TABLE */}
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "12%" }}>Product Code</th>
-              <th style={{ width: "36%" }}>Description of Goods</th>
-              <th style={{ width: "11%" }}>HS Code</th>
+              <th style={{ width: "11%" }}>Product Code</th>
+              <th style={{ width: "35%" }}>Description of Goods</th>
+              <th style={{ width: "10%" }}>HS Code</th>
               <th style={{ width: "11%" }}>Unit Quantity</th>
               <th style={{ width: "8%" }}>Unit Type</th>
-              <th style={{ width: "11%" }}>Price</th>
-              <th style={{ width: "11%" }}>Amount</th>
+              <th style={{ width: "11%" }}>Unit Price</th>
+              <th style={{ width: "14%" }}>Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -3847,15 +3910,20 @@ function ProformaInvoiceDoc({
                 </div>
                 <div className="unlk-item-spec">
                   • {isId
-                    ? `Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE (${formatNumber(bagsCount)} Karung / 1 x 20' FCL)`
-                    : `Packing: 20 kg net / Multiwall Kraft Paper Bag with PE Inner Liner (${formatNumber(bagsCount)} Bags / 1 x 20' FCL)`}
+                    ? `Kemasan: Karung Kertas Kraft Multiwall 20 kg neto dengan Lapisan PE Food-Grade (${formatNumber(bagsCount)} Karung)`
+                    : `Packing: 20 kg net / Multiwall Kraft Paper Bag with Food-Grade PE Inner Liner (${formatNumber(bagsCount)} Bags)`}
+                </div>
+                <div className="unlk-item-spec">
+                  • {isId
+                    ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kgs | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kgs | Muatan: 1 x 20' FCL`
+                    : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs | Load: 1 x 20' FCL`}
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
-              <td className="text-right">{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right" style={{ whiteSpace: "nowrap" }}>{formatMoney(unitPricePerMT, currency)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -3864,14 +3932,14 @@ function ProformaInvoiceDoc({
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
               <td />
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
+            <tr className="unlk-subtotal-row unlk-consignment-total-row">
+              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total ({incoterm} Makassar)</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
               <td />
-              <td className="text-right font-bold">{currency} {formatNumber(totalAmount, 2)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -3881,7 +3949,7 @@ function ProformaInvoiceDoc({
           {/* Left 50%: Additional Info + Bank Details */}
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info</div>
+              <div className="unlk-lbl">Additional Info &amp; Amount in Words</div>
               <div className="unlk-val">
                 <b>Say:</b> <i>{amountInWords}</i>
               </div>
@@ -3891,13 +3959,13 @@ function ProformaInvoiceDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Bank Details</div>
+              <div className="unlk-lbl">Beneficiary Bank Details</div>
               <div className="unlk-bank-lines">
                 <div><b>Bank Name:</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
                 <div><b>Bank Address:</b> {shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
                 <div><b>Account Name:</b> {exporterName}</div>
                 <div><b>Account Number:</b> {bankAccountNo || "152-00-9876543-2"} (USD Account)</div>
-                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>Currency:</b> {currency}</div>
+                <div><b>SWIFT Code:</b> {bankSwift || "BMRIIDJA"} | <b>Currency:</b> {currency} (United States Dollar)</div>
               </div>
             </div>
           </div>
@@ -3905,8 +3973,8 @@ function ProformaInvoiceDoc({
           {/* Right 50%: TOTAL + Incoterms/Currency + Signatory Company + Authorized Signatory + Signature */}
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt" }}>
+              <span className="unlk-val-bold">TOTAL ({incoterm} MAKASSAR):</span>
+              <span className="unlk-val-bold" style={{ fontSize: "10.5pt", whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
@@ -3914,7 +3982,7 @@ function ProformaInvoiceDoc({
             <div className="unlk-subrow-2col-70-30 unlk-border-b">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">Incoterms® 2020</div>
-                <div className="unlk-val-bold">{incoterm} Makassar</div>
+                <div className="unlk-val-bold">{incoterm} Makassar, Indonesia</div>
               </div>
               <div className="unlk-cell">
                 <div className="unlk-lbl">Currency</div>
@@ -3930,15 +3998,30 @@ function ProformaInvoiceDoc({
             <div className="unlk-cell unlk-border-b">
               <div className="unlk-lbl">Name of Authorized Signatory</div>
               <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
+                <span className="unlk-val-bold">{sigFull}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{sigRoleText}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
+              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <UnlkSignatureBox
+                shipment={shipment}
+                exporterName={exporterName}
+                signatoryName={sigFull}
+                signatoryRole={sigRoleText}
+                onOpenSignatureModal={onOpenSignatureModal}
+              />
             </div>
+          </div>
+        </div>
+
+        {/* ROW 6: FULL-WIDTH EXPORT TERMS & COMPLIANCE DECLARATION FOOTER */}
+        <div className="unlk-cell unlk-border-t unlk-terms-footer">
+          <div className="unlk-lbl">Commercial Terms &amp; Export Compliance Declaration</div>
+          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
+            1. <b>Export Documents:</b> Seller shall provide Full Set (3/3) Original Clean on Board Ocean Bill of Lading, Signed Commercial Invoice, Packing List, Certificate of Origin (Form), and Phytosanitary / Health Certificate.{" "}
+            2. <b>Quality &amp; Origin:</b> We hereby certify that the goods described above are of Indonesian Origin, Grade-A Export Standard, and that the prices stated are true and correct.
           </div>
         </div>
       </div>
@@ -4573,14 +4656,7 @@ function CommercialInvoiceDoc({
           </div>
 
           <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">Invoice Number &amp; Date</div>
                 <div className="unlk-signatory-split">
@@ -4712,13 +4788,13 @@ function CommercialInvoiceDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "12%" }}>Product Code</th>
-              <th style={{ width: "36%" }}>Description of Goods</th>
-              <th style={{ width: "11%" }}>HS Code</th>
+              <th style={{ width: "11%" }}>Product Code</th>
+              <th style={{ width: "35%" }}>Description of Goods</th>
+              <th style={{ width: "10%" }}>HS Code</th>
               <th style={{ width: "11%" }}>Unit Quantity</th>
               <th style={{ width: "8%" }}>Unit Type</th>
-              <th style={{ width: "11%" }}>Price</th>
-              <th style={{ width: "11%" }}>Amount</th>
+              <th style={{ width: "11%" }}>Unit Price</th>
+              <th style={{ width: "14%" }}>Amount</th>
             </tr>
           </thead>
           <tbody>
@@ -4727,17 +4803,20 @@ function CommercialInvoiceDoc({
               <td>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
+                  • Specification: Grade A Export Quality, Moisture Max 2.5%, Mesh 16-18, Purity 99%
+                </div>
+                <div className="unlk-item-spec">
                   • Packing: 20 Kg Net Multiwall Kraft Paper Bag ({formatNumber(bagsCount)} Bags) | Net: {formatNumber(netWeightKgs, 2)} Kgs | Gross: {formatNumber(grossWeightKgs, 2)} Kgs
                 </div>
                 <div className="unlk-item-spec">
-                  • Container / Seal No.: {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} | Origin: Indonesia
+                  • Container / Seal No.: {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} | Country of Origin: Indonesia
                 </div>
               </td>
               <td className="text-center font-semibold">{hsCode}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
-              <td className="text-right">{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right" style={{ whiteSpace: "nowrap" }}>{formatMoney(unitPricePerMT, currency)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -4746,14 +4825,14 @@ function CommercialInvoiceDoc({
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
               <td />
-              <td className="text-right font-bold">{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
-            <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label">Consignment Total</td>
+            <tr className="unlk-subtotal-row unlk-consignment-total-row">
+              <td colSpan={3} className="unlk-subtotal-label font-bold">Consignment Total ({incoterm} Makassar)</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
               <td />
-              <td className="text-right font-bold">{currency} {formatNumber(totalAmount, 2)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -4762,7 +4841,7 @@ function CommercialInvoiceDoc({
         <div className="unlk-row-50-50">
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">Additional Info</div>
+              <div className="unlk-lbl">Additional Info &amp; Amount in Words</div>
               <div className="unlk-val">
                 <b>Say:</b> <i>{amountInWords}</i>
               </div>
@@ -4772,7 +4851,7 @@ function CommercialInvoiceDoc({
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Bank Details</div>
+              <div className="unlk-lbl">Beneficiary Bank Details</div>
               <div className="unlk-bank-lines">
                 <div><b>Bank Name:</b> {bankName || "PT. Bank Mandiri (Persero) Tbk"}</div>
                 <div><b>Bank Address:</b> {shipment?.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}</div>
@@ -4785,8 +4864,8 @@ function CommercialInvoiceDoc({
 
           <div className="unlk-col-stack">
             <div className="unlk-cell unlk-border-b unlk-total-bar">
-              <span className="unlk-val-bold">TOTAL:</span>
-              <span className="unlk-val-bold" style={{ fontSize: "10.5pt" }}>
+              <span className="unlk-val-bold">TOTAL ({incoterm} MAKASSAR):</span>
+              <span className="unlk-val-bold" style={{ fontSize: "10.5pt", whiteSpace: "nowrap" }}>
                 {currency} {formatNumber(totalAmount, 2)}
               </span>
             </div>
@@ -4810,15 +4889,29 @@ function CommercialInvoiceDoc({
             <div className="unlk-cell unlk-border-b">
               <div className="unlk-lbl">Name of Authorized Signatory</div>
               <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
+                <span className="unlk-val-bold">{sigFull}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{signatoryRole || "Export Director"}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
+              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <UnlkSignatureBox
+                shipment={shipment}
+                exporterName={exporterName}
+                signatoryName={sigFull}
+                signatoryRole={signatoryRole || "Export Director"}
+                onOpenSignatureModal={onOpenSignatureModal}
+              />
             </div>
+          </div>
+        </div>
+
+        {/* ROW 6: FULL-WIDTH CUSTOMS & EXPORT COMPLIANCE DECLARATION */}
+        <div className="unlk-cell unlk-border-t unlk-terms-footer">
+          <div className="unlk-lbl">Customs &amp; Origin Declaration</div>
+          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
+            We hereby certify that the goods described in this Commercial Invoice are wholly produced in Indonesia, conform to Grade-A Export Standard, and that no other invoice has been or will be issued for this consignment.
           </div>
         </div>
       </div>
@@ -4919,14 +5012,7 @@ function PackingListDoc({
           </div>
 
           <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">Packing List Number &amp; Date</div>
                 <div className="unlk-signatory-split">
@@ -5141,15 +5227,29 @@ function PackingListDoc({
             <div className="unlk-cell unlk-border-b">
               <div className="unlk-lbl">Name of Authorized Signatory</div>
               <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
+                <span className="unlk-val-bold">{sigFull}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{signatoryRole || "Export Director"}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
+              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <UnlkSignatureBox
+                shipment={shipment}
+                exporterName={exporterName}
+                signatoryName={sigFull}
+                signatoryRole={signatoryRole || "Export Director"}
+                onOpenSignatureModal={onOpenSignatureModal}
+              />
             </div>
+          </div>
+        </div>
+
+        {/* ROW 6: FULL-WIDTH PACKING & PHYTOSANITARY COMPLIANCE FOOTER */}
+        <div className="unlk-cell unlk-border-t unlk-terms-footer">
+          <div className="unlk-lbl">Packing &amp; Container Stuffing Certification</div>
+          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
+            We hereby certify that the goods described above have been packed in new, clean, dry 3-ply Multiwall Kraft Paper Bags with Food-Grade PE Inner Liner and stuffed into a clean, odorless, food-grade container suitable for international ocean transport.
           </div>
         </div>
       </div>
@@ -5249,14 +5349,7 @@ function ShippingInstructionDoc({
           </div>
 
           <div className="unlk-col-stack">
-            <div className="unlk-subrow unlk-border-b unlk-pages-strip">
-              <div className="unlk-pages-box">
-                <div className="unlk-lbl">Pages</div>
-                <div className="unlk-val-bold">1 of 1</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">SI Number &amp; Date</div>
                 <div className="unlk-signatory-split">
@@ -5441,15 +5534,29 @@ function ShippingInstructionDoc({
             <div className="unlk-cell unlk-border-b">
               <div className="unlk-lbl">Name of Authorized Signatory</div>
               <div className="unlk-signatory-split">
-                <span className="unlk-val-bold">{sigFirst}</span>
-                <span className="unlk-val-bold">{sigLast} ({signatoryRole || "Export Director"})</span>
+                <span className="unlk-val-bold">{sigFull}</span>
+                <span className="unlk-val" style={{ color: "#475569", fontWeight: 600 }}>{signatoryRole || "Export Director"}</span>
               </div>
             </div>
 
             <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">Signature</div>
-              <UnlkSignatureBox shipment={shipment} onOpenSignatureModal={onOpenSignatureModal} />
+              <div className="unlk-lbl">Authorized Signature &amp; Official Seal</div>
+              <UnlkSignatureBox
+                shipment={shipment}
+                exporterName={exporterName}
+                signatoryName={sigFull}
+                signatoryRole={signatoryRole || "Export Director"}
+                onOpenSignatureModal={onOpenSignatureModal}
+              />
             </div>
+          </div>
+        </div>
+
+        {/* ROW 6: FULL-WIDTH PACKING & PHYTOSANITARY COMPLIANCE FOOTER */}
+        <div className="unlk-cell unlk-border-t unlk-terms-footer">
+          <div className="unlk-lbl">Packing &amp; Container Stuffing Certification</div>
+          <div className="unlk-val" style={{ fontSize: "8.2pt", lineHeight: 1.32, color: "#334155" }}>
+            We hereby certify that the goods described above have been packed in new, clean, dry 3-ply Multiwall Kraft Paper Bags with Food-Grade PE Inner Liner and stuffed into a clean, odorless, food-grade container suitable for international ocean transport.
           </div>
         </div>
       </div>
