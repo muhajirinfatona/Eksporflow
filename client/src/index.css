@@ -10467,8 +10467,8 @@ textarea:focus-visible {
     min-height: auto !important;
     background: #ffffff !important;
     overflow: visible !important;
-    font-size: 11.5px !important;
-    line-height: 1.32 !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    line-height: 1.34 !important;
     color: #0f172a !important;
     outline: none !important;
   }
@@ -10476,7 +10476,7 @@ textarea:focus-visible {
   /* Letterhead: tepat sesuai pengaturan pengguna (identik dengan tampilan layar) */
   .paper-letterhead-wrap {
     padding-top: 2px !important;
-    margin-bottom: 7px !important;
+    margin-bottom: 8px !important;
     padding-bottom: 0 !important;
     border-bottom: none !important;
   }
@@ -10505,15 +10505,15 @@ textarea:focus-visible {
     box-shadow: none !important;
   }
   .company-title {
-    font-size: 17.5px !important;
+    font-size: 18px !important;
     font-weight: 800 !important;
     margin-bottom: 1px !important;
     line-height: 1.2 !important;
     color: #0f2942 !important;
   }
   .company-meta-line {
-    font-size: 11px !important;
-    line-height: 1.3 !important;
+    font-size: 11.5px !important;
+    line-height: 1.32 !important;
     font-weight: 500 !important;
     color: #0f172a !important;
   }
@@ -10524,15 +10524,15 @@ textarea:focus-visible {
 
   /* Title bar print */
   .doc-title-bar {
-    margin: 6px 0 7px !important;
-    padding: 4.5px 10px !important;
+    margin: 6px 0 8px !important;
+    padding: 5px 12px !important;
     background: #0f2942 !important;
     color: #ffffff !important;
   }
   .doc-title-bar h2 {
-    font-size: 14px !important;
+    font-size: 11.5pt !important;
     font-weight: 800 !important;
-    letter-spacing: 0.06em !important;
+    letter-spacing: 0.08em !important;
     color: #ffffff !important;
   }
 
@@ -10540,15 +10540,15 @@ textarea:focus-visible {
   .doc-two-col-grid {
     display: grid !important;
     grid-template-columns: 1fr 1fr !important;
-    gap: 7px !important;
-    margin-bottom: 7px !important;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
     align-items: stretch !important;
   }
   .doc-parties-column,
   .doc-reference-column {
     display: flex !important;
     flex-direction: column !important;
-    gap: 5px !important;
+    gap: 6px !important;
     height: 100% !important;
   }
   .doc-parties-column .doc-box {
@@ -10558,28 +10558,28 @@ textarea:focus-visible {
     flex: 1 !important;
   }
   .doc-box {
-    padding: 5px 8px !important;
+    padding: 6px 10px !important;
     border: 1px solid #cbd5e1 !important;
   }
   .doc-box-tag {
-    font-size: 9px !important;
+    font-size: 8.5pt !important;
     font-weight: 800 !important;
-    margin-bottom: 1.5px !important;
+    margin-bottom: 2px !important;
     color: #0f2942 !important;
     text-transform: uppercase !important;
     letter-spacing: 0.04em !important;
   }
   .doc-entity-name {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: calc(var(--doc-font-size, 10pt) * 1.04) !important;
     font-weight: 800 !important;
-    margin-bottom: 1px !important;
+    margin-bottom: 1.5px !important;
     color: #0f172a !important;
   }
   .doc-entity-address,
   .doc-entity-contact {
-    font-size: var(--doc-font-size, 9pt) !important;
-    line-height: 1.3 !important;
-    margin-bottom: 1px !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    line-height: 1.34 !important;
+    margin-bottom: 1.5px !important;
     font-weight: 500 !important;
     color: #0f172a !important;
   }
@@ -10587,113 +10587,122 @@ textarea:focus-visible {
     display: flex !important;
     justify-content: space-between !important;
     align-items: flex-start !important;
-    font-size: var(--doc-font-size, 9pt) !important;
-    padding: 1px 0 !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    padding: 1.5px 0 !important;
     gap: 8px !important;
   }
   .meta-label {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: var(--doc-font-size, 10pt) !important;
     font-weight: 500 !important;
     white-space: nowrap !important;
     flex-shrink: 0 !important;
     color: #1e293b !important;
   }
   .meta-value {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: var(--doc-font-size, 10pt) !important;
     font-weight: 700 !important;
     color: #0f172a !important;
     text-align: right !important;
-    line-height: 1.3 !important;
+    line-height: 1.32 !important;
   }
 
   /* Panel syarat pengiriman & pembayaran */
   .doc-terms-panel {
-    margin-bottom: 7px !important;
-    padding: 5px 8px !important;
+    margin-bottom: 8px !important;
+    padding: 0 !important;
     border: 1px solid #cbd5e1 !important;
   }
   .doc-terms-header {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: 8.5pt !important;
     font-weight: 800 !important;
-    padding-bottom: 2px !important;
-    margin-bottom: 2.5px !important;
-    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 4.5px 10px !important;
+    margin-bottom: 0 !important;
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
     color: #0f2942 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.05em !important;
   }
   .doc-terms-grid {
-    gap: 3px 12px !important;
+    padding: 6px 10px !important;
+    gap: 4px 14px !important;
   }
   .terms-lbl {
-    font-size: var(--doc-font-size, 9pt) !important;
-    font-weight: 500 !important;
-    color: #1e293b !important;
+    font-size: 8.2pt !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    margin-bottom: 0.5px !important;
   }
   .terms-val {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: var(--doc-font-size, 10pt) !important;
     font-weight: 700 !important;
     color: #0f172a !important;
+    line-height: 1.3 !important;
   }
 
   /* Tabel rincian barang ekspor */
   .doc-table-pro {
-    margin-bottom: 6px !important;
+    margin: 0 0 7px 0 !important;
     width: 100% !important;
     border-collapse: collapse !important;
   }
   .doc-table-pro th {
-    padding: 4.5px 6px !important;
-    font-size: var(--doc-font-size, 9pt) !important;
+    padding: 5.5px 8px !important;
+    font-size: 9pt !important;
     font-weight: 800 !important;
     background: #0f2942 !important;
     color: #ffffff !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.03em !important;
+    letter-spacing: 0.04em !important;
   }
   .doc-table-pro td {
-    padding: 4.5px 6px !important;
-    font-size: var(--doc-font-size, 9pt) !important;
-    line-height: 1.3 !important;
+    padding: 6px 8px !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    line-height: 1.34 !important;
     border-bottom: 1px solid #e2e8f0 !important;
     color: #0f172a !important;
   }
   .table-product-title {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: calc(var(--doc-font-size, 10pt) * 1.03) !important;
     font-weight: 800 !important;
     color: #0f172a !important;
+    margin-bottom: 2px !important;
   }
   .table-product-specs {
-    margin-top: 2px !important;
-    font-size: var(--doc-font-size, 9pt) !important;
-    line-height: 1.3 !important;
+    margin-top: 2.5px !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    line-height: 1.34 !important;
     color: #0f172a !important;
   }
   .table-product-specs li {
-    margin-bottom: 1px !important;
-    font-size: var(--doc-font-size, 9pt) !important;
+    margin-bottom: 1.5px !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    line-height: 1.34 !important;
   }
   .doc-table-total-row td {
-    padding: 5px 8px !important;
-    font-size: var(--doc-font-size, 9pt) !important;
+    padding: 6px 8px !important;
+    font-size: calc(var(--doc-font-size, 10pt) * 1.04) !important;
     font-weight: 800 !important;
   }
 
   /* Terbilang banner */
   .doc-words-banner {
-    padding: 4px 8px !important;
-    font-size: 10.5px !important;
-    margin-bottom: 7px !important;
+    padding: 5px 10px !important;
+    font-size: 9.5pt !important;
+    margin: 0 0 8px 0 !important;
     background: #f8fafc !important;
-    border: 1px solid #e2e8f0 !important;
-    line-height: 1.26 !important;
+    border-left: 3px solid #0f2942 !important;
+    border-top: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    line-height: 1.3 !important;
     color: #0f172a !important;
   }
 
   /* Rincian rekening bank eksportir */
   .doc-bank-card {
-    padding: 5px 8px !important;
-    margin-bottom: 8px !important;
+    padding: 0 !important;
+    margin-bottom: 9px !important;
     border: 1px solid #cbd5e1 !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -10701,32 +10710,36 @@ textarea:focus-visible {
     page-break-after: avoid !important;
   }
   .bank-card-title {
-    font-size: 9.5px !important;
+    font-size: 8.5pt !important;
     font-weight: 800 !important;
-    margin-bottom: 2px !important;
+    padding: 4.5px 10px !important;
+    margin-bottom: 0 !important;
+    background: #f1f5f9 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
     color: #0f2942 !important;
     text-transform: uppercase !important;
-    letter-spacing: 0.04em !important;
+    letter-spacing: 0.05em !important;
   }
   .bank-card-table td {
-    padding: 1px 4px !important;
-    font-size: var(--doc-font-size, 9pt) !important;
-    line-height: 1.26 !important;
+    padding: 2.5px 10px !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    line-height: 1.3 !important;
   }
   .bank-lbl {
-    font-size: var(--doc-font-size, 9pt) !important;
-    font-weight: 500 !important;
-    color: #1e293b !important;
+    width: 145px !important;
+    font-size: var(--doc-font-size, 10pt) !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
   }
   .bank-val {
-    font-size: var(--doc-font-size, 9pt) !important;
+    font-size: var(--doc-font-size, 10pt) !important;
     font-weight: 700 !important;
     color: #0f172a !important;
   }
 
   /* Blok tanda tangan & stempel eksportir - tetap pas di Halaman 1 tanpa garis atas */
   .doc-single-signature-wrap {
-    margin-top: 10px !important;
+    margin-top: 8px !important;
     padding-top: 0 !important;
     display: flex !important;
     justify-content: flex-end !important;
@@ -10741,43 +10754,43 @@ textarea:focus-visible {
     flex-direction: column !important;
     align-items: flex-start !important;
     text-align: left !important;
-    min-width: 230px !important;
-    max-width: 270px !important;
+    min-width: 235px !important;
+    max-width: 280px !important;
   }
   .sig-signed-for {
-    font-size: 10px !important;
-    line-height: 1.22 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.25 !important;
     font-weight: 600 !important;
     color: #1e293b !important;
     text-align: left !important;
   }
   .sig-company-name {
-    font-size: 12px !important;
+    font-size: 10.2pt !important;
     font-weight: 800 !important;
-    line-height: 1.22 !important;
+    line-height: 1.25 !important;
     color: #0f172a !important;
     margin-top: 1px !important;
     text-align: left !important;
   }
   .sig-canvas-zone {
-    min-height: 46px !important;
-    height: 48px !important;
+    min-height: 44px !important;
+    height: 46px !important;
     margin: 2px 0 !important;
     align-items: flex-end !important;
     justify-content: flex-start !important;
   }
   .sig-signatory-name {
-    font-size: 12.5px !important;
+    font-size: 10.5pt !important;
     font-weight: 800 !important;
-    line-height: 1.22 !important;
+    line-height: 1.25 !important;
     color: #0f172a !important;
     text-align: left !important;
   }
   .sig-signatory-title {
-    font-size: 10.5px !important;
+    font-size: 9.5pt !important;
     font-weight: 700 !important;
-    line-height: 1.22 !important;
-    color: #0f172a !important;
+    line-height: 1.25 !important;
+    color: #334155 !important;
     margin-top: 1px !important;
     text-align: left !important;
   }
