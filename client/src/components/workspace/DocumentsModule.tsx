@@ -393,18 +393,26 @@ export function DocumentsModule({
     const handleCellMouseDown = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const box = target.closest(
-        ".doc-title-bar, .doc-box, .contract-party-card, .doc-terms-panel, .doc-bank-card"
+        ".doc-title-bar, .doc-box, .contract-party-card, .doc-terms-panel, .doc-bank-card, .unlk-cell, .unlk-total-bar"
       ) as HTMLElement | null;
       paperEl.querySelectorAll(".active-doc-box").forEach((el) => {
         if (el !== box) el.classList.remove("active-doc-box");
       });
       if (box) {
         box.classList.add("active-doc-box");
+        (window as any).__eksporflow_active_cell = box;
       }
 
       const cell = target.closest("td, th") as HTMLTableCellElement | null;
       if (!cell) {
         clearCellSelection();
+        if (box && box.closest(".unlk-trade-form")) {
+          window.dispatchEvent(
+            new CustomEvent("eksporflow:table-focus", {
+              detail: { hasTable: true, table: box.closest(".unlk-trade-form"), cell: box },
+            })
+          );
+        }
         return;
       }
 
@@ -3070,6 +3078,16 @@ function DocTitleBanner({ title }: { title: string }) {
     }
   };
 
+  useEffect(() => {
+    const handleExtTableStyle = (e: any) => {
+      if (e.detail?.styleKey) {
+        setTableStyle(e.detail.styleKey);
+      }
+    };
+    window.addEventListener("eksporflow:table-style-change", handleExtTableStyle);
+    return () => window.removeEventListener("eksporflow:table-style-change", handleExtTableStyle);
+  }, []);
+
   const applyDocumentTableStyle = (styleKey: string, label: string) => {
     pushEditorHistory("table-style-change");
     setTableStyle(styleKey);
@@ -3078,6 +3096,7 @@ function DocTitleBanner({ title }: { title: string }) {
       form.classList.remove("unlk-style-unlk", "unlk-style-corporate", "unlk-style-soft", "unlk-style-minimal");
       form.classList.add(`unlk-style-${styleKey}`);
     });
+    window.dispatchEvent(new CustomEvent("eksporflow:table-style-change", { detail: { styleKey } }));
     toast.success(`Jenis tabel diubah ke: ${label}`);
   };
 

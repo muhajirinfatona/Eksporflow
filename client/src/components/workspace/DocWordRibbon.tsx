@@ -225,18 +225,57 @@ export function DocWordRibbon({
     });
   }, [docMargins.top, docMargins.bottom, docMargins.left, docMargins.right]);
 
+  // Document Table Design Style (UNLK, Corporate, Soft, Minimalist)
+  const [docTableStyle, setDocTableStyle] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("eksporflow_unlk_table_style") || "unlk";
+    }
+    return "unlk";
+  });
+
+  const handleApplyDocumentTableStyle = (styleKey: string) => {
+    setDocTableStyle(styleKey);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("eksporflow_unlk_table_style", styleKey);
+      document.querySelectorAll<HTMLElement>(".unlk-trade-form").forEach((form) => {
+        form.classList.remove("unlk-style-unlk", "unlk-style-corporate", "unlk-style-soft", "unlk-style-minimal");
+        form.classList.add(`unlk-style-${styleKey}`);
+      });
+      window.dispatchEvent(new CustomEvent("eksporflow:table-style-change", { detail: { styleKey } }));
+    }
+    const labels: Record<string, string> = {
+      unlk: "Grid Referensi (UNLK)",
+      corporate: "Tabel Korporat (Navy)",
+      soft: "Tabel Soft Card",
+      minimal: "Tabel Minimalis",
+    };
+    toast.success(`Gaya tabel diubah ke: ${labels[styleKey] || styleKey}`);
+  };
+
+  useEffect(() => {
+    const handleTableStyleExternal = (e: any) => {
+      if (e.detail?.styleKey) {
+        setDocTableStyle(e.detail.styleKey);
+      }
+    };
+    window.addEventListener("eksporflow:table-style-change", handleTableStyleExternal);
+    return () => window.removeEventListener("eksporflow:table-style-change", handleTableStyleExternal);
+  }, []);
+
   useEffect(() => {
     const handleTableFocus = (e: any) => {
       const detail = e.detail;
       setIsTableSelected(detail?.hasTable !== false);
       if (detail?.table) {
-        const t = detail.table as HTMLTableElement;
-        if (t.classList.contains("doc-table-pro")) {
+        const t = detail.table as HTMLElement;
+        if (t.classList.contains("doc-table-pro") || t.classList.contains("unlk-items-table")) {
           setActiveTableTitle("Rincian Barang Ekspor");
-        } else if (t.classList.contains("bank-card-table")) {
+        } else if (t.classList.contains("bank-card-table") || t.closest?.(".unlk-bank-lines")) {
           setActiveTableTitle("Rekening Bank Penerima");
         } else if (t.classList.contains("doc-user-table")) {
           setActiveTableTitle("Tabel Kustom");
+        } else if (t.closest?.(".unlk-trade-form") || t.classList.contains("unlk-trade-form")) {
+          setActiveTableTitle("Grid Kotak Dokumen");
         } else {
           setActiveTableTitle("Tabel Terpilih");
         }
@@ -877,6 +916,13 @@ export function DocWordRibbon({
       if (currentTable) {
         return { table: currentTable, cell, row: cell.closest("tr") };
       }
+    }
+
+    // 6. Graceful fallback: Automatically target the primary table in document
+    const fallbackTable = (paper?.querySelector("table.unlk-items-table") || paper?.querySelector("table")) as HTMLTableElement | null;
+    if (fallbackTable && document.contains(fallbackTable)) {
+      const cell = (paper?.querySelector("td.active-cell, th.active-cell") || fallbackTable.querySelector("tbody tr td, td, th")) as HTMLTableCellElement | null;
+      return { table: fallbackTable, cell, row: cell?.closest("tr") || null };
     }
 
     return { table: null, cell: null, row: null };
@@ -2353,31 +2399,51 @@ export function DocWordRibbon({
 
               {/* Quick Table & View Group on Home Tab */}
               <div className="doc-ribbon-group group-table" ref={tableMenuRef}>
-                <div className="doc-ribbon-row-top">
-                  <button
-                    type="button"
-                    className={`doc-ribbon-table-trigger ${showTableMenu ? "active" : ""}`}
-                    onClick={(e) => {
-                      captureAnchor(e.currentTarget, 220);
-                      setShowTableMenu((prev) => !prev);
-                    }}
-                    title="Sisipkan Tabel Baru"
+                <div className="doc-ribbon-row-top" style={{ alignItems: "center", gap: "4px" }}>
+                  {/* Pemilih Gaya Desain Tabel Dokumen */}
+                  <select
+                    value={docTableStyle}
+                    onChange={(e) => handleApplyDocumentTableStyle(e.target.value)}
+                    style={{ fontSize: "10.5px", height: "22px", padding: "1px 5px", fontWeight: 600, border: "1px solid #cbd5e1", borderRadius: "3px", background: "#f8fafc", color: "#1e293b", cursor: "pointer" }}
+                    title="Pilih Gaya Desain Tabel Dokumen (UNLK, Korporat, Soft, Minimalis)"
                   >
-                    <Table size={13} />
-                    <span>Tabel</span>
-                    <ChevronDown size={11} />
-                  </button>
+                    <option value="unlk">Tabel: Grid UNLK</option>
+                    <option value="corporate">Tabel: Korporat</option>
+                    <option value="soft">Tabel: Soft Card</option>
+                    <option value="minimal">Tabel: Minimalis</option>
+                  </select>
+
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
                     onClick={() => setActiveRibbonTab("table")}
-                    title="Buka Pengaturan Tabel"
+                    title="Buka Panel Lengkap Alat & Pengaturan Tabel"
+                    style={{ fontWeight: 700, color: "#1d4ed8", background: "#eff6ff", border: "1px solid #bfdbfe", height: "22px" }}
                   >
-                    <span>Alat Tabel</span>
+                    <TableProperties size={11} />
+                    <span>Atur Tabel</span>
                   </button>
                 </div>
 
-                <div className="doc-ribbon-row-bottom">
+                <div className="doc-ribbon-row-bottom" style={{ alignItems: "center", gap: "4px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={mergeTableCells}
+                    title="Gabung Sel Horisontal (Merge Cells)"
+                  >
+                    <Columns size={11} />
+                    <span>Gabung Sel</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={mergeTables}
+                    title="Gabung Tabel Menjadi Satu Berlanjut (Merge Table)"
+                  >
+                    <Table size={11} />
+                    <span>Gabung Tabel</span>
+                  </button>
                   <button
                     type="button"
                     className={`doc-ribbon-table-subbtn ${shipment.docShowRuler !== false ? "active" : ""}`}
@@ -2400,7 +2466,7 @@ export function DocWordRibbon({
                   )}
                 </div>
 
-                <span className="doc-ribbon-group-label">Tabel & Alat</span>
+                <span className="doc-ribbon-group-label">Tabel Dokumen</span>
 
                 {/* Table Insert Popover Modal/Dropdown */}
                 {showTableMenu && (
@@ -2968,6 +3034,45 @@ export function DocWordRibbon({
                   Target pengaturan tabel
                 </div>
                 <span className="doc-ribbon-group-label" style={{ color: "#2563eb" }}>Tabel Terpilih</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* Desain Tema Gaya Tabel Dokumen */}
+              <div className="doc-ribbon-group group-table-style">
+                <div className="doc-ribbon-row-top" style={{ alignItems: "center", gap: "4px" }}>
+                  <select
+                    value={docTableStyle}
+                    onChange={(e) => handleApplyDocumentTableStyle(e.target.value)}
+                    style={{ fontSize: "10.5px", height: "22px", padding: "1px 5px", fontWeight: 600, border: "1px solid #cbd5e1", borderRadius: "3px", background: "#f8fafc", color: "#1e293b", cursor: "pointer" }}
+                    title="Pilih Desain / Tema Gaya Tabel Dokumen (UNLK, Korporat, Soft, Minimalis)"
+                  >
+                    <option value="unlk">Grid Referensi (UNLK)</option>
+                    <option value="corporate">Tabel Korporat (Navy)</option>
+                    <option value="soft">Tabel Soft Card</option>
+                    <option value="minimal">Tabel Minimalis</option>
+                  </select>
+                </div>
+                <div className="doc-ribbon-row-bottom" style={{ alignItems: "center", gap: "4px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={autoFitColumns}
+                    title="Sesuaikan Lebar Otomatis Sesuai Teks (AutoFit)"
+                  >
+                    <span>AutoFit</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={distributeColumnsEvenly}
+                    title="Ratakan Lebar Seluruh Kolom Sama Rata"
+                  >
+                    <MoveHorizontal size={11} />
+                    <span>Ratakan</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label" style={{ color: "#1e40af" }}>Gaya Tabel</span>
               </div>
 
               <div className="doc-ribbon-divider" />
