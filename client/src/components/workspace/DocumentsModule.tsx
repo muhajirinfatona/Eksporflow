@@ -56,6 +56,7 @@ import { DocWordRibbon } from "./DocWordRibbon";
 import { DigitalSignatureModal } from "./DigitalSignatureModal";
 import { DocumentAiScreeningModal } from "./DocumentAiScreeningModal";
 import { BusinessCardOcrModal } from "./BusinessCardOcrModal";
+import { extractLetterheadFromFile } from "@/lib/letterheadExtractor";
 import {
   exportToDocx,
   exportToXlsx,
@@ -672,22 +673,35 @@ export function DocumentsModule({
     },
   ];
 
-  const handleLetterheadImage = (file?: File) => {
+  const handleLetterheadImage = async (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("File logo/kop harus berupa gambar", { description: "Gunakan PNG, JPG, atau WEBP." });
-      return;
+    const toastId = toast.loading(`Mengekstrak kop/logo dari ${file.name}...`);
+    try {
+      const res = await extractLetterheadFromFile(file);
+      const chosenLogo = res.logoImage || res.bannerImage;
+      if (chosenLogo) {
+        update("letterheadImage", chosenLogo);
+      }
+      if (res.companyName) {
+        update("exporter", res.companyName);
+        update("letterheadText", res.companyName);
+      }
+      if (res.address) {
+        update("letterheadText", res.address);
+      }
+      if (res.contact) {
+        update("exporterContact", res.contact);
+      }
+      toast.success(`Logo & kop surat berhasil diekstrak dari ${file.name}!`, {
+        id: toastId,
+        description: "Identitas perusahaan dan logo resmi berhasil dipasang.",
+      });
+    } catch (err) {
+      toast.error(`Gagal memproses berkas ${file.name}`, {
+        id: toastId,
+        description: err instanceof Error ? err.message : "Format berkas tidak didukung.",
+      });
     }
-    if (file.size > 2_000_000) {
-      toast.error("Ukuran logo terlalu besar", { description: "Maksimal 2 MB agar draft tetap ringan." });
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      update("letterheadImage", String(reader.result));
-      toast.success("Logo resmi perusahaan berhasil diperbarui");
-    };
-    reader.readAsDataURL(file);
   };
 
   // Review & Verification workflow handlers
@@ -2051,18 +2065,18 @@ function OfficialLetterhead({
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
       }}
     >
-      {/* Hidden file input for Upload Logo */}
+      {/* Hidden file input for Upload Logo / Letterhead (Universal: PDF, Word, Excel, CSV, Images) */}
       <input
         ref={quickFileInputRef}
         type="file"
-        accept="image/png,image/jpeg,image/webp"
+        accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv,text/csv"
         style={{ display: "none" }}
         onChange={(e) => {
           const file = e.target.files?.[0];
           if (file && onLetterheadImage) {
             onLetterheadImage(file);
-            toast.success("Logo resmi berhasil dipasang.");
           }
+          e.target.value = "";
         }}
       />
 
@@ -2554,7 +2568,7 @@ function OfficialLetterhead({
               >
                 <div
                   onClick={() => quickFileInputRef.current?.click()}
-                  title="Klik untuk memilih file logo dari komputer (PNG, JPG, WEBP)"
+                  title="Klik untuk memilih file logo atau dokumen kop surat (PDF, Word, Excel, CSV, PNG, JPG)"
                   role="button"
                   tabIndex={0}
                   style={{

@@ -71,6 +71,7 @@ import {
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
 import { getPaperSizeSpec, getDocMargins, DOC_MARGIN_PRESETS, DEFAULT_INDICO_LOGO } from "@shared/shipment";
+import { extractLetterheadFromFile } from "@/lib/letterheadExtractor";
 import {
   saveActiveSelection,
   restoreActiveSelection,
@@ -166,16 +167,17 @@ export function DocWordRibbon({
     const defaults = [
       {
         id: "kop-indico",
-        name: "PT. Indico Export Indonesia (Standar Ekspor)",
+        name: "PT. Indico Export Indonesia (Standar Ekspor Resmi)",
         exporter: "PT. INDICO EXPORT INDONESIA",
-        address: "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia",
-        contact: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
+        address: "Head Office: Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan 90231 – Indonesia",
+        contact: "Tel: +62 812-3456-7890 • Email: official@indicoexport.com • Web: www.indicoexport.com",
         layout: "left" as const,
         dividerStyle: "double" as const,
         dividerColor: "#0f2942",
         dividerGap: 4,
         spacing: 2,
         mode: "standard" as const,
+        logoImage: DEFAULT_INDICO_LOGO,
       },
       {
         id: "kop-nusantara",
@@ -611,35 +613,74 @@ export function DocWordRibbon({
     setShowPositionMenu(false);
   };
 
-  // Kop Surat Banner & Logo Upload Handlers
-  const handleBannerFileUpload = (file?: File) => {
+  // Kop Surat Banner & Logo Universal Upload Handlers (Supports PDF, Word, Excel, CSV, Images)
+  const handleBannerFileUpload = async (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("File kop surat harus berupa gambar (PNG, JPG, atau WEBP)");
-      return;
+    const toastId = toast.loading(`Mengekstrak kop surat dari ${file.name}...`);
+    try {
+      const res = await extractLetterheadFromFile(file);
+      if (res.bannerImage) {
+        update("letterheadBannerImage", res.bannerImage);
+        update("letterheadMode", "banner");
+      }
+      if (res.logoImage && !res.bannerImage) {
+        update("letterheadImage", res.logoImage);
+        update("letterheadMode", "standard");
+      }
+      if (res.companyName) {
+        update("exporter", res.companyName);
+        update("letterheadText", res.companyName);
+      }
+      if (res.address) {
+        update("letterheadText", res.address);
+      }
+      if (res.contact) {
+        update("exporterContact", res.contact);
+      }
+      toast.success(`Kop surat berhasil diunggah dari ${file.name}!`, {
+        id: toastId,
+        description: res.bannerImage
+          ? "Kop surat banner penuh & identitas resmi berhasil dipasang."
+          : "Identitas perusahaan & logo berhasil diperbarui.",
+      });
+    } catch (err) {
+      toast.error(`Gagal mengekstrak kop surat dari ${file.name}`, {
+        id: toastId,
+        description: err instanceof Error ? err.message : "Format berkas tidak terbaca.",
+      });
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      update("letterheadBannerImage", String(reader.result));
-      update("letterheadMode", "banner");
-      toast.success("Kop surat perusahaan berhasil diimpor dan dipasang!");
-    };
-    reader.readAsDataURL(file);
   };
 
-  const handleLogoFileUpload = (file?: File) => {
+  const handleLogoFileUpload = async (file?: File) => {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("File logo harus berupa gambar (PNG, JPG, atau WEBP)");
-      return;
+    const toastId = toast.loading(`Mengekstrak logo dari ${file.name}...`);
+    try {
+      const res = await extractLetterheadFromFile(file);
+      const chosenLogo = res.logoImage || res.bannerImage;
+      if (chosenLogo) {
+        update("letterheadImage", chosenLogo);
+        update("letterheadMode", "standard");
+      }
+      if (res.companyName) {
+        update("exporter", res.companyName);
+        update("letterheadText", res.companyName);
+      }
+      if (res.address) {
+        update("letterheadText", res.address);
+      }
+      if (res.contact) {
+        update("exporterContact", res.contact);
+      }
+      toast.success(`Logo resmi berhasil diekstrak dari ${file.name}!`, {
+        id: toastId,
+        description: "Logo & identitas resmi kop surat berhasil diperbarui.",
+      });
+    } catch (err) {
+      toast.error(`Gagal mengekstrak logo dari ${file.name}`, {
+        id: toastId,
+        description: err instanceof Error ? err.message : "Format berkas tidak terbaca.",
+      });
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      update("letterheadImage", String(reader.result));
-      update("letterheadMode", "standard");
-      toast.success("Logo kop surat perusahaan berhasil diperbarui!");
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSaveCurrentKopProfile = () => {
@@ -5050,11 +5091,11 @@ export function DocWordRibbon({
         </div>
       )}
 
-      {/* Hidden File Inputs for Importing Kop Surat Banner & Logo */}
+      {/* Hidden File Inputs for Importing Kop Surat Banner & Logo (Universal: PDF, Word, Excel, CSV, Images) */}
       <input
         ref={bannerUploadRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv,text/csv"
         onChange={(e) => {
           handleBannerFileUpload(e.target.files?.[0]);
           e.target.value = "";
@@ -5064,7 +5105,7 @@ export function DocWordRibbon({
       <input
         ref={logoUploadRef}
         type="file"
-        accept="image/*"
+        accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv,text/csv"
         onChange={(e) => {
           handleLogoFileUpload(e.target.files?.[0]);
           e.target.value = "";
@@ -5162,7 +5203,7 @@ export function DocWordRibbon({
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 leading-snug">
-                            Logo, nama perusahaan, dan alamat dapat diedit langsung.
+                            Logo & teks resmi. Unggah dari file logo atau dokumen (PDF, Word, Excel, CSV, PNG).
                           </p>
                         </div>
                         <button
@@ -5174,7 +5215,7 @@ export function DocWordRibbon({
                           className="mt-3 w-full py-1.5 px-2.5 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 hover:border-slate-400 rounded-lg text-[11px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
                         >
                           <Upload size={12} />
-                          <span>Ganti Logo Perusahaan</span>
+                          <span>Unggah Logo / Dokumen</span>
                         </button>
                         {shipment.letterheadImage && (
                           <button
@@ -5221,7 +5262,7 @@ export function DocWordRibbon({
                             )}
                           </div>
                           <p className="text-[11px] text-slate-500 leading-snug">
-                            Pasang gambar kop surat penuh (PNG/JPG) di bagian atas kertas.
+                            Ekstrak kop utuh otomatis dari halaman 1 dokumen (PDF, Word, Excel) atau gambar (PNG/JPG).
                           </p>
                         </div>
                         <button
@@ -5233,7 +5274,7 @@ export function DocWordRibbon({
                           className="mt-3 w-full py-1.5 px-2.5 bg-[#0f2942] text-white hover:bg-slate-800 rounded-lg text-[11px] font-semibold inline-flex items-center justify-center gap-1.5 transition-colors whitespace-nowrap"
                         >
                           <Upload size={12} />
-                          <span>Unggah Gambar Kop</span>
+                          <span>Unggah Kop dari Dokumen / Gambar</span>
                         </button>
                       </div>
                     </div>
