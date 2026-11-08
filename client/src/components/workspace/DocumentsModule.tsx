@@ -4219,7 +4219,7 @@ function ProformaInvoiceDoc({
           </div>
         </div>
 
-        {/* ROW 2: Buyer (Left 50%) | Delivery Schedule & Notify Party (Right 50%) */}
+        {/* ROW 2: Buyer (Left 50%) | Dispatch & Delivery Schedule (Right 50%) */}
         <div className="unlk-row-50-50 unlk-border-t">
           <div className="unlk-cell unlk-border-r">
             <div className="unlk-lbl">{isId ? "Pembeli / Penerima Barang (Buyer / Consignee)" : "Buyer / Consignee"}</div>
@@ -4234,28 +4234,7 @@ function ProformaInvoiceDoc({
           </div>
 
           <div className="unlk-col-stack">
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Estimasi Pengapalan & Pengiriman" : "Estimated Shipment & Delivery"}</div>
-              <div className="unlk-val-bold">
-                {isId
-                  ? "Maksimal 21 hari setelah Pembayaran Uang Muka (DP)"
-                  : "Within 21 days after receipt of Advance Payment"}
-              </div>
-            </div>
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">{isId ? "Pihak yang Diberitahu (Notify Party)" : "Notify Party"}</div>
-              <div className="unlk-val-bold">{isId ? "SAMA DENGAN PENERIMA (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}</div>
-              <div className="unlk-val">
-                {buyerName} — {isId ? "Kontak:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPhone || "+971 4 223 4567"})
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ROW 3: Dispatch, Container & Ports (Left 50%) | Origin, Destination & Payment Terms (Right 50%) */}
-        <div className="unlk-row-50-50 unlk-border-t">
-          <div className="unlk-col-stack unlk-border-r">
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Metode Pengiriman" : "Method of Dispatch"}</div>
                 <div className="unlk-val-bold">{isId ? "Muatan Laut (Ocean FCL)" : "Sea Freight (Ocean FCL)"}</div>
@@ -4266,7 +4245,21 @@ function ProformaInvoiceDoc({
               </div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
+            <div className="unlk-cell unlk-flex-fill">
+              <div className="unlk-lbl">{isId ? "Estimasi Pengapalan & Pengiriman" : "Estimated Shipment & Delivery"}</div>
+              <div className="unlk-val-bold">
+                {isId
+                  ? "Maksimal 21 hari setelah Pembayaran Uang Muka (DP)"
+                  : "Within 21 days after receipt of Advance Payment"}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 3: Ports & Incoterm (Left 50%) | Origin, Destination & Payment Terms (Right 50%) */}
+        <div className="unlk-row-50-50 unlk-border-t">
+          <div className="unlk-col-stack unlk-border-r">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Pelabuhan Muat (POL)" : "Port of Loading (POL)"}</div>
                 <div className="unlk-val-bold">{pol}</div>
@@ -4274,40 +4267,6 @@ function ProformaInvoiceDoc({
               <div className="unlk-cell">
                 <div className="unlk-lbl">{isId ? "Pelabuhan Bongkar (POD)" : "Port of Discharge (POD)"}</div>
                 <div className="unlk-val-bold">{pod}</div>
-              </div>
-            </div>
-
-            <div className="unlk-subrow-2col unlk-flex-fill">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Jenis Kemasan" : "Packing Mode"}</div>
-                <div className="unlk-val-bold">{isId ? "Karung Kertas Kraft 20 Kg" : "20 Kg Multiwall Kraft Bag"}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Muatan Kontainer" : "Container Load"}</div>
-                <div className="unlk-val-bold">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"} ({formatNumber(netWeightMT, 2)} MT)</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="unlk-col-stack">
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country of Origin of Goods"}</div>
-                <div className="unlk-val-bold">Indonesia</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
-                <div className="unlk-val-bold">{buyerCountry || "United Arab Emirates"}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Syarat / Metode Pembayaran" : "Terms / Method of Payment"}</div>
-              <div className="unlk-val-bold">
-                {paymentTerms ||
-                  (isId
-                    ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
-                    : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
               </div>
             </div>
 
@@ -4323,6 +4282,29 @@ function ProformaInvoiceDoc({
               <div className="unlk-cell">
                 <div className="unlk-lbl">{isId ? "Incoterm Perdagangan" : "Trade Incoterm"}</div>
                 <div className="unlk-val-bold">{incoterm} Makassar (2020)</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="unlk-col-stack">
+            <div className="unlk-subrow-2col unlk-border-b unlk-flex-fill">
+              <div className="unlk-cell unlk-border-r">
+                <div className="unlk-lbl">{isId ? "Negara Asal Barang" : "Country of Origin of Goods"}</div>
+                <div className="unlk-val-bold">Indonesia</div>
+              </div>
+              <div className="unlk-cell">
+                <div className="unlk-lbl">{isId ? "Negara Tujuan Akhir" : "Country of Final Destination"}</div>
+                <div className="unlk-val-bold">{buyerCountry || "United Arab Emirates"}</div>
+              </div>
+            </div>
+
+            <div className="unlk-cell unlk-flex-fill">
+              <div className="unlk-lbl">{isId ? "Syarat / Metode Pembayaran" : "Terms / Method of Payment"}</div>
+              <div className="unlk-val-bold">
+                {paymentTerms ||
+                  (isId
+                    ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+                    : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
               </div>
             </div>
           </div>
