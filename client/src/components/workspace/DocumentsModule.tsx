@@ -4091,9 +4091,9 @@ function ProformaInvoiceDoc({
           {/* Left 50%: Additional Info + Bank Details */}
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Informasi Tambahan & Terbilang" : "Additional Info & Amount in Words"}</div>
+              <div className="unlk-lbl">Amount in Words</div>
               <div className="unlk-val">
-                <b>{isId ? "Terbilang:" : "Say:"}</b> <i>{amountInWords}</i>
+                <b>Say:</b> <i>{amountInWords}</i>
               </div>
               <div className="unlk-val" style={{ marginTop: "2px" }}>
                 {isId
@@ -4987,9 +4987,9 @@ function CommercialInvoiceDoc({
         <div className="unlk-row-50-50">
           <div className="unlk-col-stack unlk-border-r">
             <div className="unlk-cell unlk-border-b">
-              <div className="unlk-lbl">{isId ? "Informasi Tambahan & Terbilang" : "Additional Info & Amount in Words"}</div>
+              <div className="unlk-lbl">Amount in Words</div>
               <div className="unlk-val">
-                <b>{isId ? "Terbilang:" : "Say:"}</b> <i>{amountInWords}</i>
+                <b>Say:</b> <i>{amountInWords}</i>
               </div>
               <div className="unlk-val" style={{ marginTop: "2px" }}>
                 {isId
