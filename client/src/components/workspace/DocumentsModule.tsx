@@ -3229,11 +3229,88 @@ function OfficialStampAndSignature({
 }
 
 // --------------------------------------------------------------------------
-// INTERACTIVE DOCUMENT TITLE BANNER (SELECTABLE & COLOR CUSTOMIZABLE)
+// INTERACTIVE DOCUMENT TITLE BANNER (RESIZABLE BOX & TABLE STYLE SELECTOR)
 // --------------------------------------------------------------------------
 function DocTitleBanner({ title }: { title: string }) {
   const barRef = useRef<HTMLDivElement>(null);
   const h2Ref = useRef<HTMLHeadingElement>(null);
+  const [boxPadY, setBoxPadY] = useState<number>(() => {
+    const saved = localStorage.getItem("eksporflow_title_box_pady");
+    return saved ? Math.max(1, Math.min(20, Number(saved))) : 4;
+  });
+  const [tableStyle, setTableStyle] = useState<string>(() => {
+    return localStorage.getItem("eksporflow_unlk_table_style") || "unlk";
+  });
+  const [isDraggingHeight, setIsDraggingHeight] = useState(false);
+
+  // Sync saved padding & table style on mount / document switch
+  useEffect(() => {
+    const bar = barRef.current;
+    if (bar) {
+      bar.style.setProperty("padding-top", `${boxPadY}px`, "important");
+      bar.style.setProperty("padding-bottom", `${boxPadY}px`, "important");
+    }
+    const wrapper = bar?.closest(".unlk-doc-wrapper") || document.querySelector(".unlk-doc-wrapper");
+    const form = wrapper?.querySelector(".unlk-trade-form") as HTMLElement | null;
+    if (form) {
+      form.classList.remove("unlk-style-unlk", "unlk-style-corporate", "unlk-style-soft", "unlk-style-minimal");
+      form.classList.add(`unlk-style-${tableStyle}`);
+    }
+  }, [boxPadY, tableStyle, title]);
+
+  const updateBoxHeight = (newPadY: number, notify = false) => {
+    const clamped = Math.max(1, Math.min(20, Math.round(newPadY * 2) / 2));
+    setBoxPadY(clamped);
+    localStorage.setItem("eksporflow_title_box_pady", String(clamped));
+    const bar = barRef.current;
+    if (bar) {
+      bar.style.setProperty("padding-top", `${clamped}px`, "important");
+      bar.style.setProperty("padding-bottom", `${clamped}px`, "important");
+    }
+    if (notify) {
+      toast.success(`Tinggi kotak judul diatur ke ${clamped}px`);
+    }
+  };
+
+  const applyDocumentTableStyle = (styleKey: string, label: string) => {
+    pushEditorHistory("table-style-change");
+    setTableStyle(styleKey);
+    localStorage.setItem("eksporflow_unlk_table_style", styleKey);
+    document.querySelectorAll<HTMLElement>(".unlk-trade-form").forEach((form) => {
+      form.classList.remove("unlk-style-unlk", "unlk-style-corporate", "unlk-style-soft", "unlk-style-minimal");
+      form.classList.add(`unlk-style-${styleKey}`);
+    });
+    toast.success(`Jenis tabel diubah ke: ${label}`);
+  };
+
+  const handleStartDragHeight = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startY = e.clientY;
+    const startPad = boxPadY;
+    setIsDraggingHeight(true);
+
+    const onMove = (moveEvent: MouseEvent) => {
+      const deltaY = moveEvent.clientY - startY;
+      const nextPad = Math.max(1, Math.min(20, Math.round((startPad + deltaY * 0.5) * 2) / 2));
+      setBoxPadY(nextPad);
+      localStorage.setItem("eksporflow_title_box_pady", String(nextPad));
+      const bar = barRef.current;
+      if (bar) {
+        bar.style.setProperty("padding-top", `${nextPad}px`, "important");
+        bar.style.setProperty("padding-bottom", `${nextPad}px`, "important");
+      }
+    };
+
+    const onUp = () => {
+      setIsDraggingHeight(false);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
+    };
+
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  };
 
   const selectTitleText = (e?: React.MouseEvent) => {
     if (e) {
@@ -3264,7 +3341,8 @@ function DocTitleBanner({ title }: { title: string }) {
   const applyTitleBoxStyle = (
     bg: string,
     textColor: string,
-    border: string
+    border: string,
+    borderBottom?: string
   ) => {
     const bar = barRef.current;
     const h2 = h2Ref.current;
@@ -3273,6 +3351,12 @@ function DocTitleBanner({ title }: { title: string }) {
     bar.style.setProperty("background", bg, "important");
     bar.style.setProperty("background-color", bg, "important");
     bar.style.setProperty("border", border, "important");
+    if (borderBottom) {
+      bar.style.setProperty("border-bottom", borderBottom, "important");
+      bar.style.setProperty("border-radius", "0px", "important");
+    } else {
+      bar.style.setProperty("border-radius", "3px", "important");
+    }
     h2.style.setProperty("color", textColor, "important");
     h2.querySelectorAll<HTMLElement>("*").forEach((child) => {
       child.style.setProperty("color", textColor, "important");
@@ -3284,9 +3368,13 @@ function DocTitleBanner({ title }: { title: string }) {
     <div
       ref={barRef}
       className="doc-title-bar group/titlebar relative"
+      style={{
+        paddingTop: `${boxPadY}px`,
+        paddingBottom: `${boxPadY}px`,
+      }}
       onClick={(e) => {
         const target = e.target as HTMLElement;
-        if (target.closest(".titlebar-quick-tools")) return;
+        if (target.closest(".titlebar-quick-tools") || target.closest(".titlebar-resize-handle")) return;
         if (target === barRef.current && h2Ref.current) {
           selectTitleText();
         }
@@ -3297,17 +3385,19 @@ function DocTitleBanner({ title }: { title: string }) {
         contentEditable={false}
         style={{
           position: "absolute",
-          top: "-24px",
+          top: "-28px",
           right: "0",
           display: "inline-flex",
           alignItems: "center",
-          gap: "4px",
+          flexWrap: "nowrap",
+          gap: "5px",
           background: "#ffffff",
           border: "1px solid #cbd5e1",
-          borderRadius: "5px",
-          padding: "2px 6px",
-          boxShadow: "0 2px 6px rgba(15, 23, 42, 0.1)",
-          zIndex: 25,
+          borderRadius: "6px",
+          padding: "3px 7px",
+          boxShadow: "0 3px 10px rgba(15, 23, 42, 0.12)",
+          zIndex: 30,
+          whiteSpace: "nowrap",
         }}
       >
         <button
@@ -3321,22 +3411,53 @@ function DocTitleBanner({ title }: { title: string }) {
             background: "#eff6ff",
             border: "1px solid #bfdbfe",
             borderRadius: "3px",
-            padding: "1px 6px",
+            padding: "1.5px 6px",
             cursor: "pointer",
           }}
           title="Blok / pilih seluruh teks judul untuk diubah ukuran atau jenis hurufnya"
         >
           Pilih Teks
         </button>
+
+        {/* Tinggi Kotak Judul */}
         <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginLeft: "2px" }}>
-          Warna Kotak:
+          Tinggi:
+        </span>
+        <div style={{ display: "inline-flex", alignItems: "center", border: "1px solid #cbd5e1", borderRadius: "4px", overflow: "hidden" }}>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => updateBoxHeight(boxPadY - 1, true)}
+            style={{ fontSize: "10px", fontWeight: 800, padding: "1px 5px", background: "#f8fafc", color: "#334155", border: "none", cursor: "pointer" }}
+            title="Perkecil tinggi kotak judul"
+          >
+            −
+          </button>
+          <span style={{ fontSize: "9px", fontWeight: 700, padding: "0 5px", color: "#0f172a", background: "#ffffff" }}>
+            {boxPadY}px
+          </span>
+          <button
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => updateBoxHeight(boxPadY + 1, true)}
+            style={{ fontSize: "10px", fontWeight: 800, padding: "1px 5px", background: "#f8fafc", color: "#334155", border: "none", cursor: "pointer" }}
+            title="Perbesar tinggi kotak judul"
+          >
+            +
+          </button>
+        </div>
+
+        {/* Bentuk & Warna Kotak Judul */}
+        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginLeft: "2px" }}>
+          Kotak:
         </span>
         {[
-          { label: "Navy Korporat", bg: "#0f2942", text: "#ffffff", border: "1px solid #0f2942", swatch: "#0f2942" },
-          { label: "Biru Royal", bg: "#1e40af", text: "#ffffff", border: "1px solid #1e40af", swatch: "#1e40af" },
-          { label: "Hijau Ekspor", bg: "#065f46", text: "#ffffff", border: "1px solid #065f46", swatch: "#065f46" },
-          { label: "Slate Modern", bg: "#334155", text: "#ffffff", border: "1px solid #334155", swatch: "#334155" },
-          { label: "Putih Garis Resmi", bg: "#ffffff", text: "#0f172a", border: "1.5px solid #0f2942", swatch: "#ffffff" },
+          { label: "Navy Korporat (Penuh)", bg: "#0f2942", text: "#ffffff", border: "1px solid #0f2942", swatch: "#0f2942" },
+          { label: "Biru Royal (Penuh)", bg: "#1e40af", text: "#ffffff", border: "1px solid #1e40af", swatch: "#1e40af" },
+          { label: "Hijau Ekspor (Penuh)", bg: "#065f46", text: "#ffffff", border: "1px solid #065f46", swatch: "#065f46" },
+          { label: "Slate Modern (Penuh)", bg: "#334155", text: "#ffffff", border: "1px solid #334155", swatch: "#334155" },
+          { label: "Kotak Garis Resmi", bg: "#ffffff", text: "#0f172a", border: "1.5px solid #0f172a", swatch: "#ffffff" },
+          { label: "Tanpa Kotak (Teks Saja)", bg: "transparent", text: "#0f172a", border: "none", swatch: "linear-gradient(135deg, #fff 45%, #ef4444 50%, #fff 55%)" },
         ].map((preset) => (
           <button
             key={preset.label}
@@ -3349,14 +3470,94 @@ function DocTitleBanner({ title }: { title: string }) {
               height: "13px",
               borderRadius: "3px",
               background: preset.swatch,
-              border: preset.swatch === "#ffffff" ? "1.5px solid #0f2942" : "1px solid rgba(0,0,0,0.2)",
+              border: preset.swatch === "#ffffff" ? "1.5px solid #0f2942" : "1px solid rgba(0,0,0,0.25)",
               cursor: "pointer",
               padding: 0,
             }}
           />
         ))}
+        <label
+          title="Pilih warna kotak judul bebas"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "14px",
+            height: "14px",
+            borderRadius: "3px",
+            border: "1px solid #94a3b8",
+            background: "conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444)",
+            cursor: "pointer",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          <input
+            type="color"
+            defaultValue="#0f2942"
+            onChange={(e) => applyTitleBoxStyle(e.target.value, "#ffffff", `1px solid ${e.target.value}`)}
+            style={{ opacity: 0, width: "20px", height: "20px", position: "absolute", cursor: "pointer" }}
+          />
+        </label>
+
+        {/* Pemilih Jenis Tabel Dokumen */}
+        <span style={{ fontSize: "9px", fontWeight: 700, color: "#64748b", marginLeft: "4px", paddingLeft: "5px", borderLeft: "1px solid #e2e8f0" }}>
+          Jenis Tabel:
+        </span>
+        {[
+          { key: "unlk", label: "Referensi", desc: "Grid Referensi IncoDocs / UNLK (Garis Hitam Tegas)" },
+          { key: "corporate", label: "Korporat", desc: "Tabel Korporat (Header Biru Navy & Label Abu Muda)" },
+          { key: "soft", label: "Soft Card", desc: "Tabel Kartu Modern (Garis Lembut & Header Abu Muda)" },
+          { key: "minimal", label: "Minimalis", desc: "Tabel Minimalis (Garis Horizontal Bersih)" },
+        ].map((tStyle) => {
+          const isActive = tableStyle === tStyle.key;
+          return (
+            <button
+              key={tStyle.key}
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => applyDocumentTableStyle(tStyle.key, tStyle.label)}
+              title={tStyle.desc}
+              style={{
+                fontSize: "9px",
+                fontWeight: 700,
+                padding: "1.5px 6px",
+                borderRadius: "3px",
+                border: isActive ? "1px solid #0f2942" : "1px solid #cbd5e1",
+                background: isActive ? "#0f2942" : "#f8fafc",
+                color: isActive ? "#ffffff" : "#334155",
+                cursor: "pointer",
+              }}
+            >
+              {tStyle.label}
+            </button>
+          );
+        })}
       </div>
+
       <h2 ref={h2Ref}>{title}</h2>
+
+      {/* Bottom Drag Handle to resize title box height directly */}
+      <div
+        className={`titlebar-resize-handle no-print opacity-0 group-hover/titlebar:opacity-100 ${isDraggingHeight ? "opacity-100" : ""} transition-opacity duration-150`}
+        contentEditable={false}
+        onMouseDown={handleStartDragHeight}
+        title="Tarik ke atas / bawah untuk mengatur tinggi kotak judul"
+        style={{
+          position: "absolute",
+          left: "50%",
+          bottom: "-4px",
+          transform: "translateX(-50%)",
+          width: "52px",
+          height: "7px",
+          borderRadius: "999px",
+          background: "#2563eb",
+          border: "1.5px solid #ffffff",
+          cursor: "ns-resize",
+          zIndex: 26,
+          boxShadow: "0 1px 4px rgba(15, 23, 42, 0.25)",
+        }}
+      />
     </div>
   );
 }

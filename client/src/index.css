@@ -7282,6 +7282,162 @@ textarea:focus-visible {
   right: 16px;
 }
 
+/* ============================================================================
+   SELECTABLE TABLE STYLES FOR .unlk-trade-form (SCREEN & PRINT)
+   ============================================================================ */
+
+/* 1. Tabel Korporat (Navy Header & Slate Dividers) */
+.paper-document .unlk-trade-form.unlk-style-corporate {
+  border: 1.5px solid #0f2942 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate .unlk-border-r {
+  border-right: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate .unlk-border-t {
+  border-top: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate .unlk-border-b {
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate .unlk-lbl {
+  color: #0f2942 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  font-size: 7.4pt !important;
+  letter-spacing: 0.03em !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table {
+  border-top: 1.5px solid #0f2942 !important;
+  border-bottom: 1.5px solid #0f2942 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th {
+  background: #0f2942 !important;
+  color: #ffffff !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  border-bottom: 1px solid #0f2942 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.22) !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th:last-child {
+  border-right: none !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td {
+  border-right: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td:last-child {
+  border-right: none !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td {
+  border-top: 1px solid #cbd5e1 !important;
+  background: #f8fafc !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-corporate .unlk-total-bar {
+  background: #f1f5f9 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* 2. Tabel Soft Card (Rounded Slate Border & Light Header like Bank Card) */
+.paper-document .unlk-trade-form.unlk-style-soft {
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  overflow: hidden !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft .unlk-border-r {
+  border-right: 1px solid #e2e8f0 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft .unlk-border-t {
+  border-top: 1px solid #e2e8f0 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft .unlk-border-b {
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft .unlk-lbl {
+  color: #475569 !important;
+  font-weight: 600 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table {
+  border-top: 1px solid #cbd5e1 !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table thead th {
+  background: #f1f5f9 !important;
+  color: #0f2942 !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.03em !important;
+  border-bottom: 1px solid #cbd5e1 !important;
+  border-right: 1px solid #e2e8f0 !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table thead th:last-child {
+  border-right: none !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table tbody td {
+  border-right: 1px solid #e2e8f0 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table tbody td:last-child {
+  border-right: none !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft table.unlk-items-table tbody tr.unlk-subtotal-row td {
+  border-top: 1px solid #cbd5e1 !important;
+  background: #f8fafc !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-soft .unlk-total-bar {
+  background: #f8fafc !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+/* 3. Tabel Minimalis (Clean Horizontal Lines) */
+.paper-document .unlk-trade-form.unlk-style-minimal {
+  border-top: 1.5px solid #0f172a !important;
+  border-bottom: 1.5px solid #0f172a !important;
+  border-left: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal .unlk-border-r {
+  border-right: 1px dashed #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal .unlk-border-t {
+  border-top: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal .unlk-border-b {
+  border-bottom: 1px solid #cbd5e1 !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal table.unlk-items-table {
+  border-top: 1.5px solid #0f172a !important;
+  border-bottom: 1.5px solid #0f172a !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal table.unlk-items-table thead th {
+  background: #f8fafc !important;
+  color: #0f172a !important;
+  font-weight: 700 !important;
+  border-bottom: 1.5px solid #0f172a !important;
+  border-right: none !important;
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal table.unlk-items-table tbody td {
+  border-right: none !important;
+}
+.paper-document .unlk-trade-form.unlk-style-minimal table.unlk-items-table tbody tr.unlk-subtotal-row td {
+  border-top: 1px solid #cbd5e1 !important;
+}
+
 /* Official Stamp Seal */
 .official-stamp-seal {
   position: absolute;
@@ -10767,10 +10923,13 @@ textarea:focus-visible {
   /* Title bar print */
   .doc-title-bar {
     margin: 3px 0 5px !important;
-    padding: 3px 10px !important;
-    background: #0f2942 !important;
-    color: #ffffff !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    background: #0f2942;
+    color: #ffffff;
     line-height: 1.15 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .doc-title-bar h2,
   .paper-document .doc-title-bar h2:not([style*="font-size"]) {
@@ -11049,7 +11208,8 @@ textarea:focus-visible {
   }
   .unlk-doc-wrapper .doc-title-bar {
     margin: 3px 0 4px 0 !important;
-    padding: 3px 10px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
     line-height: 1.15 !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
