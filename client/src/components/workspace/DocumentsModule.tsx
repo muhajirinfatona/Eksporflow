@@ -955,6 +955,25 @@ export function DocumentsModule({
             --doc-font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
             font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
           }
+          .paper-document table.unlk-items-table thead th:last-child,
+          .paper-document table.unlk-items-table tbody td:last-child,
+          .paper-document table.unlk-items-table tfoot td:last-child,
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child,
+          .unlk-total-bar {
+            border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table thead th:first-child,
+          .paper-document table.unlk-items-table tbody td:first-child,
+          .paper-document table.unlk-items-table tfoot td:first-child,
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
+            border-left: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
         }
       `}</style>
 
