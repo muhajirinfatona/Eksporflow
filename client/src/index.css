@@ -6979,9 +6979,34 @@ textarea:focus-visible {
   color: #334155;
 }
 
+.doc-parties-column .doc-bank-card,
+.doc-reference-column .doc-bank-card {
+  margin-bottom: 0 !important;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-parties-column .bank-card-table,
+.doc-reference-column .bank-card-table {
+  flex: 1;
+}
+
+.doc-parties-column .bank-lbl,
+.doc-reference-column .bank-lbl {
+  width: 116px;
+  min-width: 95px;
+  padding: 4.5px 10px;
+}
+
+.doc-parties-column .bank-val,
+.doc-reference-column .bank-val {
+  padding: 4.5px 10px;
+}
+
 .doc-footer-split-grid {
   display: grid;
-  grid-template-columns: 1.38fr 0.92fr;
+  grid-template-columns: 1fr 1fr;
   gap: 12px;
   align-items: stretch;
   margin-top: 4px;
@@ -6993,16 +7018,22 @@ textarea:focus-visible {
   margin-bottom: 0 !important;
   height: 100%;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.doc-footer-split-grid .bank-card-table {
+  flex: 1;
 }
 
 .doc-footer-split-grid .bank-lbl {
-  width: 128px;
-  min-width: 105px;
-  padding: 5px 10px;
+  width: 124px;
+  min-width: 100px;
+  padding: 4.5px 10px;
 }
 
 .doc-footer-split-grid .bank-val {
-  padding: 5px 10px;
+  padding: 4.5px 10px;
 }
 
 .doc-footer-split-grid .doc-single-signature-wrap {
@@ -10775,10 +10806,43 @@ textarea:focus-visible {
     color: #0f172a !important;
   }
 
-  /* Split Mode Footer (Kiri: Bank/Cert/Instructions | Kanan: Signature) agar pas 1 halaman */
+  /* Split Mode Top & Footer (50/50 Table Cards) agar pas 1 halaman */
+  .doc-parties-column .doc-bank-card,
+  .doc-reference-column .doc-bank-card {
+    margin-bottom: 0 !important;
+    flex: 1 !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .doc-parties-column .bank-card-table,
+  .doc-reference-column .bank-card-table {
+    flex: 1 !important;
+  }
+  .doc-parties-column .bank-lbl,
+  .doc-reference-column .bank-lbl {
+    width: 104px !important;
+    min-width: 88px !important;
+    padding: 2px 7px !important;
+  }
+  .doc-parties-column .bank-val,
+  .doc-reference-column .bank-val {
+    padding: 2px 7px !important;
+    font-weight: 500 !important;
+  }
+  .doc-parties-column .bank-val.font-bold,
+  .doc-reference-column .bank-val.font-bold,
+  .doc-footer-split-grid .bank-val.font-bold {
+    font-weight: 700 !important;
+  }
+  .doc-parties-column .bank-val.font-semibold,
+  .doc-reference-column .bank-val.font-semibold,
+  .doc-footer-split-grid .bank-val.font-semibold {
+    font-weight: 600 !important;
+  }
+
   .doc-footer-split-grid {
     display: grid !important;
-    grid-template-columns: 1.4fr 0.9fr !important;
+    grid-template-columns: 1fr 1fr !important;
     gap: 8px !important;
     align-items: stretch !important;
     margin-top: 2px !important;
@@ -10791,14 +10855,20 @@ textarea:focus-visible {
     margin-bottom: 0 !important;
     height: 100% !important;
     box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .doc-footer-split-grid .bank-card-table {
+    flex: 1 !important;
   }
   .doc-footer-split-grid .bank-lbl {
-    width: 112px !important;
-    min-width: 96px !important;
-    padding: 2px 8px !important;
+    width: 110px !important;
+    min-width: 92px !important;
+    padding: 2px 7px !important;
   }
   .doc-footer-split-grid .bank-val {
-    padding: 2px 8px !important;
+    padding: 2px 7px !important;
+    font-weight: 500 !important;
   }
   .doc-footer-split-grid .doc-single-signature-wrap {
     margin-top: 0 !important;

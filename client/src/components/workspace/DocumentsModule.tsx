@@ -1117,6 +1117,9 @@ export function DocumentsModule({
               containerNumber={containerNumber}
               sealNumber={sealNumber}
               poNumber={poNumber}
+              bankName={bankName}
+              bankAccountNo={bankAccountNo}
+              bankSwift={bankSwift}
               paymentTerms={paymentTerms}
               pol={pol}
               pod={pod}
@@ -3359,6 +3362,151 @@ function DocTitleBanner({ title }: { title: string }) {
 }
 
 // --------------------------------------------------------------------------
+// SHARED SIGNATORY & APPROVAL TABLE CARD (Reference Split Right-Bottom)
+// --------------------------------------------------------------------------
+function SignatoryApprovalCard({
+  exporterName,
+  signatoryName,
+  role,
+  incoterm,
+  pol,
+  currency,
+  totalLabel,
+  totalValue,
+  isId = false,
+  shipment,
+  onOpenSignatureModal,
+}: {
+  exporterName: string;
+  signatoryName?: string;
+  role?: string;
+  incoterm?: string;
+  pol?: string;
+  currency?: string;
+  totalLabel?: string;
+  totalValue?: string;
+  isId?: boolean;
+  shipment?: Shipment;
+  onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
+}) {
+  const showStamp = shipment?.includeOfficialStamp ?? true;
+  const stampColor = shipment?.officialStampColor || "red";
+  const hasUploadedSig = Boolean(shipment?.sellerSignatureImage);
+  const polShort = (pol || "Makassar").split(",")[0];
+
+  return (
+    <div className="doc-bank-card doc-signatory-card">
+      <table className="bank-card-table">
+        <thead>
+          <tr>
+            <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+              <span>{isId ? "PENGESAHAN & TANDA TANGAN RESMI" : "AUTHORIZED SIGNATORY & APPROVAL"}</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {totalValue && (
+            <tr>
+              <td className="bank-lbl">{totalLabel || (isId ? "Total Nilai:" : "Total Amount:")}</td>
+              <td className="bank-val font-bold text-blue-900">{totalValue}</td>
+            </tr>
+          )}
+          {incoterm && (
+            <tr>
+              <td className="bank-lbl">{isId ? "Incoterms® 2020:" : "Incoterms® 2020:"}</td>
+              <td className="bank-val font-semibold">
+                {incoterm} {polShort} {currency ? `(${currency})` : ""}
+              </td>
+            </tr>
+          )}
+          <tr>
+            <td className="bank-lbl">{isId ? "Perusahaan:" : "Signatory Company:"}</td>
+            <td className="bank-val font-semibold">{exporterName}</td>
+          </tr>
+          <tr>
+            <td className="bank-lbl">{isId ? "Pejabat Berwenang:" : "Authorized Signatory:"}</td>
+            <td className="bank-val font-semibold">
+              {signatoryName || "Muhajirin Fatona"}{" "}
+              <span className="font-normal text-slate-600">
+                ({role || (isId ? "Direktur Ekspor" : "Export Director")})
+              </span>
+            </td>
+          </tr>
+          <tr>
+            <td className="bank-lbl" style={{ verticalAlign: "middle" }}>
+              {isId ? "Tanda Tangan:" : "Signature:"}
+            </td>
+            <td className="bank-val">
+              <div className="sig-canvas-zone" style={{ minHeight: "42px", height: "44px", margin: "1px 0" }}>
+                {hasUploadedSig ? (
+                  <div className="sig-rendered-wrap">
+                    <img
+                      src={shipment?.sellerSignatureImage}
+                      alt="Authorized Signature"
+                      className="doc-rendered-signature"
+                    />
+                    {showStamp && (
+                      <div className={`doc-seal-overlay seal-${stampColor}`} title="Stempel Digital Resmi Validated">
+                        <div className="seal-circle-outer">
+                          <div className="seal-circle-inner">
+                            <span className="seal-txt-top">★ PT. INDICO EXPORT ★</span>
+                            <span className="seal-txt-star">★ VALIDATED ★</span>
+                            <span className="seal-txt-sub">OFFICIAL SEAL</span>
+                            <span className="seal-txt-bot">INDONESIA</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {onOpenSignatureModal && (
+                      <button
+                        type="button"
+                        className="sig-edit-hover-btn"
+                        onClick={() => onOpenSignatureModal("seller")}
+                      >
+                        Ubah
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <>
+                    {showStamp && (
+                      <div className={`official-stamp-seal seal-tone-${stampColor}`}>
+                        <div className="stamp-outer-ring">
+                          <div className="stamp-inner-ring">
+                            <span className="stamp-top-arc">PT. INDICO EXPORT</span>
+                            <div className="stamp-center-band">EXPORT DEPT</div>
+                            <span className="stamp-bottom-arc">★ INDONESIA ★</span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {onOpenSignatureModal ? (
+                      <button
+                        type="button"
+                        className="doc-btn-click-sign"
+                        onClick={() => onOpenSignatureModal("seller")}
+                        title="Klik untuk menandatangani dokumen secara digital"
+                      >
+                        <PenTool size={12} />
+                        <span>+ Tanda Tangan Digital</span>
+                      </button>
+                    ) : (
+                      <div className="sig-line-mark">
+                        <span>(Signed &amp; Stamped)</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
 // 1. PROFORMA INVOICE (PI) COMPONENT
 // --------------------------------------------------------------------------
 function ProformaInvoiceDoc({
@@ -3422,82 +3570,154 @@ function ProformaInvoiceDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
+  const cleanBuyerAddress =
+    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
+      ? `${buyerAddress}, ${buyerCountry}`
+      : buyerAddress;
+
   return (
     <div className="doc-content-wrapper">
       <DocTitleBanner title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"} />
 
+      {/* Top 50/50 Split Grid (Reference Structure with Clean Table Cards) */}
       <div className="doc-two-col-grid">
-        <div className="doc-box">
-          <span className="doc-box-tag">
-            {isId ? "PEMBELI / PENERIMA (BUYER / CONSIGNEE):" : "BUYER / CONSIGNEE:"}
-          </span>
-          <b className="doc-entity-name">{buyerName}</b>
-          <p className="doc-entity-address">
-            {buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-              ? `${buyerAddress}, ${buyerCountry}`
-              : buyerAddress}
-          </p>
-          <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
-          <p className="doc-entity-contact">
-            {isId ? "Narahubung:" : "Contact Person:"}{" "}
-            <span>
-              {buyerPicName || "Mr. Tariq Al-Mansoor"}{" "}
-              {isId ? `(${buyerPicRole || "Direktur Pengadaan"})` : `(${buyerPicRole || "Procurement Director"})`}
-            </span>
-          </p>
+        <div className="doc-parties-column">
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "PENJUAL / EKSPORTIR (SELLER / EXPORTER)" : "SELLER / EXPORTER"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Perusahaan:" : "Company:"}</td>
+                  <td className="bank-val font-bold">{exporterName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">
+                    Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Makassar 90231, Indonesia
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">+62 812-3456-7890 | official@indicoexport.com</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "PEMBELI / PENERIMA (BUYER / CONSIGNEE)" : "BUYER / CONSIGNEE"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Perusahaan:" : "Company:"}</td>
+                  <td className="bank-val font-bold">{buyerName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">{cleanBuyerAddress}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">
+                    {buyerPhone || "+971 4 223 4567"} | {buyerEmail || "procurement@albarakahfoods.ae"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Narahubung:" : "Attn / PIC:"}</td>
+                  <td className="bank-val">
+                    {buyerPicName || "Mr. Tariq Al-Mansoor"} ({buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
-        <div className="doc-box">
-          <div className="meta-pair">
-            <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>
-            <b className="meta-value meta-value-primary">PI/IEI-DXB/X/2026/001</b>
+        <div className="doc-reference-column">
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                      <span>{isId ? "RINCIAN FAKTUR & REFERENSI" : "INVOICE & REFERENCE DETAILS"}</span>
+                      <span style={{ fontSize: "7.8pt", fontWeight: 700, color: "#475569" }}>Pages: 1 of 1</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "No. Faktur:" : "Invoice Number:"}</td>
+                  <td className="bank-val font-bold text-blue-900">PI/IEI-DXB/X/2026/001</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Tanggal Terbit:" : "Issue Date:"}</td>
+                  <td className="bank-val">{isId ? "31 Oktober 2026" : "October 31, 2026"}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Ref. Pembeli:" : "Buyer Reference:"}</td>
+                  <td className="bank-val font-semibold">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Masa Berlaku:" : "Validity / Due:"}</td>
+                  <td className="bank-val">{isId ? "14 November 2026 (14 Hari)" : "November 14, 2026 (14 Days)"}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div className="meta-pair">
-            <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>
-            <span className="meta-value">{isId ? "31 Oktober 2026" : "October 31, 2026"}</span>
-          </div>
-          <div className="meta-pair">
-            <span className="meta-label">{isId ? "Masa Berlaku:" : "Validity:"}</span>
-            <span className="meta-value">{isId ? "14 November 2026 (14 Hari)" : "November 14, 2026 (14 Days)"}</span>
-          </div>
-          <div className="meta-pair">
-            <span className="meta-label">{isId ? "Ref. Pembeli:" : "Buyer Ref:"}</span>
-            <span className="meta-value">{poNumber || shipment.poNumber || "ABF/LOI/2026/108"}</span>
-          </div>
-        </div>
-      </div>
 
-      <div className="doc-terms-panel">
-        <div className="doc-terms-header">
-          {isId ? "KETENTUAN PENGIRIMAN & KOMERSIAL" : "SHIPPING & COMMERCIAL TERMS"}
-        </div>
-        <div className="doc-terms-grid">
-          <div>
-            <span className="terms-lbl">{isId ? "Pelabuhan Muat (POL):" : "Port of Loading:"}</span>
-            <span className="terms-val">{pol}</span>
-          </div>
-          <div>
-            <span className="terms-lbl">{isId ? "Ketentuan Penyerahan:" : "Incoterm:"}</span>
-            <span className="terms-val">{incoterm} Makassar (Incoterms 2020)</span>
-          </div>
-          <div>
-            <span className="terms-lbl">{isId ? "Pelabuhan Bongkar (POD):" : "Port of Discharge:"}</span>
-            <span className="terms-val">{pod}</span>
-          </div>
-          <div>
-            <span className="terms-lbl">{isId ? "Estimasi Pengapalan:" : "Est. Shipment:"}</span>
-            <span className="terms-val">
-              {isId ? "Maksimal 21 hari setelah Pembayaran Uang Muka" : "Within 21 days after Advance Payment"}
-            </span>
-          </div>
-          <div className="col-span-full">
-            <span className="terms-lbl">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>
-            <span className="terms-val">
-              {paymentTerms ||
-                (isId
-                  ? "Telegraphic Transfer (T/T) - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
-                  : "Telegraphic Transfer (T/T) - 50% Advance Payment, 50% against Copy of B/L")}
-            </span>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "KETENTUAN PENGIRIMAN & PEMBAYARAN" : "SHIPPING & COMMERCIAL TERMS"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Moda & Muatan:" : "Dispatch / Type:"}</td>
+                  <td className="bank-val">Sea Freight — 1 x 20&apos; FCL ({isId ? " Asal: Indonesia" : "Origin: Indonesia"})</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</td>
+                  <td className="bank-val">{pol}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Tujuan:" : "Port of Discharge:"}</td>
+                  <td className="bank-val">{pod}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Incoterm & Waktu:" : "Incoterm & Ship:"}</td>
+                  <td className="bank-val">
+                    {incoterm} Makassar (Incoterms® 2020) — {isId ? "Maks. 21 Hari" : "Within 21 Days"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pembayaran:" : "Payment Terms:"}</td>
+                  <td className="bank-val">
+                    {paymentTerms ||
+                      (isId
+                        ? "T/T - 50% Uang Muka (DP), 50% terhadap Salinan B/L"
+                        : "T/T - 50% Advance Payment, 50% against Copy of B/L")}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -3559,6 +3779,7 @@ function ProformaInvoiceDoc({
         <span className="words-val italic">{amountInWords}</span>
       </div>
 
+      {/* Bottom 50/50 Split Grid (Left: Bank Details Table | Right: Signatory & Approval Table) */}
       <div className="doc-footer-split-grid">
         <div className="doc-bank-card">
           <table className="bank-card-table">
@@ -3600,16 +3821,19 @@ function ProformaInvoiceDoc({
           </table>
         </div>
 
-        <div className="doc-single-signature-wrap">
-          <OfficialStampAndSignature
-            exporterName={exporterName}
-            signatoryName={signatoryName}
-            role={signatoryRole}
-            isId={isId}
-            shipment={shipment}
-            onOpenSignatureModal={onOpenSignatureModal}
-          />
-        </div>
+        <SignatoryApprovalCard
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole}
+          incoterm={incoterm}
+          pol={pol}
+          currency={currency}
+          totalLabel={isId ? "Total Faktur:" : "Consignment Total:"}
+          totalValue={`${currency} ${formatNumber(totalAmount, 2)}`}
+          isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
+        />
       </div>
     </div>
   );
@@ -4152,6 +4376,9 @@ function CommercialInvoiceDoc({
   containerNumber,
   sealNumber,
   poNumber,
+  bankName,
+  bankAccountNo,
+  bankSwift,
   paymentTerms,
   pol,
   pod,
@@ -4183,6 +4410,9 @@ function CommercialInvoiceDoc({
   containerNumber?: string;
   sealNumber?: string;
   poNumber?: string;
+  bankName?: string;
+  bankAccountNo?: string;
+  bankSwift?: string;
   paymentTerms?: string;
   pol: string;
   pod: string;
@@ -4200,99 +4430,149 @@ function CommercialInvoiceDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
+  const cleanBuyerAddress =
+    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
+      ? `${buyerAddress}, ${buyerCountry}`
+      : buyerAddress;
+
   return (
     <div className="doc-content-wrapper">
       <DocTitleBanner title={isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"} />
 
+      {/* Top 50/50 Split Grid (Reference Structure with Clean Table Cards) */}
       <div className="doc-two-col-grid">
         <div className="doc-parties-column">
-          <div className="doc-box">
-            <span className="doc-box-tag">
-              {isId ? "PENGIRIM / EKSPORTIR (SHIPPER / EXPORTER):" : "SHIPPER / EXPORTER:"}
-            </span>
-            <b className="doc-entity-name">{exporterName}</b>
-            <p className="doc-entity-address">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia
-            </p>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "PENGIRIM / EKSPORTIR (SELLER / EXPORTER)" : "SELLER / EXPORTER"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Perusahaan:" : "Company:"}</td>
+                  <td className="bank-val font-bold">{exporterName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">
+                    Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Makassar 90231, Indonesia
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">+62 812-3456-7890 | official@indicoexport.com</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="doc-box">
-            <span className="doc-box-tag">
-              {isId ? "PENERIMA / PEMBELI (CONSIGNEE / BUYER):" : "CONSIGNEE / BUYER:"}
-            </span>
-            <b className="doc-entity-name">{buyerName}</b>
-            <p className="doc-entity-address">
-              {buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-                ? `${buyerAddress}, ${buyerCountry}`
-                : buyerAddress}
-            </p>
-            <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
-          </div>
-
-          <div className="doc-box">
-            <span className="doc-box-tag">
-              {isId ? "PIHAK DIBERITAHU (NOTIFY PARTY):" : "NOTIFY PARTY:"}
-            </span>
-            <b className="doc-entity-name">
-              {isId ? "Sama dengan Penerima (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}
-            </b>
-            <p className="doc-entity-address">{buyerName} — {buyerCountry}</p>
-            <p className="doc-entity-contact">
-              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} | Telp: {buyerPhone || "+971 4 223 4567"}
-            </p>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "PENERIMA / PEMBELI (BUYER / CONSIGNEE)" : "BUYER / CONSIGNEE"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Perusahaan:" : "Company:"}</td>
+                  <td className="bank-val font-bold">{buyerName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">{cleanBuyerAddress}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">
+                    {buyerPhone || "+971 4 223 4567"} | {buyerEmail || "procurement@albarakahfoods.ae"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Notify Party:" : "Notify Party:"}</td>
+                  <td className="bank-val">
+                    {isId ? "Sama dengan Penerima" : "SAME AS CONSIGNEE"} ({buyerPicName || "Mr. Tariq Al-Mansoor"})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <div className="doc-reference-column">
-          <div className="doc-box">
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>{" "}
-              <b className="meta-value meta-value-primary">INV/IEI-DXB/XI/2026/001</b>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
-              <span className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
-              <span className="meta-value">SC/IEI-ABF/XI/2026/001</span>
-            </div>
-            {poNumber && (
-              <div className="meta-pair">
-                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
-                <span className="meta-value">{poNumber}</span>
-              </div>
-            )}
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Syarat Pembayaran:" : "Payment Terms:"}</span>{" "}
-              <span className="meta-value">{paymentTerms || "Telegraphic Transfer (T/T)"}</span>
-            </div>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                      <span>{isId ? "RINCIAN FAKTUR & REFERENSI" : "INVOICE & REFERENCE DETAILS"}</span>
+                      <span style={{ fontSize: "7.8pt", fontWeight: 700, color: "#475569" }}>Pages: 1 of 1</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "No. Faktur:" : "Invoice Number:"}</td>
+                  <td className="bank-val font-bold text-blue-900">INV/IEI-DXB/XI/2026/001</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Tanggal & B/L:" : "Date & B/L No.:"}</td>
+                  <td className="bank-val">
+                    {isId ? "20 Nov 2026" : "Nov 20, 2026"} | <b>KMTC-MKS0091827</b>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Ref. Kontrak / PO:" : "Reference / PO:"}</td>
+                  <td className="bank-val font-semibold">
+                    SC/IEI-ABF/XI/2026/001 | {poNumber || "ABF/LOI/2026/108"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pembayaran:" : "Payment Terms:"}</td>
+                  <td className="bank-val">{paymentTerms || "Telegraphic Transfer (T/T)"}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="doc-box transport-box">
-            <span className="doc-box-tag">
-              {isId ? "RINCIAN PENGANGKUTAN (TRANSPORT DETAILS):" : "TRANSPORT DETAILS:"}
-            </span>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
-              <span className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
-              <span className="meta-value">{pol}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
-              <span className="meta-value">{pod}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <span className="meta-value">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
-              <span className="meta-value">KMTC-MKS0091827</span>
-            </div>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "RINCIAN PENGANGKUTAN (TRANSPORT DETAILS)" : "SHIPPING & TRANSPORT DETAILS"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</td>
+                  <td className="bank-val font-semibold">{vesselName || "KMTC SHIMIZU V.2611N"} (Sea — FCL)</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</td>
+                  <td className="bank-val">{pol} (Origin: Indonesia)</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</td>
+                  <td className="bank-val">{pod}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontainer / Segel:" : "Container / Seal:"}</td>
+                  <td className="bank-val">
+                    {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -4300,8 +4580,8 @@ function CommercialInvoiceDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "130px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
-            <th style={{ width: "42%" }}>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
+            <th style={{ width: "120px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
+            <th style={{ width: "44%" }}>{isId ? "Deskripsi & Spesifikasi Barang" : "Description of Goods"}</th>
             <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Kuantitas" : "Quantity"}</th>
             <th style={{ width: "95px", textAlign: "right" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
             <th style={{ width: "105px", textAlign: "right" }}>{isId ? "Total Nilai" : "Total Amount"}</th>
@@ -4319,19 +4599,19 @@ function CommercialInvoiceDoc({
             </td>
             <td>
               <b className="table-product-title">{productName.toUpperCase()}</b>
-              <p className="text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
-              <p className="text-slate-800">
-                {isId ? "Kemasan: Karung Kertas Kraft Multiwall 20 Kg Neto" : "Packing: 20 Kg Net / Multiwall Kraft Paper Bag"}
+              <p className="text-slate-800 mt-0.5">
+                {isId ? "Kode HS:" : "HS Code:"} <b>{hsCode}</b> | {isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}
               </p>
               <p className="text-slate-800">
-                {isId ? `Total Kemasan: ${formatNumber(bagsCount)} Karung` : `Total Packages: ${formatNumber(bagsCount)} Bags`}
+                {isId
+                  ? `Kemasan: ${formatNumber(bagsCount)} Karung Kertas Kraft Multiwall @ 20 Kg Neto`
+                  : `Packing: ${formatNumber(bagsCount)} Multiwall Kraft Paper Bags @ 20 Kg Net`}
               </p>
-              <p className="text-slate-800 mt-1">
+              <p className="text-slate-800">
                 {isId
                   ? `Berat Neto: ${formatNumber(netWeightKgs, 2)} Kg | Berat Bruto: ${formatNumber(grossWeightKgs, 2)} Kg`
                   : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs`}
               </p>
-              <p className="text-slate-800">{isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}</p>
             </td>
             <td className="text-right font-normal">
               {formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}<br />
@@ -4361,30 +4641,67 @@ function CommercialInvoiceDoc({
       </table>
 
       <div className="doc-words-banner">
-        <span className="words-lbl">{isId ? "Terbilang:" : "Amount in Words:"}</span>{" "}
+        <span className="words-lbl">{isId ? "Terbilang:" : "Say:"}</span>{" "}
         <span className="words-val italic">{amountInWords}</span>
       </div>
 
+      {/* Bottom 50/50 Split Grid (Left: Bank Details Table | Right: Signatory & Approval Table) */}
       <div className="doc-footer-split-grid">
-        <div className="doc-cert-banner">
-          <ShieldCheck size={16} className="text-blue-700 flex-shrink-0" />
-          <p>
-            {isId
-              ? "Dengan ini kami menyatakan bahwa faktur ini mencantumkan harga barang yang sebenarnya dan tidak ada faktur lain yang diterbitkan, serta seluruh rincian di dalamnya adalah benar dan sah sesuai ketentuan pabean."
-              : "We hereby certify that this invoice shows the actual price of the goods described, that no other invoice has been or will be issued, and that all particulars are true and correct."}
-          </p>
+        <div className="doc-bank-card">
+          <table className="bank-card-table">
+            <thead>
+              <tr>
+                <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                  <span>{isId ? "RINCIAN REKENING BANK & PERNYATAAN" : "BANK DETAILS FOR BENEFICIARY"}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="bank-lbl">{isId ? "Nama Bank:" : "Bank Name:"}</td>
+                <td className="bank-val">{bankName || "PT. Bank Mandiri (Persero) Tbk - KCP Makassar Panakkukang"}</td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Alamat Bank:" : "Bank Address:"}</td>
+                <td className="bank-val">
+                  {shipment?.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia"}
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Nama Rekening:" : "Account Name:"}</td>
+                <td className="bank-val font-semibold">{exporterName}</td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "No. Rekening:" : "Account Number:"}</td>
+                <td className="bank-val font-semibold">
+                  {bankAccountNo || "152-00-9876543-2"} ({currency}) | SWIFT: <b>{bankSwift || "BMRIIDJA"}</b>
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Deklarasi:" : "Declaration:"}</td>
+                <td className="bank-val" style={{ fontSize: "8.2pt", lineHeight: 1.24 }}>
+                  {isId
+                    ? "Kami menyatakan harga & rincian faktur ini adalah benar dan sah."
+                    : "We certify that this invoice shows the actual price of the goods and all particulars are true."}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div className="doc-single-signature-wrap">
-          <OfficialStampAndSignature
-            exporterName={exporterName}
-            signatoryName={signatoryName}
-            role={signatoryRole}
-            isId={isId}
-            shipment={shipment}
-            onOpenSignatureModal={onOpenSignatureModal}
-          />
-        </div>
+        <SignatoryApprovalCard
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole}
+          incoterm={incoterm}
+          pol={pol}
+          currency={currency}
+          totalLabel={isId ? "Total Faktur:" : "Consignment Total:"}
+          totalValue={`${currency} ${formatNumber(totalAmount, 2)}`}
+          isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
+        />
       </div>
     </div>
   );
@@ -4448,99 +4765,147 @@ function PackingListDoc({
   isId?: boolean;
   onOpenSignatureModal?: (party?: "seller" | "buyer") => void;
 }) {
+  const cleanBuyerAddress =
+    buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
+      ? `${buyerAddress}, ${buyerCountry}`
+      : buyerAddress;
+
   return (
     <div className="doc-content-wrapper">
       <DocTitleBanner title={isId ? "DAFTAR KEMASAN (PACKING LIST)" : "PACKING LIST"} />
 
+      {/* Top 50/50 Split Grid (Reference Structure with Clean Table Cards) */}
       <div className="doc-two-col-grid">
         <div className="doc-parties-column">
-          <div className="doc-box">
-            <span className="doc-box-tag">
-              {isId ? "PENGIRIM / EKSPORTIR (SHIPPER / EXPORTER):" : "SHIPPER / EXPORTER:"}
-            </span>
-            <b className="doc-entity-name">{exporterName}</b>
-            <p className="doc-entity-address">
-              Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia
-            </p>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "PENGIRIM / EKSPORTIR (SHIPPER / EXPORTER)" : "SHIPPER / EXPORTER"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Perusahaan:" : "Company:"}</td>
+                  <td className="bank-val font-bold">{exporterName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">
+                    Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Makassar 90231, Indonesia
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">+62 812-3456-7890 | official@indicoexport.com</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="doc-box">
-            <span className="doc-box-tag">
-              {isId ? "PENERIMA (CONSIGNEE):" : "CONSIGNEE:"}
-            </span>
-            <b className="doc-entity-name">{buyerName}</b>
-            <p className="doc-entity-address">
-              {buyerCountry && !buyerAddress.toLowerCase().includes(buyerCountry.toLowerCase())
-                ? `${buyerAddress}, ${buyerCountry}`
-                : buyerAddress}
-            </p>
-            <p className="doc-entity-contact">Telp: {buyerPhone || "+971 4 223 4567"} | Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
-          </div>
-
-          <div className="doc-box">
-            <span className="doc-box-tag">
-              {isId ? "PIHAK DIBERITAHU (NOTIFY PARTY):" : "NOTIFY PARTY:"}
-            </span>
-            <b className="doc-entity-name">
-              {isId ? "Sama dengan Penerima (SAME AS CONSIGNEE)" : "SAME AS CONSIGNEE"}
-            </b>
-            <p className="doc-entity-address">{buyerName} — {buyerCountry}</p>
-            <p className="doc-entity-contact">
-              {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"} | Telp: {buyerPhone || "+971 4 223 4567"}
-            </p>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "PENERIMA (CONSIGNEE & NOTIFY PARTY)" : "CONSIGNEE & NOTIFY PARTY"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Perusahaan:" : "Consignee:"}</td>
+                  <td className="bank-val font-bold">{buyerName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">{cleanBuyerAddress}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">
+                    {buyerPhone || "+971 4 223 4567"} | {buyerEmail || "procurement@albarakahfoods.ae"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Notify Party:" : "Notify Party:"}</td>
+                  <td className="bank-val">
+                    {isId ? "Sama dengan Penerima" : "SAME AS CONSIGNEE"} ({buyerPicName || "Mr. Tariq Al-Mansoor"})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
         <div className="doc-reference-column">
-          <div className="doc-box">
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Daftar Kemasan:" : "Packing List No.:"}</span>{" "}
-              <b className="meta-value meta-value-primary">PL/IEI-DXB/XI/2026/001</b>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Faktur:" : "Invoice No.:"}</span>{" "}
-              <span className="meta-value">INV/IEI-DXB/XI/2026/001</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Tanggal:" : "Date:"}</span>{" "}
-              <span className="meta-value">{isId ? "20 November 2026" : "November 20, 2026"}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Kontrak Penjualan:" : "Sales Contract No.:"}</span>{" "}
-              <span className="meta-value">SC/IEI-ABF/XI/2026/001</span>
-            </div>
-            {poNumber && (
-              <div className="meta-pair">
-                <span className="meta-label">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</span>{" "}
-                <span className="meta-value">{poNumber}</span>
-              </div>
-            )}
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                      <span>{isId ? "RINCIAN DOKUMEN & REFERENSI" : "PACKING LIST & REFERENCE"}</span>
+                      <span style={{ fontSize: "7.8pt", fontWeight: 700, color: "#475569" }}>Pages: 1 of 1</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "No. Packing List:" : "Packing List No.:"}</td>
+                  <td className="bank-val font-bold text-blue-900">PL/IEI-DXB/XI/2026/001</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "No. Faktur & Tgl:" : "Invoice & Date:"}</td>
+                  <td className="bank-val">
+                    <b>INV/IEI-DXB/XI/2026/001</b> ({isId ? "20 Nov 2026" : "Nov 20, 2026"})
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "No. Kontrak:" : "Sales Contract:"}</td>
+                  <td className="bank-val">SC/IEI-ABF/XI/2026/001</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Ref. Buyer PO:" : "Buyer PO Ref:"}</td>
+                  <td className="bank-val font-semibold">{poNumber || "ABF/LOI/2026/108"}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
 
-          <div className="doc-box transport-box">
-            <span className="doc-box-tag">
-              {isId ? "RINCIAN PENGANGKUTAN (TRANSPORT DETAILS):" : "TRANSPORT DETAILS:"}
-            </span>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</span>{" "}
-              <span className="meta-value">{vesselName || "KMTC SHIMIZU V.2611N"}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</span>{" "}
-              <span className="meta-value">{pol}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</span>{" "}
-              <span className="meta-value">{pod}</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Kontainer / Segel:" : "Container / Seal:"}</span>{" "}
-              <span className="meta-value">{containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} (1x20&apos; FCL)</span>
-            </div>
-            <div className="meta-pair">
-              <span className="meta-label">{isId ? "No. Bill of Lading:" : "B/L Number:"}</span>{" "}
-              <span className="meta-value">KMTC-MKS0091827</span>
-            </div>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "RINCIAN PENGANGKUTAN (TRANSPORT DETAILS)" : "SHIPPING & TRANSPORT DETAILS"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kapal / Pelayaran:" : "Vessel / Voyage:"}</td>
+                  <td className="bank-val font-semibold">{vesselName || "KMTC SHIMIZU V.2611N"}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</td>
+                  <td className="bank-val">{pol}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Bongkar:" : "Port of Discharge:"}</td>
+                  <td className="bank-val">{pod}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontainer / B/L:" : "Container & B/L:"}</td>
+                  <td className="bank-val">
+                    {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"} | B/L: <b>KMTC-MKS0091827</b>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -4548,11 +4913,11 @@ function PackingListDoc({
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "120px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
-            <th style={{ width: "40%" }}>{isId ? "Deskripsi Barang & Spesifikasi Kemasan" : "Description of Goods & Packing Spec"}</th>
+            <th style={{ width: "115px" }}>{isId ? "Tanda & No. Kemasan" : "Marks & Nos"}</th>
+            <th style={{ width: "42%" }}>{isId ? "Deskripsi Barang & Spesifikasi Kemasan" : "Description of Goods & Packing Spec"}</th>
             <th style={{ width: "70px", textAlign: "right" }}>{isId ? "Jumlah (Koli)" : "Qty (Bags)"}</th>
-            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Neto (Net Weight)" : "Net Weight"}</th>
-            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Bruto (Gross Weight)" : "Gross Weight"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Neto" : "Net Weight"}</th>
+            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat Bruto" : "Gross Weight"}</th>
             <th style={{ width: "75px", textAlign: "right" }}>{isId ? "Volume (CBM)" : "Meas. (CBM)"}</th>
           </tr>
         </thead>
@@ -4567,37 +4932,29 @@ function PackingListDoc({
             </td>
             <td>
               <b className="table-product-title">{productName}</b>
-              <p className="text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
-              <div className="text-slate-800 mt-2">
-                <span className="font-semibold">{isId ? "Spesifikasi Kemasan:" : "Packing Specification:"}</span>
-                <ul className="list-disc pl-4 mt-0.5 space-y-0.5">
-                  <li>{isId ? "@ 20,00 Kg Berat Neto / Karung" : "@ 20.00 Kg Net Weight / Bag"}</li>
-                  <li>{isId ? "@ 20,25 Kg Berat Bruto / Karung" : "@ 20.25 Kg Gross Weight / Bag"}</li>
-                  <li>{isId ? "Dimensi Karung: 60 x 40 x 12 cm" : "Bag Dimension: 60 x 40 x 12 cm"}</li>
-                  <li>{isId ? "Lapisan Dalam: Plastik PE Food Grade" : "Inner: Food Grade PE Plastic Liner"}</li>
-                  <li>{isId ? "Lapisan Luar: Karung Kertas Kraft 3 Lapis (Heavy Duty)" : "Outer: 3-Ply Heavy Duty Kraft Paper Bag"}</li>
-                </ul>
-              </div>
+              <p className="text-slate-800 mt-0.5">
+                {isId ? "Kode HS:" : "HS Code:"} <b>{hsCode}</b> | {isId ? "Dimensi: 60 x 40 x 12 cm" : "Bag Dim: 60 x 40 x 12 cm"}
+              </p>
+              <ul className="table-product-specs">
+                <li>{isId ? "@ 20,00 Kg Berat Neto / @ 20,25 Kg Berat Bruto per Karung" : "@ 20.00 Kg Net / @ 20.25 Kg Gross Weight per Bag"}</li>
+                <li>{isId ? "Kemasan: Karung Kertas Kraft 3 Lapis + Lapisan Dalam PE Food Grade" : "Packing: 3-Ply Heavy Duty Kraft Paper Bag + Inner Food Grade PE Liner"}</li>
+              </ul>
             </td>
             <td className="text-right font-normal">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
             <td className="text-right font-normal">
               {formatNumber(netWeightKgs, 2)} Kgs<br />
-              <span className="text-slate-600">
-                ({formatNumber(netWeightMT, 2)} MT {isId ? "Neto" : ""})
-              </span>
+              <span className="text-slate-600">({formatNumber(netWeightMT, 2)} MT)</span>
             </td>
             <td className="text-right font-normal">
               {formatNumber(grossWeightKgs, 2)} Kgs<br />
-              <span className="text-slate-600">
-                ({formatNumber(grossWeightMT, 3)} MT {isId ? "Bruto" : ""})
-              </span>
+              <span className="text-slate-600">({formatNumber(grossWeightMT, 3)} MT)</span>
             </td>
             <td className="text-right font-normal text-slate-900">{formatNumber(totalCBM, 3)} CBM</td>
           </tr>
         </tbody>
         <tfoot>
           <tr className="doc-table-total-row">
-            <td colSpan={2} className="text-right font-bold">{isId ? "TOTAL KESELURUHAN:" : "TOTAL:"}</td>
+            <td colSpan={2} className="text-right font-bold">{isId ? "TOTAL KESELURUHAN:" : "CONSIGNMENT TOTAL:"}</td>
             <td className="text-right font-bold text-blue-900">{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
             <td className="text-right font-bold text-blue-900">{formatNumber(netWeightKgs, 2)} Kgs</td>
             <td className="text-right font-bold text-blue-900">{formatNumber(grossWeightKgs, 2)} Kgs</td>
@@ -4606,11 +4963,53 @@ function PackingListDoc({
         </tfoot>
       </table>
 
-      <div className="doc-single-signature-wrap">
-        <OfficialStampAndSignature
+      {/* Bottom 50/50 Split Grid (Left: Packing Summary Table | Right: Signatory & Approval Table) */}
+      <div className="doc-footer-split-grid">
+        <div className="doc-bank-card">
+          <table className="bank-card-table">
+            <thead>
+              <tr>
+                <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                  <span>{isId ? "RINGKASAN KEMASAN & KONTAINER" : "PACKING & CONTAINER SUMMARY"}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="bank-lbl">{isId ? "Total Kemasan:" : "Total Packages:"}</td>
+                <td className="bank-val font-semibold">
+                  {formatNumber(bagsCount)} {isId ? "Karung Kertas Kraft Multiwall" : "Multiwall Kraft Paper Bags"}
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Berat Neto / Bruto:" : "Net / Gross Wt:"}</td>
+                <td className="bank-val">
+                  {formatNumber(netWeightKgs, 2)} Kgs ({formatNumber(netWeightMT, 2)} MT) / {formatNumber(grossWeightKgs, 2)} Kgs
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Volume & Kontainer:" : "Volume & Cont.:"}</td>
+                <td className="bank-val">
+                  {formatNumber(totalCBM, 3)} CBM — 1 x 20&apos; FCL ({containerNumber || "TGHU 2468135"})
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Standar Mutu:" : "Packing Standard:"}</td>
+                <td className="bank-val">
+                  {isId ? "Food-Grade Export Standard, Bebas Hama & Lembab" : "Food-Grade Export Standard, Clean & Dry Container"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <SignatoryApprovalCard
           exporterName={exporterName}
           signatoryName={signatoryName}
           role={signatoryRole}
+          pol={pol}
+          totalLabel={isId ? "Total Kemasan:" : "Total Packages:"}
+          totalValue={`${formatNumber(bagsCount)} ${isId ? "Karung" : "Bags"} (${formatNumber(netWeightMT, 2)} MT)`}
           isId={isId}
           shipment={shipment}
           onOpenSignatureModal={onOpenSignatureModal}
@@ -4681,99 +5080,150 @@ function ShippingInstructionDoc({
     <div className="doc-content-wrapper">
       <DocTitleBanner title={isId ? "INSTRUKSI PENGAPALAN (SHIPPING INSTRUCTION)" : "SHIPPING INSTRUCTION (SI)"} />
 
-      <div className="doc-si-header-grid">
-        <div>
-          <span className="si-lbl">{isId ? "No. SI:" : "SI Number:"}</span>{" "}
-          <b>SI/IEI/XI/2026/001</b>
-        </div>
-        <div>
-          <span className="si-lbl">{isId ? "Kepada (Forwarder/Pelayaran):" : "To (Forwarder/Line):"}</span>{" "}
-          <b>PT. Samudera Logistik Nusantara</b>
-        </div>
-        <div>
-          <span className="si-lbl">{isId ? "Tanggal:" : "Date:"}</span>{" "}
-          <span>{isId ? "16 November 2026" : "November 16, 2026"}</span>
-        </div>
-        <div>
-          <span className="si-lbl">{isId ? "Ditujukan Kepada:" : "Attention:"}</span>{" "}
-          <span>{isId ? "Bagian Booking & Dokumentasi Ekspor" : "Export Booking & Documentation Dept."}</span>
-        </div>
-        <div>
-          <span className="si-lbl">{isId ? "Ref. Kontrak:" : "Contract Ref:"}</span>{" "}
-          <span>SC/IEI-ABF/XI/2026/001</span>
-        </div>
-        <div>
-          <span className="si-lbl">{isId ? "Ref. Faktur:" : "Invoice Ref:"}</span>{" "}
-          <span>INV/IEI-DXB/XI/2026/001</span>
-        </div>
-      </div>
-
-      <div className="doc-three-col-parties">
-        <div className="si-party-card">
-          <div className="si-party-tag">
-            {isId ? "SHIPPER / PENGIRIM (Dicantumkan pada B/L)" : "SHIPPER (To appear on B/L)"}
+      {/* Top 50/50 Split Grid (Reference Structure with Clean Table Cards) */}
+      <div className="doc-two-col-grid">
+        <div className="doc-parties-column">
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "SHIPPER / PENGIRIM (PADA B/L)" : "SHIPPER (TO APPEAR ON B/L)"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Eksportir:" : "Shipper:"}</td>
+                  <td className="bank-val font-bold">{exporterName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">
+                    {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Makassar 90231, Indonesia"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">+62 812-3456-7890 | official@indicoexport.com</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <b className="party-title">{exporterName}</b>
-          <p className="party-txt">
-            {exporterAddress || "Jl. Adiyaksa Baru No. 1B, Kec. Panakkukang, Kota Makassar, Sulawesi Selatan, Indonesia"}
-          </p>
-          <p className="party-txt">
-            Telp: +62 812 3456 7890 | Email: official@indicoexport.com
-          </p>
-        </div>
 
-        <div className="si-party-card">
-          <div className="si-party-tag">
-            {isId ? "CONSIGNEE / PENERIMA (Dicantumkan pada B/L)" : "CONSIGNEE (To appear on B/L)"}
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "CONSIGNEE & NOTIFY PARTY (PADA B/L)" : "CONSIGNEE & NOTIFY PARTY (ON B/L)"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Consignee:" : "Consignee:"}</td>
+                  <td className="bank-val font-bold">{buyerName}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Alamat:" : "Address:"}</td>
+                  <td className="bank-val">{buyerAddress}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontak:" : "Contact:"}</td>
+                  <td className="bank-val">
+                    {buyerPhone || "+971 4 223 4567"} | {buyerEmail || "procurement@albarakahfoods.ae"}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Notify Party:" : "Notify Party:"}</td>
+                  <td className="bank-val">
+                    {isId ? "SAMA DENGAN PENERIMA" : "SAME AS CONSIGNEE"} ({buyerPicName || "Mr. Tariq Al-Mansoor"})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <b className="party-title">{buyerName}</b>
-          <p className="party-txt">{buyerAddress}</p>
-          <p className="party-txt">Telp: {buyerPhone || "+971 4 223 4567"}</p>
-          <p className="party-txt">Email: {buyerEmail || "procurement@albarakahfoods.ae"}</p>
         </div>
 
-        <div className="si-party-card">
-          <div className="si-party-tag">
-            {isId ? "NOTIFY PARTY (Dicantumkan pada B/L)" : "NOTIFY PARTY (To appear on B/L)"}
+        <div className="doc-reference-column">
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+                      <span>{isId ? "RINCIAN BOOKING & REFERENSI SI" : "BOOKING & SI REFERENCE"}</span>
+                      <span style={{ fontSize: "7.8pt", fontWeight: 700, color: "#475569" }}>Pages: 1 of 1</span>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Nomor SI:" : "SI Number:"}</td>
+                  <td className="bank-val font-bold text-blue-900">SI/IEI/XI/2026/001</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kepada (Line):" : "To Forwarder:"}</td>
+                  <td className="bank-val font-semibold">PT. Samudera Logistik Nusantara</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Tanggal & PIC:" : "Date & Attn:"}</td>
+                  <td className="bank-val">
+                    {isId ? "16 Nov 2026 — Bag. Booking Ekspor" : "Nov 16, 2026 — Export Booking Dept."}
+                  </td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Ref. Kontrak/PO:" : "Contract / PO:"}</td>
+                  <td className="bank-val">SC/IEI-ABF/XI/2026/001 | {poNumber || "INV/IEI-DXB/XI/2026/001"}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <b className="party-title">{isId ? "SAMA DENGAN PENERIMA" : "SAME AS CONSIGNEE"}</b>
-          <p className="party-txt mt-2">{buyerName}</p>
-          <p className="party-txt">
-            {isId ? "Narahubung:" : "Contact:"} {buyerPicName || "Mr. Tariq Al-Mansoor"}
-          </p>
-          <p className="party-txt">Telp: {buyerPhone || "+971 4 223 4567"}</p>
-        </div>
-      </div>
 
-      <div className="doc-transport-row-strip">
-        <div className="strip-item">
-          <span className="strip-lbl">{isId ? "Kapal / Pelayaran" : "Vessel / Voyage"}</span>
-          <span className="strip-val">{vesselName || "KMTC SHIMIZU V.2611N"}</span>
-          <small className="strip-sub">ETD: Nov 21, 2026</small>
-        </div>
-        <div className="strip-item">
-          <span className="strip-lbl">{isId ? "Pelabuhan Muat (POL)" : "Port of Loading (POL)"}</span>
-          <span className="strip-val">{pol}</span>
-        </div>
-        <div className="strip-item">
-          <span className="strip-lbl">{isId ? "Pelabuhan Bongkar (POD)" : "Port of Discharge (POD)"}</span>
-          <span className="strip-val">{pod}</span>
-        </div>
-        <div className="strip-item">
-          <span className="strip-lbl">{isId ? "Kontainer & Muat" : "Container & Stuffing"}</span>
-          <span className="strip-val">1 x 20&apos; GP (Food Grade)</span>
-          <small className="strip-sub">{isId ? "Muat: 18 Nov 2026" : "Stuffing: Nov 18, 2026"}</small>
+          <div className="doc-bank-card">
+            <table className="bank-card-table">
+              <thead>
+                <tr>
+                  <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                    <span>{isId ? "JADWAL KAPAL & RUTE PELAYARAN" : "VESSEL & ROUTING DETAILS"}</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kapal / Voyage:" : "Vessel / Voyage:"}</td>
+                  <td className="bank-val font-semibold">{vesselName || "KMTC SHIMIZU V.2611N"} (ETD: Nov 21, 2026)</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Muat:" : "Port of Loading:"}</td>
+                  <td className="bank-val">{pol}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Pelabuhan Tujuan:" : "Port of Discharge:"}</td>
+                  <td className="bank-val">{pod}</td>
+                </tr>
+                <tr>
+                  <td className="bank-lbl">{isId ? "Kontainer / Segel:" : "Container / Seal:"}</td>
+                  <td className="bank-val">
+                    1 x 20&apos; GP Food Grade ({containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       <table className="doc-table-pro">
         <thead>
           <tr>
-            <th style={{ width: "120px" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
-            <th style={{ width: "100px" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
+            <th style={{ width: "115px" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
+            <th style={{ width: "95px" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
             <th style={{ width: "44%" }}>{isId ? "Deskripsi Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
-            <th style={{ width: "85px", textAlign: "right" }}>{isId ? "Berat (Kg)" : "Weight (Kgs)"}</th>
-            <th style={{ width: "80px", textAlign: "right" }}>{isId ? "Dimensi / Volume" : "Measurement"}</th>
+            <th style={{ width: "90px", textAlign: "right" }}>{isId ? "Berat (Kg)" : "Weight (Kgs)"}</th>
+            <th style={{ width: "80px", textAlign: "right" }}>{isId ? "Volume" : "Measurement"}</th>
           </tr>
         </thead>
         <tbody>
@@ -4789,91 +5239,85 @@ function ShippingInstructionDoc({
             <td>
               <b>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</b><br />
               <span className="text-slate-700">
-                {isId ? "(Sembilan Ratus Karung Kertas Kraft Multiwall)" : "(Nine Hundred Multiwall Kraft Paper Bags)"}
+                {isId ? "(Karung Kertas Kraft Multiwall)" : "(Multiwall Kraft Paper Bags)"}
               </span>
             </td>
             <td>
               <b className="table-product-title">{productName.toUpperCase()}</b>
-              <p className="text-slate-800 mt-1">
+              <p className="text-slate-800 mt-0.5">
                 {isId
                   ? "Dikemas dalam Karung Kertas Kraft Multiwall 20 Kg Neto dengan Lapisan Dalam Plastik PE Food-Grade."
                   : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
               </p>
-              <p className="text-slate-800 mt-1">{isId ? "Kode HS:" : "HS Code:"} {hsCode}</p>
               <p className="text-slate-800">
-                {isId ? "No. Kontainer / Segel:" : "Cont / Seal No.:"} {containerNumber || "TGHU 2468135"} / {sealNumber || "IDMKS998877"}
-              </p>
-              <p className="text-slate-800">
-                {isId ? "Negara Asal: Indonesia" : "Country of Origin: Indonesia"}
+                {isId ? "Kode HS:" : "HS Code:"} <b>{hsCode}</b> | {isId ? "Asal: Indonesia" : "Origin: Indonesia"}
               </p>
             </td>
             <td className="text-right">
-              <div className="font-semibold text-slate-700">{isId ? "NETO:" : "NET:"}</div>
-              <span>{formatNumber(netWeightKgs, 2)} KGS</span>
-              <div className="font-semibold text-slate-700 mt-2">{isId ? "BRUTO:" : "GROSS:"}</div>
-              <span>{formatNumber(grossWeightKgs, 2)} KGS</span>
+              <div className="font-semibold text-slate-700">{isId ? "NETO:" : "NET:"} {formatNumber(netWeightKgs, 2)}</div>
+              <div className="font-semibold text-slate-700 mt-1">{isId ? "BRUTO:" : "GROSS:"} {formatNumber(grossWeightKgs, 2)}</div>
             </td>
-            <td className="text-right font-normal text-slate-900 text-sm">
+            <td className="text-right font-normal text-slate-900">
               {formatNumber(totalCBM, 3)} CBM
             </td>
           </tr>
         </tbody>
       </table>
 
+      {/* Bottom 50/50 Split Grid (Left: B/L & Freight Instructions Table | Right: Signatory & Approval Table) */}
       <div className="doc-footer-split-grid">
-        <div className="doc-instructions-box">
-          <h4 className="instructions-title">
-            {isId ? "INSTRUKSI BILL OF LADING & PENGAPALAN (FREIGHT):" : "BILL OF LADING & FREIGHT INSTRUCTIONS:"}
-          </h4>
-          <ol className="instructions-list">
-            <li>
-              <b>{isId ? "Jenis Bill of Lading:" : "Type of Bill of Lading:"}</b>{" "}
-              {isId
-                ? "1 Set Lengkap (3/3) Original Clean on Board Ocean Bill of Lading + 3 Salinan Non-Negotiable."
-                : "Full Set (3/3) Original Clean on Board Ocean Bill of Lading + 3 Non-Negotiable Copies."}
-            </li>
-            <li>
-              <b>{isId ? "Ketentuan Freight:" : "Freight Term:"}</b>{" "}
-              {incoterm === "FOB"
-                ? isId
-                  ? "FREIGHT COLLECT (Dibayar di Pelabuhan Tujuan)"
-                  : "FREIGHT COLLECT"
-                : isId
-                  ? "FREIGHT PREPAID (Dibayar di Pelabuhan Muat)"
-                  : "FREIGHT PREPAID"}{" "}
-              (Incoterm: {incoterm} Pelabuhan Makassar, Incoterms 2020).
-            </li>
-            <li>
-              <b>{isId ? "Standar Kontainer:" : "Container Requirement:"}</b>{" "}
-              {isId
-                ? "Mohon sediakan kontainer 20ft GP Food-Grade yang bersih, kering, tidak berbau, dan layak untuk produk bahan makanan."
-                : "Please provide a Clean, Dry, Odorless, Food-Grade 20ft GP Container suitable for foodstuff."}
-            </li>
-            <li>
-              <b>{isId ? "Verifikasi Dokumen:" : "Verification:"}</b>{" "}
-              {isId
-                ? "Mohon kirimkan Draft B/L dan Draft Pemberitahuan Ekspor Barang (PEB) kepada kami untuk diverifikasi sebelum penerbitan final."
-                : "Please send us the Draft B/L and Draft PEB (Pemberitahuan Ekspor Barang) for our verification and approval prior to final issuance."}
-            </li>
-            <li>
-              <b>{isId ? "Koordinasi Pengambilan:" : "Release Coordination:"}</b>{" "}
-              {isId
-                ? "Mohon konfirmasi Release Order kontainer kosong (RO/DO Empty) dan jadwal closing time kepada tim logistik kami."
-                : "Please confirm container release order (RO/DO Empty) and closing time schedule to our warehouse team."}
-            </li>
-          </ol>
+        <div className="doc-bank-card">
+          <table className="bank-card-table">
+            <thead>
+              <tr>
+                <th colSpan={2} className="bank-card-title" style={{ textAlign: "left" }}>
+                  <span>{isId ? "INSTRUKSI BILL OF LADING & FREIGHT" : "BILL OF LADING & FREIGHT INSTRUCTIONS"}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="bank-lbl">{isId ? "Jenis B/L:" : "Type of B/L:"}</td>
+                <td className="bank-val font-semibold">
+                  {isId
+                    ? "Full Set (3/3) Original Clean on Board Ocean B/L + 3 Copy"
+                    : "Full Set (3/3) Original Clean on Board Ocean B/L + 3 Non-Negotiable Copies"}
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Ketentuan Freight:" : "Freight Terms:"}</td>
+                <td className="bank-val font-semibold">
+                  {incoterm === "FOB" ? "FREIGHT COLLECT" : "FREIGHT PREPAID"} ({incoterm} Makassar — Incoterms® 2020)
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Kontainer:" : "Container Spec:"}</td>
+                <td className="bank-val">
+                  {isId ? "20ft GP Food-Grade, Bersih, Kering & Tidak Berbau" : "Clean, Dry, Odorless, Food-Grade 20ft GP Container"}
+                </td>
+              </tr>
+              <tr>
+                <td className="bank-lbl">{isId ? "Verifikasi Draft:" : "Draft Approval:"}</td>
+                <td className="bank-val">
+                  {isId ? "Kirimkan Draft B/L & PEB sebelum penerbitan final" : "Send Draft B/L & Draft PEB for verification prior to final issuance"}
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
 
-        <div className="doc-single-signature-wrap">
-          <OfficialStampAndSignature
-            exporterName={exporterName}
-            signatoryName={signatoryName}
-            role={signatoryRole || (isId ? "Manajer Logistik & Ekspor" : "Logistics & Export Manager")}
-            isId={isId}
-            shipment={shipment}
-            onOpenSignatureModal={onOpenSignatureModal}
-          />
-        </div>
+        <SignatoryApprovalCard
+          exporterName={exporterName}
+          signatoryName={signatoryName}
+          role={signatoryRole || (isId ? "Manajer Logistik & Ekspor" : "Logistics & Export Manager")}
+          incoterm={incoterm}
+          pol={pol}
+          totalLabel={isId ? "Total Muatan:" : "Total Cargo:"}
+          totalValue={`${formatNumber(bagsCount)} ${isId ? "Karung" : "Bags"} (${formatNumber(grossWeightKgs, 2)} Kgs)`}
+          isId={isId}
+          shipment={shipment}
+          onOpenSignatureModal={onOpenSignatureModal}
+        />
       </div>
     </div>
   );
