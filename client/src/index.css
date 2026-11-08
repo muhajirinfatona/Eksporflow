@@ -6573,18 +6573,21 @@ textarea:focus-visible {
 /* Document Title Bar */
 .doc-title-bar {
   text-align: center;
-  margin: 12px 0 12px;
-  padding: 7px 16px;
+  margin: 5px 0 6px;
+  padding: 3.5px 12px;
   background: #0f2942;
   border-radius: 3px;
+  line-height: 1.15;
 }
 
-.doc-title-bar h2 {
-  font-size: 16px;
+.doc-title-bar h2,
+.paper-document .doc-title-bar h2:not([style*="font-size"]) {
+  font-size: 10.5pt !important;
   font-weight: 800;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   color: #ffffff;
   margin: 0;
+  line-height: 1.15 !important;
   text-transform: uppercase;
 }
 
@@ -7211,7 +7214,7 @@ textarea:focus-visible {
 }
 
 .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
-  height: 112px !important;
+  height: auto !important;
 }
 
 .paper-document .unlk-trade-form .unlk-item-spec {
@@ -10763,15 +10766,19 @@ textarea:focus-visible {
 
   /* Title bar print */
   .doc-title-bar {
-    margin: 6px 0 8px !important;
-    padding: 5px 12px !important;
+    margin: 3px 0 5px !important;
+    padding: 3px 10px !important;
     background: #0f2942 !important;
     color: #ffffff !important;
+    line-height: 1.15 !important;
   }
-  .doc-title-bar h2 {
-    font-size: 11.5pt !important;
+  .doc-title-bar h2,
+  .paper-document .doc-title-bar h2:not([style*="font-size"]) {
+    font-size: 10pt !important;
     font-weight: 800 !important;
-    letter-spacing: 0.08em !important;
+    letter-spacing: 0.1em !important;
+    line-height: 1.15 !important;
+    margin: 0 !important;
     color: #ffffff !important;
   }
 
@@ -11041,8 +11048,9 @@ textarea:focus-visible {
     page-break-inside: avoid !important;
   }
   .unlk-doc-wrapper .doc-title-bar {
-    margin: 3px 0 5px 0 !important;
-    padding: 4.5px 12px !important;
+    margin: 3px 0 4px 0 !important;
+    padding: 3px 10px !important;
+    line-height: 1.15 !important;
     break-after: avoid !important;
     page-break-after: avoid !important;
   }
@@ -11121,7 +11129,7 @@ textarea:focus-visible {
     border-right: 1px solid #0f172a !important;
   }
   .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
-    height: 96px !important;
+    height: auto !important;
   }
   .paper-document .unlk-trade-form .unlk-item-spec {
     font-size: 8.5pt !important;
