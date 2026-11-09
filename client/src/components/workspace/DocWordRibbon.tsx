@@ -103,6 +103,53 @@ import {
   type GeometricStyleDefinition,
 } from "./GeometricLetterheadPolygons";
 
+// Microsoft Word Authentic Font & Theme Colors Matrix
+const MS_WORD_THEME_COLORS = [
+  // Row 1: Base colors (10 columns)
+  ["#ffffff", "#000000", "#e7e6e6", "#44546a", "#4472c4", "#ed7d31", "#a5a5a5", "#ffc000", "#5b9bd5", "#70ad47"],
+  // Row 2: Lighter 80%
+  ["#f2f2f2", "#7f7f7f", "#d0cece", "#d6dce4", "#d9e1f2", "#fce4d6", "#ededed", "#fff2cc", "#deebf7", "#e2efda"],
+  // Row 3: Lighter 60%
+  ["#d9d9d9", "#595959", "#aeabab", "#acb9ca", "#b4c6e7", "#f8cbad", "#dbdbdb", "#ffe699", "#bdd7ee", "#c6e0b4"],
+  // Row 4: Lighter 40%
+  ["#bfbfbf", "#3f3f3f", "#757171", "#8497b0", "#8ea9db", "#f4b084", "#c9c9c9", "#ffd966", "#9bc2e6", "#a9d08e"],
+  // Row 5: Darker 25%
+  ["#a6a6a6", "#262626", "#3a3838", "#333f48", "#305496", "#c65911", "#7b7b7b", "#bf8f00", "#2f5597", "#548235"],
+  // Row 6: Darker 50%
+  ["#7f7f7f", "#0c0c0c", "#161616", "#222a35", "#203764", "#833c0c", "#525252", "#806000", "#1f3864", "#375623"],
+];
+
+const MS_WORD_STANDARD_COLORS = [
+  "#c00000", // Dark Red
+  "#ff0000", // Red
+  "#ffc000", // Orange
+  "#ffff00", // Yellow
+  "#92d050", // Light Green
+  "#00b050", // Green
+  "#00b0f0", // Light Blue
+  "#0070c0", // Blue
+  "#002060", // Dark Blue
+  "#7030a0", // Purple
+];
+
+const MS_WORD_HIGHLIGHT_COLORS = [
+  { color: "#ffff00", label: "Kuning Cerah" },
+  { color: "#00ff00", label: "Hijau Terang" },
+  { color: "#00ffff", label: "Cyan / Biru Langit" },
+  { color: "#ff00ff", label: "Magenta / Pink" },
+  { color: "#0000ff", label: "Biru" },
+  { color: "#ff0000", label: "Merah" },
+  { color: "#000080", label: "Biru Tua" },
+  { color: "#008080", label: "Toska / Teal" },
+  { color: "#008000", label: "Hijau Hutan" },
+  { color: "#800080", label: "Ungu" },
+  { color: "#800000", label: "Merah Marun" },
+  { color: "#808000", label: "Zaitun / Olive" },
+  { color: "#c0c0c0", label: "Abu-abu Perak" },
+  { color: "#808080", label: "Abu-abu Gelap" },
+  { color: "#000000", label: "Hitam" },
+];
+
 interface DocWordRibbonProps {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
@@ -460,6 +507,19 @@ export function DocWordRibbon({
     const clampedLeft = Math.max(8, Math.min(r.left, window.innerWidth - popoverWidth - 12));
     setPopoverAnchor({ top: Math.round(r.bottom + 4), left: Math.round(clampedLeft) });
   };
+
+  useEffect(() => {
+    if (!showColorPicker && !showHighlightPicker) return;
+    const handleOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(".doc-color-palette-popover") && !target.closest(".doc-color-trigger")) {
+        setShowColorPicker(false);
+        setShowHighlightPicker(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [showColorPicker, showHighlightPicker]);
 
   // Table creator state
   const [showTableMenu, setShowTableMenu] = useState(false);
@@ -2387,7 +2447,7 @@ export function DocWordRibbon({
                         saveActiveSelection();
                       }}
                       onClick={(e) => {
-                        captureAnchor(e.currentTarget, 160);
+                        captureAnchor(e.currentTarget, 190);
                         setShowHighlightPicker((prev) => !prev);
                         setShowColorPicker(false);
                       }}
@@ -2398,19 +2458,72 @@ export function DocWordRibbon({
                     </button>
                     {showHighlightPicker && (
                       <div
-                        className="doc-color-dropdown"
+                        className="doc-color-palette-popover no-print"
+                        onClick={(e) => e.stopPropagation()}
                         style={{
                           position: "fixed",
                           top: `${popoverAnchor.top}px`,
                           left: `${popoverAnchor.left}px`,
                           zIndex: 9999,
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "8px",
+                          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.22)",
+                          padding: "10px",
+                          width: "190px",
+                          fontSize: "11px",
                         }}
                       >
-                        <button type="button" className="color-swatch swatch-yellow" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#fef08a")} />
-                        <button type="button" className="color-swatch swatch-green" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#bbf7d0")} />
-                        <button type="button" className="color-swatch swatch-cyan" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#bae6fd")} />
-                        <button type="button" className="color-swatch swatch-pink" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("#fbcfe8")} />
-                        <button type="button" className="color-swatch swatch-clear" onMouseDown={(e) => e.preventDefault()} onClick={() => handleHighlightColor("transparent")} title="Hapus Sorotan">✕</button>
+                        <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "6px" }}>
+                          Warna Sorotan Teks
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "5px", marginBottom: "8px" }}>
+                          {MS_WORD_HIGHLIGHT_COLORS.map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              title={item.label}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() => handleHighlightColor(item.color)}
+                              style={{
+                                width: "26px",
+                                height: "26px",
+                                backgroundColor: item.color,
+                                border: "1px solid rgba(0,0,0,0.18)",
+                                borderRadius: "4px",
+                                cursor: "pointer",
+                                padding: 0,
+                              }}
+                              className="hover:scale-110 transition-transform shadow-2xs"
+                            />
+                          ))}
+                        </div>
+                        <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleHighlightColor("transparent")}
+                            style={{
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "6px",
+                              padding: "4px 8px",
+                              background: "transparent",
+                              border: "none",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "#64748b",
+                            }}
+                            className="hover:bg-slate-100 hover:text-slate-900"
+                          >
+                            <span style={{ fontSize: "12px", color: "#dc2626", fontWeight: 800 }}>✕</span>
+                            <span>Tanpa Warna Sorotan</span>
+                          </button>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -2425,7 +2538,7 @@ export function DocWordRibbon({
                         saveActiveSelection();
                       }}
                       onClick={(e) => {
-                        captureAnchor(e.currentTarget, 160);
+                        captureAnchor(e.currentTarget, 230);
                         setShowColorPicker((prev) => !prev);
                         setShowHighlightPicker(false);
                       }}
@@ -2436,19 +2549,142 @@ export function DocWordRibbon({
                     </button>
                     {showColorPicker && (
                       <div
-                        className="doc-color-dropdown"
+                        className="doc-color-palette-popover no-print"
+                        onClick={(e) => e.stopPropagation()}
                         style={{
                           position: "fixed",
                           top: `${popoverAnchor.top}px`,
                           left: `${popoverAnchor.left}px`,
                           zIndex: 9999,
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "8px",
+                          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.22)",
+                          padding: "10px",
+                          width: "230px",
+                          fontSize: "11px",
                         }}
                       >
-                        <button type="button" className="color-swatch swatch-black" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#0f172a")} />
-                        <button type="button" className="color-swatch swatch-navy" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#0f2942")} />
-                        <button type="button" className="color-swatch swatch-blue" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#1d4ed8")} />
-                        <button type="button" className="color-swatch swatch-red" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#b91c1c")} />
-                        <button type="button" className="color-swatch swatch-gray" onMouseDown={(e) => e.preventDefault()} onClick={() => handleTextColor("#475569")} />
+                        {/* 1. Automatic Color (Otomatis Hitam) */}
+                        <div style={{ marginBottom: "8px" }}>
+                          <button
+                            type="button"
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => handleTextColor("#000000")}
+                            style={{
+                              width: "100%",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "4px 6px",
+                              background: "transparent",
+                              border: "1px solid transparent",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              textAlign: "left",
+                              fontSize: "11.5px",
+                              fontWeight: 600,
+                              color: "#1e293b",
+                            }}
+                            className="hover:bg-slate-100"
+                          >
+                            <span style={{ width: "16px", height: "16px", background: "#000000", borderRadius: "3px", border: "1px solid #94a3b8", display: "inline-block" }} />
+                            <span>Otomatis (Hitam)</span>
+                          </button>
+                        </div>
+
+                        {/* 2. Theme Colors (Warna Tema) */}
+                        <div style={{ marginBottom: "8px" }}>
+                          <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "4px" }}>
+                            Warna Tema
+                          </div>
+                          {/* 10 columns grid */}
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "2px" }}>
+                            {MS_WORD_THEME_COLORS.map((row, rIdx) =>
+                              row.map((c, cIdx) => (
+                                <button
+                                  key={`${rIdx}-${cIdx}`}
+                                  type="button"
+                                  title={c}
+                                  onMouseDown={(e) => e.preventDefault()}
+                                  onClick={() => handleTextColor(c)}
+                                  style={{
+                                    width: "18px",
+                                    height: rIdx === 0 ? "18px" : "13px",
+                                    backgroundColor: c,
+                                    border: c === "#ffffff" ? "1px solid #cbd5e1" : "1px solid rgba(0,0,0,0.12)",
+                                    borderRadius: rIdx === 0 ? "2px 2px 0 0" : rIdx === 5 ? "0 0 2px 2px" : "0",
+                                    cursor: "pointer",
+                                    padding: 0,
+                                    transition: "transform 0.1s ease",
+                                  }}
+                                  className="hover:scale-125 hover:z-10 relative"
+                                />
+                              ))
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 3. Standard Colors (Warna Standar) */}
+                        <div style={{ marginBottom: "8px" }}>
+                          <div style={{ fontSize: "10px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: "4px" }}>
+                            Warna Standar
+                          </div>
+                          <div style={{ display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gap: "2px" }}>
+                            {MS_WORD_STANDARD_COLORS.map((c, idx) => (
+                              <button
+                                key={idx}
+                                type="button"
+                                title={c}
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={() => handleTextColor(c)}
+                                style={{
+                                  width: "18px",
+                                  height: "18px",
+                                  backgroundColor: c,
+                                  border: "1px solid rgba(0,0,0,0.15)",
+                                  borderRadius: "2px",
+                                  cursor: "pointer",
+                                  padding: 0,
+                                }}
+                                className="hover:scale-125 hover:z-10 relative"
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 4. More Colors / Custom Color Picker (Warna Lainnya...) */}
+                        <div style={{ borderTop: "1px solid #e2e8f0", paddingTop: "6px" }}>
+                          <label
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              padding: "4px 6px",
+                              borderRadius: "4px",
+                              cursor: "pointer",
+                              fontSize: "11px",
+                              fontWeight: 600,
+                              color: "#334155",
+                            }}
+                            className="hover:bg-slate-100"
+                          >
+                            <input
+                              type="color"
+                              defaultValue="#0f2942"
+                              onChange={(e) => handleTextColor(e.target.value)}
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                padding: 0,
+                                border: "none",
+                                background: "none",
+                                cursor: "pointer",
+                              }}
+                            />
+                            <span>Warna Lainnya (Color Picker)...</span>
+                          </label>
+                        </div>
                       </div>
                     )}
                   </div>
