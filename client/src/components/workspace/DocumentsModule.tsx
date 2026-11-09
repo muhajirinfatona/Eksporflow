@@ -51,6 +51,11 @@ import {
 } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import {
+  GeometricTopPolygon,
+  GeometricBottomPolygon,
+  GEOMETRIC_STYLES,
+} from "./GeometricLetterheadPolygons";
 import { Field, SelectField } from "./Primitives";
 import { DocWordRibbon } from "./DocWordRibbon";
 import { DigitalSignatureModal } from "./DigitalSignatureModal";
@@ -147,20 +152,27 @@ export function DocumentsModule({
 
   // Clean up any leftover dummy "THYNK UNLIMITED" banner and auto-convert to Geometris Modern for PT. Indico Export Indonesia
   useEffect(() => {
-    if (shipment.exporter === "THYNK UNLIMITED" || shipment.letterheadBannerImage === "/letterhead_teal_header.png") {
-      update("letterheadLayout", "geometric");
-      update("letterheadMode", "standard");
+    if (
+      shipment.exporter === "THYNK UNLIMITED" ||
+      shipment.letterheadBannerImage === "/letterhead_teal_header.png" ||
+      !shipment.letterheadImage ||
+      (typeof shipment.letterheadImage === "string" && shipment.letterheadImage.length > 12000)
+    ) {
       update("letterheadImage", DEFAULT_INDICO_LOGO);
-      update("letterheadDividerColor", "#005f73");
-      update("letterheadDividerStyle", "single");
-      update("letterheadBannerImage", "");
-      update("letterheadFooterImage", "");
-      update("letterheadFooterEnabled", true);
-      update("letterheadFullPageBgEnabled", false);
-      update("letterheadShowAddress", false);
-      update("exporter", "PT. INDICO EXPORT INDONESIA");
-      update("letterheadText", "PT. INDICO EXPORT INDONESIA");
-      update("exporterContact", "Tel: +62 812-3456-7890 | Email: official@indicoexport.com | Web: www.indicoexport.com");
+      if (shipment.exporter === "THYNK UNLIMITED") {
+        update("letterheadLayout", "geometric");
+        update("letterheadMode", "standard");
+        update("letterheadDividerColor", "#005f73");
+        update("letterheadDividerStyle", "single");
+        update("letterheadBannerImage", "");
+        update("letterheadFooterImage", "");
+        update("letterheadFooterEnabled", true);
+        update("letterheadFullPageBgEnabled", false);
+        update("letterheadShowAddress", false);
+        update("exporter", "PT. INDICO EXPORT INDONESIA");
+        update("letterheadText", "PT. INDICO EXPORT INDONESIA");
+        update("exporterContact", "Tel: +62 812-3456-7890 | Email: official@indicoexport.com | Web: www.indicoexport.com");
+      }
     }
   }, []);
 
@@ -993,11 +1005,15 @@ export function DocumentsModule({
   };
 
   // Quick Preset Handlers for Letterhead Models
-  const applyGeometricPreset = () => {
+  const applyGeometricPreset = (styleId: string = "teal-slant") => {
     trackedUpdate("letterheadLayout", "geometric");
+    trackedUpdate("letterheadGeometricStyle", styleId as any);
     trackedUpdate("letterheadMode", "standard");
     trackedUpdate("letterheadImage", DEFAULT_INDICO_LOGO);
-    trackedUpdate("letterheadDividerColor", "#005f73");
+    const target = GEOMETRIC_STYLES.find((s) => s.id === styleId);
+    if (target) {
+      trackedUpdate("letterheadDividerColor", target.primaryColor);
+    }
     trackedUpdate("letterheadDividerStyle", "single");
     trackedUpdate("letterheadBannerImage", "");
     trackedUpdate("letterheadFooterImage", "");
@@ -1008,7 +1024,7 @@ export function DocumentsModule({
       trackedUpdate("exporter", "PT. INDICO EXPORT INDONESIA");
       trackedUpdate("letterheadText", "PT. INDICO EXPORT INDONESIA");
     }
-    toast.success("Model Desain Geometris Modern (Desain PDF untuk PT. Indico Export Indonesia) berhasil diterapkan!");
+    toast.success(`Model Geometris: ${target?.label || "Geometris"} berhasil diterapkan!`);
   };
 
   const applyIndicoPreset = () => {
@@ -1339,78 +1355,6 @@ export function DocumentsModule({
           </div>
         )}
 
-        {/* Quick Letterhead Template Selector Bar (Always prominent above paper) */}
-        <div className="no-print w-full max-w-[210mm] mx-auto mb-3 px-3 py-2 bg-white/95 backdrop-blur border border-slate-200 rounded-lg shadow-xs flex flex-wrap items-center justify-between gap-2 text-xs">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-800 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-teal-600 animate-pulse"></span>
-              Pilihan Model Kop Surat:
-            </span>
-            <div className="inline-flex rounded-md shadow-xs p-0.5 bg-slate-100 border border-slate-200 gap-1">
-              <button
-                type="button"
-                onClick={applyGeometricPreset}
-                className={`px-3 py-1 text-xs font-bold rounded flex items-center gap-1.5 transition-all ${
-                  shipment.letterheadLayout === "geometric" && shipment.letterheadMode !== "banner"
-                    ? "bg-teal-700 text-white shadow-xs"
-                    : "bg-teal-50 text-teal-800 hover:bg-teal-100 border border-teal-200"
-                }`}
-                title="Model Desain Geometris Modern (Desain sesuai contoh PDF) untuk PT. INDICO EXPORT INDONESIA"
-              >
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-300"></span>
-                💎 Model Geometris Modern (Indico - Sesuai PDF)
-              </button>
-              <button
-                type="button"
-                onClick={applyIndicoPreset}
-                className={`px-2.5 py-1 text-xs font-semibold rounded transition-all flex items-center gap-1.5 ${
-                  shipment.letterheadLayout !== "geometric" && shipment.letterheadMode !== "banner"
-                    ? "bg-white text-blue-900 shadow-xs border border-blue-200"
-                    : "text-slate-600 hover:text-slate-900"
-                }`}
-                title="Model Kop Standar Resmi Garis Ganda"
-              >
-                🌿 Standar Resmi (Garis Ganda)
-              </button>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-[11px]">
-            {shipment.letterheadLayout === "geometric" && (
-              <div className="flex items-center gap-1 mr-2 text-[10.5px] font-semibold text-slate-600">
-                <span>Warna Aksen:</span>
-                <button
-                  type="button"
-                  onClick={() => trackedUpdate("letterheadDividerColor", "#005f73")}
-                  className={`w-4 h-4 rounded-full border ${shipment.letterheadDividerColor === "#005f73" ? "ring-2 ring-teal-500 scale-110" : "border-slate-300"}`}
-                  style={{ backgroundColor: "#005f73" }}
-                  title="Teal PDF (#005f73)"
-                />
-                <button
-                  type="button"
-                  onClick={() => trackedUpdate("letterheadDividerColor", "#0f2942")}
-                  className={`w-4 h-4 rounded-full border ${shipment.letterheadDividerColor === "#0f2942" ? "ring-2 ring-blue-500 scale-110" : "border-slate-300"}`}
-                  style={{ backgroundColor: "#0f2942" }}
-                  title="Navy Eksekutif (#0f2942)"
-                />
-                <button
-                  type="button"
-                  onClick={() => trackedUpdate("letterheadDividerColor", "#065f46")}
-                  className={`w-4 h-4 rounded-full border ${shipment.letterheadDividerColor === "#065f46" ? "ring-2 ring-emerald-500 scale-110" : "border-slate-300"}`}
-                  style={{ backgroundColor: "#065f46" }}
-                  title="Emerald Green (#065f46)"
-                />
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => setIsSettingsOpen(true)}
-              className="text-blue-700 hover:text-blue-900 font-semibold underline flex items-center gap-1"
-            >
-              ⚙️ Pengaturan Kop Lengkap
-            </button>
-          </div>
-        </div>
-
         <div
           key={editorKey}
           contentEditable={isEditMode}
@@ -1430,30 +1374,12 @@ export function DocumentsModule({
           }}
           className={`paper-document relative overflow-hidden paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""} ${isEditMode ? "word-editable-mode" : ""}`}
         >
-          {/* Top-Right Modern Geometric Polygon (Matching PDF Reference Model) */}
+          {/* Top-Right Modern Geometric Polygon (Multiple Pinterest Corporate Styles) */}
           {shipment.letterheadLayout === "geometric" && (
-            <div
-              className="pointer-events-none select-none absolute top-0 right-0 overflow-hidden z-0"
-              style={{
-                width: "360px",
-                height: "115px",
-              }}
-            >
-              <svg
-                viewBox="0 0 360 115"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="w-full h-full"
-                preserveAspectRatio="none"
-              >
-                {/* Subtle Sky Blue Accent Backing */}
-                <polygon points="110,0 360,0 360,20 95,20" fill="#0ea5e9" opacity="0.3" />
-                {/* Main Deep Teal Corporate Polygon */}
-                <polygon points="75,0 360,0 360,82 135,82" fill={shipment.letterheadDividerColor || "#005f73"} />
-                {/* Crisp Teal/Cyan Accent Line Edge */}
-                <polygon points="135,82 360,82 360,92 145,92" fill="#0a9396" />
-              </svg>
-            </div>
+            <GeometricTopPolygon
+              style={shipment.letterheadGeometricStyle || "teal-slant"}
+              color={shipment.letterheadDividerColor || "#005f73"}
+            />
           )}
 
           {/* Subtle Watermark Emblem in Center Background for Geometric Model */}
@@ -1919,8 +1845,9 @@ function OfficialLetterhead({
   const quickFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const effectiveLogoImage =
-    shipment.letterheadImage ||
-    (exporterName.toLowerCase().includes("indico") ? DEFAULT_INDICO_LOGO : "");
+    shipment.letterheadImage && shipment.letterheadImage.length < 12000
+      ? shipment.letterheadImage
+      : (exporterName.toLowerCase().includes("indico") ? DEFAULT_INDICO_LOGO : shipment.letterheadImage || "");
 
   const rawScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
   const activeScale = isNaN(rawScale) || rawScale < 30 ? 100 : Math.min(300, rawScale);
@@ -3381,38 +3308,15 @@ function OfficialFooter({
           : { userSelect: "none" }
       }
     >
-      {/* 1. Geometric Model Footer Polygons & Contact Info (Matching PDF Reference Model) */}
+      {/* 1. Geometric Model Footer Polygons & Contact Info */}
       {isGeometric && (
         <div className="relative pt-4 pb-1">
           {/* Bottom-Left Modern Geometric Polygon */}
-          <div
-            className="pointer-events-none select-none absolute bottom-0 left-0 overflow-hidden z-0"
-            style={
-              docMargins
-                ? {
-                    marginBottom: `-${docMargins.bottom}mm`,
-                    marginLeft: `-${docMargins.left}mm`,
-                    width: "320px",
-                    height: "95px",
-                  }
-                : { width: "320px", height: "95px" }
-            }
-          >
-            <svg
-              viewBox="0 0 320 95"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="w-full h-full"
-              preserveAspectRatio="none"
-            >
-              {/* Main Deep Teal Polygon */}
-              <polygon points="0,26 190,26 245,95 0,95" fill={shipment.letterheadDividerColor || "#005f73"} />
-              {/* Top Cyan Accent Strip */}
-              <polygon points="0,18 180,18 190,26 0,26" fill="#0a9396" />
-              {/* Slanted Accent Edge */}
-              <polygon points="190,26 210,26 260,95 245,95" fill="#2dd4bf" opacity="0.85" />
-            </svg>
-          </div>
+          <GeometricBottomPolygon
+            style={shipment.letterheadGeometricStyle || "teal-slant"}
+            color={shipment.letterheadDividerColor || "#005f73"}
+            docMargins={docMargins}
+          />
 
           {/* Right-Aligned Contact Information Pillars */}
           <div className="relative z-10 flex flex-wrap items-center justify-end gap-x-5 gap-y-1.5 text-[8.5pt] text-slate-700 font-medium py-1">

@@ -95,6 +95,11 @@ import {
   canEditorUndo,
   canEditorRedo,
 } from "../../lib/wordEditorEngine";
+import {
+  GEOMETRIC_STYLES,
+  GeometricThumbnailPreview,
+  type GeometricStyleDefinition,
+} from "./GeometricLetterheadPolygons";
 
 interface DocWordRibbonProps {
   shipment: Shipment;
@@ -143,18 +148,24 @@ export function DocWordRibbon({
   const [showLetterheadModal, setShowLetterheadModal] = useState(false);
   const [letterheadModalTab, setLetterheadModalTab] = useState<"import" | "spacing">("import");
   const [showLetterheadMenu, setShowLetterheadMenu] = useState(false);
+  const [showGeometricGallery, setShowGeometricGallery] = useState(false);
   const letterheadMenuRef = useRef<HTMLDivElement>(null);
+  const geometricGalleryRef = useRef<HTMLDivElement>(null);
   const positionMenuRef = useRef<HTMLDivElement>(null);
   const wrapTextMenuRef = useRef<HTMLDivElement>(null);
   const bannerUploadRef = useRef<HTMLInputElement>(null);
   const logoUploadRef = useRef<HTMLInputElement>(null);
   const footerUploadRef = useRef<HTMLInputElement>(null);
 
-  const applyGeometricPreset = () => {
+  const applyGeometricPreset = (styleId: string = "teal-slant") => {
     update("letterheadLayout", "geometric");
+    update("letterheadGeometricStyle", styleId as any);
     update("letterheadMode", "standard");
     update("letterheadImage", DEFAULT_INDICO_LOGO);
-    update("letterheadDividerColor", "#005f73");
+    const target = GEOMETRIC_STYLES.find((s) => s.id === styleId);
+    if (target) {
+      update("letterheadDividerColor", target.primaryColor);
+    }
     update("letterheadDividerStyle", "single");
     update("letterheadBannerImage", "");
     update("letterheadFooterImage", "");
@@ -165,7 +176,7 @@ export function DocWordRibbon({
       update("exporter", "PT. INDICO EXPORT INDONESIA");
       update("letterheadText", "PT. INDICO EXPORT INDONESIA");
     }
-    toast.success("Model Desain Geometris Modern (Desain PDF untuk PT. Indico Export Indonesia) berhasil diterapkan!");
+    toast.success(`Model Geometris: ${target?.label || "Geometris"} berhasil diterapkan!`);
   };
 
   const applyIndicoPreset = () => {
@@ -588,14 +599,17 @@ export function DocWordRibbon({
       if (letterheadMenuRef.current && !letterheadMenuRef.current.contains(event.target as Node)) {
         setShowLetterheadMenu(false);
       }
+      if (geometricGalleryRef.current && !geometricGalleryRef.current.contains(event.target as Node)) {
+        setShowGeometricGallery(false);
+      }
     }
-    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu || showLetterheadMenu) {
+    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu || showLetterheadMenu || showGeometricGallery) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu, showLetterheadMenu]);
+  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu, showLetterheadMenu, showGeometricGallery]);
 
   // Microsoft Word 9-Grid Position Preset Handler
   const applyWordPositionPreset = (
@@ -1769,20 +1783,20 @@ export function DocWordRibbon({
                 gap: "5px",
                 padding: "3px 9px",
                 borderRadius: "5px",
-                background: shipment.letterheadMode === "banner" ? "#0f766e" : "#f1f5f9",
-                color: shipment.letterheadMode === "banner" ? "#ffffff" : "#0f172a",
-                border: shipment.letterheadMode === "banner" ? "1px solid #115e59" : "1px solid #cbd5e1",
+                background: shipment.letterheadLayout === "geometric" ? "#ccfbf1" : "#f1f5f9",
+                color: shipment.letterheadLayout === "geometric" ? "#0f766e" : "#0f172a",
+                border: shipment.letterheadLayout === "geometric" ? "1px solid #14b8a6" : "1px solid #cbd5e1",
                 fontSize: "11px",
                 fontWeight: 600,
                 cursor: "pointer",
                 boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
               }}
-              title="Ganti Model Kop Surat (Standar Indico atau Modern Geometric Teal PDF)"
+              title="Ganti Model Kop Surat (Geometris atau Standar)"
             >
               <span>
                 {shipment.letterheadLayout === "geometric"
-                  ? "💎 Kop Geometris Modern"
-                  : "🌿 Kop Standar Indico"}
+                  ? `💎 Geometris (${GEOMETRIC_STYLES.find((s) => s.id === (shipment.letterheadGeometricStyle || "teal-slant"))?.label || "Prisma"})`
+                  : "🌿 Standar"}
               </span>
               <ChevronDown size={12} style={{ opacity: 0.8 }} />
             </button>
@@ -1792,7 +1806,7 @@ export function DocWordRibbon({
                   position: "absolute",
                   right: 0,
                   top: "calc(100% + 4px)",
-                  width: "270px",
+                  width: "290px",
                   backgroundColor: "#ffffff",
                   borderRadius: "8px",
                   boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1)",
@@ -1802,38 +1816,58 @@ export function DocWordRibbon({
                   textAlign: "left",
                 }}
               >
-                <div style={{ padding: "4px 12px", fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-                  Pilih Model Kop Surat
+                <div style={{ padding: "4px 12px", fontSize: "10px", fontWeight: 700, color: "#0f766e", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Desain Geometris (Invoice)</span>
+                  <span style={{ fontSize: "9px", background: "#ccfbf1", color: "#0f766e", padding: "1px 5px", borderRadius: "3px", fontWeight: 700 }}>6 Varian</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    applyGeometricPreset();
-                    setShowLetterheadMenu(false);
-                  }}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "8px 12px",
-                    border: "none",
-                    background: shipment.letterheadLayout === "geometric" ? "#f0fdfa" : "transparent",
-                    cursor: "pointer",
-                    textAlign: "left",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "16px" }}>💎</span>
-                    <div>
-                      <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f766e" }}>Model Geometris Modern</div>
-                      <div style={{ fontSize: "10px", color: "#0d9488" }}>Desain PDF untuk PT. Indico Export Indonesia</div>
-                    </div>
-                  </div>
-                  {shipment.letterheadLayout === "geometric" && (
-                    <Check size={14} color="#0d9488" />
-                  )}
-                </button>
+                {GEOMETRIC_STYLES.map((st) => {
+                  const isCur = shipment.letterheadLayout === "geometric" && (shipment.letterheadGeometricStyle || "teal-slant") === st.id;
+                  return (
+                    <button
+                      key={st.id}
+                      type="button"
+                      onClick={() => {
+                        applyGeometricPreset(st.id);
+                        setShowLetterheadMenu(false);
+                      }}
+                      style={{
+                        width: "100%",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        padding: "6px 12px",
+                        border: "none",
+                        background: isCur ? "#f0fdfa" : "transparent",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        borderLeft: isCur ? `3px solid ${st.primaryColor}` : "3px solid transparent",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span
+                          style={{
+                            width: "10px",
+                            height: "10px",
+                            borderRadius: "50%",
+                            backgroundColor: st.primaryColor,
+                            display: "inline-block",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <div>
+                          <div style={{ fontSize: "11px", fontWeight: isCur ? 700 : 600, color: isCur ? "#0f766e" : "#1e293b" }}>
+                            {st.label}
+                          </div>
+                          <div style={{ fontSize: "9.5px", color: "#64748b" }}>{st.tagline}</div>
+                        </div>
+                      </div>
+                      {isCur && <Check size={13} color="#0d9488" />}
+                    </button>
+                  );
+                })}
+
+                <div style={{ margin: "4px 0", borderTop: "1px solid #f1f5f9" }} />
+
                 <button
                   type="button"
                   onClick={() => {
@@ -1845,24 +1879,22 @@ export function DocWordRibbon({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "8px 12px",
+                    padding: "7px 12px",
                     border: "none",
-                    borderTop: "1px solid #f1f5f9",
                     background: shipment.letterheadLayout !== "geometric" ? "#eff6ff" : "transparent",
                     cursor: "pointer",
                     textAlign: "left",
+                    borderLeft: shipment.letterheadLayout !== "geometric" ? "3px solid #2563eb" : "3px solid transparent",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "16px" }}>🌿</span>
+                    <span style={{ fontSize: "14px" }}>🌿</span>
                     <div>
-                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b" }}>Standar Resmi Indico</div>
-                      <div style={{ fontSize: "10px", color: "#64748b" }}>Format teks & garis ganda klasik</div>
+                      <div style={{ fontSize: "11px", fontWeight: 600, color: "#1e293b" }}>Standar Resmi (Garis Ganda)</div>
+                      <div style={{ fontSize: "9.5px", color: "#64748b" }}>Format teks & pembatas garis ganda</div>
                     </div>
                   </div>
-                  {shipment.letterheadLayout !== "geometric" && (
-                    <Check size={14} color="#2563eb" />
-                  )}
+                  {shipment.letterheadLayout !== "geometric" && <Check size={13} color="#2563eb" />}
                 </button>
               </div>
             )}
@@ -1984,16 +2016,16 @@ export function DocWordRibbon({
 
               <div className="doc-ribbon-divider" />
 
-              {/* Quick Template Switcher Group */}
-              <div className="doc-ribbon-group group-kop-template">
+              {/* Quick Template Switcher Group with Geometris Gallery */}
+              <div className="doc-ribbon-group group-kop-template relative" ref={geometricGalleryRef} style={{ position: "relative" }}>
                 <div className="doc-ribbon-row-top" style={{ gap: "4px" }}>
                   <button
                     type="button"
-                    onClick={applyGeometricPreset}
+                    onClick={() => setShowGeometricGallery((v) => !v)}
                     className={`doc-ribbon-btn-text ${shipment.letterheadLayout === "geometric" ? "active" : ""}`}
                     style={{
                       height: "22px",
-                      padding: "0 6px",
+                      padding: "0 7px",
                       fontSize: "11px",
                       fontWeight: 700,
                       color: shipment.letterheadLayout === "geometric" ? "#0f766e" : "#334155",
@@ -2001,10 +2033,14 @@ export function DocWordRibbon({
                       border: shipment.letterheadLayout === "geometric" ? "1px solid #14b8a6" : "1px solid #cbd5e1",
                       borderRadius: "3px",
                       cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "4px",
                     }}
-                    title="Pasang Model Desain Geometris Modern (Desain PDF) untuk PT. INDICO EXPORT INDONESIA"
+                    title="Pilih Desain Kop Geometris (Pilihan Beragam Sesuai Invoice Pinterest)"
                   >
-                    💎 Geometris PDF
+                    <span>💎 Geometris</span>
+                    <ChevronDown size={11} style={{ opacity: 0.8 }} />
                   </button>
                   <button
                     type="button"
@@ -2027,6 +2063,106 @@ export function DocWordRibbon({
                   </button>
                 </div>
                 <span className="doc-ribbon-group-label">Model Kop</span>
+
+                {/* Popover Gallery of Geometric Designs */}
+                {showGeometricGallery && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      left: 0,
+                      top: "calc(100% + 4px)",
+                      width: "350px",
+                      backgroundColor: "#ffffff",
+                      borderRadius: "10px",
+                      boxShadow: "0 12px 30px -4px rgba(0,0,0,0.22), 0 8px 12px -6px rgba(0,0,0,0.12)",
+                      border: "1px solid #cbd5e1",
+                      padding: "10px",
+                      zIndex: 9999,
+                      textAlign: "left",
+                    }}
+                  >
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", borderBottom: "1px solid #f1f5f9", paddingBottom: "6px" }}>
+                      <div>
+                        <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f766e" }}>Koleksi Kop Geometris</div>
+                        <div style={{ fontSize: "10px", color: "#64748b" }}>Desain invoice ekspor modern (referensi Pinterest)</div>
+                      </div>
+                      <span style={{ fontSize: "10px", fontWeight: 700, color: "#0f766e", background: "#ccfbf1", padding: "2px 6px", borderRadius: "4px" }}>
+                        6 Model
+                      </span>
+                    </div>
+
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxHeight: "320px", overflowY: "auto", paddingRight: "2px" }}>
+                      {GEOMETRIC_STYLES.map((st) => {
+                        const isSelected = shipment.letterheadLayout === "geometric" && (shipment.letterheadGeometricStyle || "teal-slant") === st.id;
+                        return (
+                          <div
+                            key={st.id}
+                            onClick={() => {
+                              applyGeometricPreset(st.id);
+                              setShowGeometricGallery(false);
+                            }}
+                            style={{
+                              padding: "6px",
+                              borderRadius: "8px",
+                              border: isSelected ? "2px solid #0f766e" : "1px solid #e2e8f0",
+                              background: isSelected ? "#f0fdfa" : "#ffffff",
+                              cursor: "pointer",
+                              transition: "all 0.15s ease",
+                            }}
+                            className="hover:border-teal-500 hover:shadow-xs group"
+                          >
+                            <div style={{ marginBottom: "5px" }}>
+                              <GeometricThumbnailPreview style={st.id} color={st.primaryColor} />
+                            </div>
+                            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                              <span style={{ fontSize: "11px", fontWeight: 700, color: isSelected ? "#0f766e" : "#1e293b" }}>
+                                {st.label}
+                              </span>
+                              {isSelected && <Check size={12} color="#0f766e" />}
+                            </div>
+                            <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px", lineHeight: 1.2 }}>
+                              {st.tagline}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Color Accent Row */}
+                    <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #f1f5f9", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <span style={{ fontSize: "10px", fontWeight: 600, color: "#475569" }}>Warna Aksen:</span>
+                      <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
+                        {[
+                          { color: "#005f73", title: "Teal (#005f73)" },
+                          { color: "#0f2942", title: "Navy (#0f2942)" },
+                          { color: "#1e3a8a", title: "Royal Blue (#1e3a8a)" },
+                          { color: "#065f46", title: "Emerald (#065f46)" },
+                          { color: "#7c2d12", title: "Terracotta (#7c2d12)" },
+                          { color: "#334155", title: "Graphite (#334155)" },
+                        ].map((c) => (
+                          <button
+                            key={c.color}
+                            type="button"
+                            onClick={() => {
+                              update("letterheadDividerColor", c.color);
+                              toast.success(`Warna aksen geometris diubah ke ${c.title}`);
+                            }}
+                            style={{
+                              width: "16px",
+                              height: "16px",
+                              borderRadius: "50%",
+                              backgroundColor: c.color,
+                              border: shipment.letterheadDividerColor === c.color ? "2px solid #ffffff" : "1px solid #cbd5e1",
+                              outline: shipment.letterheadDividerColor === c.color ? "2px solid #0f766e" : "none",
+                              cursor: "pointer",
+                            }}
+                            title={c.title}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="doc-ribbon-divider" />
@@ -2663,7 +2799,7 @@ export function DocWordRibbon({
                     style={{ fontSize: "10.5px", height: "22px", padding: "1px 5px", fontWeight: 600, border: "1px solid #cbd5e1", borderRadius: "3px", background: "#f8fafc", color: "#1e293b", cursor: "pointer" }}
                     title="Pilih Tata Letak Kop Surat (Geometris Modern, Grid Eksekutif, Split Korporat, Simetris)"
                   >
-                    <option value="geometric">💎 Geometris Modern (PDF)</option>
+                    <option value="geometric">💎 Geometris</option>
                     <option value="left">Grid Eksekutif</option>
                     <option value="split">Split Korporat</option>
                     <option value="center">Simetris (Tengah)</option>
@@ -5691,8 +5827,9 @@ export function DocWordRibbon({
                     <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
                       Tata Letak Kop Surat
                     </label>
-                    <div className="grid grid-cols-3 gap-2.5">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                       {[
+                        { id: "geometric", label: "💎 Geometris", desc: "Varian poligon modern & invoice Pinterest" },
                         { id: "left", label: "Rata Kiri", desc: "Logo kiri, teks rata kiri" },
                         { id: "center", label: "Simetris Tengah", desc: "Teks terpusat di tengah" },
                         { id: "split", label: "Split Kiri-Kanan", desc: "Nama kiri, alamat kanan" },
@@ -5703,12 +5840,16 @@ export function DocWordRibbon({
                             key={ly.id}
                             type="button"
                             onClick={() => {
-                              update("letterheadLayout", ly.id as any);
-                              toast.success(`Tata letak kop: ${ly.label}`);
+                              if (ly.id === "geometric") {
+                                applyGeometricPreset(shipment.letterheadGeometricStyle || "teal-slant");
+                              } else {
+                                update("letterheadLayout", ly.id as any);
+                                toast.success(`Tata letak kop: ${ly.label}`);
+                              }
                             }}
                             className={`p-2.5 rounded-xl border text-left transition-all ${
                               active
-                                ? "border-blue-600 bg-blue-50/50 ring-1 ring-blue-600/20 shadow-xs"
+                                ? "border-teal-600 bg-teal-50/50 ring-1 ring-teal-600/20 shadow-xs"
                                 : "border-slate-200 bg-white hover:border-slate-300"
                             }`}
                           >
@@ -5718,6 +5859,46 @@ export function DocWordRibbon({
                         );
                       })}
                     </div>
+
+                    {/* Sub-gallery if Geometris is selected */}
+                    {shipment.letterheadLayout === "geometric" && (
+                      <div className="mt-3 p-3 rounded-xl border border-teal-200 bg-teal-50/40">
+                        <div className="flex items-center justify-between mb-2">
+                          <label className="text-[11px] font-bold text-teal-900 uppercase tracking-wider">
+                            Pilih Desain Geometris (Invoice Pinterest)
+                          </label>
+                          <span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded">
+                            6 Gaya Tersedia
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                          {GEOMETRIC_STYLES.map((st) => {
+                            const isCur = (shipment.letterheadGeometricStyle || "teal-slant") === st.id;
+                            return (
+                              <button
+                                key={st.id}
+                                type="button"
+                                onClick={() => applyGeometricPreset(st.id)}
+                                className={`p-2 rounded-lg border text-left transition-all ${
+                                  isCur
+                                    ? "border-teal-600 bg-white ring-2 ring-teal-500/20 shadow-xs"
+                                    : "border-slate-200 bg-white/80 hover:border-teal-300"
+                                }`}
+                              >
+                                <div className="mb-1.5">
+                                  <GeometricThumbnailPreview style={st.id} color={st.primaryColor} />
+                                </div>
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-bold text-slate-800">{st.label}</span>
+                                  {isCur && <Check size={12} className="text-teal-600" />}
+                                </div>
+                                <div className="text-[9.5px] text-slate-500 mt-0.5 leading-tight">{st.tagline}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Toggle Tampilkan Alamat di Kop Atas */}
