@@ -2807,7 +2807,7 @@ function OfficialLetterhead({
                 contentEditable={false}
                 style={{
                   width: "1.5px",
-                  height: showAddressInHeader ? (layoutMode === "split" ? "56px" : "66px") : "48px",
+                  height: showAddressInHeader ? "54px" : "44px",
                   background: "#cbd5e1",
                   margin: "0 16px 0 6px",
                   flexShrink: 0,
@@ -3142,103 +3142,30 @@ function OfficialLetterhead({
                 </p>
 
                 {showAddressInHeader && (
-                  <>
-                    {/* Full-Width Structural Hairline */}
-                    <div
-                      contentEditable={false}
-                      style={{
-                        height: "1px",
-                        width: "100%",
-                        background: "#cbd5e1",
-                        margin: `${Math.max(4, lineSpacing * 2)}px 0`,
-                      }}
-                    />
-
-                    {/* Row 3 & Row 4: Clean Executive Address & Contact Details */}
-                    <div
-                      className="company-details-wrap"
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: `${Math.max(2, lineSpacing)}px`,
-                      }}
-                    >
-                      {/* Row 3: Head Office Address */}
-                      <div
-                        className="company-details"
-                        style={{
-                          fontSize: "8.6pt",
-                          lineHeight: 1.35,
-                          color: "#1e293b",
-                          fontWeight: 500,
-                          whiteSpace: "normal",
-                          wordBreak: "break-word",
-                          margin: 0,
-                        }}
-                        onBlur={(e) => {
-                          const text = e.currentTarget.innerText.trim();
-                          if (update && text) {
-                            update("letterheadText", text);
-                          }
-                        }}
-                      >
-                        <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
-                          {addressLabel}:{" "}
-                        </strong>
-                        <span>{addressBody}</span>
-                      </div>
-
-                      {/* Row 4: Tel | Email | Web */}
-                      <div
-                        className="company-contact"
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          flexWrap: "wrap",
-                          gap: "0 8px",
-                          lineHeight: 1.35,
-                          fontSize: "8.6pt",
-                          color: "#1e293b",
-                          margin: 0,
-                        }}
-                      >
-                        <span>
-                          <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
-                            Tel:{" "}
-                          </strong>
-                          <span onBlur={(e) => updateContactPart("tel", e.currentTarget.innerText)}>
-                            {telVal}
-                          </span>
-                        </span>
-
-                        <span style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 2px" }}>
-                          •
-                        </span>
-
-                        <span>
-                          <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
-                            Email:{" "}
-                          </strong>
-                          <span onBlur={(e) => updateContactPart("email", e.currentTarget.innerText)}>
-                            {emailVal}
-                          </span>
-                        </span>
-
-                        <span style={{ color: "#94a3b8", fontSize: "8.6pt", margin: "0 2px" }}>
-                          •
-                        </span>
-
-                        <span>
-                          <strong style={{ fontSize: "8.6pt", fontWeight: 700, color: dividerColor }}>
-                            Web:{" "}
-                          </strong>
-                          <span onBlur={(e) => updateContactPart("web", e.currentTarget.innerText)}>
-                            {webVal}
-                          </span>
-                        </span>
-                      </div>
-                    </div>
-                  </>
+                  /* Row 3: Head Office Address directly below Tagline */
+                  <div
+                    className="company-details"
+                    style={{
+                      fontSize: "8.2pt",
+                      lineHeight: 1.35,
+                      color: "#1e293b",
+                      fontWeight: 500,
+                      whiteSpace: "normal",
+                      wordBreak: "break-word",
+                      margin: "3px 0 0 0",
+                    }}
+                    onBlur={(e) => {
+                      const text = e.currentTarget.innerText.trim();
+                      if (update && text) {
+                        update("letterheadText", text);
+                      }
+                    }}
+                  >
+                    <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
+                      {addressLabel}:{" "}
+                    </strong>
+                    <span>{addressBody}</span>
+                  </div>
                 )}
               </div>
             )}
