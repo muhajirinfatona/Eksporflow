@@ -22,6 +22,7 @@ import {
   ChevronUp,
   ClipboardList,
   CreditCard,
+  Crop,
   FileCheck2,
   FileSignature,
   FileText,
@@ -63,6 +64,7 @@ import { DocWordRibbon } from "./DocWordRibbon";
 import { DigitalSignatureModal } from "./DigitalSignatureModal";
 import { DocumentAiScreeningModal } from "./DocumentAiScreeningModal";
 import { BusinessCardOcrModal } from "./BusinessCardOcrModal";
+import { LogoCropModal } from "./LogoCropModal";
 import { extractLetterheadFromFile } from "@/lib/letterheadExtractor";
 import {
   exportToDocx,
@@ -115,6 +117,7 @@ export function DocumentsModule({
   const [signatureParty, setSignatureParty] = useState<"seller" | "buyer">("seller");
   const [isAiScreeningOpen, setIsAiScreeningOpen] = useState(false);
   const [isBusinessCardOcrOpen, setIsBusinessCardOcrOpen] = useState(false);
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
   const downloadMenuRef = useRef<HTMLDivElement>(null);
   const reviewMenuRef = useRef<HTMLDivElement>(null);
@@ -157,8 +160,7 @@ export function DocumentsModule({
     if (
       shipment.exporter === "THYNK UNLIMITED" ||
       shipment.letterheadBannerImage === "/letterhead_teal_header.png" ||
-      !shipment.letterheadImage ||
-      (typeof shipment.letterheadImage === "string" && shipment.letterheadImage.length > 12000)
+      !shipment.letterheadImage
     ) {
       update("letterheadImage", DEFAULT_INDICO_LOGO);
       if (shipment.exporter === "THYNK UNLIMITED") {
@@ -711,20 +713,30 @@ export function DocumentsModule({
     const toastId = toast.loading(`Mengekstrak kop surat & footer dari ${file.name}...`);
     try {
       const res = await extractLetterheadFromFile(file);
-      if (res.bannerImage) {
-        update("letterheadBannerImage", res.bannerImage);
-        update("letterheadMode", "banner");
-      }
-      if (res.footerImage) {
-        update("letterheadFooterImage", res.footerImage);
-        update("letterheadFooterEnabled", true);
-      }
-      if (res.fullPageImage) {
-        update("letterheadFullPageBg", res.fullPageImage);
-      }
-      const chosenLogo = res.logoImage || res.bannerImage;
-      if (chosenLogo) {
-        update("letterheadImage", chosenLogo);
+      if (res.sourceType === "image" || file.type.startsWith("image/")) {
+        const chosenLogo = res.logoImage || res.bannerImage;
+        if (chosenLogo) {
+          update("letterheadImage", chosenLogo);
+          update("letterheadOriginalImage", chosenLogo);
+          update("letterheadMode", "standard");
+        }
+      } else {
+        if (res.bannerImage) {
+          update("letterheadBannerImage", res.bannerImage);
+          update("letterheadMode", "banner");
+        }
+        if (res.footerImage) {
+          update("letterheadFooterImage", res.footerImage);
+          update("letterheadFooterEnabled", true);
+        }
+        if (res.fullPageImage) {
+          update("letterheadFullPageBg", res.fullPageImage);
+        }
+        const chosenLogo = res.logoImage || res.bannerImage;
+        if (chosenLogo) {
+          update("letterheadImage", chosenLogo);
+          update("letterheadOriginalImage", chosenLogo);
+        }
       }
       if (res.companyName) {
         update("exporter", res.companyName);
@@ -1336,6 +1348,7 @@ export function DocumentsModule({
             onResetDocument={handleResetDocument}
             onOpenAiScreening={() => setIsAiScreeningOpen(true)}
             onOpenBusinessCardOcr={() => setIsBusinessCardOcrOpen(true)}
+            onOpenCrop={() => setIsCropModalOpen(true)}
           />
         </div>
       )}
@@ -1425,6 +1438,7 @@ export function DocumentsModule({
             isEditMode={isEditMode}
             update={trackedUpdate}
             onLetterheadImage={handleLetterheadImage}
+            onOpenCrop={() => setIsCropModalOpen(true)}
             docMargins={docMargins}
           />
 
@@ -1643,6 +1657,14 @@ export function DocumentsModule({
         shipment={shipment}
         update={update}
       />
+
+      {/* Interactive Logo Crop / Pangkas Modal */}
+      <LogoCropModal
+        isOpen={isCropModalOpen}
+        onClose={() => setIsCropModalOpen(false)}
+        shipment={shipment}
+        update={trackedUpdate}
+      />
     </div>
   );
 }
@@ -1824,6 +1846,7 @@ function OfficialLetterhead({
   isEditMode = false,
   update,
   onLetterheadImage,
+  onOpenCrop,
   docMargins,
 }: {
   shipment: Shipment;
@@ -1834,6 +1857,7 @@ function OfficialLetterhead({
   isEditMode?: boolean;
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   onLetterheadImage?: (file?: File) => void;
+  onOpenCrop?: () => void;
   docMargins?: { top: number; bottom: number; left: number; right: number };
 }) {
   const [isSelected, setIsSelected] = useState(false);
@@ -1849,9 +1873,8 @@ function OfficialLetterhead({
   const quickFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const effectiveLogoImage =
-    shipment.letterheadImage && shipment.letterheadImage.length < 12000
-      ? shipment.letterheadImage
-      : (exporterName.toLowerCase().includes("indico") ? DEFAULT_INDICO_LOGO : shipment.letterheadImage || "");
+    shipment.letterheadImage ||
+    (exporterName.toLowerCase().includes("indico") ? DEFAULT_INDICO_LOGO : "");
 
   const rawScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
   const activeScale = isNaN(rawScale) || rawScale < 30 ? 100 : Math.min(300, rawScale);
@@ -2414,6 +2437,68 @@ function OfficialLetterhead({
                 {/* Microsoft Word Style 8 Resize Handles & Floating Layout Options */}
                 {isEditMode && isSelected && (
                   <>
+                    {/* Floating Word Change / Replace Logo Button */}
+                    <button
+                      type="button"
+                      className="word-logo-change-btn no-print"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        quickFileInputRef.current?.click();
+                      }}
+                      title="Ganti Gambar Logo dari Komputer / Perangkat"
+                      style={{
+                        position: "absolute",
+                        top: "-14px",
+                        left: "-56px",
+                        width: "24px",
+                        height: "24px",
+                        background: "#ffffff",
+                        border: "1px solid #3b82f6",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 6px rgba(59, 130, 246, 0.25)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        zIndex: 40,
+                        color: "#2563eb",
+                      }}
+                    >
+                      <Upload size={12} />
+                    </button>
+
+                    {/* Floating Word Crop / Pangkas Logo Button */}
+                    <button
+                      type="button"
+                      className="word-logo-crop-btn no-print"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (onOpenCrop) {
+                          onOpenCrop();
+                        }
+                      }}
+                      title="Pangkas / Crop Logo (Potong lambang kelapa atau teks secara presisi)"
+                      style={{
+                        position: "absolute",
+                        top: "-14px",
+                        left: "-28px",
+                        width: "24px",
+                        height: "24px",
+                        background: "#ffffff",
+                        border: "1px solid #0d9488",
+                        borderRadius: "4px",
+                        boxShadow: "0 2px 6px rgba(13, 148, 136, 0.25)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: "pointer",
+                        zIndex: 40,
+                        color: "#0f766e",
+                      }}
+                    >
+                      <Crop size={12} />
+                    </button>
+
                     {/* Floating Word Layout Options Button */}
                     <button
                       type="button"
@@ -2635,6 +2720,30 @@ function OfficialLetterhead({
                               onChange={(e) => update && update("letterheadLogoOpacity", Number(e.target.value))}
                               style={{ width: "100%", accentColor: "#2563eb" }}
                             />
+                          </div>
+
+                          {/* Quick Crop & Replace Logo buttons inside layout menu */}
+                          <div className="pt-2 border-t border-slate-100 flex gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowLayoutMenu(false);
+                                if (onOpenCrop) onOpenCrop();
+                              }}
+                              className="flex-1 py-1.5 px-2 bg-teal-50 hover:bg-teal-100 text-teal-700 rounded text-[10.5px] font-semibold flex items-center justify-center gap-1.5 border border-teal-200 transition-colors"
+                            >
+                              <Crop size={12} /> Pangkas / Crop
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setShowLayoutMenu(false);
+                                quickFileInputRef.current?.click();
+                              }}
+                              className="flex-1 py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded text-[10.5px] font-semibold flex items-center justify-center gap-1.5 border border-blue-200 transition-colors"
+                            >
+                              <Upload size={12} /> Ganti Logo
+                            </button>
                           </div>
 
                           {/* Quick Delete Logo button inside layout menu */}

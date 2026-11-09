@@ -23,6 +23,7 @@ import {
   FileSignature,
   RotateCcw,
   Check,
+  Crop,
   Edit3,
   Heading,
   SlidersHorizontal,
@@ -111,6 +112,7 @@ interface DocWordRibbonProps {
   onResetDocument: () => void;
   onOpenAiScreening?: () => void;
   onOpenBusinessCardOcr?: () => void;
+  onOpenCrop?: () => void;
 }
 
 export function DocWordRibbon({
@@ -122,6 +124,7 @@ export function DocWordRibbon({
   onResetDocument,
   onOpenAiScreening,
   onOpenBusinessCardOcr,
+  onOpenCrop,
 }: DocWordRibbonProps) {
   const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table" | "picture">("home");
   const [isTableSelected, setIsTableSelected] = useState(false);
@@ -758,6 +761,7 @@ export function DocWordRibbon({
       const chosenLogo = res.logoImage || res.bannerImage;
       if (chosenLogo) {
         update("letterheadImage", chosenLogo);
+        update("letterheadOriginalImage", chosenLogo);
         update("letterheadMode", "standard");
       }
       if (res.companyName) {
@@ -4422,6 +4426,18 @@ export function DocWordRibbon({
                     <Upload size={11} />
                     <span>Ganti Logo</span>
                   </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      if (onOpenCrop) onOpenCrop();
+                    }}
+                    title="Pangkas / Crop Logo Kop Surat"
+                    style={{ color: "#0f766e", borderColor: "#99f6e4" }}
+                  >
+                    <Crop size={11} />
+                    <span>Pangkas</span>
+                  </button>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px", background: "#f8fafc", padding: "2px 6px", borderRadius: "4px", border: "1px solid #e2e8f0" }}>
                     <SunMedium size={12} className="text-amber-600" />
                     <input
@@ -5155,6 +5171,36 @@ export function DocWordRibbon({
                   <span style={{ fontSize: "10px", color: "#64748b" }}>cm</span>
                 </div>
                 <span className="doc-ribbon-group-label">Size ({shipment.letterheadLogoScale ?? 100}%)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 5. PANGKAS / CROP PERSIS MICROSOFT WORD */}
+              <div className="doc-ribbon-group group-pic-crop">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onOpenCrop) onOpenCrop();
+                  }}
+                  title="Pangkas / Crop Logo (Potong lambang kelapa atau teks sesuai keinginan)"
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: "4px 10px",
+                    height: "46px",
+                    border: "1px solid #99f6e4",
+                    borderRadius: "4px",
+                    background: "#f0fdfa",
+                    cursor: "pointer",
+                    color: "#0f766e",
+                  }}
+                >
+                  <Crop size={17} />
+                  <span style={{ fontSize: "10px", fontWeight: 700, marginTop: "2px" }}>Pangkas</span>
+                </button>
+                <span className="doc-ribbon-group-label">Crop</span>
               </div>
             </>
           )}
