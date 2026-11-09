@@ -5521,6 +5521,32 @@ export function DocWordRibbon({
                     </div>
                   </div>
 
+                  {/* Toggle Tampilkan Alamat di Kop Atas */}
+                  <div className="p-3 rounded-xl border border-slate-200 bg-white flex items-center justify-between">
+                    <div>
+                      <div className="text-xs font-bold text-slate-800">Tampilkan Alamat & Kontak di Kop Atas</div>
+                      <div className="text-[10px] text-slate-500">
+                        Nonaktifkan untuk tampilan kop surat minimalis & profesional (Alamat otomatis tampil di kotak Shipper dokumen & footer)
+                      </div>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer ml-3 shrink-0">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(shipment.letterheadShowAddress)}
+                        onChange={(e) => {
+                          update("letterheadShowAddress", e.target.checked);
+                          toast.success(
+                            e.target.checked
+                              ? "Alamat & kontak ditampilkan di kop atas"
+                              : "Kop surat disetel ke format bersih profesional (tanpa baris alamat)"
+                          );
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+                    </label>
+                  </div>
+
                   {/* Gaya & Warna Garis Pembatas */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="p-3 rounded-xl border border-slate-200 bg-white">
