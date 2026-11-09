@@ -4105,7 +4105,7 @@ function UnlkSignatureBox({
             width: "100%",
             display: "flex",
             flexDirection: "column",
-            justifyContent: "flex-end",
+            justifyContent: "flex-start",
             position: "relative",
           }}
         >
@@ -4114,37 +4114,36 @@ function UnlkSignatureBox({
               type="button"
               className="doc-btn-click-sign no-print"
               onClick={() => onOpenSignatureModal("seller")}
-              title="Klik untuk membubuhkan tanda tangan digital"
-              style={{
-                margin: "2px 0 auto 0",
-                width: "fit-content",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "4px",
-                padding: "2.5px 7px",
-                fontSize: "9.5px",
-                fontWeight: 600,
-                color: "#1e40af",
-                background: "#eff6ff",
-                border: "1px solid #bfdbfe",
-                borderRadius: "3px",
-                cursor: "pointer",
-              }}
+              title="Pasang tanda tangan digital & stempel resmi eksportir"
             >
-              <PenTool size={11} />
-              <span>+ Pasang Tanda Tangan Digital</span>
+              <PenTool size={12} />
+              <span>+ Tanda Tangan Eksportir</span>
             </button>
           ) : null}
-          <div
-            style={{
-              borderTop: "1px solid #94a3b8",
-              width: "100%",
-              marginTop: "auto",
-              paddingTop: "2px",
-            }}
-          />
         </div>
       )}
+
+      {/* Signatory Name & Role directly underneath signature (Gambar 2 format) */}
+      <div
+        className="sig-signatory-info mt-1 pt-1"
+        style={{
+          borderTop: hasSignature ? "1px solid #cbd5e1" : "none",
+          textAlign: "left",
+        }}
+      >
+        <b
+          className="sig-name text-slate-900 block font-bold"
+          style={{ fontSize: "8.8pt", lineHeight: 1.25 }}
+        >
+          {signatoryName || "Muhajirin Fatona"}
+        </b>
+        <span
+          className="sig-sub text-slate-600 block font-medium"
+          style={{ fontSize: "8pt", lineHeight: 1.25 }}
+        >
+          {signatoryRole || "Export Director"}
+        </span>
+      </div>
     </div>
   );
 }
@@ -4475,19 +4474,8 @@ function ProformaInvoiceDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-                <div className="unlk-val-bold">{sigFull}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
-                <div className="unlk-val-bold">{sigRoleText}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Signature"}</div>
+            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+              <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -5378,19 +5366,8 @@ function CommercialInvoiceDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-                <div className="unlk-val-bold">{sigFull}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
-                <div className="unlk-val-bold">{sigRoleText}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
+            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+              <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -5718,19 +5695,8 @@ function PackingListDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-                <div className="unlk-val-bold">{sigFull}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
-                <div className="unlk-val-bold">{sigRoleText}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
+            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+              <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
@@ -6027,19 +5993,8 @@ function ShippingInstructionDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-subrow-2col unlk-border-b">
-              <div className="unlk-cell unlk-border-r">
-                <div className="unlk-lbl">{isId ? "Nama Penandatangan Resmi" : "Name of Authorized Signatory"}</div>
-                <div className="unlk-val-bold">{sigFull}</div>
-              </div>
-              <div className="unlk-cell">
-                <div className="unlk-lbl">{isId ? "Jabatan / Kedudukan" : "Title / Designation"}</div>
-                <div className="unlk-val-bold">{sigRoleText}</div>
-              </div>
-            </div>
-
-            <div className="unlk-cell unlk-flex-fill">
-              <div className="unlk-lbl">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
+            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+              <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
                 exporterName={exporterName}
