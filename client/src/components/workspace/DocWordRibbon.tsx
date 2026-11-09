@@ -150,6 +150,81 @@ const MS_WORD_HIGHLIGHT_COLORS = [
   { color: "#000000", label: "Hitam" },
 ];
 
+export interface FontOption {
+  name: string;
+  css: string;
+}
+
+export interface FontGroup {
+  group: string;
+  fonts: FontOption[];
+}
+
+export const DOCUMENT_FONT_GROUPS: FontGroup[] = [
+  {
+    group: "Font Standar Dokumen (MS Office & Resmi)",
+    fonts: [
+      { name: "Calibri", css: "Calibri, sans-serif" },
+      { name: "Aptos", css: "Aptos, Calibri, sans-serif" },
+      { name: "Arial", css: "Arial, Helvetica, sans-serif" },
+      { name: "Times New Roman", css: "'Times New Roman', Times, serif" },
+      { name: "Segoe UI", css: "'Segoe UI', Tahoma, sans-serif" },
+      { name: "Inter", css: "Inter, sans-serif" },
+      { name: "Georgia", css: "Georgia, serif" },
+    ],
+  },
+  {
+    group: "Modern Sans-Serif",
+    fonts: [
+      { name: "Plus Jakarta Sans", css: "'Plus Jakarta Sans', sans-serif" },
+      { name: "Poppins", css: "Poppins, sans-serif" },
+      { name: "Roboto", css: "Roboto, sans-serif" },
+      { name: "Montserrat", css: "Montserrat, sans-serif" },
+      { name: "Open Sans", css: "'Open Sans', sans-serif" },
+      { name: "Lato", css: "Lato, sans-serif" },
+      { name: "Nunito", css: "Nunito, sans-serif" },
+      { name: "Century Gothic", css: "'Century Gothic', Futura, sans-serif" },
+      { name: "Trebuchet MS", css: "'Trebuchet MS', sans-serif" },
+      { name: "Verdana", css: "Verdana, Geneva, sans-serif" },
+      { name: "Tahoma", css: "Tahoma, Geneva, sans-serif" },
+      { name: "Franklin Gothic Medium", css: "'Franklin Gothic Medium', Arial, sans-serif" },
+      { name: "Arial Black", css: "'Arial Black', Gadget, sans-serif" },
+    ],
+  },
+  {
+    group: "Klasik & Editorial Serif (Legal / Kontrak)",
+    fonts: [
+      { name: "Garamond", css: "Garamond, Baskerville, serif" },
+      { name: "Cambria", css: "Cambria, Georgia, serif" },
+      { name: "Playfair Display", css: "'Playfair Display', Georgia, serif" },
+      { name: "Merriweather", css: "Merriweather, Georgia, serif" },
+      { name: "Baskerville", css: "Baskerville, 'Times New Roman', serif" },
+      { name: "Bookman Old Style", css: "'Bookman Old Style', Georgia, serif" },
+      { name: "Palatino Linotype", css: "'Palatino Linotype', 'Book Antiqua', Palatino, serif" },
+      { name: "Didot", css: "Didot, 'Bodoni MT', serif" },
+      { name: "Bodoni MT", css: "'Bodoni MT', Didot, serif" },
+    ],
+  },
+  {
+    group: "Monospace (Data Ekspor, Tabulasi & HS Code)",
+    fonts: [
+      { name: "Consolas", css: "Consolas, 'Courier New', monospace" },
+      { name: "Courier New", css: "'Courier New', Courier, monospace" },
+      { name: "JetBrains Mono", css: "'JetBrains Mono', monospace" },
+      { name: "Lucida Console", css: "'Lucida Console', Monaco, monospace" },
+    ],
+  },
+  {
+    group: "Skrip & Tanda Tangan (Signature & Estetika)",
+    fonts: [
+      { name: "Great Vibes", css: "'Great Vibes', cursive" },
+      { name: "Alex Brush", css: "'Alex Brush', cursive" },
+      { name: "Allura", css: "Allura, cursive" },
+      { name: "Sacramento", css: "Sacramento, cursive" },
+    ],
+  },
+];
+
 interface DocWordRibbonProps {
   shipment: Shipment;
   update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
@@ -2255,7 +2330,7 @@ export function DocWordRibbon({
               {/* Font Controls Group */}
               <div className="doc-ribbon-group group-font">
                 <div className="doc-ribbon-row-top">
-                  {/* Font Family Dropdown */}
+                  {/* Font Family Dropdown with Groups & Individual Font Preview */}
                   <select
                     className="doc-ribbon-select font-family-select"
                     value={activeFontFamily}
@@ -2264,14 +2339,23 @@ export function DocWordRibbon({
                     onChange={(e) => handleFontFamilyChange(e.target.value)}
                     title="Jenis Huruf (Font Family)"
                   >
-                    <option value="Calibri">Calibri</option>
-                    <option value="Arial">Arial</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Inter">Inter</option>
-                    <option value="Georgia">Georgia</option>
-                    <option value="Garamond">Garamond</option>
-                    <option value="Trebuchet MS">Trebuchet MS</option>
-                    <option value="Courier New">Courier New</option>
+                    {/* Preserve custom active font if not part of preset list */}
+                    {activeFontFamily && !DOCUMENT_FONT_GROUPS.some((g) => g.fonts.some((f) => f.name.toLowerCase() === activeFontFamily.toLowerCase())) && (
+                      <option value={activeFontFamily}>{activeFontFamily}</option>
+                    )}
+                    {DOCUMENT_FONT_GROUPS.map((group) => (
+                      <optgroup key={group.group} label={group.group}>
+                        {group.fonts.map((f) => (
+                          <option
+                            key={f.name}
+                            value={f.name}
+                            style={{ fontFamily: f.css }}
+                          >
+                            {f.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
                   </select>
 
                   {/* Font Size Dropdown */}

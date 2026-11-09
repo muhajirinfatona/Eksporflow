@@ -15263,7 +15263,24 @@ table.unlk-items-table th.table-cell-selected {
 }
 
 .font-family-select {
-  width: 128px;
+  width: 142px;
+  max-width: 160px;
+}
+
+.font-family-select optgroup {
+  font-weight: 700;
+  font-size: 11px;
+  color: #0284c7;
+  background-color: #f8fafc;
+  padding: 4px 0;
+  font-family: inherit;
+}
+
+.font-family-select option {
+  font-size: 13px;
+  color: #1e293b;
+  padding: 5px 8px;
+  background-color: #ffffff;
 }
 
 .font-size-select {
