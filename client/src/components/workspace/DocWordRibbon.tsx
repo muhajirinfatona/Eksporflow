@@ -98,6 +98,7 @@ import {
 import {
   GEOMETRIC_STYLES,
   GeometricThumbnailPreview,
+  normalizeGeometricStyle,
   type GeometricStyleDefinition,
 } from "./GeometricLetterheadPolygons";
 
@@ -159,11 +160,12 @@ export function DocWordRibbon({
   const footerUploadRef = useRef<HTMLInputElement>(null);
 
   const applyGeometricPreset = (styleId: string = "teal-slant") => {
+    const normalized = normalizeGeometricStyle(styleId);
     update("letterheadLayout", "geometric");
-    update("letterheadGeometricStyle", styleId as any);
+    update("letterheadGeometricStyle", normalized as any);
     update("letterheadMode", "standard");
     update("letterheadImage", DEFAULT_INDICO_LOGO);
-    const target = GEOMETRIC_STYLES.find((s) => s.id === styleId);
+    const target = GEOMETRIC_STYLES.find((s) => s.id === normalized);
     if (target) {
       update("letterheadDividerColor", target.primaryColor);
     }
@@ -1800,7 +1802,7 @@ export function DocWordRibbon({
             >
               <span>
                 {shipment.letterheadLayout === "geometric"
-                  ? `💎 Geometris (${GEOMETRIC_STYLES.find((s) => s.id === (shipment.letterheadGeometricStyle || "teal-slant"))?.label || "Prisma"})`
+                  ? `💎 Geometris (${GEOMETRIC_STYLES.find((s) => s.id === normalizeGeometricStyle(shipment.letterheadGeometricStyle))?.label || "Prisma"})`
                   : "🌿 Standar"}
               </span>
               <ChevronDown size={12} style={{ opacity: 0.8 }} />
@@ -1863,7 +1865,7 @@ export function DocWordRibbon({
                           <div style={{ fontSize: "11px", fontWeight: isCur ? 700 : 600, color: isCur ? "#0f766e" : "#1e293b" }}>
                             {st.label}
                           </div>
-                          <div style={{ fontSize: "9.5px", color: "#64748b" }}>{st.tagline}</div>
+                          <div style={{ fontSize: "9px", color: "#64748b" }}>{st.positionDesc}</div>
                         </div>
                       </div>
                       {isCur && <Check size={13} color="#0d9488" />}
@@ -2087,12 +2089,12 @@ export function DocWordRibbon({
                       position: "fixed",
                       top: `${popoverAnchor.top}px`,
                       left: `${popoverAnchor.left}px`,
-                      width: "350px",
+                      width: "410px",
                       backgroundColor: "#ffffff",
                       borderRadius: "10px",
-                      boxShadow: "0 12px 30px -4px rgba(0,0,0,0.25), 0 8px 12px -6px rgba(0,0,0,0.15)",
+                      boxShadow: "0 14px 34px -4px rgba(0,0,0,0.25), 0 8px 14px -6px rgba(0,0,0,0.15)",
                       border: "1px solid #cbd5e1",
-                      padding: "10px",
+                      padding: "12px",
                       zIndex: 99999,
                       textAlign: "left",
                     }}
@@ -2100,16 +2102,16 @@ export function DocWordRibbon({
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", borderBottom: "1px solid #f1f5f9", paddingBottom: "6px" }}>
                       <div>
                         <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f766e" }}>Koleksi Kop Geometris</div>
-                        <div style={{ fontSize: "10px", color: "#64748b" }}>Desain invoice ekspor modern (referensi Pinterest)</div>
+                        <div style={{ fontSize: "10px", color: "#64748b" }}>Bentuk & posisi tata letak berbeda-beda (referensi invoice Pinterest)</div>
                       </div>
                       <span style={{ fontSize: "10px", fontWeight: 700, color: "#0f766e", background: "#ccfbf1", padding: "2px 6px", borderRadius: "4px" }}>
                         6 Model
                       </span>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxHeight: "320px", overflowY: "auto", paddingRight: "2px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxHeight: "340px", overflowY: "auto", paddingRight: "2px" }}>
                       {GEOMETRIC_STYLES.map((st) => {
-                        const isSelected = shipment.letterheadLayout === "geometric" && (shipment.letterheadGeometricStyle || "teal-slant") === st.id;
+                        const isSelected = shipment.letterheadLayout === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === st.id;
                         return (
                           <div
                             key={st.id}
@@ -2118,7 +2120,7 @@ export function DocWordRibbon({
                               setShowGeometricGallery(false);
                             }}
                             style={{
-                              padding: "6px",
+                              padding: "7px",
                               borderRadius: "8px",
                               border: isSelected ? "2px solid #0f766e" : "1px solid #e2e8f0",
                               background: isSelected ? "#f0fdfa" : "#ffffff",
@@ -2127,7 +2129,7 @@ export function DocWordRibbon({
                             }}
                             className="hover:border-teal-500 hover:shadow-xs group"
                           >
-                            <div style={{ marginBottom: "5px" }}>
+                            <div style={{ marginBottom: "6px" }}>
                               <GeometricThumbnailPreview style={st.id} color={st.primaryColor} />
                             </div>
                             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -2136,8 +2138,8 @@ export function DocWordRibbon({
                               </span>
                               {isSelected && <Check size={12} color="#0f766e" />}
                             </div>
-                            <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px", lineHeight: 1.2 }}>
-                              {st.tagline}
+                            <div style={{ fontSize: "9px", fontWeight: 600, color: isSelected ? "#0d9488" : "#475569", marginTop: "2px", lineHeight: 1.2 }}>
+                              {st.positionDesc}
                             </div>
                           </div>
                         );
@@ -5889,7 +5891,7 @@ export function DocWordRibbon({
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                           {GEOMETRIC_STYLES.map((st) => {
-                            const isCur = (shipment.letterheadGeometricStyle || "teal-slant") === st.id;
+                            const isCur = normalizeGeometricStyle(shipment.letterheadGeometricStyle) === st.id;
                             return (
                               <button
                                 key={st.id}
@@ -5908,7 +5910,7 @@ export function DocWordRibbon({
                                   <span className="text-xs font-bold text-slate-800">{st.label}</span>
                                   {isCur && <Check size={12} className="text-teal-600" />}
                                 </div>
-                                <div className="text-[9.5px] text-slate-500 mt-0.5 leading-tight">{st.tagline}</div>
+                                <div className="text-[9px] font-semibold text-teal-700 mt-0.5 leading-tight">{st.positionDesc}</div>
                               </button>
                             );
                           })}

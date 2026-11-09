@@ -372,6 +372,11 @@ export type Shipment = {
   letterheadLayout?: "left" | "center" | "split" | "geometric";
   letterheadGeometricStyle?:
     | "teal-slant"
+    | "sidebar-strip"
+    | "top-banner-slant"
+    | "diagonal-frame"
+    | "ribbon-divider"
+    | "hexagon-badge"
     | "navy-arrow"
     | "modern-hex"
     | "diagonal-split"

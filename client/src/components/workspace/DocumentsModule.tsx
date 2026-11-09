@@ -52,9 +52,11 @@ import {
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
-  GeometricTopPolygon,
-  GeometricBottomPolygon,
+  GeometricTopDecorations,
+  GeometricFooterDecorations,
+  GeometricRibbonStrip,
   GEOMETRIC_STYLES,
+  normalizeGeometricStyle,
 } from "./GeometricLetterheadPolygons";
 import { Field, SelectField } from "./Primitives";
 import { DocWordRibbon } from "./DocWordRibbon";
@@ -1374,11 +1376,12 @@ export function DocumentsModule({
           }}
           className={`paper-document relative overflow-hidden paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""} ${isEditMode ? "word-editable-mode" : ""}`}
         >
-          {/* Top-Right Modern Geometric Polygon (Multiple Pinterest Corporate Styles) */}
+          {/* Diverse Positional Geometric Decorations (Pinterest Invoice Compositions) */}
           {shipment.letterheadLayout === "geometric" && (
-            <GeometricTopPolygon
+            <GeometricTopDecorations
               style={shipment.letterheadGeometricStyle || "teal-slant"}
               color={shipment.letterheadDividerColor || "#005f73"}
+              docMargins={docMargins}
             />
           )}
 
@@ -2292,7 +2295,19 @@ function OfficialLetterhead({
         </div>
       ) : (
         /* MODE 2: STANDARD EDITABLE KOP SURAT (Left / Center / Split) */
-        <div className="paper-letterhead-content">
+        <div
+          className="paper-letterhead-content"
+          style={{
+            paddingLeft:
+              layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "sidebar-strip"
+                ? "18px"
+                : undefined,
+            paddingTop:
+              layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "top-banner-slant"
+                ? "16px"
+                : undefined,
+          }}
+        >
           <div
             className="letterhead-brand"
             style={{
@@ -3223,20 +3238,24 @@ function OfficialLetterhead({
       )}
 
       {letterheadMode !== "hidden" && (
-        <div
-          className="letterhead-divider-line"
-          style={
-            layoutMode === "geometric"
-              ? {
-                  height: "2.5px",
-                  background: dividerColor || "#005f73",
-                  marginTop: "12px",
-                  marginBottom: "14px",
-                  width: "100%",
-                }
-              : dividerLineStyles
-          }
-        />
+        layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "ribbon-divider" ? (
+          <GeometricRibbonStrip color={dividerColor} />
+        ) : (
+          <div
+            className="letterhead-divider-line"
+            style={
+              layoutMode === "geometric"
+                ? {
+                    height: "2.5px",
+                    background: dividerColor || "#005f73",
+                    marginTop: "12px",
+                    marginBottom: "14px",
+                    width: "100%",
+                  }
+                : dividerLineStyles
+            }
+          />
+        )
       )}
     </div>
   );
@@ -3308,34 +3327,16 @@ function OfficialFooter({
           : { userSelect: "none" }
       }
     >
-      {/* 1. Geometric Model Footer Polygons & Contact Info */}
+      {/* 1. Diverse Positional Geometric Model Footer & Adaptive Contact Info */}
       {isGeometric && (
-        <div className="relative pt-4 pb-1">
-          {/* Bottom-Left Modern Geometric Polygon */}
-          <GeometricBottomPolygon
-            style={shipment.letterheadGeometricStyle || "teal-slant"}
-            color={shipment.letterheadDividerColor || "#005f73"}
-            docMargins={docMargins}
-          />
-
-          {/* Right-Aligned Contact Information Pillars */}
-          <div className="relative z-10 flex flex-wrap items-center justify-end gap-x-5 gap-y-1.5 text-[8.5pt] text-slate-700 font-medium py-1">
-            <div className="flex items-center gap-1.5">
-              <Globe size={13} style={{ color: shipment.letterheadDividerColor || "#005f73" }} />
-              <span>{webVal}</span>
-            </div>
-            <span className="text-slate-300">•</span>
-            <div className="flex items-center gap-1.5">
-              <Phone size={13} style={{ color: shipment.letterheadDividerColor || "#005f73" }} />
-              <span>{telVal}</span>
-            </div>
-            <span className="text-slate-300">•</span>
-            <div className="flex items-center gap-1.5">
-              <Mail size={13} style={{ color: shipment.letterheadDividerColor || "#005f73" }} />
-              <span>{emailVal}</span>
-            </div>
-          </div>
-        </div>
+        <GeometricFooterDecorations
+          style={shipment.letterheadGeometricStyle || "teal-slant"}
+          color={shipment.letterheadDividerColor || "#005f73"}
+          docMargins={docMargins}
+          tel={telVal}
+          email={emailVal}
+          web={webVal}
+        />
       )}
 
       {/* Graphic Letterhead Footer (e.g. Modern Teal Geometric or Corporate Branding) */}
