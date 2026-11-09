@@ -151,6 +151,7 @@ export function DocWordRibbon({
   const [showGeometricGallery, setShowGeometricGallery] = useState(false);
   const letterheadMenuRef = useRef<HTMLDivElement>(null);
   const geometricGalleryRef = useRef<HTMLDivElement>(null);
+  const geometricPopoverRef = useRef<HTMLDivElement>(null);
   const positionMenuRef = useRef<HTMLDivElement>(null);
   const wrapTextMenuRef = useRef<HTMLDivElement>(null);
   const bannerUploadRef = useRef<HTMLInputElement>(null);
@@ -599,7 +600,11 @@ export function DocWordRibbon({
       if (letterheadMenuRef.current && !letterheadMenuRef.current.contains(event.target as Node)) {
         setShowLetterheadMenu(false);
       }
-      if (geometricGalleryRef.current && !geometricGalleryRef.current.contains(event.target as Node)) {
+      if (
+        geometricGalleryRef.current &&
+        !geometricGalleryRef.current.contains(event.target as Node) &&
+        (!geometricPopoverRef.current || !geometricPopoverRef.current.contains(event.target as Node))
+      ) {
         setShowGeometricGallery(false);
       }
     }
@@ -2021,7 +2026,14 @@ export function DocWordRibbon({
                 <div className="doc-ribbon-row-top" style={{ gap: "4px" }}>
                   <button
                     type="button"
-                    onClick={() => setShowGeometricGallery((v) => !v)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (shipment.letterheadLayout !== "geometric") {
+                        applyGeometricPreset(shipment.letterheadGeometricStyle || "teal-slant");
+                      }
+                      captureAnchor(e.currentTarget, 350);
+                      setShowGeometricGallery((v) => !v);
+                    }}
                     className={`doc-ribbon-btn-text ${shipment.letterheadLayout === "geometric" ? "active" : ""}`}
                     style={{
                       height: "22px",
@@ -2044,7 +2056,10 @@ export function DocWordRibbon({
                   </button>
                   <button
                     type="button"
-                    onClick={applyIndicoPreset}
+                    onClick={() => {
+                      applyIndicoPreset();
+                      setShowGeometricGallery(false);
+                    }}
                     className={`doc-ribbon-btn-text ${shipment.letterheadLayout !== "geometric" ? "active" : ""}`}
                     style={{
                       height: "22px",
@@ -2067,17 +2082,18 @@ export function DocWordRibbon({
                 {/* Popover Gallery of Geometric Designs */}
                 {showGeometricGallery && (
                   <div
+                    ref={geometricPopoverRef}
                     style={{
-                      position: "absolute",
-                      left: 0,
-                      top: "calc(100% + 4px)",
+                      position: "fixed",
+                      top: `${popoverAnchor.top}px`,
+                      left: `${popoverAnchor.left}px`,
                       width: "350px",
                       backgroundColor: "#ffffff",
                       borderRadius: "10px",
-                      boxShadow: "0 12px 30px -4px rgba(0,0,0,0.22), 0 8px 12px -6px rgba(0,0,0,0.12)",
+                      boxShadow: "0 12px 30px -4px rgba(0,0,0,0.25), 0 8px 12px -6px rgba(0,0,0,0.15)",
                       border: "1px solid #cbd5e1",
                       padding: "10px",
-                      zIndex: 9999,
+                      zIndex: 99999,
                       textAlign: "left",
                     }}
                   >
