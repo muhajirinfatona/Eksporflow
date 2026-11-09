@@ -370,18 +370,7 @@ export type Shipment = {
     | "none";
   letterheadDividerColor?: string;
   letterheadLayout?: "left" | "center" | "split" | "geometric";
-  letterheadGeometricStyle?:
-    | "teal-slant"
-    | "sidebar-strip"
-    | "top-banner-slant"
-    | "diagonal-frame"
-    | "ribbon-divider"
-    | "hexagon-badge"
-    | "navy-arrow"
-    | "modern-hex"
-    | "diagonal-split"
-    | "minimal-blocks"
-    | "creative-wave";
+  letterheadGeometricStyle?: string;
   exporterContact?: string;
   poNumber: string;
   bookingNumber: string;

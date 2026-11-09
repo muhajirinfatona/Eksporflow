@@ -1008,11 +1008,12 @@ export function DocumentsModule({
 
   // Quick Preset Handlers for Letterhead Models
   const applyGeometricPreset = (styleId: string = "teal-slant") => {
+    const normalized = normalizeGeometricStyle(styleId);
     trackedUpdate("letterheadLayout", "geometric");
-    trackedUpdate("letterheadGeometricStyle", styleId as any);
+    trackedUpdate("letterheadGeometricStyle", normalized);
     trackedUpdate("letterheadMode", "standard");
     trackedUpdate("letterheadImage", DEFAULT_INDICO_LOGO);
-    const target = GEOMETRIC_STYLES.find((s) => s.id === styleId);
+    const target = GEOMETRIC_STYLES.find((s) => s.id === normalized);
     if (target) {
       trackedUpdate("letterheadDividerColor", target.primaryColor);
     }
@@ -3524,7 +3525,7 @@ function OfficialStampAndSignature({
 // --------------------------------------------------------------------------
 // INTERACTIVE DOCUMENT TITLE BANNER (RESIZABLE BOX & TABLE STYLE SELECTOR)
 // --------------------------------------------------------------------------
-function DocTitleBanner({ title }: { title: string }) {
+function DocTitleBanner({ title, themeColor }: { title: string; themeColor?: string }) {
   const barRef = useRef<HTMLDivElement>(null);
   const h2Ref = useRef<HTMLHeadingElement>(null);
   const [boxPadY, setBoxPadY] = useState<number>(() => {
@@ -3536,12 +3537,16 @@ function DocTitleBanner({ title }: { title: string }) {
   });
   const [isDraggingHeight, setIsDraggingHeight] = useState(false);
 
-  // Sync saved padding & table style on mount / document switch
+  // Sync saved padding & table style on mount / document switch / theme change
   useEffect(() => {
     const bar = barRef.current;
     if (bar) {
       bar.style.setProperty("padding-top", `${boxPadY}px`, "important");
       bar.style.setProperty("padding-bottom", `${boxPadY}px`, "important");
+      if (themeColor) {
+        bar.style.setProperty("background-color", themeColor, "important");
+        bar.style.setProperty("border-color", themeColor, "important");
+      }
     }
     const wrapper = bar?.closest(".unlk-doc-wrapper") || document.querySelector(".unlk-doc-wrapper");
     const form = wrapper?.querySelector(".unlk-trade-form") as HTMLElement | null;
@@ -3549,7 +3554,7 @@ function DocTitleBanner({ title }: { title: string }) {
       form.classList.remove("unlk-style-unlk", "unlk-style-corporate", "unlk-style-soft", "unlk-style-minimal");
       form.classList.add(`unlk-style-${tableStyle}`);
     }
-  }, [boxPadY, tableStyle, title]);
+  }, [boxPadY, tableStyle, title, themeColor]);
 
   const updateBoxHeight = (newPadY: number, notify = false) => {
     const clamped = Math.max(1, Math.min(20, Math.round(newPadY * 2) / 2));
@@ -4443,7 +4448,10 @@ function ProformaInvoiceDoc({
 
   return (
     <div className="doc-content-wrapper unlk-doc-wrapper">
-      <DocTitleBanner title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"} />
+      <DocTitleBanner
+        title={isId ? "FAKTUR PROFORMA (PROFORMA INVOICE)" : "PROFORMA INVOICE"}
+        themeColor={shipment?.letterheadLayout === "geometric" ? shipment?.letterheadDividerColor : undefined}
+      />
 
       <div className="unlk-trade-form">
         {/* ROW 1: Seller (Left 50%) | Invoice No/Date + Buyer Ref/Due Date (Right 50%) */}
@@ -4784,7 +4792,10 @@ function SalesContractDoc({
 
   return (
     <div className={`doc-content-wrapper doc-contract-wrapper ${is2Page ? "mode-2page" : "mode-1page"}`}>
-      <DocTitleBanner title={isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"} />
+      <DocTitleBanner
+        title={isId ? "KONTRAK PENJUALAN EKSPOR (SALES CONTRACT)" : "SALES CONTRACT"}
+        themeColor={shipment?.letterheadLayout === "geometric" ? shipment?.letterheadDividerColor : undefined}
+      />
 
       <div className="doc-contract-ref-bar">
         <span>
@@ -5332,7 +5343,10 @@ function CommercialInvoiceDoc({
 
   return (
     <div className="doc-content-wrapper unlk-doc-wrapper">
-      <DocTitleBanner title={isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"} />
+      <DocTitleBanner
+        title={isId ? "FAKTUR KOMERSIAL (COMMERCIAL INVOICE)" : "COMMERCIAL INVOICE"}
+        themeColor={shipment?.letterheadLayout === "geometric" ? shipment?.letterheadDividerColor : undefined}
+      />
 
       <div className="unlk-trade-form">
         {/* ROW 1: Exporter (Left 50%) | Invoice No & Date / B/L No + Reference / Buyer Ref (Right 50%) */}
@@ -5675,7 +5689,10 @@ function PackingListDoc({
 
   return (
     <div className="doc-content-wrapper unlk-doc-wrapper">
-      <DocTitleBanner title={isId ? "DAFTAR KEMASAN (PACKING LIST)" : "PACKING LIST"} />
+      <DocTitleBanner
+        title={isId ? "DAFTAR KEMASAN (PACKING LIST)" : "PACKING LIST"}
+        themeColor={shipment?.letterheadLayout === "geometric" ? shipment?.letterheadDividerColor : undefined}
+      />
 
       <div className="unlk-trade-form">
         {/* ROW 1: Exporter (Left 50%) | Pages + PL No/Date + Invoice Ref/Buyer Ref (Right 50%) */}
@@ -6004,7 +6021,10 @@ function ShippingInstructionDoc({
 
   return (
     <div className="doc-content-wrapper unlk-doc-wrapper">
-      <DocTitleBanner title={isId ? "INSTRUKSI PENGAPALAN (SHIPPING INSTRUCTION)" : "SHIPPING INSTRUCTION (SI)"} />
+      <DocTitleBanner
+        title={isId ? "INSTRUKSI PENGAPALAN (SHIPPING INSTRUCTION)" : "SHIPPING INSTRUCTION (SI)"}
+        themeColor={shipment?.letterheadLayout === "geometric" ? shipment?.letterheadDividerColor : undefined}
+      />
 
       <div className="unlk-trade-form">
         {/* ROW 1: Shipper / Exporter (Left 50%) | Pages + SI No/Date + Booking/Contract Ref (Right 50%) */}

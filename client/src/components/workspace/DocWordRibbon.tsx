@@ -2101,15 +2101,15 @@ export function DocWordRibbon({
                   >
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "8px", borderBottom: "1px solid #f1f5f9", paddingBottom: "6px" }}>
                       <div>
-                        <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f766e" }}>Koleksi Kop Geometris</div>
-                        <div style={{ fontSize: "10px", color: "#64748b" }}>Bentuk & posisi tata letak berbeda-beda (referensi invoice Pinterest)</div>
+                        <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f766e" }}>Koleksi Kop Geometris Invoice</div>
+                        <div style={{ fontSize: "10px", color: "#64748b" }}>12 varian bentuk & posisi berbeda (konten & judul tersinkronisasi)</div>
                       </div>
                       <span style={{ fontSize: "10px", fontWeight: 700, color: "#0f766e", background: "#ccfbf1", padding: "2px 6px", borderRadius: "4px" }}>
-                        6 Model
+                        12 Model
                       </span>
                     </div>
 
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxHeight: "340px", overflowY: "auto", paddingRight: "2px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", maxHeight: "370px", overflowY: "auto", paddingRight: "4px" }}>
                       {GEOMETRIC_STYLES.map((st) => {
                         const isSelected = shipment.letterheadLayout === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === st.id;
                         return (
@@ -2153,10 +2153,13 @@ export function DocWordRibbon({
                         {[
                           { color: "#005f73", title: "Teal (#005f73)" },
                           { color: "#0f2942", title: "Navy (#0f2942)" },
-                          { color: "#1e3a8a", title: "Royal Blue (#1e3a8a)" },
+                          { color: "#1e3a8a", title: "Sapphire (#1e3a8a)" },
                           { color: "#065f46", title: "Emerald (#065f46)" },
-                          { color: "#7c2d12", title: "Terracotta (#7c2d12)" },
+                          { color: "#0f766e", title: "Ocean Teal (#0f766e)" },
+                          { color: "#4338ca", title: "Indigo (#4338ca)" },
+                          { color: "#831843", title: "Burgundy (#831843)" },
                           { color: "#334155", title: "Graphite (#334155)" },
+                          { color: "#18181b", title: "Carbon (#18181b)" },
                         ].map((c) => (
                           <button
                             key={c.color}
@@ -5886,7 +5889,7 @@ export function DocWordRibbon({
                             Pilih Desain Geometris (Invoice Pinterest)
                           </label>
                           <span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded">
-                            6 Gaya Tersedia
+                            12 Gaya Tersedia
                           </span>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
