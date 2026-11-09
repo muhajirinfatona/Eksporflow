@@ -95,6 +95,10 @@ import {
   performEditorRedo,
   canEditorUndo,
   canEditorRedo,
+  toggleSelectionBold,
+  toggleSelectionItalic,
+  toggleSelectionUnderline,
+  toggleSelectionStrikethrough,
 } from "../../lib/wordEditorEngine";
 import {
   GEOMETRIC_STYLES,
@@ -2449,7 +2453,7 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("bold");
+                      toggleSelectionBold();
                     }}
                     title="Tebalkan Teks (Bold · Ctrl+B)"
                   >
@@ -2462,7 +2466,7 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("italic");
+                      toggleSelectionItalic();
                     }}
                     title="Miringkan Teks (Italic · Ctrl+I)"
                   >
@@ -2475,7 +2479,7 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("underline");
+                      toggleSelectionUnderline();
                     }}
                     title="Garis Bawah (Underline · Ctrl+U)"
                   >
@@ -2488,7 +2492,7 @@ export function DocWordRibbon({
                     className="doc-ribbon-btn-icon"
                     onMouseDown={(e) => {
                       e.preventDefault();
-                      runCommand("strikeThrough");
+                      toggleSelectionStrikethrough();
                     }}
                     title="Coret Teks (Strikethrough)"
                   >

@@ -6531,7 +6531,6 @@ textarea:focus-visible {
   letter-spacing: 0.025em;
   margin: 0 0 var(--kop-line-spacing, 2px) 0;
   line-height: var(--kop-line-height, 1.15);
-  text-transform: uppercase;
 }
 
 .company-tagline,
@@ -6542,7 +6541,6 @@ textarea:focus-visible {
   letter-spacing: 0.07em;
   margin: 0 0 var(--kop-line-spacing, 2px) 0;
   line-height: var(--kop-line-height, 1.25);
-  text-transform: uppercase;
 }
 
 .company-details,
@@ -6565,7 +6563,7 @@ textarea:focus-visible {
 
 .letterhead-divider-line {
   width: 100%;
-  margin-top: 6px;
+  margin-top: 1px !important;
   clear: both;
   box-sizing: content-box !important;
 }

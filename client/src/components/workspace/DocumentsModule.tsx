@@ -85,6 +85,9 @@ import {
   saveActiveSelection,
   stepSelectedBlockSpacingPx,
   applyAlignmentToSelection,
+  toggleSelectionBold,
+  toggleSelectionItalic,
+  toggleSelectionUnderline,
 } from "@/lib/wordEditorEngine";
 
 export function DocumentsModule({
@@ -198,6 +201,15 @@ export function DocumentsModule({
           if (performEditorRedo()) {
             toast.info("Perubahan diulangi (Redo)");
           }
+        } else if (key === "b") {
+          e.preventDefault();
+          toggleSelectionBold();
+        } else if (key === "i") {
+          e.preventDefault();
+          toggleSelectionItalic();
+        } else if (key === "u") {
+          e.preventDefault();
+          toggleSelectionUnderline();
         } else if (key === "l") {
           e.preventDefault();
           if (applyAlignmentToSelection("left")) {
@@ -1895,7 +1907,7 @@ function OfficialLetterhead({
   const bannerHeight = shipment.letterheadBannerHeight ?? 110;
   const lineSpacing = shipment.letterheadSpacing !== undefined ? shipment.letterheadSpacing : 1;
   const kopLineHeight = lineSpacing === 0 ? 1.05 : Number((1.06 + lineSpacing * 0.04).toFixed(2));
-  const dividerGap = shipment.letterheadDividerGap ?? 4;
+  const dividerGap = shipment.letterheadDividerGap !== undefined ? shipment.letterheadDividerGap : 0;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const showAddressInHeader = shipment.letterheadShowAddress !== false;
   const dividerColor = shipment.letterheadDividerColor || "#0f2942";
@@ -2223,8 +2235,8 @@ function OfficialLetterhead({
     <div
       className={`paper-letterhead-wrap group/kop relative ${letterheadMode === "hidden" ? "letterhead-hidden" : ""}`}
       style={{
-        paddingTop: letterheadMode === "hidden" ? 0 : "4px",
-        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : `${Math.max(10, dividerGap + 6)}px`,
+        paddingTop: letterheadMode === "hidden" ? 0 : "2px",
+        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : `${Math.max(6, dividerGap + 4)}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -2329,8 +2341,8 @@ function OfficialLetterhead({
             paddingTop:
               layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "horizon-banner"
                 ? "40px"
-                : "6px",
-            paddingBottom: "4px",
+                : "2px",
+            paddingBottom: "0px",
           }}
         >
           <div
@@ -3206,7 +3218,7 @@ function OfficialLetterhead({
                   className="company-name"
                   style={{
                     fontSize: showAddressInHeader ? "16.5pt" : "19.5pt",
-                    fontWeight: 900,
+                    fontWeight: 800,
                     letterSpacing: "0.04em",
                     color: dividerColor || (layoutMode === "geometric" ? "#005f73" : "#0f2942"),
                     margin: 0,
@@ -3214,7 +3226,6 @@ function OfficialLetterhead({
                     whiteSpace: "normal",
                     wordBreak: "break-word",
                     fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
-                    textTransform: "uppercase",
                   }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
@@ -3293,8 +3304,8 @@ function OfficialLetterhead({
                 ? {
                     height: "2.5px",
                     background: dividerColor || "#005f73",
-                    marginTop: "12px",
-                    marginBottom: "14px",
+                    marginTop: `${Math.max(0, dividerGap)}px`,
+                    marginBottom: `${Math.max(2, dividerGap + 4)}px`,
                     width: "100%",
                   }
                 : dividerLineStyles

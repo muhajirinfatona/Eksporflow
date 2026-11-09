@@ -402,6 +402,115 @@ export function changeSelectionCase(): boolean {
 }
 
 /**
+ * Toggles bold on the selection. If selected text is already bold (>= 700),
+ * sets font-weight: normal !important. Otherwise sets font-weight: bold !important.
+ */
+export function toggleSelectionBold(): boolean {
+  restoreActiveSelection();
+  const range = getEffectiveSelectionRange();
+  if (!range || range.collapsed) {
+    try {
+      document.execCommand("bold", false);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  // Detect current computed font-weight
+  let isCurrentlyBold = false;
+  const node = range.startContainer;
+  const el = node instanceof Element ? node : node.parentElement;
+  if (el) {
+    const fw = window.getComputedStyle(el).fontWeight;
+    const num = parseInt(fw, 10);
+    isCurrentlyBold = fw === "bold" || fw === "bolder" || (!isNaN(num) && num >= 700);
+  }
+
+  const nextWeight = isCurrentlyBold ? "normal" : "bold";
+  return applyInlineStyleToSelection({ "font-weight": nextWeight });
+}
+
+/**
+ * Toggles italic on the selection. If selected text is already italic,
+ * sets font-style: normal !important. Otherwise sets font-style: italic !important.
+ */
+export function toggleSelectionItalic(): boolean {
+  restoreActiveSelection();
+  const range = getEffectiveSelectionRange();
+  if (!range || range.collapsed) {
+    try {
+      document.execCommand("italic", false);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  let isCurrentlyItalic = false;
+  const node = range.startContainer;
+  const el = node instanceof Element ? node : node.parentElement;
+  if (el) {
+    isCurrentlyItalic = window.getComputedStyle(el).fontStyle === "italic";
+  }
+
+  const nextStyle = isCurrentlyItalic ? "normal" : "italic";
+  return applyInlineStyleToSelection({ "font-style": nextStyle });
+}
+
+/**
+ * Toggles underline on the selection.
+ */
+export function toggleSelectionUnderline(): boolean {
+  restoreActiveSelection();
+  const range = getEffectiveSelectionRange();
+  if (!range || range.collapsed) {
+    try {
+      document.execCommand("underline", false);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  let isCurrentlyUnderline = false;
+  const node = range.startContainer;
+  const el = node instanceof Element ? node : node.parentElement;
+  if (el) {
+    isCurrentlyUnderline = window.getComputedStyle(el).textDecorationLine.includes("underline");
+  }
+
+  const nextDeco = isCurrentlyUnderline ? "none" : "underline";
+  return applyInlineStyleToSelection({ "text-decoration": nextDeco });
+}
+
+/**
+ * Toggles strikethrough on the selection.
+ */
+export function toggleSelectionStrikethrough(): boolean {
+  restoreActiveSelection();
+  const range = getEffectiveSelectionRange();
+  if (!range || range.collapsed) {
+    try {
+      document.execCommand("strikeThrough", false);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  let isCurrentlyStrike = false;
+  const node = range.startContainer;
+  const el = node instanceof Element ? node : node.parentElement;
+  if (el) {
+    isCurrentlyStrike = window.getComputedStyle(el).textDecorationLine.includes("line-through");
+  }
+
+  const nextDeco = isCurrentlyStrike ? "none" : "line-through";
+  return applyInlineStyleToSelection({ "text-decoration": nextDeco });
+}
+
+/**
  * Clears formatting from selection (removes inline styles and un-wraps spans).
  */
 export function clearFormattingFromSelection(): boolean {
