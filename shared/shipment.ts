@@ -369,7 +369,7 @@ export type Shipment = {
     | "dotted"
     | "none";
   letterheadDividerColor?: string;
-  letterheadLayout?: "left" | "center" | "split";
+  letterheadLayout?: "left" | "center" | "split" | "geometric";
   exporterContact?: string;
   poNumber: string;
   bookingNumber: string;
