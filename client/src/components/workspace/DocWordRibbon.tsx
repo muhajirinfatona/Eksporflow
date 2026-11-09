@@ -174,7 +174,7 @@ export function DocWordRibbon({
     update("letterheadFooterImage", "");
     update("letterheadFooterEnabled", true);
     update("letterheadFullPageBgEnabled", false);
-    update("letterheadShowAddress", false);
+    update("letterheadShowAddress", true);
     if (!shipment.exporter || shipment.exporter === "THYNK UNLIMITED") {
       update("exporter", "PT. INDICO EXPORT INDONESIA");
       update("letterheadText", "PT. INDICO EXPORT INDONESIA");
@@ -192,7 +192,7 @@ export function DocWordRibbon({
     update("letterheadFooterImage", "");
     update("letterheadFooterEnabled", false);
     update("letterheadFullPageBgEnabled", false);
-    update("letterheadShowAddress", false);
+    update("letterheadShowAddress", true);
     if (!shipment.exporter || shipment.exporter === "THYNK UNLIMITED") {
       update("exporter", "PT. INDICO EXPORT INDONESIA");
       update("letterheadText", "PT. INDICO EXPORT INDONESIA");
@@ -5933,7 +5933,7 @@ export function DocWordRibbon({
                     <label className="relative inline-flex items-center cursor-pointer ml-3 shrink-0">
                       <input
                         type="checkbox"
-                        checked={Boolean(shipment.letterheadShowAddress)}
+                        checked={shipment.letterheadShowAddress !== false}
                         onChange={(e) => {
                           update("letterheadShowAddress", e.target.checked);
                           toast.success(

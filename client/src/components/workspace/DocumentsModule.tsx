@@ -170,7 +170,7 @@ export function DocumentsModule({
         update("letterheadFooterImage", "");
         update("letterheadFooterEnabled", true);
         update("letterheadFullPageBgEnabled", false);
-        update("letterheadShowAddress", false);
+        update("letterheadShowAddress", true);
         update("exporter", "PT. INDICO EXPORT INDONESIA");
         update("letterheadText", "PT. INDICO EXPORT INDONESIA");
         update("exporterContact", "Tel: +62 812-3456-7890 | Email: official@indicoexport.com | Web: www.indicoexport.com");
@@ -1022,7 +1022,7 @@ export function DocumentsModule({
     trackedUpdate("letterheadFooterImage", "");
     trackedUpdate("letterheadFooterEnabled", true);
     trackedUpdate("letterheadFullPageBgEnabled", false);
-    trackedUpdate("letterheadShowAddress", false);
+    trackedUpdate("letterheadShowAddress", true);
     if (!shipment.exporter || shipment.exporter === "THYNK UNLIMITED") {
       trackedUpdate("exporter", "PT. INDICO EXPORT INDONESIA");
       trackedUpdate("letterheadText", "PT. INDICO EXPORT INDONESIA");
@@ -1040,7 +1040,7 @@ export function DocumentsModule({
     trackedUpdate("letterheadFooterImage", "");
     trackedUpdate("letterheadFooterEnabled", false);
     trackedUpdate("letterheadFullPageBgEnabled", false);
-    trackedUpdate("letterheadShowAddress", false);
+    trackedUpdate("letterheadShowAddress", true);
     if (!shipment.exporter || shipment.exporter === "THYNK UNLIMITED") {
       trackedUpdate("exporter", "PT. INDICO EXPORT INDONESIA");
       trackedUpdate("letterheadText", "PT. INDICO EXPORT INDONESIA");
@@ -1874,7 +1874,7 @@ function OfficialLetterhead({
   const kopLineHeight = lineSpacing === 0 ? 1.05 : Number((1.06 + lineSpacing * 0.04).toFixed(2));
   const dividerGap = shipment.letterheadDividerGap ?? 4;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
-  const showAddressInHeader = shipment.letterheadShowAddress === true;
+  const showAddressInHeader = shipment.letterheadShowAddress !== false;
   const dividerColor = shipment.letterheadDividerColor || "#0f2942";
   const layoutMode = shipment.letterheadLayout || "left";
   const rawExporterContact = shipment.exporterContact || "";
@@ -2300,13 +2300,14 @@ function OfficialLetterhead({
           className="paper-letterhead-content"
           style={{
             paddingLeft:
-              layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "sidebar-strip"
-                ? "18px"
+              layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "sidebar-spine"
+                ? "24px"
                 : undefined,
             paddingTop:
-              layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "top-banner-slant"
-                ? "16px"
-                : undefined,
+              layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "horizon-banner"
+                ? "40px"
+                : "6px",
+            paddingBottom: "4px",
           }}
         >
           <div
@@ -2349,6 +2350,12 @@ function OfficialLetterhead({
                   outlineOffset: "2px",
                   cursor: isEditMode ? (isMoving ? "grabbing" : "grab") : "default",
                   userSelect: "none",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "2px",
+                  overflow: "visible",
+                  flexShrink: 0,
                 }}
                 onMouseDown={(e) => {
                   if (isEditMode) {
@@ -2800,10 +2807,11 @@ function OfficialLetterhead({
                 contentEditable={false}
                 style={{
                   width: "1.5px",
-                  height: showAddressInHeader ? (layoutMode === "split" ? "56px" : "62px") : "48px",
+                  height: showAddressInHeader ? (layoutMode === "split" ? "56px" : "66px") : "48px",
                   background: "#cbd5e1",
                   margin: "0 16px 0 6px",
                   flexShrink: 0,
+                  alignSelf: "center",
                 }}
               />
             )}
