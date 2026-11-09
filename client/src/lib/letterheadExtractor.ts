@@ -13,10 +13,14 @@ try {
 export interface ExtractedLetterhead {
   bannerImage?: string; // Cropped high-res PNG data URI of the top letterhead region
   logoImage?: string;   // Extracted logo PNG data URI
+  footerImage?: string; // Cropped high-res PNG data URI of the bottom letterhead/footer region
+  fullPageImage?: string; // Full Page 1 high-res stationery background
+  watermarkImage?: string; // Extracted watermark emblem if present
   companyName?: string;
   tagline?: string;
   address?: string;
   contact?: string;
+  footerText?: string;
   sourceType: "pdf" | "docx" | "xlsx" | "csv" | "image" | "unknown";
   fileName: string;
 }
@@ -140,7 +144,7 @@ async function extractFromPdf(arrayBuffer: ArrayBuffer, fileName: string): Promi
   // Detect cutoff Y coordinate for letterhead
   const rawViewport = page.getViewport({ scale: 1.0 });
   const pageHeight = rawViewport.height;
-  let cutoffRatio = 0.24; // Default top 24% of page
+  let cutoffRatio = 0.22; // Default top 22% of page
 
   for (const it of textItems) {
     const s = it.str.toLowerCase();
@@ -163,12 +167,26 @@ async function extractFromPdf(arrayBuffer: ArrayBuffer, fileName: string): Promi
     }
   }
 
+  // Detect bottom footer items (Y < 20% from bottom in PDF coordinates)
+  const bottomItems = textItems.filter((it) => it.y / pageHeight < 0.20);
+  let footerRatio = 0.14; // Default bottom 14% of page for letterhead stationery
+  let extractedFooterText: string | undefined;
+
+  if (bottomItems.length > 0) {
+    const maxBottomY = Math.max(...bottomItems.map((it) => it.y));
+    const distFromBottom = (maxBottomY + 28) / pageHeight;
+    footerRatio = Math.max(0.11, Math.min(0.24, distFromBottom));
+    extractedFooterText = bottomItems.map((it) => it.str).join("  •  ");
+  }
+
   let bannerImage: string | undefined;
+  let footerImage: string | undefined;
+  let fullPageImage: string | undefined;
   let logoImage: string | undefined;
 
-  // 2. Render Page 1 to Canvas and Crop Header
+  // 2. Render Page 1 to Canvas and Crop Header + Footer
   try {
-    const scale = 2.0; // 200 DPI crisp quality
+    const scale = 2.5; // High-res 250 DPI for crisp export & print fidelity
     const viewport = page.getViewport({ scale });
     const canvas = document.createElement("canvas");
     canvas.width = Math.round(viewport.width);
@@ -178,7 +196,7 @@ async function extractFromPdf(arrayBuffer: ArrayBuffer, fileName: string): Promi
     if (ctx) {
       await page.render({ canvasContext: ctx, viewport, canvas } as any).promise;
 
-      // Crop top banner
+      // 1. Crop Top Header Banner
       const cropHeight = Math.round(canvas.height * cutoffRatio);
       const cropCanvas = document.createElement("canvas");
       cropCanvas.width = canvas.width;
@@ -189,9 +207,29 @@ async function extractFromPdf(arrayBuffer: ArrayBuffer, fileName: string): Promi
         cropCtx.drawImage(canvas, 0, 0, canvas.width, cropHeight, 0, 0, canvas.width, cropHeight);
         bannerImage = cropCanvas.toDataURL("image/png");
       }
+
+      // 2. Crop Bottom Footer Banner
+      const footerCropHeight = Math.round(canvas.height * footerRatio);
+      const footerCropY = canvas.height - footerCropHeight;
+      const footerCanvas = document.createElement("canvas");
+      footerCanvas.width = canvas.width;
+      footerCanvas.height = footerCropHeight;
+      const footerCtx = footerCanvas.getContext("2d");
+
+      if (footerCtx) {
+        footerCtx.drawImage(canvas, 0, footerCropY, canvas.width, footerCropHeight, 0, 0, canvas.width, footerCropHeight);
+        footerImage = footerCanvas.toDataURL("image/png");
+      }
+
+      // 3. Full-page stationery background
+      try {
+        fullPageImage = canvas.toDataURL("image/jpeg", 0.92);
+      } catch {
+        // ignore if memory limited
+      }
     }
   } catch (err) {
-    console.warn("Canvas rendering of PDF page 1 header failed:", err);
+    console.warn("Canvas rendering of PDF page 1 header/footer failed:", err);
   }
 
   // 3. Extract Embedded Logo Image from Operator List
@@ -236,15 +274,18 @@ async function extractFromPdf(arrayBuffer: ArrayBuffer, fileName: string): Promi
   }
 
   // 4. Parse Structured Text Fields
-  const parsed = parseLinesForLetterhead(lines);
+  const parsed = parseLinesForLetterhead(lines, bottomItems.map((b) => b.str));
 
   return {
     bannerImage,
+    footerImage,
+    fullPageImage,
     logoImage,
     companyName: parsed.companyName,
     tagline: parsed.tagline,
     address: parsed.address,
     contact: parsed.contact,
+    footerText: extractedFooterText || parsed.footerText,
     sourceType: "pdf",
     fileName,
   };
@@ -324,24 +365,68 @@ async function extractFromExcel(arrayBuffer: ArrayBuffer, fileName: string): Pro
   };
 }
 
+function cleanSpacedWord(str: string): string {
+  const trimmed = str.trim();
+  // Handles 'C r e a t i v e   C o m p a n y' -> 'Creative Company'
+  if (/(?:[A-Za-z]\s+){3,}/.test(trimmed)) {
+    return trimmed.replace(/\b([A-Za-z])\s+(?=[A-Za-z]\b)/g, "$1").replace(/\s{2,}/g, " ").trim();
+  }
+  return trimmed;
+}
+
 /**
- * Parses an array of top header lines into companyName, tagline, address, contact
+ * Parses an array of top header lines and bottom items into companyName, tagline, address, contact
  */
-function parseLinesForLetterhead(lines: string[]) {
+function parseLinesForLetterhead(lines: string[], bottomStrings: string[] = []) {
   let companyName: string | undefined;
   let tagline: string | undefined;
   let address: string | undefined;
   let contact: string | undefined;
+  let footerText: string | undefined;
+
+  // Check bottomStrings & lines for contact pillars (web, email, phone)
+  const allStrings = [...lines, ...bottomStrings];
+  let tel = "";
+  let email = "";
+  let web = "";
+
+  for (const s of allStrings) {
+    const clean = cleanSpacedWord(s);
+    if (clean.includes("@") && !email) {
+      const m = clean.match(/[\w.-]+@[\w.-]+\.\w+/);
+      if (m) email = m[0];
+    }
+    if ((clean.includes("www.") || clean.includes(".com") || clean.includes(".id") || clean.includes(".co")) && !web && !clean.includes("@")) {
+      const m = clean.match(/(?:https?:\/\/)?(?:www\.)?[\w.-]+\.[a-z]{2,}/i);
+      if (m) web = m[0];
+    }
+    if (/(?:\+?\d{1,4}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,6}/.test(clean) && !tel && !clean.includes("202") && !clean.includes("199")) {
+      const m = clean.match(/(?:\+?\d{1,4}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,4}[-.\s]?\d{3,6}/);
+      if (m && m[0].length >= 7) tel = m[0];
+    }
+  }
+
+  if (tel || email || web) {
+    const parts: string[] = [];
+    if (tel) parts.push(`Tel: ${tel}`);
+    if (email) parts.push(`Email: ${email}`);
+    if (web) parts.push(`Web: ${web}`);
+    contact = parts.join("  |  ");
+    footerText = [web, tel, email].filter(Boolean).join("  •  ");
+  }
 
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const rawLine = lines[i];
+    const line = cleanSpacedWord(rawLine);
 
     // Detect Company Name (First prominent line or has PT, INC, LTD, EXPORT)
     if (!companyName) {
       if (
-        line.length >= 4 &&
+        line.length >= 3 &&
         !line.toLowerCase().startsWith("tel") &&
-        !line.toLowerCase().startsWith("head office")
+        !line.toLowerCase().startsWith("head office") &&
+        !line.includes("@") &&
+        !line.startsWith("www.")
       ) {
         companyName = line;
         continue;
@@ -349,20 +434,17 @@ function parseLinesForLetterhead(lines: string[]) {
     }
 
     // Detect Tagline
-    if (
-      companyName &&
-      !tagline &&
-      (line.toUpperCase().includes("EXPORTER") ||
-        line.toUpperCase().includes("SUPPLIER") ||
-        line.toUpperCase().includes("COMMODITIES") ||
-        line.toUpperCase().includes("PRODUCER") ||
-        line.toUpperCase().includes("MANUFACTURER") ||
-        line.toUpperCase().includes("INDONESIA")) &&
-      !line.toUpperCase().includes("HEAD OFFICE") &&
-      !line.toUpperCase().includes("CONTACT")
-    ) {
-      tagline = line;
-      continue;
+    if (companyName && !tagline) {
+      if (
+        !line.toLowerCase().startsWith("tel") &&
+        !line.toLowerCase().startsWith("head office") &&
+        !line.includes("@") &&
+        !line.startsWith("www.") &&
+        line !== companyName
+      ) {
+        tagline = line;
+        continue;
+      }
     }
 
     // Detect Address
@@ -380,7 +462,7 @@ function parseLinesForLetterhead(lines: string[]) {
       continue;
     }
 
-    // Detect Contact (Tel, Email, Web)
+    // Detect Contact (Tel, Email, Web) if not yet set
     if (
       !contact &&
       (line.toUpperCase().includes("CONTACT") ||
@@ -394,7 +476,7 @@ function parseLinesForLetterhead(lines: string[]) {
     }
   }
 
-  return { companyName, tagline, address, contact };
+  return { companyName, tagline, address, contact, footerText };
 }
 
 function parseTextForLetterhead(text: string, fileName: string, sourceType: "pdf" | "docx" | "xlsx" | "csv" | "image" | "unknown"): ExtractedLetterhead {

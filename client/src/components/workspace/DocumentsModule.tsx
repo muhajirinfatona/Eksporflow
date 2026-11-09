@@ -675,9 +675,20 @@ export function DocumentsModule({
 
   const handleLetterheadImage = async (file?: File) => {
     if (!file) return;
-    const toastId = toast.loading(`Mengekstrak kop/logo dari ${file.name}...`);
+    const toastId = toast.loading(`Mengekstrak kop surat & footer dari ${file.name}...`);
     try {
       const res = await extractLetterheadFromFile(file);
+      if (res.bannerImage) {
+        update("letterheadBannerImage", res.bannerImage);
+        update("letterheadMode", "banner");
+      }
+      if (res.footerImage) {
+        update("letterheadFooterImage", res.footerImage);
+        update("letterheadFooterEnabled", true);
+      }
+      if (res.fullPageImage) {
+        update("letterheadFullPageBg", res.fullPageImage);
+      }
       const chosenLogo = res.logoImage || res.bannerImage;
       if (chosenLogo) {
         update("letterheadImage", chosenLogo);
@@ -692,9 +703,14 @@ export function DocumentsModule({
       if (res.contact) {
         update("exporterContact", res.contact);
       }
-      toast.success(`Logo & kop surat berhasil diekstrak dari ${file.name}!`, {
+      if (res.footerText) {
+        update("docFooterText", res.footerText);
+      }
+      toast.success(`Kop surat & footer berhasil diekstrak dari ${file.name}!`, {
         id: toastId,
-        description: "Identitas perusahaan dan logo resmi berhasil dipasang.",
+        description: res.footerImage
+          ? "Kop surat atas & footer grafis bawah berhasil dipasang otomatis."
+          : "Identitas perusahaan & kop surat resmi berhasil dipasang.",
       });
     } catch (err) {
       toast.error(`Gagal memproses berkas ${file.name}`, {
@@ -1286,6 +1302,17 @@ export function DocumentsModule({
           }}
           className={`paper-document paper-${shipment.paperSize.toLowerCase()} paper-${shipment.documentOrientation.toLowerCase()} paper-template-${shipment.documentTemplate.toLowerCase().replace(" ", "-")} doc-type-${selectedDocument.toLowerCase().replace(/\s+/g, "-")} ${selectedDocument === "Sales Contract" ? `doc-contract-mode-${effectiveContractLayout === "2-page" ? "2page" : "1page"}` : ""} ${isEditMode ? "word-editable-mode" : ""}`}
         >
+          {/* Full Page Stationery Background (if active) */}
+          {shipment.letterheadFullPageBg && shipment.letterheadFullPageBgEnabled && (
+            <div
+              className="doc-letterhead-full-page-bg pointer-events-none select-none absolute inset-0 z-0 bg-cover bg-top bg-no-repeat"
+              style={{
+                backgroundImage: `url(${shipment.letterheadFullPageBg})`,
+                opacity: (shipment.letterheadWatermarkOpacity ?? 12) / 100,
+              }}
+            />
+          )}
+
           {/* Official Letterhead Header */}
           <OfficialLetterhead
             shipment={shipment}
@@ -1475,6 +1502,13 @@ export function DocumentsModule({
               update={trackedUpdate}
             />
           )}
+
+          {/* Official Letterhead Footer / Kop Surat Bawah Grafis & Disclaimer */}
+          <OfficialFooter
+            shipment={shipment}
+            isEditMode={isEditMode}
+            update={trackedUpdate}
+          />
         </div>
         </div>
       </div>
@@ -3051,6 +3085,125 @@ function OfficialLetterhead({
 
       {letterheadMode !== "hidden" && (
         <div className="letterhead-divider-line" style={dividerLineStyles} />
+      )}
+    </div>
+  );
+}
+
+// --------------------------------------------------------------------------
+// Official Letterhead Footer Component (Kop Surat Bawah Grafis & Legal Disclaimer)
+// --------------------------------------------------------------------------
+function OfficialFooter({
+  shipment,
+  isEditMode = false,
+  update,
+}: {
+  shipment: Shipment;
+  isEditMode?: boolean;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
+}) {
+  const footerInputRef = useRef<HTMLInputElement | null>(null);
+  const footerImage = shipment.letterheadFooterImage;
+  const footerEnabled = shipment.letterheadFooterEnabled !== false;
+  const footerHeight = shipment.letterheadFooterHeight ?? 65;
+  const showLegalText = shipment.docFooterEnabled && shipment.docFooterText;
+
+  const handleUploadFooter = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (update) {
+        update("letterheadFooterImage", String(reader.result));
+        update("letterheadFooterEnabled", true);
+        toast.success("Kop surat bawah (footer grafis) berhasil diperbarui!");
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  if (!footerImage && !showLegalText) return null;
+
+  return (
+    <div
+      className="official-document-footer mt-auto pt-6 break-inside-avoid print:break-inside-avoid relative z-10"
+      contentEditable={false}
+      style={{ userSelect: "none" }}
+    >
+      {/* Graphic Letterhead Footer (e.g. Modern Teal Geometric or Corporate Branding) */}
+      {footerImage && footerEnabled && (
+        <div className="relative group/footer-img mb-2">
+          <img
+            src={footerImage}
+            alt="Kop Surat Bawah Resmi (Footer)"
+            style={{
+              width: "100%",
+              height: `${footerHeight}px`,
+              objectFit: "contain",
+              objectPosition: "bottom center",
+              display: "block",
+            }}
+          />
+          {isEditMode && (
+            <div className="no-print opacity-0 group-hover/footer-img:opacity-100 transition-opacity flex items-center justify-end gap-2 mt-1 py-1 px-2 bg-slate-50 border border-slate-200 rounded text-[11px] text-slate-600">
+              <span className="font-semibold text-slate-700">Footer Grafis Bawah:</span>
+              <span>Tinggi: {footerHeight}px</span>
+              <input
+                type="range"
+                min="35"
+                max="140"
+                value={footerHeight}
+                onChange={(e) => update && update("letterheadFooterHeight", Number(e.target.value))}
+                style={{ width: "80px", accentColor: "#0d9488" }}
+              />
+              <button
+                type="button"
+                onClick={() => footerInputRef.current?.click()}
+                className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border text-slate-700 font-medium"
+              >
+                Ganti Gambar
+              </button>
+              <button
+                type="button"
+                onClick={() => update && update("letterheadFooterEnabled", false)}
+                className="px-2 py-0.5 rounded bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-700 font-medium"
+              >
+                Sembunyikan
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (update) {
+                    update("letterheadFooterImage", "");
+                    update("letterheadFooterEnabled", false);
+                  }
+                }}
+                className="px-2 py-0.5 rounded bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 font-medium"
+              >
+                Hapus
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Hidden file input for quick footer image upload */}
+      <input
+        ref={footerInputRef}
+        type="file"
+        accept="image/*,.pdf,.docx"
+        className="hidden"
+        onChange={handleUploadFooter}
+      />
+
+      {/* Legal Confidential Notice & Disclaimer */}
+      {showLegalText && (
+        <div className="doc-footer-legal-bar text-[9px] text-slate-400 font-medium uppercase tracking-wider text-center py-1 border-t border-slate-200/60 flex items-center justify-between">
+          <span className="flex-1 text-center">{shipment.docFooterText}</span>
+          {shipment.docShowPageNumber && (
+            <span className="text-slate-400 font-mono text-[9px] shrink-0 pl-2">Hal. 1/1</span>
+          )}
+        </div>
       )}
     </div>
   );

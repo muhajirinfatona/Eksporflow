@@ -146,6 +146,7 @@ export function DocWordRibbon({
   const wrapTextMenuRef = useRef<HTMLDivElement>(null);
   const bannerUploadRef = useRef<HTMLInputElement>(null);
   const logoUploadRef = useRef<HTMLInputElement>(null);
+  const footerUploadRef = useRef<HTMLInputElement>(null);
 
   const [savedKopProfiles, setSavedKopProfiles] = useState<
     Array<{
@@ -205,12 +206,36 @@ export function DocWordRibbon({
         spacing: 2,
         mode: "standard" as const,
       },
+      {
+        id: "kop-teal-corporate",
+        name: "THYNK UNLIMITED (Modern Geometric Teal - Header & Footer Lengkap)",
+        exporter: "THYNK UNLIMITED",
+        address: "Creative Company",
+        contact: "Tel: 123-456-7890 • Email: hello@reallygreatsite.com • Web: www.reallygreatsite.com",
+        layout: "left" as const,
+        dividerStyle: "none" as const,
+        dividerColor: "#005f73",
+        dividerGap: 4,
+        spacing: 2,
+        mode: "banner" as const,
+        bannerImage: "/letterhead_teal_header.png",
+        bannerHeight: 120,
+        footerImage: "/letterhead_teal_footer.png",
+        footerHeight: 68,
+        footerEnabled: true,
+      },
     ];
     try {
       const raw = localStorage.getItem("eksporflow_saved_kop_profiles");
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const hasTeal = parsed.some((p: any) => p.id === "kop-teal-corporate");
+          if (!hasTeal) {
+            parsed.push(defaults[3]);
+          }
+          return parsed;
+        }
       }
     } catch {
       // ignore
@@ -623,6 +648,13 @@ export function DocWordRibbon({
         update("letterheadBannerImage", res.bannerImage);
         update("letterheadMode", "banner");
       }
+      if (res.footerImage) {
+        update("letterheadFooterImage", res.footerImage);
+        update("letterheadFooterEnabled", true);
+      }
+      if (res.fullPageImage) {
+        update("letterheadFullPageBg", res.fullPageImage);
+      }
       if (res.logoImage && !res.bannerImage) {
         update("letterheadImage", res.logoImage);
         update("letterheadMode", "standard");
@@ -637,11 +669,16 @@ export function DocWordRibbon({
       if (res.contact) {
         update("exporterContact", res.contact);
       }
+      if (res.footerText) {
+        update("docFooterText", res.footerText);
+      }
       toast.success(`Kop surat berhasil diunggah dari ${file.name}!`, {
         id: toastId,
-        description: res.bannerImage
-          ? "Kop surat banner penuh & identitas resmi berhasil dipasang."
-          : "Identitas perusahaan & logo berhasil diperbarui.",
+        description: res.footerImage
+          ? "Kop surat atas & footer grafis bawah berhasil dipasang otomatis."
+          : res.bannerImage
+            ? "Kop surat banner penuh & identitas resmi berhasil dipasang."
+            : "Identitas perusahaan & logo berhasil diperbarui.",
       });
     } catch (err) {
       toast.error(`Gagal mengekstrak kop surat dari ${file.name}`, {
@@ -701,6 +738,10 @@ export function DocWordRibbon({
       spacing: shipment.letterheadSpacing ?? 2,
       logoImage: shipment.letterheadImage,
       bannerImage: shipment.letterheadBannerImage,
+      bannerHeight: shipment.letterheadBannerHeight,
+      footerImage: shipment.letterheadFooterImage,
+      footerHeight: shipment.letterheadFooterHeight,
+      footerEnabled: shipment.letterheadFooterEnabled,
       mode: (shipment.letterheadMode || "standard") as "standard" | "banner",
     };
     const nextList = [newProfile, ...savedKopProfiles];
@@ -713,7 +754,12 @@ export function DocWordRibbon({
     toast.success(`Format kop surat "${profileName}" disimpan ke daftar profil!`);
   };
 
-  const applyKopProfile = (p: (typeof savedKopProfiles)[number]) => {
+  const applyKopProfile = (p: (typeof savedKopProfiles)[number] & {
+    bannerHeight?: number;
+    footerImage?: string;
+    footerHeight?: number;
+    footerEnabled?: boolean;
+  }) => {
     update("exporter", p.exporter);
     update("letterheadText", p.address);
     update("exporterContact", p.contact);
@@ -724,6 +770,10 @@ export function DocWordRibbon({
     update("letterheadSpacing", p.spacing);
     if (p.logoImage !== undefined) update("letterheadImage", p.logoImage);
     if (p.bannerImage !== undefined) update("letterheadBannerImage", p.bannerImage);
+    if (p.bannerHeight !== undefined) update("letterheadBannerHeight", p.bannerHeight);
+    if (p.footerImage !== undefined) update("letterheadFooterImage", p.footerImage);
+    if (p.footerHeight !== undefined) update("letterheadFooterHeight", p.footerHeight);
+    if (p.footerEnabled !== undefined) update("letterheadFooterEnabled", p.footerEnabled);
     update("letterheadMode", p.mode || "standard");
     toast.success(`Kop surat "${p.name}" berhasil diterapkan ke dokumen!`);
   };
@@ -5112,6 +5162,16 @@ export function DocWordRibbon({
         }}
         style={{ display: "none" }}
       />
+      <input
+        ref={footerUploadRef}
+        type="file"
+        accept="image/*,application/pdf,.pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,.xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.csv,text/csv"
+        onChange={(e) => {
+          handleBannerFileUpload(e.target.files?.[0]);
+          e.target.value = "";
+        }}
+        style={{ display: "none" }}
+      />
 
       {/* Pop-up Modal: Pengaturan Kop Surat Perusahaan */}
       {showLetterheadModal && (
@@ -5277,6 +5337,69 @@ export function DocWordRibbon({
                           <span>Unggah Kop dari Dokumen / Gambar</span>
                         </button>
                       </div>
+                    </div>
+
+                    {/* Footer Graphic Card (Kop Bawah) */}
+                    <div className="mt-3 p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
+                            <Sparkles size={13} />
+                          </div>
+                          <div>
+                            <span className="text-xs font-bold text-slate-900">Kop Surat Bawah (Footer Grafis)</span>
+                            <p className="text-[10px] text-slate-500">Aksen grafis bawah (desain modern teal / strip kontak perusahaan)</p>
+                          </div>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(shipment.letterheadFooterImage && shipment.letterheadFooterEnabled !== false)}
+                            onChange={(e) => {
+                              if (e.target.checked && !shipment.letterheadFooterImage) {
+                                footerUploadRef.current?.click();
+                              } else {
+                                update("letterheadFooterEnabled", e.target.checked);
+                              }
+                            }}
+                            className="sr-only peer"
+                          />
+                          <div className="w-8 h-4 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-teal-600"></div>
+                        </label>
+                      </div>
+
+                      {shipment.letterheadFooterImage && (
+                        <div className="flex items-center justify-between gap-2 pt-1 border-t border-slate-200">
+                          <div className="flex items-center gap-2">
+                            <img
+                              src={shipment.letterheadFooterImage}
+                              alt="Footer Preview"
+                              className="h-8 max-w-[140px] object-contain border bg-white rounded p-0.5"
+                            />
+                            <span className="text-[10px] text-slate-600">Tinggi: {shipment.letterheadFooterHeight ?? 65}px</span>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => footerUploadRef.current?.click()}
+                              className="px-2 py-1 text-[10px] font-medium bg-white hover:bg-slate-100 border rounded text-slate-700"
+                            >
+                              Ganti
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                update("letterheadFooterImage", "");
+                                update("letterheadFooterEnabled", false);
+                                toast.success("Footer grafis dihapus");
+                              }}
+                              className="px-2 py-1 text-[10px] font-medium bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 rounded"
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 

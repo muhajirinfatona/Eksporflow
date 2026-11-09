@@ -346,6 +346,13 @@ export type Shipment = {
   letterheadMode?: "standard" | "banner";
   letterheadBannerImage?: string;
   letterheadBannerHeight?: number;
+  letterheadFooterImage?: string;
+  letterheadFooterHeight?: number;
+  letterheadFooterEnabled?: boolean;
+  letterheadFullPageBg?: string;
+  letterheadFullPageBgEnabled?: boolean;
+  letterheadWatermarkImage?: string;
+  letterheadWatermarkOpacity?: number;
   letterheadSpacing?: number;
   letterheadDividerGap?: number;
   letterheadDividerStyle?:
@@ -529,6 +536,13 @@ export const initialShipment: Shipment = {
   letterheadMode: "standard",
   letterheadBannerImage: "",
   letterheadBannerHeight: 110,
+  letterheadFooterImage: "",
+  letterheadFooterHeight: 65,
+  letterheadFooterEnabled: true,
+  letterheadFullPageBg: "",
+  letterheadFullPageBgEnabled: false,
+  letterheadWatermarkImage: "",
+  letterheadWatermarkOpacity: 8,
   letterheadSpacing: 2,
   letterheadDividerGap: 4,
   letterheadDividerStyle: "double",
@@ -656,6 +670,13 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     letterheadMode: "standard",
     letterheadBannerImage: "",
     letterheadBannerHeight: 110,
+    letterheadFooterImage: "",
+    letterheadFooterHeight: 65,
+    letterheadFooterEnabled: true,
+    letterheadFullPageBg: "",
+    letterheadFullPageBgEnabled: false,
+    letterheadWatermarkImage: "",
+    letterheadWatermarkOpacity: 8,
     letterheadSpacing: 2,
     letterheadDividerGap: 4,
     letterheadDividerStyle: "double",
@@ -747,6 +768,12 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "letterheadMode",
   "letterheadBannerImage",
   "letterheadBannerHeight",
+  "letterheadFooterImage",
+  "letterheadFooterHeight",
+  "letterheadFooterEnabled",
+  "letterheadFullPageBg",
+  "letterheadFullPageBgEnabled",
+  "letterheadWatermarkImage",
   "letterheadSpacing",
   "letterheadDividerGap",
   "letterheadDividerStyle",
