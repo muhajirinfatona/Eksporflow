@@ -973,6 +973,48 @@ export function DocumentsModule({
     }
   };
 
+  // Quick Preset Handlers for Letterhead Models
+  const applyIndicoPreset = () => {
+    trackedUpdate("letterheadMode", "standard");
+    trackedUpdate("letterheadImage", DEFAULT_INDICO_LOGO);
+    trackedUpdate("letterheadText", "PT. INDICO EXPORT INDONESIA");
+    trackedUpdate("exporter", "PT. INDICO EXPORT INDONESIA");
+    trackedUpdate("exporterContact", "Tel: +62 812-3456-7890 | Email: official@indicoexport.com | Web: www.indicoexport.com");
+    trackedUpdate("letterheadBannerImage", "");
+    trackedUpdate("letterheadFooterImage", "");
+    trackedUpdate("letterheadFooterEnabled", false);
+    trackedUpdate("letterheadFullPageBgEnabled", false);
+    trackedUpdate("letterheadShowAddress", false);
+    toast.info("Model Kop Surat Standar Resmi Indico diterapkan.");
+  };
+
+  const applyTealCorporatePreset = () => {
+    trackedUpdate("letterheadMode", "banner");
+    trackedUpdate("letterheadBannerImage", "/letterhead_teal_header.png");
+    trackedUpdate("letterheadBannerHeight", 125);
+    trackedUpdate("letterheadFooterImage", "/letterhead_teal_footer.png");
+    trackedUpdate("letterheadFooterHeight", 70);
+    trackedUpdate("letterheadFooterEnabled", true);
+    trackedUpdate("letterheadBleed", true);
+    trackedUpdate("letterheadFullPageBgEnabled", false);
+    trackedUpdate("letterheadShowAddress", false);
+    trackedUpdate("exporter", "THYNK UNLIMITED");
+    trackedUpdate("letterheadText", "THYNK UNLIMITED");
+    trackedUpdate("exporterContact", "Tel: 123-456-7890 | Email: hello@reallygreatsite.com | Web: www.reallygreatsite.com");
+    toast.success("Model Kop Surat Modern Geometric Teal (THYNK UNLIMITED dari file PDF) berhasil diterapkan!");
+  };
+
+  const applyTealFullPageStationeryPreset = () => {
+    trackedUpdate("letterheadMode", "standard");
+    trackedUpdate("letterheadImage", "");
+    trackedUpdate("letterheadText", "");
+    trackedUpdate("letterheadFullPageBg", "/letterhead_teal_full.jpg");
+    trackedUpdate("letterheadFullPageBgEnabled", true);
+    trackedUpdate("letterheadFooterEnabled", false);
+    trackedUpdate("letterheadShowAddress", false);
+    toast.success("Kertas Kop Surat Utuh A4 (Stationery Asli Lengkap Watermark) berhasil diterapkan!");
+  };
+
   return (
     <div className={`doc-center-root ${isEditMode ? "doc-edit-mode-active" : ""}`}>
       <style>{`
@@ -1283,6 +1325,63 @@ export function DocumentsModule({
           </div>
         )}
 
+        {/* Quick Letterhead Template Selector Bar (Always prominent above paper) */}
+        <div className="no-print w-full max-w-[210mm] mx-auto mb-3 px-3 py-2 bg-white/95 backdrop-blur border border-slate-200 rounded-lg shadow-xs flex flex-wrap items-center justify-between gap-2 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-teal-600 animate-pulse"></span>
+              Model Kop Surat:
+            </span>
+            <div className="inline-flex rounded-md shadow-xs p-0.5 bg-slate-100 border border-slate-200 gap-1">
+              <button
+                type="button"
+                onClick={applyIndicoPreset}
+                className={`px-2.5 py-1 text-xs font-semibold rounded transition-all flex items-center gap-1.5 ${
+                  shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled
+                    ? "bg-white text-blue-900 shadow-xs border border-blue-200"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+              >
+                🌿 Standar Indico
+              </button>
+              <button
+                type="button"
+                onClick={applyTealCorporatePreset}
+                className={`px-2.5 py-1 text-xs font-semibold rounded flex items-center gap-1.5 transition-all ${
+                  shipment.letterheadMode === "banner" && !shipment.letterheadFullPageBgEnabled
+                    ? "bg-teal-700 text-white shadow-xs"
+                    : "text-teal-900 hover:bg-teal-100/70"
+                }`}
+                title="Model Kop Surat Resmi dari file PDF: THYNK UNLIMITED Teal and White"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-teal-300"></span>
+                💎 Modern Geometric Teal (Model PDF)
+              </button>
+              <button
+                type="button"
+                onClick={applyTealFullPageStationeryPreset}
+                className={`px-2.5 py-1 text-xs font-semibold rounded flex items-center gap-1.5 transition-all ${
+                  shipment.letterheadFullPageBgEnabled
+                    ? "bg-teal-800 text-white shadow-xs"
+                    : "text-slate-600 hover:text-slate-900"
+                }`}
+                title="Tampilkan seluruh kertas A4 dengan background grafis asli dari PDF (termasuk watermark emblem)"
+              >
+                📄 Kertas Stationery Utuh (Watermark)
+              </button>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-[11px]">
+            <button
+              type="button"
+              onClick={() => setIsSettingsOpen(true)}
+              className="text-blue-700 hover:text-blue-900 font-semibold underline flex items-center gap-1"
+            >
+              ⚙️ Pengaturan Kop Lengkap
+            </button>
+          </div>
+        </div>
+
         <div
           key={editorKey}
           contentEditable={isEditMode}
@@ -1308,7 +1407,7 @@ export function DocumentsModule({
               className="doc-letterhead-full-page-bg pointer-events-none select-none absolute inset-0 z-0 bg-cover bg-top bg-no-repeat"
               style={{
                 backgroundImage: `url(${shipment.letterheadFullPageBg})`,
-                opacity: (shipment.letterheadWatermarkOpacity ?? 12) / 100,
+                opacity: 1,
               }}
             />
           )}
@@ -1323,6 +1422,7 @@ export function DocumentsModule({
             isEditMode={isEditMode}
             update={trackedUpdate}
             onLetterheadImage={handleLetterheadImage}
+            docMargins={docMargins}
           />
 
           {/* Render Specific Document Type */}
@@ -1508,6 +1608,7 @@ export function DocumentsModule({
             shipment={shipment}
             isEditMode={isEditMode}
             update={trackedUpdate}
+            docMargins={docMargins}
           />
         </div>
         </div>
@@ -1720,6 +1821,7 @@ function OfficialLetterhead({
   isEditMode = false,
   update,
   onLetterheadImage,
+  docMargins,
 }: {
   shipment: Shipment;
   exporterName: string;
@@ -1729,6 +1831,7 @@ function OfficialLetterhead({
   isEditMode?: boolean;
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   onLetterheadImage?: (file?: File) => void;
+  docMargins?: { top: number; bottom: number; left: number; right: number };
 }) {
   const [isSelected, setIsSelected] = useState(false);
   const [selectedLineGapPx, setSelectedLineGapPx] = useState<number | null>(null);
@@ -2132,35 +2235,57 @@ function OfficialLetterhead({
           </div>
         ) : null
       ) : letterheadMode === "banner" && shipment.letterheadBannerImage ? (
-        <div className="letterhead-banner-wrap relative" contentEditable={false}>
+        <div
+          className="letterhead-banner-wrap relative overflow-hidden"
+          contentEditable={false}
+          style={
+            shipment.letterheadBleed !== false && docMargins
+              ? {
+                  marginTop: `-${docMargins.top}mm`,
+                  marginLeft: `-${docMargins.left}mm`,
+                  marginRight: `-${docMargins.right}mm`,
+                  width: `calc(100% + ${docMargins.left + docMargins.right}mm)`,
+                  marginBottom: "14px",
+                }
+              : { marginBottom: "14px" }
+          }
+        >
           <img
             src={shipment.letterheadBannerImage}
             alt="Kop Surat Resmi Perusahaan"
             style={{
               width: "100%",
               height: `${bannerHeight}px`,
-              objectFit: "contain",
-              objectPosition: "center",
+              objectFit: shipment.letterheadBleed !== false ? "cover" : "contain",
+              objectPosition: "top right",
               display: "block",
             }}
           />
           {isEditMode && (
-            <div className="no-print flex items-center justify-end gap-2 mt-1">
-              <span className="text-[10px] text-slate-500">Tinggi Kop Banner: {bannerHeight}px</span>
+            <div className="no-print flex items-center justify-end gap-2 mt-1.5 px-3">
+              <span className="text-[10px] text-slate-500 font-medium">Tinggi Banner: {bannerHeight}px</span>
               <input
                 type="range"
                 min="50"
-                max="220"
+                max="240"
                 value={bannerHeight}
                 onChange={(e) => update && update("letterheadBannerHeight", Number(e.target.value))}
-                style={{ width: "90px", accentColor: "#2563eb" }}
+                style={{ width: "90px", accentColor: "#0f766e" }}
               />
               <button
                 type="button"
-                onClick={() => update && update("letterheadMode", "standard")}
-                className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded border border-slate-300 font-semibold"
+                onClick={() => update && update("letterheadBleed", !shipment.letterheadBleed)}
+                className="text-[10px] px-2 py-0.5 bg-white hover:bg-slate-100 text-slate-700 rounded border border-slate-300 font-medium shadow-xs"
+                title="Ratakan kop hingga menyentuh tepi kertas A4 (Full Bleed)"
               >
-                Kembali ke Kop Teks
+                {shipment.letterheadBleed !== false ? "✓ Full Bleed (Tepi Kertas)" : "Margin Normal"}
+              </button>
+              <button
+                type="button"
+                onClick={() => update && update("letterheadMode", "standard")}
+                className="text-[10px] px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded border border-slate-300 font-medium"
+              >
+                Kembali ke Kop Standar
               </button>
             </div>
           )}
@@ -3110,16 +3235,19 @@ function OfficialFooter({
   shipment,
   isEditMode = false,
   update,
+  docMargins,
 }: {
   shipment: Shipment;
   isEditMode?: boolean;
   update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
+  docMargins?: { top: number; bottom: number; left: number; right: number };
 }) {
   const footerInputRef = useRef<HTMLInputElement | null>(null);
   const footerImage = shipment.letterheadFooterImage;
   const footerEnabled = shipment.letterheadFooterEnabled !== false;
   const footerHeight = shipment.letterheadFooterHeight ?? 65;
   const showLegalText = shipment.docFooterEnabled && shipment.docFooterText;
+  const isBleed = shipment.letterheadBleed !== false;
 
   const handleUploadFooter = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -3139,21 +3267,31 @@ function OfficialFooter({
 
   return (
     <div
-      className="official-document-footer mt-auto pt-6 break-inside-avoid print:break-inside-avoid relative z-10"
+      className="official-document-footer mt-auto pt-4 break-inside-avoid print:break-inside-avoid relative z-10"
       contentEditable={false}
-      style={{ userSelect: "none" }}
+      style={
+        isBleed && footerImage && footerEnabled && docMargins
+          ? {
+              marginBottom: `-${docMargins.bottom}mm`,
+              marginLeft: `-${docMargins.left}mm`,
+              marginRight: `-${docMargins.right}mm`,
+              width: `calc(100% + ${docMargins.left + docMargins.right}mm)`,
+              userSelect: "none",
+            }
+          : { userSelect: "none" }
+      }
     >
       {/* Graphic Letterhead Footer (e.g. Modern Teal Geometric or Corporate Branding) */}
       {footerImage && footerEnabled && (
-        <div className="relative group/footer-img mb-2">
+        <div className="relative group/footer-img mb-1">
           <img
             src={footerImage}
             alt="Kop Surat Bawah Resmi (Footer)"
             style={{
               width: "100%",
               height: `${footerHeight}px`,
-              objectFit: "contain",
-              objectPosition: "bottom center",
+              objectFit: isBleed ? "cover" : "contain",
+              objectPosition: "bottom left",
               display: "block",
             }}
           />
@@ -3164,11 +3302,18 @@ function OfficialFooter({
               <input
                 type="range"
                 min="35"
-                max="140"
+                max="160"
                 value={footerHeight}
                 onChange={(e) => update && update("letterheadFooterHeight", Number(e.target.value))}
                 style={{ width: "80px", accentColor: "#0d9488" }}
               />
+              <button
+                type="button"
+                onClick={() => update && update("letterheadBleed", !shipment.letterheadBleed)}
+                className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border text-slate-700 font-medium"
+              >
+                {isBleed ? "✓ Full Bleed" : "Margin Normal"}
+              </button>
               <button
                 type="button"
                 onClick={() => footerInputRef.current?.click()}

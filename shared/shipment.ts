@@ -351,6 +351,7 @@ export type Shipment = {
   letterheadFooterEnabled?: boolean;
   letterheadFullPageBg?: string;
   letterheadFullPageBgEnabled?: boolean;
+  letterheadBleed?: boolean;
   letterheadWatermarkImage?: string;
   letterheadWatermarkOpacity?: number;
   letterheadShowAddress?: boolean;
@@ -542,6 +543,7 @@ export const initialShipment: Shipment = {
   letterheadFooterEnabled: true,
   letterheadFullPageBg: "",
   letterheadFullPageBgEnabled: false,
+  letterheadBleed: true,
   letterheadWatermarkImage: "",
   letterheadWatermarkOpacity: 8,
   letterheadShowAddress: false,
@@ -677,6 +679,7 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     letterheadFooterEnabled: true,
     letterheadFullPageBg: "",
     letterheadFullPageBgEnabled: false,
+    letterheadBleed: true,
     letterheadWatermarkImage: "",
     letterheadWatermarkOpacity: 8,
     letterheadShowAddress: false,
@@ -776,6 +779,7 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "letterheadFooterEnabled",
   "letterheadFullPageBg",
   "letterheadFullPageBgEnabled",
+  "letterheadBleed",
   "letterheadWatermarkImage",
   "letterheadShowAddress",
   "letterheadSpacing",

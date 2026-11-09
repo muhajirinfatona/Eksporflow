@@ -142,11 +142,54 @@ export function DocWordRibbon({
   const [showWrapTextMenu, setShowWrapTextMenu] = useState(false);
   const [showLetterheadModal, setShowLetterheadModal] = useState(false);
   const [letterheadModalTab, setLetterheadModalTab] = useState<"import" | "spacing">("import");
+  const [showLetterheadMenu, setShowLetterheadMenu] = useState(false);
+  const letterheadMenuRef = useRef<HTMLDivElement>(null);
   const positionMenuRef = useRef<HTMLDivElement>(null);
   const wrapTextMenuRef = useRef<HTMLDivElement>(null);
   const bannerUploadRef = useRef<HTMLInputElement>(null);
   const logoUploadRef = useRef<HTMLInputElement>(null);
   const footerUploadRef = useRef<HTMLInputElement>(null);
+
+  const applyIndicoPreset = () => {
+    update("letterheadMode", "standard");
+    update("letterheadImage", DEFAULT_INDICO_LOGO);
+    update("letterheadText", "PT. INDICO EXPORT INDONESIA");
+    update("exporter", "PT. INDICO EXPORT INDONESIA");
+    update("exporterContact", "Tel: +62 812-3456-7890 | Email: official@indicoexport.com | Web: www.indicoexport.com");
+    update("letterheadBannerImage", "");
+    update("letterheadFooterImage", "");
+    update("letterheadFooterEnabled", false);
+    update("letterheadFullPageBgEnabled", false);
+    update("letterheadShowAddress", false);
+    toast.info("Model Kop Surat Standar Resmi Indico diterapkan.");
+  };
+
+  const applyTealCorporatePreset = () => {
+    update("letterheadMode", "banner");
+    update("letterheadBannerImage", "/letterhead_teal_header.png");
+    update("letterheadBannerHeight", 125);
+    update("letterheadFooterImage", "/letterhead_teal_footer.png");
+    update("letterheadFooterHeight", 70);
+    update("letterheadFooterEnabled", true);
+    update("letterheadBleed", true);
+    update("letterheadFullPageBgEnabled", false);
+    update("letterheadShowAddress", false);
+    update("exporter", "THYNK UNLIMITED");
+    update("letterheadText", "THYNK UNLIMITED");
+    update("exporterContact", "Tel: 123-456-7890 | Email: hello@reallygreatsite.com | Web: www.reallygreatsite.com");
+    toast.success("Model Kop Surat Modern Geometric Teal (THYNK UNLIMITED dari file PDF) berhasil diterapkan!");
+  };
+
+  const applyTealFullPageStationeryPreset = () => {
+    update("letterheadMode", "standard");
+    update("letterheadImage", "");
+    update("letterheadText", "");
+    update("letterheadFullPageBg", "/letterhead_teal_full.jpg");
+    update("letterheadFullPageBgEnabled", true);
+    update("letterheadFooterEnabled", false);
+    update("letterheadShowAddress", false);
+    toast.success("Kertas Kop Surat Utuh A4 (Stationery Asli Lengkap Watermark) berhasil diterapkan!");
+  };
 
   const [savedKopProfiles, setSavedKopProfiles] = useState<
     Array<{
@@ -547,14 +590,17 @@ export function DocWordRibbon({
       if (wrapTextMenuRef.current && !wrapTextMenuRef.current.contains(event.target as Node)) {
         setShowWrapTextMenu(false);
       }
+      if (letterheadMenuRef.current && !letterheadMenuRef.current.contains(event.target as Node)) {
+        setShowLetterheadMenu(false);
+      }
     }
-    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu) {
+    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu || showLetterheadMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu]);
+  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu, showLetterheadMenu]);
 
   // Microsoft Word 9-Grid Position Preset Handler
   const applyWordPositionPreset = (
@@ -1717,6 +1763,148 @@ export function DocWordRibbon({
         </div>
 
         <div className="doc-ribbon-top-actions">
+          {/* Quick Letterhead Model Switcher Dropdown */}
+          <div className="relative" ref={letterheadMenuRef} style={{ position: "relative" }}>
+            <button
+              type="button"
+              onClick={() => setShowLetterheadMenu((prev) => !prev)}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "5px",
+                padding: "3px 9px",
+                borderRadius: "5px",
+                background: shipment.letterheadMode === "banner" ? "#0f766e" : "#f1f5f9",
+                color: shipment.letterheadMode === "banner" ? "#ffffff" : "#0f172a",
+                border: shipment.letterheadMode === "banner" ? "1px solid #115e59" : "1px solid #cbd5e1",
+                fontSize: "11px",
+                fontWeight: 600,
+                cursor: "pointer",
+                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+              }}
+              title="Ganti Model Kop Surat (Standar Indico atau Modern Geometric Teal PDF)"
+            >
+              <span>
+                {shipment.letterheadMode === "banner"
+                  ? "💎 Kop Teal (THYNK UNLIMITED)"
+                  : shipment.letterheadFullPageBgEnabled
+                    ? "📄 Kertas Kop Utuh (A4)"
+                    : "🌿 Kop Standar Indico"}
+              </span>
+              <ChevronDown size={12} style={{ opacity: 0.8 }} />
+            </button>
+            {showLetterheadMenu && (
+              <div
+                style={{
+                  position: "absolute",
+                  right: 0,
+                  top: "calc(100% + 4px)",
+                  width: "270px",
+                  backgroundColor: "#ffffff",
+                  borderRadius: "8px",
+                  boxShadow: "0 10px 25px -5px rgba(0,0,0,0.2), 0 8px 10px -6px rgba(0,0,0,0.1)",
+                  border: "1px solid #e2e8f0",
+                  padding: "6px 0",
+                  zIndex: 9999,
+                  textAlign: "left",
+                }}
+              >
+                <div style={{ padding: "4px 12px", fontSize: "10px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Pilih Model Kop Surat
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    applyIndicoPreset();
+                    setShowLetterheadMenu(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 12px",
+                    border: "none",
+                    background: shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled ? "#eff6ff" : "transparent",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "16px" }}>🌿</span>
+                    <div>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b" }}>Standar Indico (Resmi)</div>
+                      <div style={{ fontSize: "10px", color: "#64748b" }}>Format teks & logo eksekutif</div>
+                    </div>
+                  </div>
+                  {shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled && (
+                    <Check size={14} color="#2563eb" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    applyTealCorporatePreset();
+                    setShowLetterheadMenu(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 12px",
+                    border: "none",
+                    borderTop: "1px solid #f1f5f9",
+                    background: shipment.letterheadMode === "banner" && !shipment.letterheadFullPageBgEnabled ? "#f0fdfa" : "transparent",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "16px" }}>💎</span>
+                    <div>
+                      <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f766e" }}>Modern Geometric Teal</div>
+                      <div style={{ fontSize: "10px", color: "#0d9488" }}>Model asli dari file PDF THYNK UNLIMITED</div>
+                    </div>
+                  </div>
+                  {shipment.letterheadMode === "banner" && !shipment.letterheadFullPageBgEnabled && (
+                    <Check size={14} color="#0d9488" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    applyTealFullPageStationeryPreset();
+                    setShowLetterheadMenu(false);
+                  }}
+                  style={{
+                    width: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 12px",
+                    border: "none",
+                    borderTop: "1px solid #f1f5f9",
+                    background: shipment.letterheadFullPageBgEnabled ? "#f0fdfa" : "transparent",
+                    cursor: "pointer",
+                    textAlign: "left",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <span style={{ fontSize: "16px" }}>📄</span>
+                    <div>
+                      <div style={{ fontSize: "12px", fontWeight: 600, color: "#1e293b" }}>Kertas Stationery Utuh A4</div>
+                      <div style={{ fontSize: "10px", color: "#64748b" }}>Watermark tengah & sudut grafis</div>
+                    </div>
+                  </div>
+                  {shipment.letterheadFullPageBgEnabled && (
+                    <Check size={14} color="#0d9488" />
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Toggle WYSIWYG Edit Mode */}
           <button
             type="button"
@@ -1829,6 +2017,53 @@ export function DocWordRibbon({
                   <Redo2 size={14} />
                 </button>
                 <span className="doc-ribbon-group-label">Riwayat</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* Quick Template Switcher Group */}
+              <div className="doc-ribbon-group group-kop-template">
+                <div className="doc-ribbon-row-top" style={{ gap: "4px" }}>
+                  <button
+                    type="button"
+                    onClick={applyTealCorporatePreset}
+                    className={`doc-ribbon-btn-text ${shipment.letterheadMode === "banner" ? "active" : ""}`}
+                    style={{
+                      height: "22px",
+                      padding: "0 6px",
+                      fontSize: "11px",
+                      fontWeight: 700,
+                      color: shipment.letterheadMode === "banner" ? "#0f766e" : "#334155",
+                      background: shipment.letterheadMode === "banner" ? "#ccfbf1" : "#f1f5f9",
+                      border: shipment.letterheadMode === "banner" ? "1px solid #14b8a6" : "1px solid #cbd5e1",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                    }}
+                    title="Pasang Model Kop Surat Modern Geometric Teal (THYNK UNLIMITED dari file PDF)"
+                  >
+                    💎 Kop Teal PDF
+                  </button>
+                  <button
+                    type="button"
+                    onClick={applyIndicoPreset}
+                    className={`doc-ribbon-btn-text ${shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled ? "active" : ""}`}
+                    style={{
+                      height: "22px",
+                      padding: "0 6px",
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      color: shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled ? "#1e40af" : "#64748b",
+                      background: shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled ? "#eff6ff" : "transparent",
+                      border: shipment.letterheadMode !== "banner" && !shipment.letterheadFullPageBgEnabled ? "1px solid #93c5fd" : "1px solid transparent",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                    }}
+                    title="Kembali ke Kop Standar Indico"
+                  >
+                    🌿 Standar
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Model Kop</span>
               </div>
 
               <div className="doc-ribbon-divider" />
