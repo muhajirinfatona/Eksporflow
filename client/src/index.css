@@ -6526,11 +6526,12 @@ textarea:focus-visible {
 .company-name,
 .paper-document .company-name:not([style*="font-size"]) {
   font-size: 15pt;
-  font-weight: 800;
+  font-weight: 900;
   color: #0f2942;
   letter-spacing: 0.025em;
   margin: 0 0 var(--kop-line-spacing, 2px) 0;
   line-height: var(--kop-line-height, 1.15);
+  text-transform: uppercase;
 }
 
 .company-tagline,
@@ -6541,6 +6542,7 @@ textarea:focus-visible {
   letter-spacing: 0.07em;
   margin: 0 0 var(--kop-line-spacing, 2px) 0;
   line-height: var(--kop-line-height, 1.25);
+  text-transform: uppercase;
 }
 
 .company-details,

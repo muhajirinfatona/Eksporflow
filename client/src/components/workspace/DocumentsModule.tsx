@@ -1921,7 +1921,7 @@ function OfficialLetterhead({
 
   // Parse structured address label & body for executive corporate header
   const addressMatch = exporterAddress.match(/^(Head Office|Kantor Pusat|Office|Alamat)\s*:\s*(.+)$/i);
-  const addressLabel = addressMatch ? addressMatch[1].toUpperCase() : isId ? "KANTOR PUSAT" : "HEAD OFFICE";
+  const addressLabel = addressMatch ? addressMatch[1].toUpperCase() : "HEAD OFFICE";
   const addressBody = addressMatch ? addressMatch[2].trim() : exporterAddress;
 
   // Parse structured contact pillars (Tel, Email, Web)
@@ -1942,9 +1942,7 @@ function OfficialLetterhead({
     update("exporterContact", `Tel: ${nextTel}  |  Email: ${nextEmail}  |  Web: ${nextWeb}`);
   };
 
-  const defaultTagline = isId
-    ? "EKSPORTIR & PEMASOK KOMODITAS PERTANIAN & KELAPA INDONESIA"
-    : "EXPORTER & SUPPLIER OF INDONESIAN AGRICULTURAL & COCONUT COMMODITIES";
+  const defaultTagline = "EXPORTER & SUPPLIER OF INDONESIAN AGRICULTURAL & COCONUT COMMODITIES";
   const [customTagline, setCustomTagline] = useState<string | null>(null);
   const exporterTagline = customTagline !== null ? customTagline : defaultTagline;
 
@@ -3218,7 +3216,7 @@ function OfficialLetterhead({
                   className="company-name"
                   style={{
                     fontSize: showAddressInHeader ? "16.5pt" : "19.5pt",
-                    fontWeight: 800,
+                    fontWeight: 900,
                     letterSpacing: "0.04em",
                     color: dividerColor || (layoutMode === "geometric" ? "#005f73" : "#0f2942"),
                     margin: 0,
@@ -3226,6 +3224,7 @@ function OfficialLetterhead({
                     whiteSpace: "normal",
                     wordBreak: "break-word",
                     fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
+                    textTransform: "uppercase",
                   }}
                   onBlur={(e) => {
                     const text = e.currentTarget.innerText.trim();
@@ -3244,7 +3243,7 @@ function OfficialLetterhead({
                     fontSize: showAddressInHeader ? "7.6pt" : "8.6pt",
                     fontWeight: 700,
                     letterSpacing: "0.065em",
-                    color: "#475569",
+                    color: "#047857",
                     margin: "3px 0 0 0",
                     lineHeight: 1.3,
                     whiteSpace: "normal",
@@ -3281,8 +3280,8 @@ function OfficialLetterhead({
                       }
                     }}
                   >
-                    <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor }}>
-                      {addressLabel}:{" "}
+                    <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor || "#0f2942" }}>
+                      HEAD OFFICE:{" "}
                     </strong>
                     <span>{addressBody}</span>
                   </div>
