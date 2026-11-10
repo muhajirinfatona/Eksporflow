@@ -1238,11 +1238,13 @@ export function DocumentsModule({
           }
           .unlk-total-bar {
             border-left: none !important;
-            border-top: none !important;
-            border-right: none !important;
+            border-top: 1px solid #334155 !important;
+            border-right: 1px solid #334155 !important;
             border-bottom: 1px solid #334155 !important;
             background: #f1f5f9 !important;
             box-sizing: border-box !important;
+            background-clip: padding-box !important;
+            margin-top: -1px !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
