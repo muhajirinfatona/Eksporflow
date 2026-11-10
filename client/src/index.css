@@ -7204,6 +7204,7 @@ textarea:focus-visible {
   border: 1px solid #475569 !important;
   margin: 0 !important;
   table-layout: fixed !important;
+  empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -7213,6 +7214,7 @@ textarea:focus-visible {
   box-sizing: border-box !important;
   border-right: 1px solid #475569 !important;
   border-left: 1px solid #475569 !important;
+  empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -7272,6 +7274,7 @@ textarea:focus-visible {
   vertical-align: middle !important;
   color: #0f172a !important;
   background: #ffffff !important;
+  empty-cells: show !important;
 }
 
 .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
@@ -11456,6 +11459,7 @@ textarea:focus-visible {
     max-width: 100% !important;
     box-sizing: border-box !important;
     margin: 0 !important;
+    empty-cells: show !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
     -webkit-print-color-adjust: exact !important;
@@ -11466,6 +11470,7 @@ textarea:focus-visible {
     box-sizing: border-box !important;
     border-right: 1px solid #475569 !important;
     border-left: 1px solid #475569 !important;
+    empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -11479,6 +11484,7 @@ textarea:focus-visible {
     border-left: 1px solid #475569 !important;
     background: #f8fafc !important;
     color: #1e293b !important;
+    empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -11490,6 +11496,7 @@ textarea:focus-visible {
     border-left: 1px solid #475569 !important;
     border-bottom: none !important;
     border-top: none !important;
+    empty-cells: show !important;
   }
   .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
     height: auto !important;
@@ -11507,6 +11514,7 @@ textarea:focus-visible {
     padding: 2.5px 5px !important;
     font-size: 9.5pt !important;
     height: auto !important;
+    empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

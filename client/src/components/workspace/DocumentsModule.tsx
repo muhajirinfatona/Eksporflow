@@ -1163,15 +1163,17 @@ export function DocumentsModule({
             width: 100% !important;
             max-width: 100% !important;
             box-sizing: border-box !important;
+            empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .paper-document table.unlk-items-table thead th,
+          .paper-document table.unlk-items-table th,
           .paper-document table.unlk-items-table tbody td,
           .paper-document table.unlk-items-table tfoot td {
             border-right: 1px solid #475569 !important;
             border-left: 1px solid #475569 !important;
             box-sizing: border-box !important;
+            empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -1180,10 +1182,12 @@ export function DocumentsModule({
             border-bottom: 1px solid #475569 !important;
             background: #f8fafc !important;
             color: #1e293b !important;
+            empty-cells: show !important;
           }
           .paper-document table.unlk-items-table tbody td {
             border-top: none !important;
             border-bottom: none !important;
+            empty-cells: show !important;
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
@@ -1192,6 +1196,7 @@ export function DocumentsModule({
             border-right: 1px solid #475569 !important;
             border-left: 1px solid #475569 !important;
             box-sizing: border-box !important;
+            empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -4820,14 +4825,14 @@ function ProformaInvoiceDoc({
               <td colSpan={3} className="unlk-subtotal-label">{isId ? "Total Halaman Ini" : "Total This Page"}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
-              <td />
+              <td className="text-center font-normal text-slate-400" style={{ borderLeft: "1px solid #475569", borderRight: "1px solid #475569" }}>—</td>
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
               <td colSpan={3} className="unlk-subtotal-label font-bold">{isId ? "Total Konsinyasi" : "Consignment Total"} ({incoterm} Makassar)</td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
-              <td />
+              <td className="text-center font-normal text-slate-400" style={{ borderLeft: "1px solid #475569", borderRight: "1px solid #475569" }}>—</td>
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
@@ -5722,7 +5727,7 @@ function CommercialInvoiceDoc({
               <td colSpan={3} className="unlk-subtotal-label">{isId ? "Total Halaman Ini" : "Total This Page"}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
-              <td />
+              <td className="text-center font-normal text-slate-400" style={{ borderLeft: "1px solid #475569", borderRight: "1px solid #475569" }}>—</td>
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
@@ -5731,7 +5736,7 @@ function CommercialInvoiceDoc({
               </td>
               <td className="text-right font-bold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold">MT</td>
-              <td />
+              <td className="text-center font-normal text-slate-400" style={{ borderLeft: "1px solid #475569", borderRight: "1px solid #475569" }}>—</td>
               <td className="text-right font-bold" style={{ whiteSpace: "nowrap" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
