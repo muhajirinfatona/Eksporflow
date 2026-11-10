@@ -2060,6 +2060,10 @@ function OfficialLetterhead({
   const dividerRef = useRef<HTMLDivElement | null>(null);
   const [isDividerSelected, setIsDividerSelected] = useState(false);
   const [showDividerMenu, setShowDividerMenu] = useState(false);
+  const [isDraggingDividerHeight, setIsDraggingDividerHeight] = useState(false);
+  const [isDraggingDividerMove, setIsDraggingDividerMove] = useState(false);
+  const [dividerDragHeight, setDividerDragHeight] = useState<number | null>(null);
+  const [dividerDragOffset, setDividerDragOffset] = useState<{ x: number; y: number } | null>(null);
 
 
 
@@ -2092,9 +2096,12 @@ function OfficialLetterhead({
 
   const logoDividerWidth = shipment.letterheadLogoDividerWidth ?? 1.5;
   const logoDividerColor = shipment.letterheadLogoDividerColor || "#cbd5e1";
-  const logoDividerHeight = shipment.letterheadLogoDividerHeight ?? (showAddressInHeader ? 50 : 42);
+  const logoDividerHeight = dividerDragHeight !== null ? dividerDragHeight : (shipment.letterheadLogoDividerHeight ?? (showAddressInHeader ? 48 : 40));
   const logoDividerStyle = shipment.letterheadLogoDividerStyle || "solid";
-  const logoDividerMargin = shipment.letterheadLogoDividerMargin ?? 14;
+  const logoDividerMarginLeft = shipment.letterheadLogoDividerMarginLeft ?? 8;
+  const logoDividerMarginRight = shipment.letterheadLogoDividerMarginRight ?? 8;
+  const logoDividerOffsetX = dividerDragOffset ? dividerDragOffset.x : (shipment.letterheadLogoDividerOffsetX ?? 0);
+  const logoDividerOffsetY = dividerDragOffset ? dividerDragOffset.y : (shipment.letterheadLogoDividerOffsetY ?? 0);
   const logoDividerVisible = shipment.letterheadLogoDividerVisible !== false;
   const dividerColor = shipment.letterheadDividerColor && shipment.letterheadDividerColor !== "#0f2942" ? shipment.letterheadDividerColor : "#475569";
   const layoutMode = shipment.letterheadLayout || "left";
@@ -2176,6 +2183,72 @@ function OfficialLetterhead({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSelected, isEditMode, update]);
+
+  // Microsoft Word Style Drag Handles for Divider Line Height & Position
+  const startDragDividerHeight = (e: React.MouseEvent, handle: "top" | "bottom") => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!update) return;
+    setIsDraggingDividerHeight(true);
+    const startY = e.clientY;
+    const startHeight = logoDividerHeight;
+    let finalHeight = startHeight;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dy = moveEvent.clientY - startY;
+      const delta = handle === "bottom" ? dy : -dy;
+      finalHeight = Math.max(16, Math.min(100, Math.round(startHeight + delta)));
+      setDividerDragHeight(finalHeight);
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsDraggingDividerHeight(false);
+      setDividerDragHeight(null);
+      update("letterheadLogoDividerHeight", finalHeight);
+      toast.success(`Tinggi garis diatur ke ${finalHeight}px`);
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
+
+  const startDragDividerMove = (e: React.MouseEvent) => {
+    if (!isEditMode || !update) return;
+    if ((e.target as HTMLElement).classList.contains("letterhead-divider-handle")) return;
+    if ((e.target as HTMLElement).closest(".letterhead-divider-quick-toolbar, .word-divider-popover")) return;
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDividerSelected(true);
+    setIsDraggingDividerMove(true);
+    const startClientX = e.clientX;
+    const startOffsetX = logoDividerOffsetX;
+    let finalX = startOffsetX;
+    let moved = false;
+
+    const onMouseMove = (moveEvent: MouseEvent) => {
+      const dx = moveEvent.clientX - startClientX;
+      if (Math.abs(dx) > 1) {
+        moved = true;
+        finalX = Math.max(-25, Math.min(25, Math.round(startOffsetX + dx)));
+        setDividerDragOffset({ x: finalX, y: logoDividerOffsetY });
+      }
+    };
+
+    const onMouseUp = () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
+      setIsDraggingDividerMove(false);
+      setDividerDragOffset(null);
+      if (moved) {
+        update("letterheadLogoDividerOffsetX", finalX);
+      }
+    };
+
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+  };
 
   // Deselect logo divider when clicked outside
   useEffect(() => {
@@ -2595,7 +2668,7 @@ function OfficialLetterhead({
               gap:
                 layoutMode === "center" && (!shipment.letterheadImage || shipment.letterheadLogoAlign === "center")
                   ? "6px"
-                  : "14px",
+                  : "0px",
               width: "100%",
             }}
           >
@@ -3153,8 +3226,11 @@ function OfficialLetterhead({
             {effectiveLogoImage && !isLogoCentered && logoDividerVisible && (
               <div
                 ref={dividerRef}
-                className={`letterhead-logo-divider ${isEditMode && isDividerSelected ? "selected" : ""}`}
+                className={`letterhead-logo-divider-wrapper ${isEditMode && isDividerSelected ? "selected" : ""}`}
                 contentEditable={false}
+                onMouseDown={(e) => {
+                  if (isEditMode) startDragDividerMove(e);
+                }}
                 onClick={(e) => {
                   if (isEditMode) {
                     e.stopPropagation();
@@ -3164,36 +3240,62 @@ function OfficialLetterhead({
                   }
                 }}
                 style={{
-                  width: `${logoDividerWidth}px`,
+                  position: "relative",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
                   height: `${logoDividerHeight}px`,
-                  borderLeft: `${logoDividerWidth}px ${logoDividerStyle} ${logoDividerColor}`,
-                  background: "transparent",
-                  margin: `0 ${logoDividerMargin}px 0 6px`,
+                  width: "18px",
+                  marginLeft: `${logoDividerMarginLeft}px`,
+                  marginRight: `${logoDividerMarginRight}px`,
+                  transform: `translate(${logoDividerOffsetX}px, ${logoDividerOffsetY}px)`,
+                  cursor: isEditMode ? (isDraggingDividerMove ? "grabbing" : "grab") : "default",
+                  userSelect: "none",
                   flexShrink: 0,
                   alignSelf: "center",
-                  cursor: isEditMode ? "pointer" : "default",
-                  position: "relative",
-                  WebkitPrintColorAdjust: "exact" as any,
-                  printColorAdjust: "exact" as any,
+                  zIndex: isDividerSelected ? 40 : 5,
                 }}
                 title={
                   isEditMode
-                    ? "Klik untuk memformat garis pemisah logo (tebal 1,5px, warna, gaya - seperti di Word)"
+                    ? "Garis Pemisah (1,5 pt): Klik untuk format, geser titik atas/bawah untuk atur tinggi, atau geser ke samping untuk atur jarak (Word)"
                     : undefined
                 }
               >
-                {/* MS Word Selection Handles & Quick Controls */}
+                {/* The actual visible crisp divider line */}
+                <div
+                  className="letterhead-logo-divider"
+                  style={{
+                    width: "0px",
+                    height: "100%",
+                    borderLeft: `${logoDividerWidth}px ${logoDividerStyle} ${logoDividerColor}`,
+                    background: "transparent",
+                    pointerEvents: "none",
+                    boxSizing: "border-box",
+                    WebkitPrintColorAdjust: "exact" as any,
+                    printColorAdjust: "exact" as any,
+                  }}
+                />
+
+                {/* MS Word Interactive Resize Handles (Top & Bottom) & Action Bar */}
                 {isEditMode && isDividerSelected && (
                   <>
-                    <span className="letterhead-logo-divider-handle top no-print" />
-                    <span className="letterhead-logo-divider-handle bottom no-print" />
+                    <span
+                      className="letterhead-divider-handle top no-print"
+                      onMouseDown={(e) => startDragDividerHeight(e, "top")}
+                      title="Tarik ke atas/bawah untuk ubah tinggi garis (Microsoft Word)"
+                    />
+                    <span
+                      className="letterhead-divider-handle bottom no-print"
+                      onMouseDown={(e) => startDragDividerHeight(e, "bottom")}
+                      title="Tarik ke atas/bawah untuk ubah tinggi garis (Microsoft Word)"
+                    />
 
                     {/* Floating Quick Action Button */}
                     <div
                       className="letterhead-divider-quick-toolbar no-print flex items-center gap-1"
                       style={{
                         position: "absolute",
-                        top: "-26px",
+                        top: "-28px",
                         left: "50%",
                         transform: "translateX(-50%)",
                         zIndex: 50,
@@ -3204,10 +3306,10 @@ function OfficialLetterhead({
                         type="button"
                         onClick={() => setShowDividerMenu((prev) => !prev)}
                         className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-400 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-md flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                        title="Buka Format Garis Pemisah (MS Word)"
+                        title="Buka Menu Pengaturan Lengkap Garis (Word)"
                       >
                         <Sliders size={11} />
-                        <span>{logoDividerWidth} pt</span>
+                        <span>{logoDividerWidth} pt · {logoDividerHeight}px</span>
                       </button>
 
                       <button
@@ -3227,32 +3329,32 @@ function OfficialLetterhead({
                       </button>
                     </div>
 
-                    {/* Word-style Divider Formatting Popover */}
+                    {/* Word-style Comprehensive Divider Formatting Popover */}
                     {showDividerMenu && (
                       <div
                         className="word-divider-popover no-print"
                         onClick={(e) => e.stopPropagation()}
                         style={{
                           position: "absolute",
-                          top: "28px",
+                          top: "30px",
                           left: "50%",
                           transform: "translateX(-50%)",
                           background: "#ffffff",
                           border: "1px solid #cbd5e1",
                           borderRadius: "8px",
-                          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.22)",
+                          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.25)",
                           padding: "12px",
-                          width: "240px",
+                          width: "270px",
                           zIndex: 60,
                           fontSize: "11px",
                           textAlign: "left",
                         }}
                       >
                         {/* Header */}
-                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2">
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2.5">
                           <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
                             <Sliders size={12} className="text-blue-600" />
-                            Format Garis Pemisah (Word)
+                            Format Garis Pemisah (MS Word)
                           </span>
                           <button
                             type="button"
@@ -3263,12 +3365,13 @@ function OfficialLetterhead({
                           </button>
                         </div>
 
-                        {/* Ketebalan (Weight / Thickness) */}
+                        {/* 1. Ketebalan Garis (Weight / Thickness) */}
                         <div className="mb-2.5">
-                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
-                            Ketebalan Garis (Weight)
-                          </span>
-                          <div className="grid grid-cols-5 gap-1">
+                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
+                            <span>Ketebalan Garis (Weight)</span>
+                            <span className="text-blue-600 font-bold">{logoDividerWidth} pt</span>
+                          </div>
+                          <div className="grid grid-cols-5 gap-1 mb-1.5">
                             {[1, 1.5, 2, 2.5, 3].map((w) => (
                               <button
                                 key={w}
@@ -3289,90 +3392,29 @@ function OfficialLetterhead({
                               </button>
                             ))}
                           </div>
+                          <input
+                            type="range"
+                            min="0.5"
+                            max="5"
+                            step="0.5"
+                            value={logoDividerWidth}
+                            onChange={(e) => {
+                              if (update) update("letterheadLogoDividerWidth", Number(e.target.value));
+                            }}
+                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
+                          />
                         </div>
 
-                        {/* Gaya Garis (Style) */}
-                        <div className="mb-2.5">
-                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
-                            Gaya Garis (Line Style)
-                          </span>
-                          <div className="grid grid-cols-3 gap-1">
-                            {(["solid", "dashed", "dotted"] as const).map((styleName) => (
-                              <button
-                                key={styleName}
-                                type="button"
-                                onClick={() => {
-                                  if (update) {
-                                    update("letterheadLogoDividerStyle", styleName);
-                                  }
-                                }}
-                                className={`py-1 px-1.5 rounded border text-[10px] font-medium capitalize text-center transition-all ${
-                                  logoDividerStyle === styleName
-                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
-                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {styleName === "solid" ? "Utuh" : styleName === "dashed" ? "Putus" : "Titik"}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Warna Garis (Color Palette) */}
-                        <div className="mb-2.5">
-                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
-                            Warna Garis (Color)
-                          </span>
-                          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                            {[
-                              { label: "Standar (1,5)", hex: "#cbd5e1" },
-                              { label: "Slate", hex: "#94a3b8" },
-                              { label: "Dark Slate", hex: "#475569" },
-                              { label: "Navy Blue", hex: "#0f2942" },
-                              { label: "Green Indico", hex: "#15803d" },
-                            ].map((col) => (
-                              <button
-                                key={col.hex}
-                                type="button"
-                                onClick={() => {
-                                  if (update) update("letterheadLogoDividerColor", col.hex);
-                                }}
-                                title={col.label}
-                                className={`w-5 h-5 rounded-full border transition-all ${
-                                  logoDividerColor.toLowerCase() === col.hex.toLowerCase()
-                                    ? "ring-2 ring-blue-500 ring-offset-1 scale-110"
-                                    : "border-slate-300 hover:scale-105"
-                                }`}
-                                style={{ backgroundColor: col.hex }}
-                              />
-                            ))}
-                            <label
-                              title="Pilih warna kustom"
-                              className="w-5 h-5 rounded-full border border-slate-300 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-105"
-                            >
-                              <input
-                                type="color"
-                                value={logoDividerColor.startsWith("#") ? logoDividerColor : "#cbd5e1"}
-                                onChange={(e) => {
-                                  if (update) update("letterheadLogoDividerColor", e.target.value);
-                                }}
-                                className="opacity-0 w-0 h-0 cursor-pointer"
-                              />
-                              <Palette size={10} className="text-slate-500" />
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Tinggi Garis (Height) */}
+                        {/* 2. Tinggi Garis (Height) */}
                         <div className="mb-2.5">
                           <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Tinggi Garis</span>
+                            <span>Tinggi Garis (Height)</span>
                             <span className="text-blue-600 font-bold">{logoDividerHeight}px</span>
                           </div>
                           <div className="grid grid-cols-3 gap-1 mb-1.5">
                             {[
-                              { label: "Pas Teks", val: 44 },
-                              { label: "Standar", val: 50 },
+                              { label: "Pas Teks", val: 40 },
+                              { label: "Standar", val: 48 },
                               { label: "Penuh", val: 58 },
                             ].map((h) => (
                               <button
@@ -3393,35 +3435,36 @@ function OfficialLetterhead({
                           </div>
                           <input
                             type="range"
-                            min="32"
-                            max="70"
+                            min="20"
+                            max="80"
                             value={logoDividerHeight}
                             onChange={(e) => {
                               if (update) update("letterheadLogoDividerHeight", Number(e.target.value));
                             }}
-                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
                           />
                         </div>
 
-                        {/* Jarak Samping (Margin) */}
-                        <div className="mb-3">
-                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
-                            Jarak Samping (Spacing)
-                          </span>
-                          <div className="grid grid-cols-3 gap-1">
+                        {/* 3. Jarak ke Teks (Gap Kanan) */}
+                        <div className="mb-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
+                            <span>Jarak ke Teks (Gap Kanan)</span>
+                            <span className="text-blue-600 font-bold">{logoDividerMarginRight}px</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1 mb-1.5">
                             {[
-                              { label: "Rapat", val: 10 },
-                              { label: "Normal", val: 14 },
-                              { label: "Lebar", val: 18 },
+                              { label: "Rapat (4px)", val: 4 },
+                              { label: "Ideal (8px)", val: 8 },
+                              { label: "Lebar (14px)", val: 14 },
                             ].map((m) => (
                               <button
                                 key={m.val}
                                 type="button"
                                 onClick={() => {
-                                  if (update) update("letterheadLogoDividerMargin", m.val);
+                                  if (update) update("letterheadLogoDividerMarginRight", m.val);
                                 }}
                                 className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
-                                  logoDividerMargin === m.val
+                                  logoDividerMarginRight === m.val
                                     ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
                                     : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
                                 }`}
@@ -3429,6 +3472,137 @@ function OfficialLetterhead({
                                 {m.label}
                               </button>
                             ))}
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="25"
+                            value={logoDividerMarginRight}
+                            onChange={(e) => {
+                              if (update) update("letterheadLogoDividerMarginRight", Number(e.target.value));
+                            }}
+                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
+                          />
+                        </div>
+
+                        {/* 4. Jarak ke Logo (Gap Kiri) */}
+                        <div className="mb-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
+                            <span>Jarak ke Logo (Gap Kiri)</span>
+                            <span className="text-blue-600 font-bold">{logoDividerMarginLeft}px</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1 mb-1.5">
+                            {[
+                              { label: "Rapat (4px)", val: 4 },
+                              { label: "Ideal (8px)", val: 8 },
+                              { label: "Lebar (14px)", val: 14 },
+                            ].map((m) => (
+                              <button
+                                key={m.val}
+                                type="button"
+                                onClick={() => {
+                                  if (update) update("letterheadLogoDividerMarginLeft", m.val);
+                                }}
+                                className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
+                                  logoDividerMarginLeft === m.val
+                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
+                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {m.label}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="range"
+                            min="0"
+                            max="25"
+                            value={logoDividerMarginLeft}
+                            onChange={(e) => {
+                              if (update) update("letterheadLogoDividerMarginLeft", Number(e.target.value));
+                            }}
+                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
+                          />
+                        </div>
+
+                        {/* 5. Geser Posisi Horizontal (X Offset) */}
+                        <div className="mb-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
+                            <span>Geser Posisi Garis (X)</span>
+                            <span className="text-blue-600 font-bold">{logoDividerOffsetX > 0 ? `+${logoDividerOffsetX}` : logoDividerOffsetX}px</span>
+                          </div>
+                          <input
+                            type="range"
+                            min="-20"
+                            max="20"
+                            value={logoDividerOffsetX}
+                            onChange={(e) => {
+                              if (update) update("letterheadLogoDividerOffsetX", Number(e.target.value));
+                            }}
+                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
+                          />
+                        </div>
+
+                        {/* 6. Gaya & Warna Garis */}
+                        <div className="mb-2.5">
+                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
+                            Gaya & Warna Garis
+                          </span>
+                          <div className="grid grid-cols-3 gap-1 mb-1.5">
+                            {(["solid", "dashed", "dotted"] as const).map((styleName) => (
+                              <button
+                                key={styleName}
+                                type="button"
+                                onClick={() => {
+                                  if (update) update("letterheadLogoDividerStyle", styleName);
+                                }}
+                                className={`py-1 px-1 rounded border text-[10px] font-medium capitalize text-center transition-all ${
+                                  logoDividerStyle === styleName
+                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
+                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {styleName === "solid" ? "Utuh" : styleName === "dashed" ? "Putus" : "Titik"}
+                              </button>
+                            ))}
+                          </div>
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            {[
+                              { label: "Standar Word (1,5)", hex: "#cbd5e1" },
+                              { label: "Slate", hex: "#94a3b8" },
+                              { label: "Dark Slate", hex: "#475569" },
+                              { label: "Navy Blue", hex: "#0f2942" },
+                              { label: "Green Indico", hex: "#15803d" },
+                            ].map((col) => (
+                              <button
+                                key={col.hex}
+                                type="button"
+                                onClick={() => {
+                                  if (update) update("letterheadLogoDividerColor", col.hex);
+                                }}
+                                title={col.label}
+                                className={`w-4 h-4 rounded-full border transition-all ${
+                                  logoDividerColor.toLowerCase() === col.hex.toLowerCase()
+                                    ? "ring-2 ring-blue-500 ring-offset-1 scale-110"
+                                    : "border-slate-300 hover:scale-105"
+                                }`}
+                                style={{ backgroundColor: col.hex }}
+                              />
+                            ))}
+                            <label
+                              title="Pilih warna kustom"
+                              className="w-4 h-4 rounded-full border border-slate-300 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-105"
+                            >
+                              <input
+                                type="color"
+                                value={logoDividerColor.startsWith("#") ? logoDividerColor : "#cbd5e1"}
+                                onChange={(e) => {
+                                  if (update) update("letterheadLogoDividerColor", e.target.value);
+                                }}
+                                className="opacity-0 w-0 h-0 cursor-pointer"
+                              />
+                              <Palette size={9} className="text-slate-500" />
+                            </label>
                           </div>
                         </div>
 
@@ -3440,16 +3614,19 @@ function OfficialLetterhead({
                               if (update) {
                                 update("letterheadLogoDividerWidth", 1.5);
                                 update("letterheadLogoDividerColor", "#cbd5e1");
-                                update("letterheadLogoDividerHeight", 50);
+                                update("letterheadLogoDividerHeight", 48);
                                 update("letterheadLogoDividerStyle", "solid");
-                                update("letterheadLogoDividerMargin", 14);
+                                update("letterheadLogoDividerMarginLeft", 8);
+                                update("letterheadLogoDividerMarginRight", 8);
+                                update("letterheadLogoDividerOffsetX", 0);
+                                update("letterheadLogoDividerOffsetY", 0);
                                 toast.success("Garis pemisah di-reset ke standar Word (1,5 pt)");
                               }
                             }}
                             className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium"
                           >
                             <RotateCcw size={10} />
-                            Reset 1,5 pt
+                            Reset Standar Word
                           </button>
 
                           <button
@@ -3484,6 +3661,8 @@ function OfficialLetterhead({
                   if (update) {
                     update("letterheadLogoDividerVisible", true);
                     update("letterheadLogoDividerWidth", 1.5);
+                    update("letterheadLogoDividerMarginLeft", 8);
+                    update("letterheadLogoDividerMarginRight", 8);
                     setIsDividerSelected(true);
                     setShowDividerMenu(true);
                     toast.success("Garis pemisah logo (1,5 pt) dimunculkan kembali.");

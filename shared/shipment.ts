@@ -375,6 +375,10 @@ export type Shipment = {
   letterheadLogoDividerHeight?: number;
   letterheadLogoDividerStyle?: "solid" | "dashed" | "dotted";
   letterheadLogoDividerMargin?: number;
+  letterheadLogoDividerMarginLeft?: number;
+  letterheadLogoDividerMarginRight?: number;
+  letterheadLogoDividerOffsetX?: number;
+  letterheadLogoDividerOffsetY?: number;
   letterheadLogoDividerVisible?: boolean;
   letterheadLayout?: "left" | "center" | "split" | "geometric";
   letterheadGeometricStyle?: string;
@@ -563,9 +567,13 @@ export const initialShipment: Shipment = {
   letterheadDividerColor: "#0f2942",
   letterheadLogoDividerWidth: 1.5,
   letterheadLogoDividerColor: "#cbd5e1",
-  letterheadLogoDividerHeight: 50,
+  letterheadLogoDividerHeight: 48,
   letterheadLogoDividerStyle: "solid",
-  letterheadLogoDividerMargin: 14,
+  letterheadLogoDividerMargin: 8,
+  letterheadLogoDividerMarginLeft: 8,
+  letterheadLogoDividerMarginRight: 8,
+  letterheadLogoDividerOffsetX: 0,
+  letterheadLogoDividerOffsetY: 0,
   letterheadLogoDividerVisible: true,
   letterheadLayout: "left",
   letterheadGeometricStyle: "teal-slant",
@@ -817,6 +825,10 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "letterheadLogoDividerHeight",
   "letterheadLogoDividerStyle",
   "letterheadLogoDividerMargin",
+  "letterheadLogoDividerMarginLeft",
+  "letterheadLogoDividerMarginRight",
+  "letterheadLogoDividerOffsetX",
+  "letterheadLogoDividerOffsetY",
   "letterheadLogoDividerVisible",
   "letterheadLayout",
   "letterheadGeometricStyle",

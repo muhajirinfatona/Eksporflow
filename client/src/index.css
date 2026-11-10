@@ -6376,7 +6376,7 @@ textarea:focus-visible {
 .letterhead-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 0px;
   width: 100%;
 }
 
@@ -6515,40 +6515,50 @@ textarea:focus-visible {
   min-width: 0;
 }
 
+.letterhead-logo-divider-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.letterhead-logo-divider-wrapper.selected {
+  outline: 1.5px dashed #2563eb !important;
+  outline-offset: 1px !important;
+  border-radius: 2px;
+}
+
 .letterhead-logo-divider {
-  width: 1.5px;
-  height: 50px;
+  width: 0px;
+  height: 100%;
   background: transparent;
   border-left: 1.5px solid #cbd5e1;
-  border-radius: 1px;
   flex-shrink: 0;
   position: relative;
-  transition: border-color 0.15s ease, outline 0.15s ease;
+  box-sizing: border-box;
 }
 
-.letterhead-logo-divider.selected {
-  outline: 1.5px solid #2563eb !important;
-  outline-offset: 3px !important;
-}
-
-.letterhead-logo-divider-handle {
+.letterhead-divider-handle {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   background: #ffffff;
   border: 1.5px solid #2563eb;
   border-radius: 50%;
-  z-index: 35;
-  pointer-events: none;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 45;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  cursor: ns-resize;
 }
-.letterhead-logo-divider-handle.top {
-  top: -4px;
+.letterhead-divider-handle.top {
+  top: -5px;
 }
-.letterhead-logo-divider-handle.bottom {
-  bottom: -4px;
+.letterhead-divider-handle.bottom {
+  bottom: -5px;
 }
 
 .company-name,
@@ -11029,7 +11039,7 @@ textarea:focus-visible {
     padding: 0 !important;
   }
   .letterhead-brand {
-    gap: 16px !important;
+    gap: 0px !important;
   }
   .letterhead-logo {
     max-height: 120px !important;
@@ -11037,22 +11047,25 @@ textarea:focus-visible {
     width: auto !important;
     object-fit: contain !important;
   }
+  .letterhead-logo-divider-wrapper {
+    display: inline-flex !important;
+    visibility: visible !important;
+    outline: none !important;
+    border: none !important;
+    box-sizing: border-box !important;
+  }
   .letterhead-logo-divider {
     display: block !important;
     visibility: visible !important;
-    width: 1.5px !important;
-    height: 50px !important;
-    border-left: 1.5px solid #cbd5e1 !important;
+    width: 0px !important;
+    height: 100% !important;
     background: transparent !important;
-    margin: 0 14px 0 6px !important;
     flex-shrink: 0 !important;
     align-self: center !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
-  .letterhead-logo-divider.selected {
-    outline: none !important;
-  }
+  .letterhead-divider-handle,
   .letterhead-logo-divider-handle,
   .letterhead-divider-quick-toolbar,
   .word-divider-popover {
