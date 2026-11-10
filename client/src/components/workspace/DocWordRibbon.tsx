@@ -2204,8 +2204,9 @@ export function DocWordRibbon({
                     onMouseDown={(e) => e.preventDefault()}
                     onClick={(e) => {
                       e.stopPropagation();
+                      captureAnchor(e.currentTarget, 320);
                       setHistoryStackData(getEditorHistoryStack());
-                      setShowHistoryMenu(!showHistoryMenu);
+                      setShowHistoryMenu((prev) => !prev);
                     }}
                     title="Lihat Riwayat Perubahan Dokumen"
                     style={{ position: "relative" }}
@@ -2255,8 +2256,9 @@ export function DocWordRibbon({
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={(e) => {
                     e.stopPropagation();
+                    captureAnchor(e.currentTarget, 320);
                     setHistoryStackData(getEditorHistoryStack());
-                    setShowHistoryMenu(!showHistoryMenu);
+                    setShowHistoryMenu((prev) => !prev);
                   }}
                   title="Klik untuk membuka riwayat perubahan dokumen"
                 >
@@ -2270,14 +2272,14 @@ export function DocWordRibbon({
                     ref={historyPopoverRef}
                     className="no-print"
                     style={{
-                      position: "absolute",
-                      top: "calc(100% + 6px)",
-                      left: 0,
-                      zIndex: 1000,
+                      position: "fixed",
+                      top: `${popoverAnchor.top}px`,
+                      left: `${popoverAnchor.left}px`,
+                      zIndex: 9999,
                       width: "320px",
                       background: "#ffffff",
                       borderRadius: "8px",
-                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                      boxShadow: "0 12px 30px rgba(15, 23, 42, 0.25), 0 4px 10px rgba(15, 23, 42, 0.12)",
                       border: "1px solid #cbd5e1",
                       overflow: "hidden",
                       animation: "fadeIn 0.15s ease",
