@@ -188,35 +188,35 @@ export interface DocMarginSpec {
 export const DOC_MARGIN_PRESETS: Record<"Normal" | "Sempit" | "Sedang" | "Lebar", DocMarginSpec> = {
   Normal: {
     preset: "Normal",
-    top: 25.4,
-    bottom: 25.4,
+    top: 10,
+    bottom: 10,
     left: 25.4,
     right: 25.4,
-    label: "Normal (Atas: 2.54cm · Bawah: 2.54cm · Kiri: 2.54cm · Kanan: 2.54cm)",
+    label: "Normal (Atas/Bwh: 1.0cm · Kiri/Kanan: 2.54cm)",
   },
   Sempit: {
     preset: "Sempit",
-    top: 12.7,
-    bottom: 12.7,
+    top: 8,
+    bottom: 8,
     left: 12.7,
     right: 12.7,
-    label: "Sempit / Narrow (Atas/Bawah: 1.27cm · Kiri/Kanan: 1.27cm)",
+    label: "Sempit / Narrow (Atas/Bwh: 0.8cm · Kiri/Kanan: 1.27cm)",
   },
   Sedang: {
     preset: "Sedang",
-    top: 25.4,
-    bottom: 25.4,
+    top: 8,
+    bottom: 8,
     left: 19.1,
     right: 19.1,
-    label: "Sedang / Moderate (Atas/Bawah: 2.54cm · Kiri/Kanan: 1.91cm)",
+    label: "Sedang / Moderate (Atas/Bwh: 0.8cm · Kiri/Kanan: 1.91cm)",
   },
   Lebar: {
     preset: "Lebar",
-    top: 25.4,
-    bottom: 25.4,
-    left: 50.8,
-    right: 50.8,
-    label: "Lebar / Wide (Atas/Bawah: 2.54cm · Kiri/Kanan: 5.08cm)",
+    top: 10,
+    bottom: 10,
+    left: 38.1,
+    right: 38.1,
+    label: "Lebar / Wide (Atas/Bwh: 1.0cm · Kiri/Kanan: 3.81cm)",
   },
 };
 
@@ -227,10 +227,10 @@ export function getDocMargins(shipment: Partial<Shipment>): DocMarginSpec {
   }
   return {
     preset: "Kustom",
-    top: shipment.docMarginTop ?? 25.4,
-    bottom: shipment.docMarginBottom ?? 25.4,
-    left: shipment.docMarginLeft ?? 25.4,
-    right: shipment.docMarginRight ?? 25.4,
+    top: shipment.docMarginTop ?? 8,
+    bottom: shipment.docMarginBottom ?? 8,
+    left: shipment.docMarginLeft ?? 19.1,
+    right: shipment.docMarginRight ?? 19.1,
     label: "Kustom",
   };
 }

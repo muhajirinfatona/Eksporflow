@@ -4692,13 +4692,13 @@ function ProformaInvoiceDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "35%" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "10%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "32%" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Kode HS" : "HS Code"}</th>
               <th style={{ width: "11%" }}>{isId ? "Kuantitas" : "Unit Quantity"}</th>
               <th style={{ width: "8%" }}>{isId ? "Satuan" : "Unit Type"}</th>
               <th style={{ width: "11%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "14%" }}>{isId ? "Total Harga" : "Amount"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Total Harga" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -4722,7 +4722,7 @@ function ProformaInvoiceDoc({
                     : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs | Load: 1 x 20' FCL`}
                 </div>
               </td>
-              <td className="text-center font-semibold">{hsCode}</td>
+              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap" }}>{hsCode}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
               <td className="text-right" style={{ whiteSpace: "nowrap" }}>{formatMoney(unitPricePerMT, currency)}</td>
@@ -5588,13 +5588,13 @@ function CommercialInvoiceDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "35%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "10%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "32%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Kode HS" : "HS Code"}</th>
               <th style={{ width: "11%" }}>{isId ? "Jumlah Kuantitas" : "Unit Quantity"}</th>
               <th style={{ width: "8%" }}>{isId ? "Satuan" : "Unit Type"}</th>
               <th style={{ width: "11%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "14%" }}>{isId ? "Jumlah Total" : "Amount"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Jumlah Total" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -5615,7 +5615,7 @@ function CommercialInvoiceDoc({
                   • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
                 </div>
               </td>
-              <td className="text-center font-semibold">{hsCode}</td>
+              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap" }}>{hsCode}</td>
               <td className="text-right font-semibold">{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center">MT</td>
               <td className="text-right" style={{ whiteSpace: "nowrap" }}>{formatMoney(unitPricePerMT, currency)}</td>

@@ -5970,10 +5970,10 @@ export function DocWordRibbon({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { id: "Normal", name: "Normal", top: 25.4, bottom: 25.4, left: 25.4, right: 25.4, desc: "2.54 cm tiap sisi" },
-                    { id: "Sempit", name: "Sempit (Narrow)", top: 12.7, bottom: 12.7, left: 12.7, right: 12.7, desc: "1.27 cm (Muat Lebih Banyak)" },
-                    { id: "Standar Ekspor", name: "Standar Ekspor", top: 20, bottom: 20, left: 20, right: 20, desc: "2.00 cm (Kop & Stempel)" },
-                    { id: "Sedang", name: "Sedang (Moderate)", top: 25.4, bottom: 25.4, left: 19.1, right: 19.1, desc: "Atas/Bwh 2.54, Samping 1.91 cm" },
+                    { id: "Normal", name: "Normal", top: 10, bottom: 10, left: 25.4, right: 25.4, desc: "Atas/Bwh 1.0cm, Samping 2.54 cm" },
+                    { id: "Sempit", name: "Sempit (Narrow)", top: 8, bottom: 8, left: 12.7, right: 12.7, desc: "Atas/Bwh 0.8cm, Samping 1.27 cm (Muat Maksimal)" },
+                    { id: "Standar Ekspor", name: "Standar Ekspor", top: 10, bottom: 10, left: 19.1, right: 19.1, desc: "1.91 cm (Pas 1 Halaman)" },
+                    { id: "Sedang", name: "Sedang (Moderate)", top: 8, bottom: 8, left: 19.1, right: 19.1, desc: "Atas/Bwh 0.8cm, Samping 1.91 cm (Pas 1 Halaman)" },
                   ].map((preset) => {
                     const isSelected =
                       Math.abs(customMarginInputs.top - preset.top) < 0.2 &&
