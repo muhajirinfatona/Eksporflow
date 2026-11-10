@@ -1123,18 +1123,14 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child,
           .unlk-total-bar {
-            border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            border-right: none !important;
           }
           .paper-document table.unlk-items-table thead th:first-child,
           .paper-document table.unlk-items-table tbody td:first-child,
           .paper-document table.unlk-items-table tfoot td:first-child,
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-            border-left: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
+            border-left: none !important;
           }
         }
       `}</style>
@@ -1946,7 +1942,7 @@ function OfficialLetterhead({
   const dividerGap = shipment.letterheadDividerGap !== undefined ? shipment.letterheadDividerGap : 0;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const showAddressInHeader = shipment.letterheadShowAddress !== false;
-  const dividerColor = shipment.letterheadDividerColor || "#0f2942";
+  const dividerColor = shipment.letterheadDividerColor && shipment.letterheadDividerColor !== "#0f2942" ? shipment.letterheadDividerColor : "#475569";
   const layoutMode = shipment.letterheadLayout || "left";
   const rawExporterContact = shipment.exporterContact || "";
   const exporterContact =
@@ -2227,19 +2223,19 @@ function OfficialLetterhead({
   if (dividerStyle === "none") {
     dividerLineStyles.display = "none";
   } else if (dividerStyle === "double") {
-    dividerLineStyles.borderTop = `2px solid ${dividerColor}`;
-    dividerLineStyles.borderBottom = `0.75px solid ${dividerColor}`;
-    dividerLineStyles.height = "2px";
-  } else if (dividerStyle === "thick-thin") {
-    dividerLineStyles.borderTop = `3.5px solid ${dividerColor}`;
+    dividerLineStyles.borderTop = `1.5px solid ${dividerColor}`;
     dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
-    dividerLineStyles.height = "2.5px";
+    dividerLineStyles.height = "1.5px";
+  } else if (dividerStyle === "thick-thin") {
+    dividerLineStyles.borderTop = `2px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.height = "2px";
   } else if (dividerStyle === "thin-thick") {
     dividerLineStyles.borderTop = `1px solid ${dividerColor}`;
-    dividerLineStyles.borderBottom = `3px solid ${dividerColor}`;
-    dividerLineStyles.height = "2.5px";
-  } else if (dividerStyle === "single") {
     dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
+    dividerLineStyles.height = "2px";
+  } else if (dividerStyle === "single") {
+    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "thin") {
     dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
@@ -2961,9 +2957,9 @@ function OfficialLetterhead({
                 className="letterhead-logo-divider"
                 contentEditable={false}
                 style={{
-                  width: "1.5px",
+                  width: "1px",
                   height: showAddressInHeader ? "54px" : "44px",
-                  background: "#cbd5e1",
+                  background: "#475569",
                   margin: "0 16px 0 6px",
                   flexShrink: 0,
                   alignSelf: "center",
@@ -3349,8 +3345,8 @@ function OfficialLetterhead({
             style={
               layoutMode === "geometric"
                 ? {
-                    height: "2.5px",
-                    background: dividerColor || "#005f73",
+                    height: "0px",
+                    borderBottom: `1px solid ${dividerColor || "#475569"}`,
                     marginTop: `${Math.max(0, dividerGap)}px`,
                     marginBottom: `${Math.max(2, dividerGap + 4)}px`,
                     width: "100%",

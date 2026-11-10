@@ -7073,12 +7073,13 @@ textarea:focus-visible {
 
 .unlk-trade-form {
   --unlk-outer-color: #475569;
-  --unlk-outer-width: 1.25px;
+  --unlk-line-color: #475569;
+  --unlk-outer-width: 1px;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
   overflow: hidden;
-  border: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+  border: 1px solid #475569 !important;
   background: #ffffff;
   color: #0f172a;
 }
@@ -7121,15 +7122,15 @@ textarea:focus-visible {
 }
 
 .unlk-border-r {
-  border-right: 1px solid #94a3b8 !important;
+  border-right: 1px solid #475569 !important;
 }
 
 .unlk-border-t {
-  border-top: 1px solid #94a3b8 !important;
+  border-top: 1px solid #475569 !important;
 }
 
 .unlk-border-b {
-  border-bottom: 1px solid #94a3b8 !important;
+  border-bottom: 1px solid #475569 !important;
 }
 
 .unlk-cell {
@@ -7178,8 +7179,8 @@ textarea:focus-visible {
   max-width: 100% !important;
   box-sizing: border-box !important;
   border-collapse: collapse !important;
-  border-top: 1px solid #94a3b8 !important;
-  border-bottom: 1px solid #94a3b8 !important;
+  border-top: 1px solid #475569 !important;
+  border-bottom: 1px solid #475569 !important;
   margin: 0 !important;
   table-layout: fixed !important;
 }
@@ -7196,8 +7197,8 @@ textarea:focus-visible {
   font-weight: 500 !important;
   line-height: 1.25 !important;
   padding: 6px 6px !important;
-  border-bottom: 1px solid #94a3b8 !important;
-  border-right: 1px solid #94a3b8 !important;
+  border-bottom: 1px solid #475569 !important;
+  border-right: 1px solid #475569 !important;
   border-top: none !important;
   border-left: none !important;
   text-align: center !important;
@@ -7211,13 +7212,13 @@ textarea:focus-visible {
 .paper-document table.unlk-items-table thead th:last-child,
 .paper-document table.unlk-items-table tbody td:last-child,
 .paper-document table.unlk-items-table tfoot td:last-child {
-  border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+  border-right: none !important;
 }
 
 .paper-document table.unlk-items-table thead th:first-child,
 .paper-document table.unlk-items-table tbody td:first-child,
 .paper-document table.unlk-items-table tfoot td:first-child {
-  border-left: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+  border-left: none !important;
 }
 
 .paper-document table.unlk-items-table tbody td {
@@ -7225,7 +7226,7 @@ textarea:focus-visible {
   font-size: 10.5pt !important;
   line-height: 1.32 !important;
   color: #0f172a !important;
-  border-right: 1px solid #94a3b8 !important;
+  border-right: 1px solid #475569 !important;
   border-bottom: none !important;
   border-top: none !important;
   border-left: none !important;
@@ -7246,8 +7247,8 @@ textarea:focus-visible {
 
 .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
 .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-  border-top: 1px solid #94a3b8 !important;
-  border-right: 1px solid #94a3b8 !important;
+  border-top: 1px solid #475569 !important;
+  border-right: 1px solid #475569 !important;
   border-bottom: none !important;
   border-left: none !important;
   padding: 5px 7px !important;
@@ -7260,12 +7261,12 @@ textarea:focus-visible {
 
 .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
 .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
-  border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+  border-right: none !important;
 }
 
 .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
 .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-  border-left: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+  border-left: none !important;
 }
 
 .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
@@ -7305,7 +7306,8 @@ textarea:focus-visible {
   padding: 5px 9px !important;
   font-size: 10.5pt !important;
   background: #f8fafc !important;
-  border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+  border-right: none !important;
+  border-bottom: 1px solid #475569 !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -11021,6 +11023,8 @@ textarea:focus-visible {
     color: #0f172a !important;
   }
   .letterhead-divider-line {
+    display: block !important;
+    width: 100% !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -11333,7 +11337,7 @@ textarea:focus-visible {
     page-break-after: avoid !important;
   }
   .unlk-trade-form {
-    border: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+    border: 1px solid #475569 !important;
     width: 100% !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
@@ -11349,6 +11353,15 @@ textarea:focus-visible {
     align-items: stretch !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+  .unlk-border-r {
+    border-right: 1px solid #475569 !important;
+  }
+  .unlk-border-t {
+    border-top: 1px solid #475569 !important;
+  }
+  .unlk-border-b {
+    border-bottom: 1px solid #475569 !important;
   }
   .unlk-cell {
     padding: 3px 6px !important;
@@ -11376,8 +11389,8 @@ textarea:focus-visible {
     line-height: 1.2 !important;
   }
   .paper-document table.unlk-items-table {
-    border-top: 1px solid #94a3b8 !important;
-    border-bottom: 1px solid #94a3b8 !important;
+    border-top: 1px solid #475569 !important;
+    border-bottom: 1px solid #475569 !important;
     margin: 0 !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -11386,8 +11399,10 @@ textarea:focus-visible {
     font-size: 9pt !important;
     font-weight: 500 !important;
     padding: 3px 5px !important;
-    border-bottom: 1px solid #94a3b8 !important;
-    border-right: 1px solid #94a3b8 !important;
+    border-bottom: 1px solid #475569 !important;
+    border-right: 1px solid #475569 !important;
+    border-top: none !important;
+    border-left: none !important;
     background: #f8fafc !important;
     color: #1e293b !important;
     -webkit-print-color-adjust: exact !important;
@@ -11398,24 +11413,23 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table tfoot td:last-child,
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
-    border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    border-right: none !important;
   }
   .paper-document table.unlk-items-table thead th:first-child,
   .paper-document table.unlk-items-table tbody td:first-child,
   .paper-document table.unlk-items-table tfoot td:first-child,
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-    border-left: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
+    border-left: none !important;
   }
   .paper-document table.unlk-items-table tbody td {
     font-size: 9.5pt !important;
     line-height: 1.2 !important;
     padding: 3px 6px !important;
-    border-right: 1px solid #94a3b8 !important;
+    border-right: 1px solid #475569 !important;
+    border-bottom: none !important;
+    border-top: none !important;
+    border-left: none !important;
   }
   .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
     height: auto !important;
@@ -11426,8 +11440,10 @@ textarea:focus-visible {
   }
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-    border-top: 1px solid #94a3b8 !important;
-    border-right: 1px solid #94a3b8 !important;
+    border-top: 1px solid #475569 !important;
+    border-right: 1px solid #475569 !important;
+    border-bottom: none !important;
+    border-left: none !important;
     padding: 2.5px 5px !important;
     font-size: 9.5pt !important;
     height: auto !important;
@@ -11445,7 +11461,8 @@ textarea:focus-visible {
   }
   .unlk-total-bar {
     padding: 3px 6px !important;
-    border-right: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
+    border-right: none !important;
+    border-bottom: 1px solid #475569 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
