@@ -762,7 +762,7 @@ export function DocWordRibbon({
   }, []);
 
   const activeFontFamily = selectedFontFamily || shipment.docEditorFontFamily || "Calibri";
-  const activeFontSize = selectedFontSize ?? (shipment.docEditorFontSize || 11);
+  const activeFontSize = selectedFontSize ?? (shipment.docEditorFontSize || 10.5);
   const activeLineHeight = selectedLineHeight ?? (shipment.docEditorLineHeight || 1.35);
   const activePaperSize: PaperSize = shipment.paperSize || "A4";
   const activeOrientation: DocumentOrientation = shipment.documentOrientation || "Portrait";
@@ -1178,7 +1178,7 @@ export function DocWordRibbon({
       }
     }
 
-    const current = Number(shipment.docEditorFontSize || 11);
+    const current = Number(shipment.docEditorFontSize || 10.5);
     const nextSize = Math.max(7, Math.min(36, Math.round((current + delta) * 2) / 2));
     handleFontSizeChange(nextSize);
   };

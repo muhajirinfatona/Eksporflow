@@ -7221,7 +7221,7 @@ textarea:focus-visible {
 }
 
 .paper-document .unlk-trade-form .unlk-lbl {
-  font-size: 9.5pt !important;
+  font-size: calc(var(--doc-font-size, 10.5pt) * 0.90) !important;
   font-weight: 400 !important;
   color: #475569 !important;
   line-height: 1.25 !important;
@@ -7231,7 +7231,7 @@ textarea:focus-visible {
 }
 
 .paper-document .unlk-trade-form .unlk-val {
-  font-size: 10.5pt !important;
+  font-size: var(--doc-font-size, 10.5pt) !important;
   font-weight: 500 !important;
   color: #0f172a !important;
   line-height: 1.32 !important;
@@ -7239,7 +7239,7 @@ textarea:focus-visible {
 }
 
 .paper-document .unlk-trade-form .unlk-val-bold {
-  font-size: 10.5pt !important;
+  font-size: var(--doc-font-size, 10.5pt) !important;
   font-weight: 700 !important;
   color: #0f172a !important;
   line-height: 1.32 !important;
@@ -11499,23 +11499,23 @@ textarea:focus-visible {
     display: none !important;
   }
   .paper-document .unlk-trade-form .unlk-lbl {
-    font-size: 8.5pt !important;
+    font-size: calc(var(--doc-font-size, 10.5pt) * 0.90) !important;
     font-weight: 400 !important;
     color: #475569 !important;
-    line-height: 1.15 !important;
+    line-height: 1.18 !important;
     margin-bottom: 1px !important;
   }
   .paper-document .unlk-trade-form .unlk-val {
-    font-size: 9.5pt !important;
+    font-size: var(--doc-font-size, 10.5pt) !important;
     font-weight: 500 !important;
     color: #0f172a !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
   }
   .paper-document .unlk-trade-form .unlk-val-bold {
-    font-size: 9.5pt !important;
+    font-size: var(--doc-font-size, 10.5pt) !important;
     font-weight: 700 !important;
     color: #0f172a !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
   }
   .paper-document table.unlk-items-table {
     border-collapse: collapse !important;

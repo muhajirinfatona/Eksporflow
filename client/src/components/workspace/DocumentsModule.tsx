@@ -1058,7 +1058,7 @@ export function DocumentsModule({
         documentOrientation: shipment.documentOrientation || "Portrait",
         fontFamily: shipment.docEditorFontFamily || "Calibri",
         fontSize: shipment.docEditorFontSize || 11,
-        lineHeight: shipment.docEditorLineHeight || 1.35,
+        lineHeight: shipment.docEditorLineHeight || 1.25,
         docMarginPreset: shipment.docMarginPreset,
         docMarginTop: shipment.docMarginTop,
         docMarginBottom: shipment.docMarginBottom,
@@ -1579,8 +1579,8 @@ export function DocumentsModule({
           onDrop={() => pushEditorHistory("drop", "Memindahkan elemen")}
           style={{
             fontFamily: shipment.docEditorFontFamily || "Calibri",
-            fontSize: `${shipment.docEditorFontSize || 11}pt`,
-            ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 11}pt`,
+            fontSize: `${shipment.docEditorFontSize || 10.5}pt`,
+            ["--doc-font-size" as any]: `${shipment.docEditorFontSize || 10.5}pt`,
             ["--logo-scale" as any]: `${(shipment.letterheadLogoScale ?? 100) / 100}`,
             lineHeight: shipment.docEditorLineHeight || 1.35,
             textAlign: "left",
