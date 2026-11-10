@@ -1388,6 +1388,9 @@ export function DocumentsModule({
           contentEditable={isEditMode}
           suppressContentEditableWarning={true}
           onBeforeInput={() => pushEditorHistory("typing")}
+          onPaste={() => pushEditorHistory("paste", "Menempel teks (Paste)")}
+          onCut={() => pushEditorHistory("cut", "Memotong teks (Cut)")}
+          onDrop={() => pushEditorHistory("drop", "Memindahkan elemen")}
           style={{
             fontFamily: shipment.docEditorFontFamily || "Calibri",
             fontSize: `${shipment.docEditorFontSize || 11}pt`,

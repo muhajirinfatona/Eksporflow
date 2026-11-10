@@ -17,6 +17,7 @@ import {
   Eraser,
   Undo2,
   Redo2,
+  History,
   Highlighter,
   Baseline,
   CreditCard,
@@ -95,6 +96,11 @@ import {
   performEditorRedo,
   canEditorUndo,
   canEditorRedo,
+  getEditorHistoryStack,
+  undoToHistoryIndex,
+  redoToHistoryIndex,
+  resetEditorHistory,
+  type HistoryEntryInfo,
   toggleSelectionBold,
   toggleSelectionItalic,
   toggleSelectionUnderline,
@@ -622,12 +628,29 @@ export function DocWordRibbon({
   const [hasBlockedText, setHasBlockedText] = useState(false);
   const [canUndoState, setCanUndoState] = useState<boolean>(() => canEditorUndo());
   const [canRedoState, setCanRedoState] = useState<boolean>(() => canEditorRedo());
+  const [undoCount, setUndoCount] = useState<number>(0);
+  const [redoCount, setRedoCount] = useState<number>(0);
+  const [showHistoryMenu, setShowHistoryMenu] = useState(false);
+  const [historyStackData, setHistoryStackData] = useState<{
+    undoList: HistoryEntryInfo[];
+    redoList: HistoryEntryInfo[];
+    canUndo: boolean;
+    canRedo: boolean;
+  }>(() => getEditorHistoryStack());
+
+  const historyMenuRef = useRef<HTMLDivElement>(null);
+  const historyPopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const handleHistoryChange = () => {
       setCanUndoState(canEditorUndo());
       setCanRedoState(canEditorRedo());
+      const stack = getEditorHistoryStack();
+      setHistoryStackData(stack);
+      setUndoCount(stack.undoList.length);
+      setRedoCount(stack.redoList.length);
     };
+    handleHistoryChange();
     window.addEventListener("eksporflow:history-change", handleHistoryChange);
     return () => {
       window.removeEventListener("eksporflow:history-change", handleHistoryChange);
@@ -745,6 +768,13 @@ export function DocWordRibbon({
         setShowLetterheadMenu(false);
       }
       if (
+        historyMenuRef.current &&
+        !historyMenuRef.current.contains(event.target as Node) &&
+        (!historyPopoverRef.current || !historyPopoverRef.current.contains(event.target as Node))
+      ) {
+        setShowHistoryMenu(false);
+      }
+      if (
         geometricGalleryRef.current &&
         !geometricGalleryRef.current.contains(event.target as Node) &&
         (!geometricPopoverRef.current || !geometricPopoverRef.current.contains(event.target as Node))
@@ -752,13 +782,13 @@ export function DocWordRibbon({
         setShowGeometricGallery(false);
       }
     }
-    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu || showLetterheadMenu || showGeometricGallery) {
+    if (showTableMenu || showMarginPopover || showPositionMenu || showWrapTextMenu || showLetterheadMenu || showGeometricGallery || showHistoryMenu) {
       document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu, showLetterheadMenu, showGeometricGallery]);
+  }, [showTableMenu, showMarginPopover, showPositionMenu, showWrapTextMenu, showLetterheadMenu, showGeometricGallery, showHistoryMenu]);
 
   // Microsoft Word 9-Grid Position Preset Handler
   const applyWordPositionPreset = (
@@ -2141,27 +2171,403 @@ export function DocWordRibbon({
           {/* ================= TAB 1: BERANDA (HOME) ================= */}
           {activeRibbonTab === "home" && (
             <>
-              {/* Quick Undo / Redo */}
-              <div className="doc-ribbon-group group-history">
+              {/* Quick Undo / Redo & Riwayat History Group */}
+              <div
+                className="doc-ribbon-group group-history relative"
+                ref={historyMenuRef}
+                style={{ position: "relative" }}
+              >
+                <div className="doc-ribbon-row-top" style={{ gap: "3px" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${canUndoState ? "active text-slate-800" : "opacity-40 cursor-not-allowed"}`}
+                    disabled={!canUndoState}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleUndo}
+                    title="Undo / Urungkan Perubahan (Ctrl+Z)"
+                  >
+                    <Undo2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${canRedoState ? "active text-slate-800" : "opacity-40 cursor-not-allowed"}`}
+                    disabled={!canRedoState}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={handleRedo}
+                    title="Redo / Ulangi Perubahan (Ctrl+Y)"
+                  >
+                    <Redo2 size={14} />
+                  </button>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${showHistoryMenu ? "active bg-blue-100 border-blue-400 text-blue-700" : ""}`}
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setHistoryStackData(getEditorHistoryStack());
+                      setShowHistoryMenu(!showHistoryMenu);
+                    }}
+                    title="Lihat Riwayat Perubahan Dokumen"
+                    style={{ position: "relative" }}
+                  >
+                    <History size={14} />
+                    {undoCount > 0 && (
+                      <span
+                        style={{
+                          position: "absolute",
+                          top: "-4px",
+                          right: "-4px",
+                          background: "#2563eb",
+                          color: "#ffffff",
+                          fontSize: "8.5px",
+                          fontWeight: 700,
+                          lineHeight: "12px",
+                          minWidth: "13px",
+                          height: "13px",
+                          borderRadius: "7px",
+                          padding: "0 2px",
+                          textAlign: "center",
+                          boxShadow: "0 1px 2px rgba(0,0,0,0.15)",
+                        }}
+                      >
+                        {undoCount}
+                      </span>
+                    )}
+                  </button>
+                </div>
+
                 <button
                   type="button"
-                  className={`doc-ribbon-btn-icon ${canUndoState ? "active" : ""}`}
+                  className="doc-ribbon-group-label"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "2px",
+                    padding: "1px 4px",
+                    borderRadius: "3px",
+                    color: showHistoryMenu ? "#1e40af" : "#64748b",
+                    fontWeight: 700,
+                  }}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={handleUndo}
-                  title="Undo / Urungkan Perubahan Terakhir (Ctrl+Z)"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setHistoryStackData(getEditorHistoryStack());
+                    setShowHistoryMenu(!showHistoryMenu);
+                  }}
+                  title="Klik untuk membuka riwayat perubahan dokumen"
                 >
-                  <Undo2 size={14} />
+                  <span>Riwayat</span>
+                  <ChevronDown size={9} />
                 </button>
-                <button
-                  type="button"
-                  className={`doc-ribbon-btn-icon ${canRedoState ? "active" : ""}`}
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={handleRedo}
-                  title="Redo / Ulangi Perubahan (Ctrl+Y)"
-                >
-                  <Redo2 size={14} />
-                </button>
-                <span className="doc-ribbon-group-label">Riwayat</span>
+
+                {/* Popover Riwayat Perubahan Dokumen */}
+                {showHistoryMenu && (
+                  <div
+                    ref={historyPopoverRef}
+                    className="no-print"
+                    style={{
+                      position: "absolute",
+                      top: "calc(100% + 6px)",
+                      left: 0,
+                      zIndex: 1000,
+                      width: "320px",
+                      background: "#ffffff",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+                      border: "1px solid #cbd5e1",
+                      overflow: "hidden",
+                      animation: "fadeIn 0.15s ease",
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {/* Header */}
+                    <div
+                      style={{
+                        padding: "10px 14px",
+                        background: "#f8fafc",
+                        borderBottom: "1px solid #e2e8f0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "7px" }}>
+                        <History size={16} className="text-blue-600" />
+                        <div>
+                          <div style={{ fontSize: "12px", fontWeight: 700, color: "#0f172a" }}>
+                            Riwayat Perubahan Dokumen
+                          </div>
+                          <div style={{ fontSize: "10px", color: "#64748b" }}>
+                            {historyStackData.undoList.length} tindakan tersimpan
+                          </div>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowHistoryMenu(false)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          color: "#94a3b8",
+                          padding: "3px",
+                          borderRadius: "4px",
+                        }}
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+
+                    {/* Content List */}
+                    <div
+                      style={{
+                        maxHeight: "260px",
+                        overflowY: "auto",
+                        padding: "6px 0",
+                      }}
+                    >
+                      {historyStackData.undoList.length === 0 && historyStackData.redoList.length === 0 ? (
+                        <div style={{ padding: "24px 16px", textAlign: "center", color: "#64748b" }}>
+                          <History size={28} className="text-slate-300 mx-auto mb-2" />
+                          <div style={{ fontSize: "12px", fontWeight: 600, color: "#334155", marginBottom: "3px" }}>
+                            Belum Ada Riwayat Perubahan
+                          </div>
+                          <div style={{ fontSize: "10.5px", lineHeight: 1.4, color: "#64748b" }}>
+                            Mulai mengetik teks, memformat tulisan, atau mengubah tabel di surat untuk mencatat riwayat perubahan.
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          {/* UNDO SECTION (Newest to Oldest) */}
+                          {historyStackData.undoList.length > 0 && (
+                            <div style={{ padding: "4px 8px" }}>
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  fontWeight: 700,
+                                  textTransform: "uppercase",
+                                  color: "#0369a1",
+                                  letterSpacing: "0.05em",
+                                  padding: "4px 6px",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <span>Bisa Diurungkan (Undo)</span>
+                                <span>{historyStackData.undoList.length}</span>
+                              </div>
+                              {historyStackData.undoList.map((item, i) => (
+                                <div
+                                  key={`undo-${item.index}-${item.timestamp}`}
+                                  onClick={() => {
+                                    undoToHistoryIndex(item.index);
+                                    setHistoryStackData(getEditorHistoryStack());
+                                    setCanUndoState(canEditorUndo());
+                                    setCanRedoState(canEditorRedo());
+                                    toast.info(`Diurungkan ke: ${item.description}`);
+                                  }}
+                                  title="Klik untuk urungkan sampai tahap ini"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "6px 8px",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                    fontSize: "11px",
+                                    color: "#1e293b",
+                                    background: i === 0 ? "#eff6ff" : "transparent",
+                                    border: i === 0 ? "1px solid #bfdbfe" : "1px solid transparent",
+                                    marginBottom: "2px",
+                                    transition: "all 0.1s ease",
+                                  }}
+                                  onMouseEnter={(e) => {
+                                    if (i !== 0) e.currentTarget.style.background = "#f1f5f9";
+                                  }}
+                                  onMouseLeave={(e) => {
+                                    if (i !== 0) e.currentTarget.style.background = "transparent";
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+                                    <span
+                                      style={{
+                                        width: "6px",
+                                        height: "6px",
+                                        borderRadius: "50%",
+                                        background: i === 0 ? "#2563eb" : "#94a3b8",
+                                        flexShrink: 0,
+                                      }}
+                                    />
+                                    <span
+                                      style={{
+                                        fontWeight: i === 0 ? 600 : 400,
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                      }}
+                                    >
+                                      {item.description}
+                                    </span>
+                                  </div>
+                                  <span style={{ fontSize: "9.5px", color: "#94a3b8", flexShrink: 0, marginLeft: "6px" }}>
+                                    {item.timeStr}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* REDO SECTION (If Any) */}
+                          {historyStackData.redoList.length > 0 && (
+                            <div style={{ padding: "4px 8px", borderTop: "1px dashed #e2e8f0", marginTop: "4px" }}>
+                              <div
+                                style={{
+                                  fontSize: "10px",
+                                  fontWeight: 700,
+                                  textTransform: "uppercase",
+                                  color: "#059669",
+                                  letterSpacing: "0.05em",
+                                  padding: "4px 6px",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                }}
+                              >
+                                <span>Bisa Diulangi (Redo)</span>
+                                <span>{historyStackData.redoList.length}</span>
+                              </div>
+                              {historyStackData.redoList.map((item) => (
+                                <div
+                                  key={`redo-${item.index}-${item.timestamp}`}
+                                  onClick={() => {
+                                    redoToHistoryIndex(item.index);
+                                    setHistoryStackData(getEditorHistoryStack());
+                                    setCanUndoState(canEditorUndo());
+                                    setCanRedoState(canEditorRedo());
+                                    toast.info(`Diulangi ke: ${item.description}`);
+                                  }}
+                                  title="Klik untuk ulangi sampai tahap ini"
+                                  style={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "space-between",
+                                    padding: "6px 8px",
+                                    borderRadius: "5px",
+                                    cursor: "pointer",
+                                    fontSize: "11px",
+                                    color: "#334155",
+                                    background: "#f0fdf4",
+                                    border: "1px solid #bbf7d0",
+                                    marginBottom: "2px",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", gap: "6px", minWidth: 0 }}>
+                                    <Redo2 size={11} className="text-emerald-600 flex-shrink-0" />
+                                    <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                      {item.description}
+                                    </span>
+                                  </div>
+                                  <span style={{ fontSize: "9.5px", color: "#10b981", flexShrink: 0, marginLeft: "6px" }}>
+                                    {item.timeStr}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div
+                      style={{
+                        padding: "8px 12px",
+                        background: "#f8fafc",
+                        borderTop: "1px solid #e2e8f0",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        fontSize: "11px",
+                      }}
+                    >
+                      <div style={{ display: "flex", gap: "6px" }}>
+                        <button
+                          type="button"
+                          disabled={!canUndoState}
+                          onClick={() => {
+                            handleUndo();
+                            setHistoryStackData(getEditorHistoryStack());
+                          }}
+                          style={{
+                            padding: "3px 8px",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            borderRadius: "4px",
+                            border: "1px solid #cbd5e1",
+                            background: canUndoState ? "#ffffff" : "#f1f5f9",
+                            color: canUndoState ? "#1e293b" : "#94a3b8",
+                            cursor: canUndoState ? "pointer" : "not-allowed",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "3px",
+                          }}
+                        >
+                          <Undo2 size={12} />
+                          <span>Undo</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={!canRedoState}
+                          onClick={() => {
+                            handleRedo();
+                            setHistoryStackData(getEditorHistoryStack());
+                          }}
+                          style={{
+                            padding: "3px 8px",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            borderRadius: "4px",
+                            border: "1px solid #cbd5e1",
+                            background: canRedoState ? "#ffffff" : "#f1f5f9",
+                            color: canRedoState ? "#1e293b" : "#94a3b8",
+                            cursor: canRedoState ? "pointer" : "not-allowed",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "3px",
+                          }}
+                        >
+                          <Redo2 size={12} />
+                          <span>Redo</span>
+                        </button>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          resetEditorHistory();
+                          setHistoryStackData(getEditorHistoryStack());
+                          setCanUndoState(false);
+                          setCanRedoState(false);
+                          toast.info("Riwayat perubahan telah dibersihkan");
+                        }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          fontSize: "10.5px",
+                          color: "#dc2626",
+                          cursor: "pointer",
+                          fontWeight: 500,
+                        }}
+                        title="Bersihkan seluruh riwayat perubahan dokumen saat ini"
+                      >
+                        Bersihkan Riwayat
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="doc-ribbon-divider" />

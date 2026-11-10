@@ -998,9 +998,45 @@ export interface DomBlockSnapshot {
 
 export interface EditorHistorySnapshot {
   key: string;
+  description: string;
   timestamp: number;
   shipmentState: Record<string, any> | null;
+  docWrapperHtml?: string;
+  letterheadTextHtml?: string;
+  footerHtml?: string;
   blocks: DomBlockSnapshot[];
+}
+
+export function getHistoryDescription(key: string, customDesc?: string): string {
+  if (customDesc) return customDesc;
+  if (key === "typing") return "Mengetik teks";
+  if (key === "paste") return "Menempel teks (Paste)";
+  if (key === "cut") return "Memotong teks (Cut)";
+  if (key === "delete" || key === "backspace") return "Menghapus teks";
+  if (key === "format-inline" || key.startsWith("format")) return "Memformat teks (Tebal/Miring/Garis)";
+  if (key === "change-case") return "Mengubah kapitalisasi huruf";
+  if (key === "clear-format") return "Menghapus format";
+  if (key === "line-spacing") return "Mengubah spasi baris";
+  if (key.startsWith("spacing-")) return "Mengatur jarak paragraf";
+  if (key.startsWith("align-")) {
+    const a = key.replace("align-", "");
+    return `Rata ${a === "left" ? "kiri" : a === "center" ? "tengah" : a === "right" ? "kanan" : "justify"}`;
+  }
+  if (key.startsWith("table:")) {
+    const action = key.replace("table:", "");
+    if (action === "insert-row") return "Menambah baris tabel";
+    if (action === "delete-row") return "Menghapus baris tabel";
+    if (action === "insert-col") return "Menambah kolom tabel";
+    if (action === "delete-col") return "Menghapus kolom tabel";
+    if (action === "merge-cells") return "Menggabungkan sel tabel";
+    if (action === "split-cells") return "Memisahkan sel tabel";
+    if (action === "merge-rows") return "Menggabungkan baris tabel";
+    if (action === "color") return "Mengubah warna tabel";
+    return "Mengedit tabel";
+  }
+  if (key.startsWith("shipment:")) return "Mengubah pengaturan dokumen";
+  if (key.startsWith("cmd:")) return `Perintah ${key.replace("cmd:", "")}`;
+  return "Perubahan dokumen";
 }
 
 const HISTORY_TRACKED_SELECTOR = [
@@ -1074,11 +1110,30 @@ function notifyHistoryChange(): void {
   );
 }
 
-function captureCurrentSnapshot(key = "manual"): EditorHistorySnapshot | null {
+function captureCurrentSnapshot(key = "manual", customDesc?: string): EditorHistorySnapshot | null {
   const blocks: DomBlockSnapshot[] = [];
-  const paper = typeof document !== "undefined" ? document.querySelector(".paper-document") : null;
+  const paper = typeof document !== "undefined" ? document.querySelector<HTMLElement>(".paper-document") : null;
+
+  let docWrapperHtml: string | undefined;
+  let letterheadTextHtml: string | undefined;
+  let footerHtml: string | undefined;
 
   if (paper) {
+    const docWrapper = paper.querySelector<HTMLElement>(".doc-content-wrapper");
+    if (docWrapper) {
+      docWrapperHtml = docWrapper.innerHTML;
+    }
+
+    const letterheadText = paper.querySelector<HTMLElement>(".letterhead-text");
+    if (letterheadText) {
+      letterheadTextHtml = letterheadText.innerHTML;
+    }
+
+    const footerEl = paper.querySelector<HTMLElement>(".official-document-footer");
+    if (footerEl) {
+      footerHtml = footerEl.innerHTML;
+    }
+
     const elements = paper.querySelectorAll<HTMLElement>(HISTORY_TRACKED_SELECTOR);
     elements.forEach((el, idx) => {
       let histKey = el.getAttribute("data-hist-key");
@@ -1102,17 +1157,40 @@ function captureCurrentSnapshot(key = "manual"): EditorHistorySnapshot | null {
 
   return {
     key,
+    description: getHistoryDescription(key, customDesc),
     timestamp: Date.now(),
     shipmentState,
+    docWrapperHtml,
+    letterheadTextHtml,
+    footerHtml,
     blocks,
   };
 }
 
 function applySnapshotToDom(snap: EditorHistorySnapshot): void {
   if (typeof document === "undefined") return;
-  const paper = document.querySelector(".paper-document");
+  const paper = document.querySelector<HTMLElement>(".paper-document");
   if (!paper) return;
 
+  // 1. Restore entire document content wrapper if captured
+  const docWrapper = paper.querySelector<HTMLElement>(".doc-content-wrapper");
+  if (docWrapper && snap.docWrapperHtml !== undefined && docWrapper.innerHTML !== snap.docWrapperHtml) {
+    docWrapper.innerHTML = snap.docWrapperHtml;
+  }
+
+  // 2. Restore letterhead text if captured
+  const letterheadText = paper.querySelector<HTMLElement>(".letterhead-text");
+  if (letterheadText && snap.letterheadTextHtml !== undefined && letterheadText.innerHTML !== snap.letterheadTextHtml) {
+    letterheadText.innerHTML = snap.letterheadTextHtml;
+  }
+
+  // 3. Restore footer if captured
+  const footerEl = paper.querySelector<HTMLElement>(".official-document-footer");
+  if (footerEl && snap.footerHtml !== undefined && footerEl.innerHTML !== snap.footerHtml) {
+    footerEl.innerHTML = snap.footerHtml;
+  }
+
+  // 4. Granular block attributes & styles (for backwards compatibility & block metadata)
   const elements = paper.querySelectorAll<HTMLElement>(HISTORY_TRACKED_SELECTOR);
   elements.forEach((el, idx) => {
     if (!el.getAttribute("data-hist-key")) {
@@ -1145,7 +1223,7 @@ function applySnapshotToDom(snap: EditorHistorySnapshot): void {
 /**
  * Records current editor state before a change is applied.
  */
-export function pushEditorHistory(key = "edit"): void {
+export function pushEditorHistory(key = "edit", customDesc?: string): void {
   if (isRestoringHistory) return;
 
   const now = Date.now();
@@ -1156,7 +1234,7 @@ export function pushEditorHistory(key = "edit"): void {
     return;
   }
 
-  const snap = captureCurrentSnapshot(key);
+  const snap = captureCurrentSnapshot(key, customDesc);
   if (!snap) return;
 
   undoStack.push(snap);
@@ -1187,7 +1265,7 @@ export function performEditorUndo(): boolean {
 
   isRestoringHistory = true;
   try {
-    const currentSnap = captureCurrentSnapshot("current");
+    const currentSnap = captureCurrentSnapshot("current", "Sebelum Undo");
     const prevSnap = undoStack.pop()!;
     if (currentSnap) {
       redoStack.push(currentSnap);
@@ -1234,7 +1312,7 @@ export function performEditorRedo(): boolean {
 
   isRestoringHistory = true;
   try {
-    const currentSnap = captureCurrentSnapshot("current");
+    const currentSnap = captureCurrentSnapshot("current", "Sebelum Redo");
     const nextSnap = redoStack.pop()!;
     if (currentSnap) {
       undoStack.push(currentSnap);
@@ -1270,6 +1348,94 @@ export function canEditorUndo(): boolean {
 
 export function canEditorRedo(): boolean {
   return redoStack.length > 0;
+}
+
+export function getEditorUndoCount(): number {
+  return undoStack.length;
+}
+
+export function getEditorRedoCount(): number {
+  return redoStack.length;
+}
+
+export interface HistoryEntryInfo {
+  index: number;
+  description: string;
+  timestamp: number;
+  timeStr: string;
+  type: "undo" | "current" | "redo";
+}
+
+/**
+ * Returns user-facing structured history list for inspection and jumping.
+ */
+export function getEditorHistoryStack(): {
+  undoList: HistoryEntryInfo[];
+  redoList: HistoryEntryInfo[];
+  canUndo: boolean;
+  canRedo: boolean;
+} {
+  const formatTime = (ts: number) => {
+    const d = new Date(ts);
+    return `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}:${d.getSeconds().toString().padStart(2, "0")}`;
+  };
+
+  const undoList: HistoryEntryInfo[] = undoStack.map((s, idx) => ({
+    index: idx,
+    description: s.description || "Perubahan dokumen",
+    timestamp: s.timestamp,
+    timeStr: formatTime(s.timestamp),
+    type: "undo" as const,
+  })).reverse(); // newest first
+
+  const redoList: HistoryEntryInfo[] = redoStack.map((s, idx) => ({
+    index: idx,
+    description: s.description || "Perubahan dibatalkan",
+    timestamp: s.timestamp,
+    timeStr: formatTime(s.timestamp),
+    type: "redo" as const,
+  })).reverse();
+
+  return {
+    undoList,
+    redoList,
+    canUndo: undoStack.length > 0,
+    canRedo: redoStack.length > 0,
+  };
+}
+
+/**
+ * Undoes multiple steps to jump directly to a specific history entry.
+ */
+export function undoToHistoryIndex(targetUndoIndex: number): boolean {
+  if (targetUndoIndex < 0 || targetUndoIndex >= undoStack.length) return false;
+  const stepsToPop = undoStack.length - 1 - targetUndoIndex + 1;
+  let success = false;
+  for (let i = 0; i < stepsToPop; i++) {
+    if (performEditorUndo()) {
+      success = true;
+    } else {
+      break;
+    }
+  }
+  return success;
+}
+
+/**
+ * Redoes multiple steps to jump directly to a specific entry in redoList.
+ */
+export function redoToHistoryIndex(targetRedoIndex: number): boolean {
+  if (targetRedoIndex < 0 || targetRedoIndex >= redoStack.length) return false;
+  const stepsToPop = redoStack.length - 1 - targetRedoIndex + 1;
+  let success = false;
+  for (let i = 0; i < stepsToPop; i++) {
+    if (performEditorRedo()) {
+      success = true;
+    } else {
+      break;
+    }
+  }
+  return success;
 }
 
 export function resetEditorHistory(): void {
