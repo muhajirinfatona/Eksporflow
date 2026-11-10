@@ -5431,6 +5431,19 @@ export function DocWordRibbon({
                     <RotateCcw size={11} />
                     <span>Reset Gambar</span>
                   </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ color: "#dc2626", borderColor: "#fca5a5", background: "#fef2f2" }}
+                    onClick={() => {
+                      update("letterheadImage", "");
+                      toast.success("Logo kop surat berhasil dihapus.");
+                    }}
+                    title="Hapus Logo Kop Surat (Delete Picture)"
+                  >
+                    <Trash2 size={11} />
+                    <span>Hapus Logo</span>
+                  </button>
                 </div>
                 <span className="doc-ribbon-group-label">Adjust (Sesuaikan)</span>
               </div>
