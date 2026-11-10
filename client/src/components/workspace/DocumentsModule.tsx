@@ -1150,58 +1150,83 @@ export function DocumentsModule({
             display: block !important;
             visibility: visible !important;
             width: 100% !important;
-            min-height: 2px !important;
             clear: both !important;
-            box-sizing: border-box !important;
+            box-sizing: content-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table {
-            border: 1px solid #475569 !important;
-            border-collapse: collapse !important;
+            border-collapse: separate !important;
+            border-spacing: 0 !important;
             table-layout: fixed !important;
             width: 100% !important;
             max-width: 100% !important;
             box-sizing: border-box !important;
+            border: none !important;
+            border-top: 1.5px solid #334155 !important;
+            border-bottom: 1.5px solid #334155 !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table th,
+          .paper-document table.unlk-items-table td,
           .paper-document table.unlk-items-table tbody td,
           .paper-document table.unlk-items-table tfoot td {
-            border: 1px solid #475569 !important;
+            border: none !important;
+            border-right: 1.5px solid #334155 !important;
+            border-bottom: 1.5px solid #334155 !important;
+            background-clip: padding-box !important;
             box-sizing: border-box !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          .paper-document table.unlk-items-table th:last-child,
+          .paper-document table.unlk-items-table td:last-child {
+            border-right: none !important;
+          }
           .paper-document table.unlk-items-table thead th {
-            border: 1px solid #475569 !important;
-            background: #f8fafc !important;
-            color: #1e293b !important;
+            font-size: 9pt !important;
+            font-weight: 600 !important;
+            border: none !important;
+            border-right: 1.5px solid #334155 !important;
+            border-bottom: 1.5px solid #334155 !important;
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+            background-clip: padding-box !important;
             empty-cells: show !important;
           }
-          .paper-document table.unlk-items-table tbody td {
-            border: 1px solid #475569 !important;
-            empty-cells: show !important;
+          .paper-document table.unlk-items-table thead th:last-child {
+            border-right: none !important;
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-            border: 1px solid #475569 !important;
+            border: none !important;
+            border-right: 1.5px solid #334155 !important;
+            border-bottom: 1.5px solid #334155 !important;
+            background-clip: padding-box !important;
             box-sizing: border-box !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
+            border-right: none !important;
+          }
+          .paper-document table.unlk-items-table tfoot tr:last-child td,
+          .paper-document table.unlk-items-table tbody tr:last-child td {
+            border-bottom: none !important;
+          }
           .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-            border: 1px solid #475569 !important;
-            background: #f8fafc !important;
+            background: #f1f5f9 !important;
+            background-clip: padding-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .unlk-total-bar {
-            border-bottom: 1px solid #475569 !important;
+            border-bottom: 1.5px solid #334155 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -3431,6 +3456,48 @@ function OfficialLetterhead({
       {letterheadMode !== "hidden" && (
         layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "ribbon-divider" ? (
           <GeometricRibbonStrip color={dividerColor} />
+        ) : dividerStyle === "double" ? (
+          <div
+            className="letterhead-divider-line letterhead-double-rule"
+            style={{
+              width: "100%",
+              marginTop: `${Math.max(2, dividerGap)}px`,
+              marginBottom: "6px",
+              clear: "both",
+              display: "block",
+            }}
+          >
+            <div style={{ height: "2.5px", backgroundColor: effectiveDividerColor, width: "100%", marginBottom: "2px" }} />
+            <div style={{ height: "1px", backgroundColor: effectiveDividerColor, width: "100%" }} />
+          </div>
+        ) : dividerStyle === "thick-thin" ? (
+          <div
+            className="letterhead-divider-line letterhead-thick-thin-rule"
+            style={{
+              width: "100%",
+              marginTop: `${Math.max(2, dividerGap)}px`,
+              marginBottom: "6px",
+              clear: "both",
+              display: "block",
+            }}
+          >
+            <div style={{ height: "3px", backgroundColor: effectiveDividerColor, width: "100%", marginBottom: "2px" }} />
+            <div style={{ height: "1px", backgroundColor: effectiveDividerColor, width: "100%" }} />
+          </div>
+        ) : dividerStyle === "thin-thick" ? (
+          <div
+            className="letterhead-divider-line letterhead-thin-thick-rule"
+            style={{
+              width: "100%",
+              marginTop: `${Math.max(2, dividerGap)}px`,
+              marginBottom: "6px",
+              clear: "both",
+              display: "block",
+            }}
+          >
+            <div style={{ height: "1px", backgroundColor: effectiveDividerColor, width: "100%", marginBottom: "2px" }} />
+            <div style={{ height: "3px", backgroundColor: effectiveDividerColor, width: "100%" }} />
+          </div>
         ) : (
           <div
             className="letterhead-divider-line"
@@ -3438,7 +3505,7 @@ function OfficialLetterhead({
               layoutMode === "geometric"
                 ? {
                     height: "0px",
-                    borderBottom: `1px solid ${dividerColor || "#475569"}`,
+                    borderBottom: `1.5px solid ${dividerColor || "#334155"}`,
                     marginTop: `${Math.max(0, dividerGap)}px`,
                     marginBottom: `${Math.max(2, dividerGap + 4)}px`,
                     width: "100%",
@@ -4789,19 +4856,19 @@ function ProformaInvoiceDoc({
           </colgroup>
           <thead>
             <tr>
-              <th style={{ width: "11%", border: "1px solid #475569" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "27%", border: "1px solid #475569" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Kode HS" : "HS Code"}</th>
-              <th style={{ width: "11%", border: "1px solid #475569" }}>{isId ? "Kuantitas" : "Unit Quantity"}</th>
-              <th style={{ width: "7%", border: "1px solid #475569" }}>{isId ? "Satuan" : "Unit Type"}</th>
-              <th style={{ width: "14%", border: "1px solid #475569" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "18%", border: "1px solid #475569" }}>{isId ? "Total Harga" : "Amount"}</th>
+              <th style={{ width: "11%", border: "1.5px solid #334155" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "27%", border: "1.5px solid #334155" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%", border: "1.5px solid #334155" }}>{isId ? "Kuantitas" : "Unit Quantity"}</th>
+              <th style={{ width: "7%", border: "1.5px solid #334155" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "14%", border: "1.5px solid #334155" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+              <th style={{ width: "18%", border: "1.5px solid #334155" }}>{isId ? "Total Harga" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="unlk-item-main-row">
-              <td className="text-center font-semibold" style={{ border: "1px solid #475569" }}>IEI-PS-01</td>
-              <td style={{ border: "1px solid #475569" }}>
+              <td className="text-center font-semibold" style={{ border: "1.5px solid #334155" }}>IEI-PS-01</td>
+              <td style={{ border: "1.5px solid #334155" }}>
                 <div className="unlk-val-bold">{productName}</div>
                 <div className="unlk-item-spec">
                   • {isId
@@ -4819,27 +4886,27 @@ function ProformaInvoiceDoc({
                     : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs | Load: 1 x 20' FCL`}
                 </div>
               </td>
-              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{hsCode}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center" style={{ border: "1px solid #475569" }}>MT</td>
-              <td className="text-right" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{formatMoney(totalAmount, currency)}</td>
+              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{hsCode}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
+              <td className="text-center" style={{ border: "1.5px solid #334155" }}>MT</td>
+              <td className="text-right" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{formatMoney(unitPricePerMT, currency)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1px solid #475569" }}>{isId ? "Total Halaman Ini" : "Total This Page"}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center" style={{ border: "1px solid #475569" }}>MT</td>
-              <td className="text-center font-normal text-slate-400" style={{ border: "1px solid #475569" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{formatMoney(totalAmount, currency)}</td>
+              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1.5px solid #334155" }}>{isId ? "Total Halaman Ini" : "Total This Page"}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
+              <td className="text-center" style={{ border: "1.5px solid #334155" }}>MT</td>
+              <td className="text-center font-normal text-slate-400" style={{ border: "1.5px solid #334155" }}>—</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "1px solid #475569" }}>{isId ? "Total Konsinyasi" : "Consignment Total"} ({incoterm} Makassar)</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center font-bold" style={{ border: "1px solid #475569" }}>MT</td>
-              <td className="text-center font-normal text-slate-400" style={{ border: "1px solid #475569" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{currency} {formatNumber(totalAmount, 2)}</td>
+              <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "1.5px solid #334155" }}>{isId ? "Total Konsinyasi" : "Consignment Total"} ({incoterm} Makassar)</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
+              <td className="text-center font-bold" style={{ border: "1.5px solid #334155" }}>MT</td>
+              <td className="text-center font-normal text-slate-400" style={{ border: "1.5px solid #334155" }}>—</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -5694,19 +5761,19 @@ function CommercialInvoiceDoc({
           </colgroup>
           <thead>
             <tr>
-              <th style={{ width: "11%", border: "1px solid #475569" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "27%", border: "1px solid #475569" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Kode HS" : "HS Code"}</th>
-              <th style={{ width: "11%", border: "1px solid #475569" }}>{isId ? "Jumlah Kuantitas" : "Unit Quantity"}</th>
-              <th style={{ width: "7%", border: "1px solid #475569" }}>{isId ? "Satuan" : "Unit Type"}</th>
-              <th style={{ width: "14%", border: "1px solid #475569" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "18%", border: "1px solid #475569" }}>{isId ? "Jumlah Total" : "Amount"}</th>
+              <th style={{ width: "11%", border: "1.5px solid #334155" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "27%", border: "1.5px solid #334155" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%", border: "1.5px solid #334155" }}>{isId ? "Jumlah Kuantitas" : "Unit Quantity"}</th>
+              <th style={{ width: "7%", border: "1.5px solid #334155" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "14%", border: "1.5px solid #334155" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+              <th style={{ width: "18%", border: "1.5px solid #334155" }}>{isId ? "Jumlah Total" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="unlk-item-main-row">
-              <td className="text-center font-semibold" style={{ border: "1px solid #475569" }}>IEI-PS-01</td>
-              <td style={{ border: "1px solid #475569" }}>
+              <td className="text-center font-semibold" style={{ border: "1.5px solid #334155" }}>IEI-PS-01</td>
+              <td style={{ border: "1.5px solid #334155" }}>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
                   • {isId ? "Spesifikasi:" : "Specification:"} Grade A Export Quality, Moisture Max 2.5%, Mesh 16-18, Purity 99%
@@ -5721,29 +5788,29 @@ function CommercialInvoiceDoc({
                   • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
                 </div>
               </td>
-              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{hsCode}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center" style={{ border: "1px solid #475569" }}>MT</td>
-              <td className="text-right" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{formatMoney(totalAmount, currency)}</td>
+              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{hsCode}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
+              <td className="text-center" style={{ border: "1.5px solid #334155" }}>MT</td>
+              <td className="text-right" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{formatMoney(unitPricePerMT, currency)}</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1px solid #475569" }}>{isId ? "Total Halaman Ini" : "Total This Page"}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center" style={{ border: "1px solid #475569" }}>MT</td>
-              <td className="text-center font-normal text-slate-400" style={{ border: "1px solid #475569" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{formatMoney(totalAmount, currency)}</td>
+              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1.5px solid #334155" }}>{isId ? "Total Halaman Ini" : "Total This Page"}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
+              <td className="text-center" style={{ border: "1.5px solid #334155" }}>MT</td>
+              <td className="text-center font-normal text-slate-400" style={{ border: "1.5px solid #334155" }}>—</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "1px solid #475569" }}>
+              <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "1.5px solid #334155" }}>
                 {isId ? `Total Konsinyasi (${incoterm} Makassar)` : `Consignment Total (${incoterm} Makassar)`}
               </td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)}</td>
-              <td className="text-center font-bold" style={{ border: "1px solid #475569" }}>MT</td>
-              <td className="text-center font-normal text-slate-400" style={{ border: "1px solid #475569" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1px solid #475569" }}>{currency} {formatNumber(totalAmount, 2)}</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
+              <td className="text-center font-bold" style={{ border: "1.5px solid #334155" }}>MT</td>
+              <td className="text-center font-normal text-slate-400" style={{ border: "1.5px solid #334155" }}>—</td>
+              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "1.5px solid #334155" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -6048,19 +6115,19 @@ function PackingListDoc({
           </colgroup>
           <thead>
             <tr>
-              <th style={{ width: "11%", border: "1px solid #475569" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "27%", border: "1px solid #475569" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Kode HS" : "HS Code"}</th>
-              <th style={{ width: "13%", border: "1px solid #475569" }}>{isId ? "Jumlah Karung" : "Unit Qty"}</th>
-              <th style={{ width: "13%", border: "1px solid #475569" }}>{isId ? "Berat Bersih" : "Net Weight"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Berat Kotor" : "Gross Weight"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Ukuran (CBM)" : "Meas. (CBM)"}</th>
+              <th style={{ width: "11%", border: "1.5px solid #334155" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "27%", border: "1.5px solid #334155" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "13%", border: "1.5px solid #334155" }}>{isId ? "Jumlah Karung" : "Unit Qty"}</th>
+              <th style={{ width: "13%", border: "1.5px solid #334155" }}>{isId ? "Berat Bersih" : "Net Weight"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Berat Kotor" : "Gross Weight"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Ukuran (CBM)" : "Meas. (CBM)"}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="unlk-item-main-row">
-              <td className="text-center font-semibold" style={{ border: "1px solid #475569" }}>IEI-PS-01</td>
-              <td style={{ border: "1px solid #475569" }}>
+              <td className="text-center font-semibold" style={{ border: "1.5px solid #334155" }}>IEI-PS-01</td>
+              <td style={{ border: "1.5px solid #334155" }}>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
                   • {isId ? "Berat Bersih Satuan: 20,00 Kg / Karung | Berat Kotor Satuan: 20,25 Kg / Karung" : "Unit Net Weight: 20.00 Kg / Bag | Unit Gross Weight: 20.25 Kg / Bag"}
@@ -6069,27 +6136,27 @@ function PackingListDoc({
                   • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / DUBAI - UAE / BATCH 11/26 / MADE IN INDONESIA
                 </div>
               </td>
-              <td className="text-center font-semibold" style={{ border: "1px solid #475569" }}>{hsCode}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(grossWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(totalCBM, 3)} CBM</td>
+              <td className="text-center font-semibold" style={{ border: "1.5px solid #334155" }}>{hsCode}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightKgs, 2)} Kgs</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(grossWeightKgs, 2)} Kgs</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1px solid #475569" }}>{isId ? "Total Halaman Ini" : "Total This Page"}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(grossWeightKgs, 2)} Kgs</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(totalCBM, 3)} CBM</td>
+              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1.5px solid #334155" }}>{isId ? "Total Halaman Ini" : "Total This Page"}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightKgs, 2)} Kgs</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(grossWeightKgs, 2)} Kgs</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
-              <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "1px solid #475569" }}>{isId ? "Total Konsinyasi" : "Consignment Total"}</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(netWeightMT, 2)} MT</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(grossWeightMT, 3)} MT</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(totalCBM, 3)} CBM</td>
+              <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "1.5px solid #334155" }}>{isId ? "Total Konsinyasi" : "Consignment Total"}</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(bagsCount)} {isId ? "Karung" : "Bags"}</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(netWeightMT, 2)} MT</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(grossWeightMT, 3)} MT</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
           </tfoot>
         </table>
@@ -6367,23 +6434,23 @@ function ShippingInstructionDoc({
         <table className="unlk-items-table">
           <thead>
             <tr>
-              <th style={{ width: "16%", border: "1px solid #475569" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
-              <th style={{ width: "36%", border: "1px solid #475569" }}>{isId ? "Uraian Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
-              <th style={{ width: "11%", border: "1px solid #475569" }}>{isId ? "Kode HS" : "HS Code"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
-              <th style={{ width: "13%", border: "1px solid #475569" }}>{isId ? "Berat Kotor (Bruto)" : "Gross Weight"}</th>
-              <th style={{ width: "12%", border: "1px solid #475569" }}>{isId ? "Ukuran (CBM)" : "Measurement"}</th>
+              <th style={{ width: "16%", border: "1.5px solid #334155" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
+              <th style={{ width: "36%", border: "1.5px solid #334155" }}>{isId ? "Uraian Barang (Pada B/L)" : "Description of Goods (On B/L)"}</th>
+              <th style={{ width: "11%", border: "1.5px solid #334155" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Jumlah Kemasan" : "No. of Pkgs"}</th>
+              <th style={{ width: "13%", border: "1.5px solid #334155" }}>{isId ? "Berat Kotor (Bruto)" : "Gross Weight"}</th>
+              <th style={{ width: "12%", border: "1.5px solid #334155" }}>{isId ? "Ukuran (CBM)" : "Measurement"}</th>
             </tr>
           </thead>
           <tbody>
             <tr className="unlk-item-main-row">
-              <td style={{ border: "1px solid #475569" }}>
+              <td style={{ border: "1.5px solid #334155" }}>
                 <div className="unlk-val-bold">{buyerName.split(" ")[0] || "AL BARAKAH"}</div>
                 <div className="unlk-item-spec">DUBAI - UAE</div>
                 <div className="unlk-item-spec">BATCH: 11/26</div>
                 <div className="unlk-item-spec">MADE IN INDONESIA</div>
               </td>
-              <td style={{ border: "1px solid #475569" }}>
+              <td style={{ border: "1.5px solid #334155" }}>
                 <div className="unlk-val-bold">{productName.toUpperCase()}</div>
                 <div className="unlk-item-spec">
                   • {isId ? "Dikemas dalam Karung Kertas Kraft Multiwall 20 Kg Neto dengan Lapisan PE Food-Grade." : "Packed in 20 Kg Net Multiwall Kraft Paper Bags with Inner Food-Grade PE Liner."}
@@ -6392,18 +6459,18 @@ function ShippingInstructionDoc({
                   • {isId ? "Clean on Board, Dimuat di Bawah Geladak dalam Kontainer FCL." : "Clean on Board, Stowed Under Deck in FCL Container."}
                 </div>
               </td>
-              <td className="text-center font-semibold" style={{ border: "1px solid #475569" }}>{hsCode}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</td>
-              <td className="text-right font-semibold" style={{ border: "1px solid #475569" }}>{formatNumber(grossWeightKgs, 2)} KGS</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(totalCBM, 3)} CBM</td>
+              <td className="text-center font-semibold" style={{ border: "1.5px solid #334155" }}>{hsCode}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</td>
+              <td className="text-right font-semibold" style={{ border: "1.5px solid #334155" }}>{formatNumber(grossWeightKgs, 2)} KGS</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
           </tbody>
           <tfoot>
             <tr className="unlk-subtotal-row">
-              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1px solid #475569" }}>{isId ? "Total Konsinyasi" : "Consignment Total"}</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(grossWeightKgs, 2)} KGS</td>
-              <td className="text-right font-bold" style={{ border: "1px solid #475569" }}>{formatNumber(totalCBM, 3)} CBM</td>
+              <td colSpan={3} className="unlk-subtotal-label" style={{ border: "1.5px solid #334155" }}>{isId ? "Total Konsinyasi" : "Consignment Total"}</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(bagsCount)} {isId ? "KARUNG" : "BAGS"}</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(grossWeightKgs, 2)} KGS</td>
+              <td className="text-right font-bold" style={{ border: "1.5px solid #334155" }}>{formatNumber(totalCBM, 3)} CBM</td>
             </tr>
           </tfoot>
         </table>
