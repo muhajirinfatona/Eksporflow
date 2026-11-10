@@ -6597,6 +6597,11 @@ textarea:focus-visible {
   box-sizing: content-box !important;
 }
 
+.letterhead-divider-line div {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
 /* Document Title Bar */
 .doc-title-bar {
   text-align: center;
@@ -7205,6 +7210,8 @@ textarea:focus-visible {
   border: none !important;
   border-top: 1px solid #334155 !important;
   border-bottom: 1px solid #334155 !important;
+  border-left: none !important;
+  border-right: none !important;
   margin: 0 !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
@@ -7225,6 +7232,17 @@ textarea:focus-visible {
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+}
+
+/* Eliminate perimeter doubling on table outer edges so perimeter matches outer form 1px exactly */
+.paper-document table.unlk-items-table th:first-child,
+.paper-document table.unlk-items-table td:first-child {
+  border-left: none !important;
+}
+
+.paper-document table.unlk-items-table th:last-child,
+.paper-document table.unlk-items-table td:last-child {
+  border-right: none !important;
 }
 
 .paper-document table.unlk-items-table thead th {
@@ -7324,7 +7342,9 @@ textarea:focus-visible {
   padding: 5px 9px !important;
   font-size: 10.5pt !important;
   background: #f1f5f9 !important;
-  border-right: 1px solid #334155 !important;
+  border-left: none !important;
+  border-top: none !important;
+  border-right: none !important;
   border-bottom: 1px solid #334155 !important;
   box-sizing: border-box !important;
   -webkit-print-color-adjust: exact !important;
@@ -7404,19 +7424,19 @@ textarea:focus-visible {
   print-color-adjust: exact !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th:last-child {
-  border-right: 1.25px solid #0f2942 !important;
+  border-right: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th:first-child {
-  border-left: 1.25px solid #0f2942 !important;
+  border-left: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td {
   border-right: 1px solid #cbd5e1 !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td:last-child {
-  border-right: 1.25px solid #0f2942 !important;
+  border-right: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td:first-child {
-  border-left: 1.25px solid #0f2942 !important;
+  border-left: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td,
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td {
@@ -7428,15 +7448,18 @@ textarea:focus-visible {
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
-  border-right: 1.25px solid #0f2942 !important;
+  border-right: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-  border-left: 1.25px solid #0f2942 !important;
+  border-left: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate .unlk-total-bar {
   background: #f1f5f9 !important;
-  border-right: 1.25px solid #0f2942 !important;
+  border-left: none !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: 1px solid #0f2942 !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -11471,6 +11494,8 @@ textarea:focus-visible {
     border: none !important;
     border-top: 1px solid #334155 !important;
     border-bottom: 1px solid #334155 !important;
+    border-left: none !important;
+    border-right: none !important;
     margin: 0 !important;
     empty-cells: show !important;
     break-inside: avoid !important;
@@ -11491,6 +11516,14 @@ textarea:focus-visible {
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+  .paper-document table.unlk-items-table th:first-child,
+  .paper-document table.unlk-items-table td:first-child {
+    border-left: none !important;
+  }
+  .paper-document table.unlk-items-table th:last-child,
+  .paper-document table.unlk-items-table td:last-child {
+    border-right: none !important;
   }
   .paper-document table.unlk-items-table thead th {
     font-size: 9pt !important;
@@ -11557,7 +11590,9 @@ textarea:focus-visible {
   }
   .unlk-total-bar {
     padding: 3px 6px !important;
-    border-right: 1px solid #334155 !important;
+    border-left: none !important;
+    border-top: none !important;
+    border-right: none !important;
     border-bottom: 1px solid #334155 !important;
     background: #f1f5f9 !important;
     box-sizing: border-box !important;

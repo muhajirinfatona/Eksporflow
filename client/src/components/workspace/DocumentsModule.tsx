@@ -1,4 +1,4 @@
-﻿import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
+import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
 import { formatMoney, formatNumber, numberToWords } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
@@ -1164,6 +1164,8 @@ export function DocumentsModule({
             border: none !important;
             border-top: 1px solid #334155 !important;
             border-bottom: 1px solid #334155 !important;
+            border-left: none !important;
+            border-right: none !important;
             margin: 0 !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
@@ -1184,6 +1186,14 @@ export function DocumentsModule({
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table th:first-child,
+          .paper-document table.unlk-items-table td:first-child {
+            border-left: none !important;
+          }
+          .paper-document table.unlk-items-table th:last-child,
+          .paper-document table.unlk-items-table td:last-child {
+            border-right: none !important;
           }
           .paper-document table.unlk-items-table thead th {
             font-size: 9pt !important;
@@ -1234,7 +1244,9 @@ export function DocumentsModule({
             border: 1px solid #334155 !important;
           }
           .unlk-total-bar {
-            border-right: 1px solid #334155 !important;
+            border-left: none !important;
+            border-top: none !important;
+            border-right: none !important;
             border-bottom: 1px solid #334155 !important;
             background: #f1f5f9 !important;
             box-sizing: border-box !important;
@@ -4959,7 +4971,7 @@ function ProformaInvoiceDoc({
               </span>
             </div>
 
-            <div className="unlk-subrow-2col-70-30 unlk-border-b">
+            <div className="unlk-subrow-2col unlk-border-b">
               <div className="unlk-cell unlk-border-r">
                 <div className="unlk-lbl">{isId ? "Tempat & Tanggal Penerbitan" : "Place and Date of Issue"}</div>
                 <div className="unlk-val-bold">MAKASSAR, INDONESIA</div>
