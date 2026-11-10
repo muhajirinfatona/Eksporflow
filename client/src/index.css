@@ -6383,7 +6383,7 @@ textarea:focus-visible {
 .letterhead-logo {
   max-width: calc(240px * var(--logo-scale, 1)) !important;
   max-height: calc(120px * var(--logo-scale, 1)) !important;
-  height: calc(68px * var(--logo-scale, 1)) !important;
+  height: calc(50px * var(--logo-scale, 1)) !important;
   width: auto !important;
   object-fit: contain !important;
   flex-shrink: 0;
@@ -6630,10 +6630,17 @@ textarea:focus-visible {
 
 .letterhead-divider-line {
   width: 100%;
-  margin-top: 2px !important;
+  margin-top: var(--letterhead-divider-gap, 0px) !important;
   margin-bottom: 4px !important;
   clear: both;
   box-sizing: content-box !important;
+  position: relative;
+  transition: outline 0.15s ease;
+}
+
+.letterhead-divider-line.selected {
+  outline: 1.5px dashed #2563eb !important;
+  outline-offset: 3px !important;
 }
 
 .letterhead-divider-line div {
@@ -11143,8 +11150,9 @@ textarea:focus-visible {
     clear: both !important;
     box-sizing: content-box !important;
     min-height: 2px !important;
-    margin-top: 2px !important;
+    margin-top: var(--letterhead-divider-gap, 0px) !important;
     margin-bottom: 4px !important;
+    outline: none !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

@@ -1174,7 +1174,7 @@ export function DocumentsModule({
             width: 100% !important;
             clear: both !important;
             box-sizing: content-box !important;
-            margin-top: 2px !important;
+            margin-top: var(--letterhead-divider-gap, 0px) !important;
             margin-bottom: 4px !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -2065,6 +2065,10 @@ function OfficialLetterhead({
   const [dividerDragHeight, setDividerDragHeight] = useState<number | null>(null);
   const [dividerDragOffset, setDividerDragOffset] = useState<{ x: number; y: number } | null>(null);
 
+  const doubleRuleRef = useRef<HTMLDivElement | null>(null);
+  const [isDoubleRuleSelected, setIsDoubleRuleSelected] = useState(false);
+  const [showDoubleRuleMenu, setShowDoubleRuleMenu] = useState(false);
+
 
 
   const effectiveLogoImage =
@@ -2073,7 +2077,7 @@ function OfficialLetterhead({
 
   const rawScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
   const activeScale = isNaN(rawScale) || rawScale < 30 ? 100 : Math.min(300, rawScale);
-  const baseLogoHeight = 58;
+  const baseLogoHeight = 50;
   const scaledHeight = Math.max(34, Math.round(baseLogoHeight * (activeScale / 100)));
 
   const wrapMode = shipment.letterheadLogoWrap || "inline";
@@ -2090,7 +2094,7 @@ function OfficialLetterhead({
   const bannerHeight = shipment.letterheadBannerHeight ?? 110;
   const lineSpacing = shipment.letterheadSpacing !== undefined ? shipment.letterheadSpacing : 1;
   const kopLineHeight = lineSpacing === 0 ? 1.05 : Number((1.06 + lineSpacing * 0.04).toFixed(2));
-  const dividerGap = shipment.letterheadDividerGap !== undefined ? shipment.letterheadDividerGap : 1;
+  const dividerGap = shipment.letterheadDividerGap !== undefined ? shipment.letterheadDividerGap : 0;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const showAddressInHeader = shipment.letterheadShowAddress !== false;
 
@@ -2249,6 +2253,20 @@ function OfficialLetterhead({
     window.addEventListener("mousemove", onMouseMove);
     window.addEventListener("mouseup", onMouseUp);
   };
+
+  // Deselect double rule divider when clicked outside
+  useEffect(() => {
+    if (!isDoubleRuleSelected) return;
+    const handleClickOutsideDoubleRule = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (doubleRuleRef.current && !doubleRuleRef.current.contains(target) && !target.closest(".word-double-rule-popover")) {
+        setIsDoubleRuleSelected(false);
+        setShowDoubleRuleMenu(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClickOutsideDoubleRule);
+    return () => window.removeEventListener("mousedown", handleClickOutsideDoubleRule);
+  }, [isDoubleRuleSelected]);
 
   // Deselect logo divider when clicked outside
   useEffect(() => {
@@ -2538,6 +2556,7 @@ function OfficialLetterhead({
       style={{
         paddingTop: letterheadMode === "hidden" ? 0 : "2px",
         marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : "4px",
+        ["--letterhead-divider-gap" as any]: `${dividerGap}px`,
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -4052,17 +4071,196 @@ function OfficialLetterhead({
           <GeometricRibbonStrip color={dividerColor} />
         ) : dividerStyle === "double" ? (
           <div
-            className="letterhead-divider-line letterhead-double-rule"
+            ref={doubleRuleRef}
+            className={`letterhead-divider-line letterhead-double-rule ${isEditMode && isDoubleRuleSelected ? "selected" : ""}`}
+            onClick={(e) => {
+              if (isEditMode) {
+                e.stopPropagation();
+                setIsSelected(false);
+                setIsDividerSelected(false);
+                setIsDoubleRuleSelected(true);
+              }
+            }}
             style={{
               width: "100%",
-              marginTop: `${dividerGap !== undefined ? Math.min(3, Math.max(0, dividerGap)) : 1}px`,
+              marginTop: `${dividerGap}px`,
               marginBottom: "4px",
               clear: "both",
               display: "block",
+              cursor: isEditMode ? "pointer" : "default",
+              position: "relative",
             }}
+            title={isEditMode ? "Garis Ganda: Klik untuk atur jarak ke tulisan kop surat & warna garis" : undefined}
           >
             <div style={{ height: "2.5px", backgroundColor: effectiveDividerColor, width: "100%", marginBottom: "2px" }} />
             <div style={{ height: "1px", backgroundColor: effectiveDividerColor, width: "100%" }} />
+
+            {/* Quick Floating Action Bar for Double Rule Spacing & Style */}
+            {isEditMode && isDoubleRuleSelected && (
+              <>
+                <div
+                  className="letterhead-divider-quick-toolbar no-print flex items-center gap-1"
+                  style={{
+                    position: "absolute",
+                    top: "-26px",
+                    right: "12px",
+                    zIndex: 50,
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setShowDoubleRuleMenu((prev) => !prev)}
+                    className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-400 rounded px-2 py-0.5 text-[10px] font-bold shadow-md flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                    title="Atur Jarak Garis Ganda ke Kop Surat & Warna"
+                  >
+                    <Sliders size={11} />
+                    <span>Jarak Garis: {dividerGap > 0 ? `+${dividerGap}` : dividerGap}px</span>
+                  </button>
+                </div>
+
+                {/* Double Rule Word Popover */}
+                {showDoubleRuleMenu && (
+                  <div
+                    className="word-double-rule-popover no-print"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      position: "absolute",
+                      top: "14px",
+                      right: "10px",
+                      background: "#ffffff",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 30px rgba(15, 23, 42, 0.25)",
+                      padding: "12px",
+                      width: "270px",
+                      zIndex: 60,
+                      fontSize: "11px",
+                      textAlign: "left",
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2.5">
+                      <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                        <Sliders size={12} className="text-blue-600" />
+                        Jarak & Format Garis Ganda Kop
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowDoubleRuleMenu(false)}
+                        className="text-slate-400 hover:text-slate-600 p-0.5 rounded text-xs leading-none"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    {/* Jarak ke Tulisan Kop Surat */}
+                    <div className="mb-2.5">
+                      <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
+                        <span>Jarak ke Tulisan Kop (Margin Atas)</span>
+                        <span className="text-blue-600 font-bold">{dividerGap > 0 ? `+${dividerGap}` : dividerGap}px</span>
+                      </div>
+                      <div className="grid grid-cols-4 gap-1 mb-1.5">
+                        {[
+                          { label: "Sangat Rapat", val: -4 },
+                          { label: "Rapat", val: 0 },
+                          { label: "Sedang", val: 4 },
+                          { label: "Renggang", val: 8 },
+                        ].map((p) => (
+                          <button
+                            key={p.val}
+                            type="button"
+                            onClick={() => {
+                              if (update) update("letterheadDividerGap", p.val);
+                            }}
+                            className={`py-1 px-1 rounded border text-[9.5px] font-semibold text-center transition-all ${
+                              dividerGap === p.val
+                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                            }`}
+                          >
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+                      <input
+                        type="range"
+                        min="-10"
+                        max="20"
+                        value={dividerGap}
+                        onChange={(e) => {
+                          if (update) update("letterheadDividerGap", Number(e.target.value));
+                        }}
+                        className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
+                      />
+                    </div>
+
+                    {/* Warna Garis */}
+                    <div className="mb-2.5">
+                      <span className="text-[10px] font-semibold text-slate-600 block mb-1">
+                        Warna Garis Ganda
+                      </span>
+                      <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                        {[
+                          { label: "Navy Blue", hex: "#0f2942" },
+                          { label: "Dark Slate", hex: "#475569" },
+                          { label: "Slate", hex: "#334155" },
+                          { label: "Green Indico", hex: "#15803d" },
+                          { label: "Amber", hex: "#b45309" },
+                        ].map((col) => (
+                          <button
+                            key={col.hex}
+                            type="button"
+                            onClick={() => {
+                              if (update) update("letterheadDividerColor", col.hex);
+                            }}
+                            title={col.label}
+                            className={`w-4 h-4 rounded-full border transition-all ${
+                              effectiveDividerColor.toLowerCase() === col.hex.toLowerCase()
+                                ? "ring-2 ring-blue-500 ring-offset-1 scale-110"
+                                : "border-slate-300 hover:scale-105"
+                            }`}
+                            style={{ backgroundColor: col.hex }}
+                          />
+                        ))}
+                        <label
+                          title="Pilih warna kustom"
+                          className="w-4 h-4 rounded-full border border-slate-300 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-105"
+                        >
+                          <input
+                            type="color"
+                            value={effectiveDividerColor.startsWith("#") ? effectiveDividerColor : "#0f2942"}
+                            onChange={(e) => {
+                              if (update) update("letterheadDividerColor", e.target.value);
+                            }}
+                            className="opacity-0 w-0 h-0 cursor-pointer"
+                          />
+                          <Palette size={9} className="text-slate-500" />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Reset Button */}
+                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (update) {
+                            update("letterheadDividerGap", 0);
+                            update("letterheadDividerColor", "#0f2942");
+                            toast.success("Jarak garis ganda di-reset ke Rapat (0px)");
+                          }
+                        }}
+                        className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium"
+                      >
+                        <RotateCcw size={10} />
+                        Reset ke Standar (0px)
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         ) : dividerStyle === "thick-thin" ? (
           <div
