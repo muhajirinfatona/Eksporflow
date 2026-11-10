@@ -6525,34 +6525,36 @@ textarea:focus-visible {
 
 .company-name,
 .paper-document .company-name:not([style*="font-size"]) {
-  font-size: 14.5pt;
-  font-weight: 900;
+  font-size: 16pt;
+  font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif;
+  font-weight: bold;
   color: #0f2942;
   letter-spacing: 0.03em;
-  margin: 0 0 var(--kop-line-spacing, 4px) 0;
-  line-height: var(--kop-line-height, 1.15);
+  margin: 4px 0;
+  line-height: 1.15;
   text-transform: uppercase;
 }
 
 .company-tagline,
 .paper-document .company-tagline:not([style*="font-size"]) {
-  font-size: 7.6pt;
-  font-weight: 700;
+  font-size: 10pt;
+  font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+  font-weight: bold;
   color: #008000;
-  letter-spacing: 0.06em;
-  margin: 0 0 var(--kop-line-spacing, 3px) 0;
-  line-height: var(--kop-line-height, 1.25);
+  letter-spacing: 0.04em;
+  margin: 4px 0;
+  line-height: 1.15;
   text-transform: uppercase;
 }
 
 .company-details,
 .paper-document .company-details:not([style*="font-size"]) {
-  font-size: 7.6pt;
-  font-weight: 500;
+  font-size: 9pt;
+  font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+  font-weight: normal;
   color: #334155;
-  margin: 0 0 var(--kop-line-spacing, 0px) 0;
-  line-height: var(--kop-line-height, 1.25);
-  letter-spacing: 0.015em;
+  margin: 4px 0;
+  line-height: 1.15;
 }
 
 .company-contact,

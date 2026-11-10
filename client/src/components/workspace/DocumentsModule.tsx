@@ -3215,11 +3215,11 @@ function OfficialLetterhead({
                 <h1
                   className="company-name"
                   style={{
-                    fontSize: showAddressInHeader ? "14.5pt" : "18pt",
-                    fontWeight: 900,
+                    fontSize: "16pt",
+                    fontWeight: "bold",
                     letterSpacing: "0.03em",
                     color: dividerColor || (layoutMode === "geometric" ? "#005f73" : "#0f2942"),
-                    margin: 0,
+                    margin: "4px 0",
                     lineHeight: 1.15,
                     whiteSpace: "normal",
                     wordBreak: "break-word",
@@ -3240,12 +3240,13 @@ function OfficialLetterhead({
                 <p
                   className="company-tagline"
                   style={{
-                    fontSize: "7.6pt",
-                    fontWeight: 700,
-                    letterSpacing: "0.06em",
+                    fontSize: "10pt",
+                    fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
+                    fontWeight: "bold",
+                    letterSpacing: "0.04em",
                     color: "#008000",
-                    margin: "4px 0 0 0",
-                    lineHeight: 1.25,
+                    margin: "4px 0",
+                    lineHeight: 1.15,
                     whiteSpace: "normal",
                     wordBreak: "break-word",
                     textTransform: "uppercase",
@@ -3265,14 +3266,14 @@ function OfficialLetterhead({
                   <div
                     className="company-details"
                     style={{
-                      fontSize: "7.6pt",
-                      lineHeight: 1.25,
+                      fontSize: "9pt",
+                      fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
+                      lineHeight: 1.15,
                       color: "#334155",
-                      fontWeight: 500,
+                      fontWeight: "normal",
                       whiteSpace: "normal",
                       wordBreak: "break-word",
-                      margin: "3px 0 0 0",
-                      letterSpacing: "0.015em",
+                      margin: "4px 0",
                     }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
@@ -3281,10 +3282,20 @@ function OfficialLetterhead({
                       }
                     }}
                   >
-                    <strong style={{ fontSize: "7.6pt", fontWeight: 700, color: dividerColor || "#0f2942" }}>
+                    <strong
+                      style={{
+                        fontSize: "9pt",
+                        fontWeight: "bold",
+                        textTransform: "uppercase",
+                        color: dividerColor || "#0f2942",
+                        fontStyle: "normal",
+                      }}
+                    >
                       HEAD OFFICE:{" "}
                     </strong>
-                    <span>{addressBody}</span>
+                    <span style={{ fontSize: "9pt", fontStyle: "italic", fontWeight: "normal", color: "#334155" }}>
+                      {addressBody}
+                    </span>
                   </div>
                 )}
               </div>
