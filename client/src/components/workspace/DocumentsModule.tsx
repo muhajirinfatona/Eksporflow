@@ -525,12 +525,19 @@ export function DocumentsModule({
     const attachColResizers = () => {
       const tables = paperEl.querySelectorAll("table");
       tables.forEach((table) => {
+        (table as HTMLElement).style.maxWidth = "100%";
+        (table as HTMLElement).style.boxSizing = "border-box";
+
         const headerCells =
           table.querySelectorAll("thead th:not([colspan]), thead td:not([colspan])").length > 0
             ? table.querySelectorAll("thead th:not([colspan]), thead td:not([colspan])")
             : table.querySelectorAll("tbody tr:first-child > td, tbody tr:first-child > th");
 
-        headerCells.forEach((th) => {
+        headerCells.forEach((th, idx) => {
+          // Hanya pasang divider di antara kolom (jangan di tepi paling kanan)
+          // agar total lebar tabel selalu terkunci pas 100% dan tidak pernah jebol margin
+          if (idx >= headerCells.length - 1) return;
+
           if (!th.querySelector(".col-resizer")) {
             const resizer = document.createElement("span");
             resizer.className = "col-resizer";
@@ -541,17 +548,16 @@ export function DocumentsModule({
             let startWidths: number[] = [];
             let startTableWidth = 0;
             let colIndex = 0;
-            let isLastCol = false;
             const MIN_COL = 30;
 
             // Terapkan lebar ke satu kolom (header + semua baris yang tidak di-colspan)
-            const setColWidth = (idx: number, w: number) => {
-              const head = headerCells[idx] as HTMLElement | undefined;
-              if (head) head.style.width = `${w}px`;
+            const setColWidth = (cellIdx: number, w: string) => {
+              const head = headerCells[cellIdx] as HTMLElement | undefined;
+              if (head) head.style.width = w;
               table.querySelectorAll("tbody tr").forEach((row) => {
                 const cells = Array.from(row.children) as HTMLTableCellElement[];
-                if (cells[idx] && (cells[idx].colSpan || 1) === 1) {
-                  cells[idx].style.width = `${w}px`;
+                if (cells[cellIdx] && (cells[cellIdx].colSpan || 1) === 1) {
+                  cells[cellIdx].style.width = w;
                 }
               });
             };
@@ -559,21 +565,18 @@ export function DocumentsModule({
             const onMouseMove = (moveEvent: MouseEvent) => {
               const dx = moveEvent.clientX - startX;
               const leftW = startWidths[colIndex];
-
-              if (isLastCol) {
-                // Garis paling kanan: hanya kolom terakhir & lebar tabel yang berubah
-                const newLeft = Math.max(MIN_COL, leftW + dx);
-                setColWidth(colIndex, newLeft);
-                (table as HTMLElement).style.width = `${startTableWidth + (newLeft - leftW)}px`;
-                return;
-              }
-
-              // Garis di antara 2 kolom: hanya kolom kiri & kanan garis yang berubah,
-              // total lebar tetap sehingga garis-garis lain tidak ikut bergeser.
               const rightW = startWidths[colIndex + 1];
+
+              // Garis di antara 2 kolom: ubah proporsional persentase sehingga total tetap 100%
               const clampedDx = Math.max(MIN_COL - leftW, Math.min(rightW - MIN_COL, dx));
-              setColWidth(colIndex, leftW + clampedDx);
-              setColWidth(colIndex + 1, rightW - clampedDx);
+              const newLeft = leftW + clampedDx;
+              const newRight = rightW - clampedDx;
+
+              const leftPct = (newLeft / startTableWidth) * 100;
+              const rightPct = (newRight / startTableWidth) * 100;
+
+              setColWidth(colIndex, `${leftPct.toFixed(2)}%`);
+              setColWidth(colIndex + 1, `${rightPct.toFixed(2)}%`);
             };
 
             const onMouseUp = () => {
@@ -587,17 +590,20 @@ export function DocumentsModule({
               mdEvent.stopPropagation();
               startX = mdEvent.clientX;
               colIndex = Array.prototype.indexOf.call(headerCells, th);
-              isLastCol = colIndex === headerCells.length - 1;
 
-              // Kunci lebar semua kolom dalam px agar browser tidak membagi ulang lebar
-              // ke kolom lain saat satu garis ditarik.
               startWidths = Array.from(headerCells).map(
                 (c) => (c as HTMLElement).getBoundingClientRect().width
               );
-              startTableWidth = (table as HTMLElement).getBoundingClientRect().width;
+              startTableWidth = (table as HTMLElement).getBoundingClientRect().width || 1;
               (table as HTMLElement).style.tableLayout = "fixed";
-              (table as HTMLElement).style.width = `${startTableWidth}px`;
-              startWidths.forEach((w, i) => setColWidth(i, w));
+              (table as HTMLElement).style.width = "100%";
+              (table as HTMLElement).style.maxWidth = "100%";
+
+              // Kunci lebar kolom dalam persentase (%) agar selalu adaptif terhadap margin dokumen
+              startWidths.forEach((w, i) => {
+                const pct = (w / startTableWidth) * 100;
+                setColWidth(i, `${pct.toFixed(2)}%`);
+              });
 
               resizer.classList.add("is-resizing");
 
@@ -681,6 +687,33 @@ export function DocumentsModule({
       if (pill) pill.remove();
     };
   }, [isEditMode, selectedDocument, shipment.contractLayout, editorKey]);
+
+  // Bersihkan lebar hardcoded pixel pada tabel saat margin kertas atau orientasi diubah,
+  // sehingga tabel selalu langsung pas 100% mengikuti batas margin baru tanpa terpotong/melebar keluar.
+  useEffect(() => {
+    const paperEl = document.querySelector(".paper-document");
+    if (!paperEl) return;
+    const tables = paperEl.querySelectorAll("table");
+    tables.forEach((t) => {
+      (t as HTMLElement).style.width = "100%";
+      (t as HTMLElement).style.maxWidth = "100%";
+      t.querySelectorAll("th, td").forEach((cell) => {
+        const cellEl = cell as HTMLElement;
+        if (cellEl.style.width && cellEl.style.width.endsWith("px")) {
+          cellEl.style.removeProperty("width");
+        }
+      });
+    });
+  }, [
+    shipment.docMarginPreset,
+    shipment.docMarginTop,
+    shipment.docMarginBottom,
+    shipment.docMarginLeft,
+    shipment.docMarginRight,
+    shipment.paperSize,
+    shipment.documentOrientation,
+    selectedDocument,
+  ]);
 
   const documents: {
     type: DocumentType;
@@ -1078,7 +1111,7 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: 6mm 8mm 5mm 8mm;
+            margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm !important;
           }
           .paper-document {
             --doc-font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;

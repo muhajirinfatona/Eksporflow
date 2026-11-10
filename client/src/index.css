@@ -7074,8 +7074,10 @@ textarea:focus-visible {
 .unlk-trade-form {
   --unlk-outer-color: #475569;
   --unlk-outer-width: 1.25px;
-  width: 100%;
-  box-sizing: border-box;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden;
   border: var(--unlk-outer-width, 1.25px) solid var(--unlk-outer-color, #475569) !important;
   background: #ffffff;
   color: #0f172a;
@@ -7173,11 +7175,18 @@ textarea:focus-visible {
 /* Line Items Table inside UNLK Form */
 .paper-document table.unlk-items-table {
   width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
   border-collapse: collapse !important;
   border-top: 1px solid #94a3b8 !important;
   border-bottom: 1px solid #94a3b8 !important;
   margin: 0 !important;
   table-layout: fixed !important;
+}
+
+.paper-document table.unlk-items-table th,
+.paper-document table.unlk-items-table td {
+  box-sizing: border-box !important;
 }
 
 .paper-document table.unlk-items-table thead th {
@@ -10834,7 +10843,6 @@ textarea:focus-visible {
 @media print {
   @page {
     size: auto;
-    margin: 6mm 8mm 5mm 8mm;
   }
 
   html,

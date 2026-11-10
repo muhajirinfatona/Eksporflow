@@ -23,7 +23,7 @@ import { useActiveShipment } from "@/hooks/useActiveShipment";
 import { useWorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { AuthFlow } from "@/pages/AuthFlow";
 import type { ScreenId } from "@shared/risk";
-import { type DocumentType, getPaperSizeSpec } from "@shared/shipment";
+import { type DocumentType, getPaperSizeSpec, getDocMargins } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
 
 function readScreenFromUrl(): ScreenId {
@@ -118,11 +118,22 @@ export default function Home() {
     if (existing) {
       existing.remove();
     }
+    const margins = getDocMargins(shipment);
     const style = document.createElement("style");
     style.id = "eksporflow-print-page";
     const paperSpec = getPaperSizeSpec(shipment.paperSize);
     const orientationVal = shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait";
-    style.textContent = `@media print { @page { size: ${paperSpec.cssSize} ${orientationVal}; margin: 11mm 10mm 8mm 10mm; } }`;
+    style.textContent = `@media print {
+      @page {
+        size: ${paperSpec.cssSize} ${orientationVal} !important;
+        margin: ${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm !important;
+      }
+      .paper-document {
+        padding: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+      }
+    }`;
     document.head.appendChild(style);
 
     const handleAfterPrint = () => {
@@ -137,7 +148,15 @@ export default function Home() {
       const el = document.getElementById("eksporflow-print-page");
       if (el) el.remove();
     }, 10000);
-  }, [shipment.paperSize, shipment.documentOrientation]);
+  }, [
+    shipment.paperSize,
+    shipment.documentOrientation,
+    shipment.docMarginPreset,
+    shipment.docMarginTop,
+    shipment.docMarginBottom,
+    shipment.docMarginLeft,
+    shipment.docMarginRight,
+  ]);
 
   if (isAuthLoading) {
     return (
