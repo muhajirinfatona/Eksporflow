@@ -14967,20 +14967,17 @@ textarea:focus-visible {
   box-shadow: 0 0 6px rgba(2, 132, 199, 0.6);
 }
 
-.word-editable-mode table td:focus,
-.word-editable-mode table th:focus,
+/* Multiple Cell Selection Highlighting (Soft tint, only when actively selected) */
+.word-editable-mode table td.table-cell-selected,
+.word-editable-mode table th.table-cell-selected {
+  background-color: rgba(2, 132, 199, 0.12) !important;
+}
+
 .word-editable-mode table td.active-cell,
 .word-editable-mode table th.active-cell,
-.word-editable-mode table td.table-cell-selected,
-.word-editable-mode table th.table-cell-selected,
 table.unlk-items-table td.active-cell,
-table.unlk-items-table th.active-cell,
-table.unlk-items-table td.table-cell-selected,
-table.unlk-items-table th.table-cell-selected {
-  outline: 2.5px solid #0284c7 !important;
-  outline-offset: -1px;
-  background-color: #dbeafe !important;
-  user-select: none !important;
+table.unlk-items-table th.active-cell {
+  outline: none !important;
 }
 
 .floating-merge-pill {
@@ -16728,8 +16725,23 @@ table.unlk-items-table th.table-cell-selected {
   .word-layout-popover,
   .word-logo-delete-btn,
   .letterhead-quick-toolbar,
-  .doc-freeze-top-header {
+  .doc-freeze-top-header,
+  .col-resizer,
+  .floating-merge-pill {
     display: none !important;
+  }
+
+  table td,
+  table th,
+  table td.active-cell,
+  table th.active-cell,
+  table td.table-cell-selected,
+  table th.table-cell-selected,
+  .active-cell,
+  .table-cell-selected,
+  .active-doc-box {
+    outline: none !important;
+    box-shadow: none !important;
   }
 
   body.doc-word-focus-mode,

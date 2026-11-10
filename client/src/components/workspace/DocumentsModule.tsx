@@ -284,8 +284,8 @@ export function DocumentsModule({
     let selectStartTable: HTMLTableElement | null = null;
 
     const clearCellSelection = () => {
-      paperEl.querySelectorAll("td.table-cell-selected, th.table-cell-selected").forEach((el) => {
-        el.classList.remove("table-cell-selected");
+      paperEl.querySelectorAll("td.table-cell-selected, th.table-cell-selected, td.active-cell, th.active-cell, table.active-table, .active-doc-box").forEach((el) => {
+        el.classList.remove("table-cell-selected", "active-cell", "active-table", "active-doc-box");
       });
       const pill = document.querySelector(".floating-merge-pill");
       if (pill) pill.remove();
@@ -491,12 +491,13 @@ export function DocumentsModule({
         return;
       }
 
-      // Normal click: start fresh selection
+      // Normal click: start fresh selection without forced intrusive outline
       paperEl.querySelectorAll("table.active-table").forEach((el) => el.classList.remove("active-table"));
       currentTable.classList.add("active-table");
-      paperEl.querySelectorAll("td.active-cell, th.active-cell").forEach((el) => el.classList.remove("active-cell"));
+      paperEl.querySelectorAll("td.active-cell, th.active-cell, td.table-cell-selected, th.table-cell-selected").forEach((el) => {
+        el.classList.remove("active-cell", "table-cell-selected");
+      });
       cell.classList.add("active-cell");
-      cell.classList.add("table-cell-selected");
 
       selectStartCell = cell;
       selectStartTable = currentTable;
@@ -630,13 +631,26 @@ export function DocumentsModule({
       });
     };
 
+    const handleGlobalMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+      if (!target.closest("table") && !target.closest(".doc-word-ribbon-container") && !target.closest(".floating-merge-pill")) {
+        clearCellSelection();
+      }
+    };
+
     attachColResizers();
     (paperEl as HTMLElement).addEventListener("mousedown", handleCellMouseDown as EventListener);
     (paperEl as HTMLElement).addEventListener("mousemove", handleCellMouseOver as EventListener);
+    document.addEventListener("mousedown", handleGlobalMouseDown);
     document.addEventListener("mouseup", handleDocumentMouseUp);
 
-    // 3. Tab Key Navigation inside Table Cells (Word experience)
+    // 3. Tab Key Navigation & Escape to Deselect inside Table Cells (Word experience)
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        clearCellSelection();
+        return;
+      }
       if (e.key === "Tab") {
         const selection = window.getSelection();
         const node = selection?.anchorNode;
@@ -681,6 +695,7 @@ export function DocumentsModule({
     return () => {
       (paperEl as HTMLElement).removeEventListener("mousedown", handleCellMouseDown as EventListener);
       (paperEl as HTMLElement).removeEventListener("mousemove", handleCellMouseOver as EventListener);
+      document.removeEventListener("mousedown", handleGlobalMouseDown);
       document.removeEventListener("mouseup", handleDocumentMouseUp);
       document.removeEventListener("keydown", handleKeyDown);
       const pill = document.querySelector(".floating-merge-pill");

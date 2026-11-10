@@ -119,7 +119,16 @@ export default function Home() {
       document.activeElement.blur();
     }
 
-    // 2. Simpan otomatis secara instan sebelum dialog cetak terbuka
+    // 2. Bersihkan seleksi sel tabel dan boks agar tidak ada garis/bingkai aktif yang terbawa ke cetak
+    if (typeof document !== "undefined") {
+      document.querySelectorAll(".active-cell, .table-cell-selected, .active-doc-box, .active-table").forEach((el) => {
+        el.classList.remove("active-cell", "table-cell-selected", "active-doc-box", "active-table");
+      });
+      const pill = document.querySelector(".floating-merge-pill");
+      if (pill) pill.remove();
+    }
+
+    // 3. Simpan otomatis secara instan sebelum dialog cetak terbuka
     if (saveState === "unsaved") {
       try {
         await saveShipment(true);
