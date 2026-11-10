@@ -6559,11 +6559,12 @@ textarea:focus-visible {
 
 .company-contact,
 .paper-document .company-contact:not([style*="font-size"]) {
-  font-size: 8.5pt;
-  font-weight: 500;
-  color: #334155;
-  margin: 0;
-  line-height: var(--kop-line-height, 1.15);
+  font-size: 9pt;
+  font-family: Calibri, 'Segoe UI', Arial, sans-serif;
+  font-weight: normal;
+  color: #0f2942;
+  margin: 4px 0;
+  line-height: 1.15;
 }
 
 .letterhead-divider-line {
