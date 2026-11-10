@@ -2162,7 +2162,7 @@ function OfficialLetterhead({
   const logoDividerOffsetX = dividerDragOffset ? dividerDragOffset.x : (shipment.letterheadLogoDividerOffsetX ?? 0);
   const logoDividerOffsetY = dividerDragOffset ? dividerDragOffset.y : (shipment.letterheadLogoDividerOffsetY ?? 0);
   const logoDividerVisible = shipment.letterheadLogoDividerVisible !== false;
-  const dividerColor = shipment.letterheadDividerColor && shipment.letterheadDividerColor !== "#0f2942" ? shipment.letterheadDividerColor : "#475569";
+  const dividerColor = shipment.letterheadDividerColor || "#0f2942";
   const layoutMode = shipment.letterheadLayout || "left";
   const rawExporterContact = shipment.exporterContact || "";
   const exporterContact =
@@ -2718,8 +2718,8 @@ function OfficialLetterhead({
               layoutMode === "geometric" && normalizeGeometricStyle(shipment.letterheadGeometricStyle) === "horizon-banner"
                 ? "40px"
                 : "2px",
-            paddingBottom: "4px",
-            marginBottom: "2px",
+            paddingBottom: "1px",
+            marginBottom: "0px",
           }}
         >
           <div

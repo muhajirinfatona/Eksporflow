@@ -6160,69 +6160,67 @@ export function DocWordRibbon({
           {/* ================= TAB 6: FORMAT GARIS & KOP (MS WORD DIVIDER & LETTERHEAD RULES) ================= */}
           {activeRibbonTab === "line" && (
             <>
-              {/* 1. GARIS PEMISAH LOGO (1,5 PT & UKURAN) */}
+              {/* 1. GARIS PEMISAH LOGO */}
               <div className="doc-ribbon-group group-logo-divider">
                 <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
-                    Tebal Garis:
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
+                    Tebal:
                   </span>
-                  <div style={{ display: "flex", gap: "2px" }}>
-                    {[1, 1.5, 2, 3].map((w) => {
-                      const isCurr = Number(shipment.letterheadLogoDividerWidth ?? 1.5) === w;
+                  <div className="inline-flex rounded-md shadow-xs bg-slate-100 p-0.5 border border-slate-200">
+                    {[
+                      { val: 1, label: "1 pt" },
+                      { val: 1.5, label: "1,5 pt" },
+                      { val: 2, label: "2 pt" },
+                      { val: 3, label: "3 pt" },
+                    ].map((item) => {
+                      const isCurr = Number(shipment.letterheadLogoDividerWidth ?? 1.5) === item.val;
                       return (
                         <button
-                          key={w}
+                          key={item.val}
                           type="button"
-                          className={`doc-ribbon-btn-icon ${isCurr ? "active" : ""}`}
-                          style={{ padding: "1px 6px", minWidth: "32px", fontSize: "10.5px", fontWeight: isCurr ? 800 : 600 }}
+                          className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all whitespace-nowrap ${
+                            isCurr
+                              ? "bg-white text-blue-700 shadow-xs font-bold border border-blue-200"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                          }`}
                           onClick={() => {
-                            update("letterheadLogoDividerWidth", w);
-                            toast.success(`Tebal garis pemisah logo diatur ke ${w} pt`);
+                            update("letterheadLogoDividerWidth", item.val);
+                            toast.success(`Tebal garis pemisah diatur ke ${item.label}`);
                           }}
-                          title={`Atur tebal garis pemisah ke ${w} pt`}
+                          title={`Tebal garis pemisah: ${item.label}`}
                         >
-                          {w} pt
+                          {item.label}
                         </button>
                       );
                     })}
                   </div>
-
-                  {/* Custom Width Input */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
-                    <input
-                      type="number"
-                      min="0.5"
-                      max="6"
-                      step="0.5"
-                      value={shipment.letterheadLogoDividerWidth ?? 1.5}
-                      onChange={(e) => update("letterheadLogoDividerWidth", Math.max(0.5, Number(e.target.value) || 1.5))}
-                      style={{ width: "38px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "center", border: "none", background: "transparent" }}
-                    />
-                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>pt</span>
-                  </div>
                 </div>
 
                 <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
-                    Tinggi Garis:
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
+                    Tinggi:
                   </span>
-                  <div style={{ display: "flex", gap: "2px" }}>
+                  <div className="inline-flex rounded-md shadow-xs bg-slate-100 p-0.5 border border-slate-200">
                     {[
-                      { label: "Pas (40px)", h: 40 },
-                      { label: "Standar (50px)", h: 50 },
-                      { label: "Penuh (58px)", h: 58 },
+                      { label: "Pas", h: 42, tip: "Tinggi pas logo (42px)" },
+                      { label: "Standar", h: 48, tip: "Tinggi standar kop surat (48px)" },
+                      { label: "Penuh", h: 56, tip: "Tinggi penuh kop surat (56px)" },
                     ].map((item) => {
-                      const isCurr = Number(shipment.letterheadLogoDividerHeight ?? 50) === item.h;
+                      const isCurr = Number(shipment.letterheadLogoDividerHeight ?? 48) === item.h;
                       return (
                         <button
                           key={item.h}
                           type="button"
-                          className={`doc-ribbon-table-subbtn ${isCurr ? "active" : ""}`}
-                          style={{ fontSize: "10px", padding: "1px 6px" }}
+                          className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all whitespace-nowrap ${
+                            isCurr
+                              ? "bg-white text-blue-700 shadow-xs font-bold border border-blue-200"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                          }`}
                           onClick={() => {
                             update("letterheadLogoDividerHeight", item.h);
-                            toast.success(`Tinggi garis diatur ke ${item.h}px`);
+                            toast.success(`Tinggi garis pemisah: ${item.label}`);
                           }}
+                          title={item.tip}
                         >
                           {item.label}
                         </button>
@@ -6230,225 +6228,226 @@ export function DocWordRibbon({
                     })}
                   </div>
 
-                  {/* Input custom height */}
-                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+                  <div className="flex items-center gap-1 bg-white px-1.5 py-0.5 rounded border border-slate-200">
                     <input
                       type="number"
-                      min="20"
-                      max="120"
+                      min="24"
+                      max="100"
                       step="2"
-                      value={shipment.letterheadLogoDividerHeight ?? 50}
-                      onChange={(e) => update("letterheadLogoDividerHeight", Math.max(20, Number(e.target.value) || 50))}
-                      style={{ width: "38px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "center", border: "none", background: "transparent" }}
+                      value={shipment.letterheadLogoDividerHeight ?? 48}
+                      onChange={(e) => update("letterheadLogoDividerHeight", Math.max(20, Number(e.target.value) || 48))}
+                      style={{ width: "32px", fontSize: "11px", fontWeight: 700, textAlign: "center", border: "none", outline: "none" }}
                     />
-                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>px</span>
+                    <span className="text-[10px] text-slate-400 font-medium">px</span>
                   </div>
                 </div>
-                <span className="doc-ribbon-group-label">Garis Pemisah Logo (1,5 pt)</span>
+                <span className="doc-ribbon-group-label">Pemisah Logo</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
-              {/* 2. JARAK & GESER PEMISAH LOGO */}
+              {/* 2. JARAK & WARNA PEMISAH */}
               <div className="doc-ribbon-group group-divider-spacing">
                 <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
-                    Jarak Logo-Teks:
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
+                    Spasi:
                   </span>
-                  {[
-                    { label: "Rapat (8px)", m: 8 },
-                    { label: "Standar (14px)", m: 14 },
-                    { label: "Renggang (20px)", m: 20 },
-                  ].map((item) => (
-                    <button
-                      key={item.m}
-                      type="button"
-                      className={`doc-ribbon-table-subbtn ${Number(shipment.letterheadLogoDividerMarginLeft ?? 14) === item.m ? "active" : ""}`}
-                      style={{ fontSize: "10px", padding: "1px 6px" }}
-                      onClick={() => {
-                        update("letterheadLogoDividerMarginLeft", item.m);
-                        update("letterheadLogoDividerMarginRight", item.m);
-                        toast.success(`Jarak garis pemisah ke logo & teks diatur ke ${item.m}px`);
-                      }}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                  <div className="inline-flex rounded-md shadow-xs bg-slate-100 p-0.5 border border-slate-200">
+                    {[
+                      { label: "Rapat", m: 8, tip: "Jarak rapat (8px)" },
+                      { label: "Standar", m: 12, tip: "Jarak standar (12px)" },
+                      { label: "Renggang", m: 18, tip: "Jarak renggang (18px)" },
+                    ].map((item) => {
+                      const isCurr = Number(shipment.letterheadLogoDividerMarginLeft ?? 8) === item.m;
+                      return (
+                        <button
+                          key={item.m}
+                          type="button"
+                          className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all whitespace-nowrap ${
+                            isCurr
+                              ? "bg-white text-blue-700 shadow-xs font-bold border border-blue-200"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                          }`}
+                          onClick={() => {
+                            update("letterheadLogoDividerMarginLeft", item.m);
+                            update("letterheadLogoDividerMarginRight", item.m);
+                            toast.success(`Jarak pemisah ke logo & teks: ${item.label}`);
+                          }}
+                          title={item.tip}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
-                    Warna Garis:
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
+                    Warna:
                   </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <div className="flex items-center gap-1.5">
                     {[
-                      { hex: "#94a3b8", label: "Abu Netral (Standar)" },
-                      { hex: "#0f2942", label: "Navy Ekspor" },
-                      { hex: "#334155", label: "Dark Slate" },
-                      { hex: "#000000", label: "Hitam Pekat" },
-                    ].map((col) => (
-                      <button
-                        key={col.hex}
-                        type="button"
-                        onClick={() => {
-                          update("letterheadLogoDividerColor", col.hex);
-                          toast.success(`Warna garis pemisah: ${col.label}`);
-                        }}
-                        title={col.label}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "50%",
-                          background: col.hex,
-                          border: (shipment.letterheadLogoDividerColor || "#94a3b8").toLowerCase() === col.hex.toLowerCase() ? "2px solid #2563eb" : "1px solid #cbd5e1",
-                          cursor: "pointer",
-                          transform: (shipment.letterheadLogoDividerColor || "#94a3b8").toLowerCase() === col.hex.toLowerCase() ? "scale(1.2)" : "scale(1)",
-                        }}
-                      />
-                    ))}
-                    <label title="Pilih warna kustom" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+                      { hex: "#cbd5e1", label: "Abu Netral (Standar)" },
+                      { hex: "#94a3b8", label: "Abu Sedang" },
+                      { hex: "#0f2942", label: "Navy Resmi" },
+                      { hex: "#000000", label: "Hitam" },
+                    ].map((col) => {
+                      const isSelected = (shipment.letterheadLogoDividerColor || "#cbd5e1").toLowerCase() === col.hex.toLowerCase();
+                      return (
+                        <button
+                          key={col.hex}
+                          type="button"
+                          onClick={() => {
+                            update("letterheadLogoDividerColor", col.hex);
+                            toast.success(`Warna pemisah: ${col.label}`);
+                          }}
+                          title={col.label}
+                          className={`w-4 h-4 rounded-full transition-transform ${
+                            isSelected ? "ring-2 ring-blue-500 ring-offset-1 scale-110" : "border border-slate-300 hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: col.hex }}
+                        />
+                      );
+                    })}
+                    <label title="Pilih warna kustom" className="cursor-pointer inline-flex items-center ml-0.5">
                       <input
                         type="color"
-                        value={shipment.letterheadLogoDividerColor || "#94a3b8"}
+                        value={shipment.letterheadLogoDividerColor || "#cbd5e1"}
                         onChange={(e) => update("letterheadLogoDividerColor", e.target.value)}
-                        style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
+                        className="w-4 h-4 p-0 border-none cursor-pointer bg-transparent rounded"
                       />
                     </label>
                   </div>
                 </div>
-                <span className="doc-ribbon-group-label">Jarak & Warna Pemisah</span>
+                <span className="doc-ribbon-group-label">Jarak & Warna</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
-              {/* 3. JARAK GARIS GANDA KE KOP (DOUBLE RULE GAP) */}
+              {/* 3. GARIS GANDA KOP SURAT */}
               <div className="doc-ribbon-group group-double-rule">
                 <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
-                    Jarak Garis Ganda:
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#334155", whiteSpace: "nowrap" }}>
+                    Jarak ke Kop:
                   </span>
-                  {[
-                    { label: "Sangat Rapat (-4px)", gap: -4 },
-                    { label: "Rapat Standar (0px)", gap: 0 },
-                    { label: "Normal (+4px)", gap: 4 },
-                    { label: "Renggang (+8px)", gap: 8 },
-                  ].map((item) => {
-                    const isCurr = Number(shipment.letterheadDividerGap ?? 0) === item.gap;
-                    return (
-                      <button
-                        key={item.gap}
-                        type="button"
-                        className={`doc-ribbon-table-subbtn ${isCurr ? "active" : ""}`}
-                        style={{ fontSize: "10px", padding: "1px 6px" }}
-                        onClick={() => {
-                          update("letterheadDividerGap", item.gap);
-                          toast.success(`Jarak garis ganda ke kop surat diatur ke ${item.gap}px`);
-                        }}
-                      >
-                        {item.label}
-                      </button>
-                    );
-                  })}
+                  <div className="inline-flex rounded-md shadow-xs bg-slate-100 p-0.5 border border-slate-200">
+                    {[
+                      { label: "Sangat Rapat", gap: -2, tip: "Jarak sangat rapat (-2px)" },
+                      { label: "Rapat Standar", gap: 0, tip: "Jarak rapat standar resmi (0px)" },
+                      { label: "Normal", gap: 3, tip: "Jarak normal (+3px)" },
+                      { label: "Renggang", gap: 6, tip: "Jarak renggang (+6px)" },
+                    ].map((item) => {
+                      const isCurr = Number(shipment.letterheadDividerGap ?? 0) === item.gap;
+                      return (
+                        <button
+                          key={item.gap}
+                          type="button"
+                          className={`px-2 py-0.5 text-[11px] font-semibold rounded transition-all whitespace-nowrap ${
+                            isCurr
+                              ? "bg-white text-blue-700 shadow-xs font-bold border border-blue-200"
+                              : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                          }`}
+                          onClick={() => {
+                            update("letterheadDividerGap", item.gap);
+                            toast.success(`Jarak garis ganda: ${item.label}`);
+                          }}
+                          title={item.tip}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span style={{ fontSize: "10px", color: "#64748b" }}>Geser Manual:</span>
+                  <div className="flex items-center gap-1.5">
+                    <span style={{ fontSize: "10.5px", color: "#64748b" }}>Geser:</span>
                     <input
                       type="range"
-                      min="-10"
-                      max="20"
+                      min="-6"
+                      max="12"
                       step="1"
                       value={shipment.letterheadDividerGap ?? 0}
                       onChange={(e) => update("letterheadDividerGap", Number(e.target.value))}
-                      style={{ width: "90px", accentColor: "#0284c7", cursor: "pointer" }}
-                      title={`Jarak garis ganda ke tulisan kop: ${shipment.letterheadDividerGap ?? 0}px`}
+                      style={{ width: "70px", accentColor: "#0284c7", cursor: "pointer" }}
+                      title={`Jarak garis ganda ke kop: ${shipment.letterheadDividerGap ?? 0}px`}
                     />
-                    <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "28px", color: "#0284c7" }}>
-                      {Number(shipment.letterheadDividerGap ?? 0) > 0 ? `+${shipment.letterheadDividerGap}` : shipment.letterheadDividerGap ?? 0}px
+                    <span className="text-[11px] font-bold text-blue-600 min-w-[24px]">
+                      {Number(shipment.letterheadDividerGap ?? 0) > 0 ? `+${shipment.letterheadDividerGap}` : shipment.letterheadDividerGap ?? 0}
                     </span>
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <span style={{ fontSize: "10px", color: "#64748b" }}>Warna:</span>
+                  <div className="flex items-center gap-1.5 ml-1">
+                    <span style={{ fontSize: "10.5px", color: "#64748b" }}>Warna:</span>
                     {[
                       { hex: "#0f2942", label: "Navy Resmi" },
                       { hex: "#1e293b", label: "Slate" },
                       { hex: "#000000", label: "Hitam" },
-                      { hex: "#15803d", label: "Green Indico" },
-                    ].map((col) => (
-                      <button
-                        key={col.hex}
-                        type="button"
-                        onClick={() => {
-                          update("letterheadDividerColor", col.hex);
-                          toast.success(`Warna garis ganda: ${col.label}`);
-                        }}
-                        title={col.label}
-                        style={{
-                          width: "16px",
-                          height: "16px",
-                          borderRadius: "50%",
-                          background: col.hex,
-                          border: (shipment.letterheadDividerColor || "#0f2942").toLowerCase() === col.hex.toLowerCase() ? "2px solid #0284c7" : "1px solid #cbd5e1",
-                          cursor: "pointer",
-                          transform: (shipment.letterheadDividerColor || "#0f2942").toLowerCase() === col.hex.toLowerCase() ? "scale(1.2)" : "scale(1)",
-                        }}
-                      />
-                    ))}
-                    <label title="Pilih warna kustom garis ganda" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
-                      <input
-                        type="color"
-                        value={shipment.letterheadDividerColor || "#0f2942"}
-                        onChange={(e) => update("letterheadDividerColor", e.target.value)}
-                        style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
-                      />
-                    </label>
+                      { hex: "#15803d", label: "Hijau Indico" },
+                    ].map((col) => {
+                      const isSelected = (shipment.letterheadDividerColor || "#0f2942").toLowerCase() === col.hex.toLowerCase();
+                      return (
+                        <button
+                          key={col.hex}
+                          type="button"
+                          onClick={() => {
+                            update("letterheadDividerColor", col.hex);
+                            toast.success(`Warna garis ganda: ${col.label}`);
+                          }}
+                          title={col.label}
+                          className={`w-4 h-4 rounded-full transition-transform ${
+                            isSelected ? "ring-2 ring-blue-500 ring-offset-1 scale-110" : "border border-slate-300 hover:scale-105"
+                          }`}
+                          style={{ backgroundColor: col.hex }}
+                        />
+                      );
+                    })}
                   </div>
                 </div>
-                <span className="doc-ribbon-group-label">Garis Ganda Kop Surat</span>
+                <span className="doc-ribbon-group-label">Garis Ganda Kop</span>
               </div>
 
               <div className="doc-ribbon-divider" />
 
-              {/* 4. RESET & PRESET CEPAT STANDAR WORD */}
+              {/* 4. PRESET & KONTROL */}
               <div className="doc-ribbon-group group-line-reset">
                 <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px" }}>
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
-                    style={{ background: "#f0fdf4", borderColor: "#86efac", color: "#166534", fontWeight: 700 }}
+                    className="flex items-center gap-1 px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-[11px] font-bold rounded border border-emerald-300 shadow-xs transition-colors"
                     onClick={() => {
                       update("letterheadLogoDividerWidth", 1.5);
-                      update("letterheadLogoDividerHeight", 50);
-                      update("letterheadLogoDividerMarginLeft", 14);
-                      update("letterheadLogoDividerMarginRight", 14);
-                      update("letterheadLogoDividerColor", "#94a3b8");
+                      update("letterheadLogoDividerHeight", 48);
+                      update("letterheadLogoDividerMarginLeft", 8);
+                      update("letterheadLogoDividerMarginRight", 8);
+                      update("letterheadLogoDividerColor", "#cbd5e1");
                       update("letterheadDividerGap", 0);
                       update("letterheadDividerColor", "#0f2942");
-                      toast.success("Format garis pemisah (1,5 pt) & kop diatur ke Standar Rapat Word");
+                      toast.success("Format garis pemisah (1,5 pt) & kop diatur ke Standar Resmi Master");
                     }}
-                    title="Terapkan Standar Resmi MS Word: Garis 1.5 pt & Jarak Rapat 0px"
+                    title="Terapkan Standar Resmi: Garis Pemisah 1,5 pt & Jarak Rapat Standar"
                   >
-                    <Check size={11} />
-                    <span>Standar Rapat Word</span>
+                    <Check size={12} />
+                    <span>Standar Resmi</span>
                   </button>
                 </div>
 
                 <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px" }}>
                   <button
                     type="button"
-                    className="doc-ribbon-table-subbtn"
+                    className="px-2 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] font-semibold rounded border border-slate-200 transition-colors"
                     onClick={() => {
                       update("letterheadLogoDividerVisible", !(shipment.letterheadLogoDividerVisible !== false));
                       toast.info(shipment.letterheadLogoDividerVisible !== false ? "Garis pemisah disembunyikan" : "Garis pemisah ditampilkan");
                     }}
                     title="Tampilkan / Sembunyikan Garis Pemisah Logo"
                   >
-                    <span>{shipment.letterheadLogoDividerVisible !== false ? "Sembunyikan Pemisah" : "Tampilkan Pemisah"}</span>
+                    <span>{shipment.letterheadLogoDividerVisible !== false ? "Sembunyikan" : "Tampilkan"}</span>
                   </button>
                 </div>
-                <span className="doc-ribbon-group-label">Aksi Cepat</span>
+                <span className="doc-ribbon-group-label">Pengaturan</span>
               </div>
             </>
           )}
