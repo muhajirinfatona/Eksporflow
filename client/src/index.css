@@ -7102,11 +7102,11 @@ textarea:focus-visible {
 .unlk-trade-form {
   --unlk-outer-color: #334155;
   --unlk-line-color: #334155;
-  --unlk-outer-width: 1px;
+  --unlk-outer-width: 2px;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   background: #ffffff;
   color: #0f172a;
 }
@@ -7149,15 +7149,15 @@ textarea:focus-visible {
 }
 
 .unlk-border-r {
-  border-right: 1px solid #334155 !important;
+  border-right: 2px solid #334155 !important;
 }
 
 .unlk-border-t {
-  border-top: 1px solid #334155 !important;
+  border-top: 2px solid #334155 !important;
 }
 
 .unlk-border-b {
-  border-bottom: 1px solid #334155 !important;
+  border-bottom: 2px solid #334155 !important;
 }
 
 .unlk-cell {
@@ -7202,16 +7202,16 @@ textarea:focus-visible {
 
 /* Line Items Table inside UNLK Form - Solid continuous lines without gaps */
 .paper-document table.unlk-items-table {
-  width: calc(100% + 2px) !important;
-  max-width: calc(100% + 2px) !important;
-  margin-left: -1px !important;
-  margin-right: -1px !important;
+  width: calc(100% + 4px) !important;
+  max-width: calc(100% + 4px) !important;
+  margin-left: -2px !important;
+  margin-right: -2px !important;
   margin-top: 0 !important;
   margin-bottom: 0 !important;
   box-sizing: border-box !important;
   border-collapse: collapse !important;
   table-layout: fixed !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7226,7 +7226,7 @@ textarea:focus-visible {
 .paper-document table.unlk-items-table th,
 .paper-document table.unlk-items-table td {
   box-sizing: border-box !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   background-color: transparent !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
@@ -7239,7 +7239,7 @@ textarea:focus-visible {
   font-weight: 600 !important;
   line-height: 1.25 !important;
   padding: 6px 6px !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   background-color: transparent !important;
   text-align: center !important;
   text-transform: none !important;
@@ -7255,13 +7255,13 @@ textarea:focus-visible {
   line-height: 1.32 !important;
   color: #0f172a !important;
   vertical-align: top !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   background-color: transparent !important;
 }
 
 .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
   height: auto !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
 }
 
 .paper-document .unlk-trade-form .unlk-item-spec {
@@ -7278,7 +7278,7 @@ textarea:focus-visible {
   height: auto !important;
   vertical-align: middle !important;
   color: #0f172a !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   background-color: transparent !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
@@ -7292,7 +7292,7 @@ textarea:focus-visible {
 }
 
 .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
   background-color: transparent !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7304,7 +7304,7 @@ textarea:focus-visible {
   font-weight: 500 !important;
   color: #334155 !important;
   font-size: 9.5pt !important;
-  border: 1px solid #334155 !important;
+  border: 2px solid #334155 !important;
 }
 
 .paper-document .unlk-trade-form .unlk-bank-lines {
@@ -7330,13 +7330,8 @@ textarea:focus-visible {
   padding: 5px 9px !important;
   font-size: 10.5pt !important;
   background: #f8fafc !important;
-  border-left: none !important;
-  border-top: 1px solid #334155 !important;
-  border-right: 1px solid #334155 !important;
-  border-bottom: 1px solid #334155 !important;
+  border-bottom: 2px solid #334155 !important;
   box-sizing: border-box !important;
-  background-clip: padding-box !important;
-  margin-top: -1px !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -7399,14 +7394,14 @@ textarea:focus-visible {
   letter-spacing: 0.03em !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table {
-  width: calc(100% + 2px) !important;
-  max-width: calc(100% + 2px) !important;
-  margin-left: -1px !important;
-  margin-right: -1px !important;
-  border-top: 1.25px solid #0f2942 !important;
-  border-bottom: 1.25px solid #0f2942 !important;
-  border-left: 1.25px solid #0f2942 !important;
-  border-right: 1.25px solid #0f2942 !important;
+  width: calc(100% + 4px) !important;
+  max-width: calc(100% + 4px) !important;
+  margin-left: -2px !important;
+  margin-right: -2px !important;
+  border-top: 2px solid #0f2942 !important;
+  border-bottom: 2px solid #0f2942 !important;
+  border-left: 2px solid #0f2942 !important;
+  border-right: 2px solid #0f2942 !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th {
   background: #0f2942 !important;
@@ -7414,31 +7409,26 @@ textarea:focus-visible {
   font-weight: 500 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.03em !important;
-  border-bottom: 1px solid #0f2942 !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.22) !important;
+  border-bottom: 2px solid #0f2942 !important;
+  border-right: 2px solid rgba(255, 255, 255, 0.22) !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td {
-  border-right: 1px solid #cbd5e1 !important;
+  border-right: 2px solid #cbd5e1 !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td,
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-  border-top: 1px solid #cbd5e1 !important;
-  border-right: 1px solid #cbd5e1 !important;
+  border-top: 2px solid #cbd5e1 !important;
+  border-right: 2px solid #cbd5e1 !important;
   background: #f8fafc !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate .unlk-total-bar {
-  background: #f1f5f9 !important;
-  border-left: none !important;
-  border-top: 1px solid #0f2942 !important;
-  border-right: 1.25px solid #0f2942 !important;
-  border-bottom: 1px solid #0f2942 !important;
+  background: #f8fafc !important;
+  border-bottom: 2px solid #0f2942 !important;
   box-sizing: border-box !important;
-  background-clip: padding-box !important;
-  margin-top: -1px !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -11412,7 +11402,7 @@ textarea:focus-visible {
     page-break-after: avoid !important;
   }
   .unlk-trade-form {
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     width: 100% !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
@@ -11431,13 +11421,13 @@ textarea:focus-visible {
     page-break-inside: avoid !important;
   }
   .unlk-border-r {
-    border-right: 1px solid #334155 !important;
+    border-right: 2px solid #334155 !important;
   }
   .unlk-border-t {
-    border-top: 1px solid #334155 !important;
+    border-top: 2px solid #334155 !important;
   }
   .unlk-border-b {
-    border-bottom: 1px solid #334155 !important;
+    border-bottom: 2px solid #334155 !important;
   }
   .unlk-cell {
     padding: 3px 6px !important;
@@ -11467,14 +11457,14 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table {
     border-collapse: collapse !important;
     table-layout: fixed !important;
-    width: calc(100% + 2px) !important;
-    max-width: calc(100% + 2px) !important;
-    margin-left: -1px !important;
-    margin-right: -1px !important;
+    width: calc(100% + 4px) !important;
+    max-width: calc(100% + 4px) !important;
+    margin-left: -2px !important;
+    margin-right: -2px !important;
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     box-sizing: border-box !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     empty-cells: show !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -11489,7 +11479,7 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table th,
   .paper-document table.unlk-items-table td {
     box-sizing: border-box !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     background-color: transparent !important;
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
@@ -11499,7 +11489,7 @@ textarea:focus-visible {
     font-size: 9pt !important;
     font-weight: 600 !important;
     padding: 3px 5px !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     background-color: transparent !important;
     color: #0f172a !important;
     empty-cells: show !important;
@@ -11510,7 +11500,7 @@ textarea:focus-visible {
     font-size: 9.5pt !important;
     line-height: 1.2 !important;
     padding: 3px 6px !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     background-color: transparent !important;
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
@@ -11518,7 +11508,7 @@ textarea:focus-visible {
   }
   .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
     height: auto !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
   }
   .paper-document .unlk-trade-form .unlk-item-spec {
     font-size: 9.5pt !important;
@@ -11529,7 +11519,7 @@ textarea:focus-visible {
     padding: 2.5px 5px !important;
     font-size: 9.5pt !important;
     height: auto !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     background-color: transparent !important;
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
@@ -11541,7 +11531,7 @@ textarea:focus-visible {
     print-color-adjust: exact !important;
   }
   .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
     background-color: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -11549,7 +11539,7 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
     font-size: 9pt !important;
-    border: 1px solid #334155 !important;
+    border: 2px solid #334155 !important;
   }
   .paper-document .unlk-trade-form .unlk-bank-lines,
   .paper-document .unlk-trade-form .unlk-bank-lines > div,
@@ -11560,14 +11550,9 @@ textarea:focus-visible {
   }
   .unlk-total-bar {
     padding: 3px 6px !important;
-    border-left: none !important;
-    border-top: 1px solid #334155 !important;
-    border-right: 1px solid #334155 !important;
-    border-bottom: 1px solid #334155 !important;
+    border-bottom: 2px solid #334155 !important;
     background: #f8fafc !important;
     box-sizing: border-box !important;
-    background-clip: padding-box !important;
-    margin-top: -1px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
