@@ -1157,10 +1157,7 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table {
-            border-top: 1px solid #475569 !important;
-            border-bottom: 1px solid #475569 !important;
-            border-left: none !important;
-            border-right: none !important;
+            border: 1px solid #475569 !important;
             border-collapse: collapse !important;
             table-layout: fixed !important;
             width: 100% !important;
@@ -1173,38 +1170,30 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table tbody td,
           .paper-document table.unlk-items-table tfoot td {
             border-right: 1px solid #475569 !important;
-            border-left: none !important;
+            border-left: 1px solid #475569 !important;
             box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .paper-document table.unlk-items-table thead th:last-child,
-          .paper-document table.unlk-items-table tbody td:last-child,
-          .paper-document table.unlk-items-table tfoot td:last-child {
-            border-right: none !important;
+          .paper-document table.unlk-items-table thead th {
+            border-top: 1px solid #475569 !important;
+            border-bottom: 1px solid #475569 !important;
+            background: #f8fafc !important;
+            color: #1e293b !important;
           }
-          .paper-document table.unlk-items-table thead th:first-child,
-          .paper-document table.unlk-items-table tbody td:first-child,
-          .paper-document table.unlk-items-table tfoot td:first-child {
-            border-left: none !important;
+          .paper-document table.unlk-items-table tbody td {
+            border-top: none !important;
+            border-bottom: none !important;
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
             border-top: 1px solid #475569 !important;
             border-bottom: 1px solid #475569 !important;
             border-right: 1px solid #475569 !important;
-            border-left: none !important;
+            border-left: 1px solid #475569 !important;
             box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
-          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
-            border-right: none !important;
-          }
-          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
-          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-            border-left: none !important;
           }
           .unlk-total-bar {
             border-bottom: 1px solid #475569 !important;

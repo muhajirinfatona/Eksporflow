@@ -61,6 +61,7 @@ export function useActiveShipment() {
   const [saveState, setSaveState] = useState<PersistenceSaveState>("unsaved");
   const [statusNote, setStatusNote] = useState<string | null>(null);
   const loadedForUserIdRef = useRef<number | null>(null);
+  const isSavingRef = useRef(false);
 
   const shipmentsQuery = trpc.shipments.list.useQuery(
     { limit: 50, offset: 0 },
@@ -193,6 +194,8 @@ export function useActiveShipment() {
         return;
       }
 
+      if (isSavingRef.current) return;
+      isSavingRef.current = true;
       setSaveState("saving");
       setStatusNote(null);
       const payload = toShipmentPersistencePayload(shipment);
@@ -228,11 +231,21 @@ export function useActiveShipment() {
         const code = error instanceof TRPCClientError ? error.data?.code : undefined;
         const message = error instanceof Error ? error.message : "Gagal menyimpan transaksi.";
         if (code === "CONFLICT") {
-          setSaveState("conflict");
-          setStatusNote(message);
-          toast.error("Konflik penyimpanan terdeteksi", {
-            description: message,
-          });
+          if (isAutoSave && activeShipmentId) {
+            try {
+              const latest = await utils.shipments.get.fetch({ id: activeShipmentId });
+              setVersion(latest.version);
+              setSaveState("unsaved");
+            } catch {
+              setSaveState("conflict");
+            }
+          } else {
+            setSaveState("conflict");
+            setStatusNote(message);
+            toast.error("Konflik penyimpanan terdeteksi", {
+              description: message,
+            });
+          }
         } else {
           setSaveState("error");
           setStatusNote(message);
@@ -240,6 +253,8 @@ export function useActiveShipment() {
             toast.error("Penyimpanan gagal", { description: message });
           }
         }
+      } finally {
+        isSavingRef.current = false;
       }
     },
     [user, shipment, activeShipmentId, version, createMutation, updateMutation, utils.shipments.list],
