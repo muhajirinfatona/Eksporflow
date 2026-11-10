@@ -56,6 +56,7 @@ import {
   AlignVerticalJustifyStart,
   AlignVerticalJustifyEnd,
   Square,
+  Shapes,
   Image as ImageIcon,
   Layers,
   Move,
@@ -71,7 +72,7 @@ import {
   FlipVertical,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset } from "@shared/shipment";
+import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset, DocumentShape } from "@shared/shipment";
 import { getPaperSizeSpec, getDocMargins, DOC_MARGIN_PRESETS, DEFAULT_INDICO_LOGO } from "@shared/shipment";
 import { extractLetterheadFromFile } from "@/lib/letterheadExtractor";
 import {
@@ -258,7 +259,12 @@ export function DocWordRibbon({
   onOpenBusinessCardOcr,
   onOpenCrop,
 }: DocWordRibbonProps) {
-  const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table" | "picture">("home");
+  const [activeRibbonTab, setActiveRibbonTab] = useState<"home" | "layout" | "insert" | "table" | "picture" | "line" | "shape">("home");
+  const [isLineSelected, setIsLineSelected] = useState(false);
+  const [isShapeSelected, setIsShapeSelected] = useState(false);
+  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+  const [showShapeMenu, setShowShapeMenu] = useState(false);
+  const shapeMenuRef = useRef<HTMLDivElement>(null);
   const [isTableSelected, setIsTableSelected] = useState(false);
   const [isImageSelected, setIsImageSelected] = useState(false);
   const [activeTableTitle, setActiveTableTitle] = useState<string>("Tabel");
@@ -555,6 +561,9 @@ export function DocWordRibbon({
       }
     };
 
+
+
+
     const handleImageFocus = (e: any) => {
       const detail = e.detail;
       const hasImage = detail?.hasImage !== false;
@@ -568,15 +577,85 @@ export function DocWordRibbon({
       setShowLetterheadModal(true);
     };
 
+    const handleLineFocus = (e: any) => {
+      const detail = e.detail;
+      const hasLine = detail?.hasLine !== false;
+      setIsLineSelected(hasLine);
+      if (hasLine) {
+        setActiveRibbonTab("line");
+      }
+    };
+
+    const handleShapeFocus = (e: any) => {
+      const detail = e.detail;
+      const hasShape = detail?.hasShape !== false;
+      setIsShapeSelected(hasShape);
+      if (hasShape && detail?.shapeId) {
+        setSelectedShapeId(detail.shapeId);
+        setActiveRibbonTab("shape");
+      }
+    };
+
     window.addEventListener("eksporflow:table-focus", handleTableFocus);
     window.addEventListener("eksporflow:image-focus", handleImageFocus);
+    window.addEventListener("eksporflow:line-focus", handleLineFocus);
+    window.addEventListener("eksporflow:shape-focus", handleShapeFocus);
     window.addEventListener("eksporflow:open-letterhead-modal", handleOpenLetterheadModal);
     return () => {
       window.removeEventListener("eksporflow:table-focus", handleTableFocus);
       window.removeEventListener("eksporflow:image-focus", handleImageFocus);
+      window.removeEventListener("eksporflow:line-focus", handleLineFocus);
+      window.removeEventListener("eksporflow:shape-focus", handleShapeFocus);
       window.removeEventListener("eksporflow:open-letterhead-modal", handleOpenLetterheadModal);
     };
   }, []);
+  // Shapes Management (Seperti di MS Word)
+  const insertShape = (type: DocumentShape["type"]) => {
+    const currentShapes = shipment.docShapes || [];
+    const newShape: DocumentShape = {
+      id: `shape_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      type,
+      text: type === "line" ? "" : type === "pill" ? "OFFICIAL" : "Ketik teks di sini...",
+      x: 0,
+      y: 0,
+      width: type === "line" ? 280 : type === "pill" ? 110 : type === "banner" ? 340 : 160,
+      height: type === "line" ? 2 : type === "pill" ? 30 : type === "banner" ? 38 : 50,
+      fillColor: type === "line" ? "transparent" : type === "pill" ? "#ecfdf5" : type === "callout" ? "#fefce8" : "#f8fafc",
+      borderColor: type === "line" ? "#cbd5e1" : type === "pill" ? "#059669" : type === "callout" ? "#ca8a04" : "#0f2942",
+      borderWidth: 1.5,
+      borderStyle: "solid",
+      textColor: type === "pill" ? "#065f46" : type === "callout" ? "#854d0e" : "#0f172a",
+      fontSize: type === "pill" ? 9 : 10.5,
+      fontWeight: type === "pill" ? "bold" : "normal",
+      textAlign: type === "pill" || type === "banner" ? "center" : "left",
+    };
+    update("docShapes", [...currentShapes, newShape]);
+    setSelectedShapeId(newShape.id);
+    setIsShapeSelected(true);
+    setActiveRibbonTab("shape");
+    setShowShapeMenu(false);
+    toast.success(`Bentuk "${type}" berhasil disisipkan. Anda dapat mengetik teks di dalamnya atau mengatur bentuknya.`);
+  };
+
+  const activeShape = (shipment.docShapes || []).find((s) => s.id === selectedShapeId);
+
+  const updateActiveShape = (patch: Partial<DocumentShape>) => {
+    if (!selectedShapeId) return;
+    const currentShapes = shipment.docShapes || [];
+    const next = currentShapes.map((s) => (s.id === selectedShapeId ? { ...s, ...patch } : s));
+    update("docShapes", next);
+  };
+
+  const deleteActiveShape = () => {
+    if (!selectedShapeId) return;
+    const currentShapes = shipment.docShapes || [];
+    update("docShapes", currentShapes.filter((s) => s.id !== selectedShapeId));
+    setSelectedShapeId(null);
+    setIsShapeSelected(false);
+    setActiveRibbonTab("insert");
+    toast.success("Bentuk berhasil dihapus.");
+  };
+
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   const [isRibbonCollapsed, setIsRibbonCollapsed] = useState(false);
@@ -2154,6 +2233,28 @@ export function DocWordRibbon({
           >
             <ImageIcon size={13} className="mr-1 inline" />
             <span>Format Gambar {isImageSelected && "●"}</span>
+          </button>
+
+          {/* Tab Format Bentuk (Shape Format - MS Word) */}
+          <button
+            type="button"
+            className={`doc-ribbon-tab-btn doc-ribbon-tab-shape ${activeRibbonTab === "shape" ? "active" : ""} ${isShapeSelected ? "highlighted" : ""}`}
+            onClick={() => setActiveRibbonTab("shape")}
+            title="Format Bentuk: Ubah Bentuk, Warna Isi, Garis Luar & Teks (MS Word)"
+          >
+            <Square size={13} className="mr-1 inline text-amber-600" />
+            <span>Format Bentuk {isShapeSelected && "●"}</span>
+          </button>
+
+          {/* Tab Format Garis & Kop (Word Letterhead & Divider Rules) */}
+          <button
+            type="button"
+            className={`doc-ribbon-tab-btn doc-ribbon-tab-line ${activeRibbonTab === "line" ? "active" : ""} ${isLineSelected ? "highlighted" : ""}`}
+            onClick={() => setActiveRibbonTab("line")}
+            title="Format Garis & Kop: Atur Ketebalan (1,5 pt), Jarak Garis Ganda & Spasi Kop"
+          >
+            <SlidersHorizontal size={13} className="mr-1 inline text-blue-600" />
+            <span>Format Garis & Kop {isLineSelected && "●"}</span>
           </button>
         </div>
       )}
@@ -4090,7 +4191,113 @@ export function DocWordRibbon({
           {/* ================= TAB 3: SISIPKAN (INSERT & HEADER) ================= */}
           {activeRibbonTab === "insert" && (
             <>
-              {/* TABLE TOOLS GROUP (Seperti di Word) */}
+              {/* SHAPES & BENTUK GROUP (Seperti di MS Word) */}
+              <div className="doc-ribbon-group group-shapes" ref={shapeMenuRef}>
+                <div className="doc-ribbon-row-top">
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-trigger ${showShapeMenu ? "active" : ""}`}
+                    onClick={(e) => {
+                      captureAnchor(e.currentTarget, 230);
+                      setShowShapeMenu((prev) => !prev);
+                    }}
+                    title="Sisipkan Bentuk atau Kotak Teks seperti di Microsoft Word"
+                  >
+                    <Square size={13} className="text-amber-600" />
+                    <span className="font-bold">Bentuk</span>
+                    <ChevronDown size={11} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className="doc-ribbon-btn-icon"
+                    onClick={() => insertShape("rectangle")}
+                    title="Sisipkan Kotak Teks (Text Box)"
+                  >
+                    <span className="text-[10px] font-bold">🔲 Kotak</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom">
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => insertShape("pill")}
+                    title="Sisipkan Badge Kapsul (Official Pill)"
+                  >
+                    💊 Kapsul
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => insertShape("banner")}
+                    title="Sisipkan Banner Resmi"
+                  >
+                    🎗️ Banner
+                  </button>
+                </div>
+
+                <span className="doc-ribbon-group-label">Bentuk Word</span>
+
+                {/* Shapes Dropdown Picker */}
+                {showShapeMenu && (
+                  <div
+                    className="doc-table-popover no-print"
+                    style={{
+                      position: "fixed",
+                      top: `${popoverAnchor.top}px`,
+                      left: `${popoverAnchor.left}px`,
+                      width: "230px",
+                      zIndex: 9999,
+                      background: "#ffffff",
+                      border: "1px solid #cbd5e1",
+                      borderRadius: "8px",
+                      boxShadow: "0 10px 28px rgba(15,23,42,0.22)",
+                      padding: "10px",
+                    }}
+                  >
+                    <div className="font-bold text-[11px] text-slate-800 pb-1.5 border-b border-slate-200 mb-2 flex items-center justify-between">
+                      <span>SISIPKAN BENTUK (MS WORD)</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowShapeMenu(false)}
+                        className="text-slate-400 hover:text-slate-600 text-xs"
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="space-y-1">
+                      {[
+                        { type: "rectangle", icon: "🔲", name: "Kotak Teks (Text Box)", desc: "Persegi berbingkai dengan teks di dalamnya" },
+                        { type: "rounded", icon: "🟩", name: "Persegi Sudut Tumpul", desc: "Badge dengan sudut lengkung halus" },
+                        { type: "pill", icon: "💊", name: "Badge Kapsul (Pill)", desc: "Label status resmi (ORIGINAL, FOB)" },
+                        { type: "banner", icon: "🎗️", name: "Banner / Pita Resmi", desc: "Kotak panjang untuk judul / pengumuman" },
+                        { type: "callout", icon: "💬", name: "Kotak Catatan (Callout)", desc: "Kotak instruksi khusus / perhatian" },
+                        { type: "line", icon: "➖", name: "Garis Pembatas (Line)", desc: "Garis pemisah horizontal" },
+                      ].map((item) => (
+                        <button
+                          key={item.type}
+                          type="button"
+                          onClick={() => insertShape(item.type as any)}
+                          className="w-full text-left p-1.5 rounded hover:bg-slate-100 flex items-start gap-2 border border-transparent hover:border-slate-200 transition-colors"
+                        >
+                          <span className="text-sm">{item.icon}</span>
+                          <div>
+                            <span className="text-[11px] font-bold text-slate-800 block leading-tight">{item.name}</span>
+                            <span className="text-[9.5px] text-slate-500 block leading-tight">{item.desc}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              
+{/* TABLE TOOLS GROUP (Seperti di Word) */}
               <div className="doc-ribbon-group group-table" ref={tableMenuRef}>
                 <div className="doc-ribbon-row-top">
                   <button
@@ -5933,6 +6140,701 @@ export function DocWordRibbon({
                   <span style={{ fontSize: "10px", fontWeight: 700, marginTop: "2px" }}>Pangkas</span>
                 </button>
                 <span className="doc-ribbon-group-label">Crop</span>
+              </div>
+            </>
+          )}
+
+          {/* ================= TAB 6: FORMAT GARIS & KOP (MS WORD DIVIDER & LETTERHEAD RULES) ================= */}
+          {activeRibbonTab === "line" && (
+            <>
+              {/* 1. GARIS PEMISAH LOGO (1,5 PT & UKURAN) */}
+              <div className="doc-ribbon-group group-logo-divider">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
+                    Tebal Garis:
+                  </span>
+                  <div style={{ display: "flex", gap: "2px" }}>
+                    {[1, 1.5, 2, 3].map((w) => {
+                      const isCurr = Number(shipment.letterheadLogoDividerWidth ?? 1.5) === w;
+                      return (
+                        <button
+                          key={w}
+                          type="button"
+                          className={`doc-ribbon-btn-icon ${isCurr ? "active" : ""}`}
+                          style={{ padding: "1px 6px", minWidth: "32px", fontSize: "10.5px", fontWeight: isCurr ? 800 : 600 }}
+                          onClick={() => {
+                            update("letterheadLogoDividerWidth", w);
+                            toast.success(`Tebal garis pemisah logo diatur ke ${w} pt`);
+                          }}
+                          title={`Atur tebal garis pemisah ke ${w} pt`}
+                        >
+                          {w} pt
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Width Input */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+                    <input
+                      type="number"
+                      min="0.5"
+                      max="6"
+                      step="0.5"
+                      value={shipment.letterheadLogoDividerWidth ?? 1.5}
+                      onChange={(e) => update("letterheadLogoDividerWidth", Math.max(0.5, Number(e.target.value) || 1.5))}
+                      style={{ width: "38px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "center", border: "none", background: "transparent" }}
+                    />
+                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>pt</span>
+                  </div>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
+                    Tinggi Garis:
+                  </span>
+                  <div style={{ display: "flex", gap: "2px" }}>
+                    {[
+                      { label: "Pas (40px)", h: 40 },
+                      { label: "Standar (50px)", h: 50 },
+                      { label: "Penuh (58px)", h: 58 },
+                    ].map((item) => {
+                      const isCurr = Number(shipment.letterheadLogoDividerHeight ?? 50) === item.h;
+                      return (
+                        <button
+                          key={item.h}
+                          type="button"
+                          className={`doc-ribbon-table-subbtn ${isCurr ? "active" : ""}`}
+                          style={{ fontSize: "10px", padding: "1px 6px" }}
+                          onClick={() => {
+                            update("letterheadLogoDividerHeight", item.h);
+                            toast.success(`Tinggi garis diatur ke ${item.h}px`);
+                          }}
+                        >
+                          {item.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Input custom height */}
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+                    <input
+                      type="number"
+                      min="20"
+                      max="120"
+                      step="2"
+                      value={shipment.letterheadLogoDividerHeight ?? 50}
+                      onChange={(e) => update("letterheadLogoDividerHeight", Math.max(20, Number(e.target.value) || 50))}
+                      style={{ width: "38px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "center", border: "none", background: "transparent" }}
+                    />
+                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>px</span>
+                  </div>
+                </div>
+                <span className="doc-ribbon-group-label">Garis Pemisah Logo (1,5 pt)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 2. JARAK & GESER PEMISAH LOGO */}
+              <div className="doc-ribbon-group group-divider-spacing">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
+                    Jarak Logo-Teks:
+                  </span>
+                  {[
+                    { label: "Rapat (8px)", m: 8 },
+                    { label: "Standar (14px)", m: 14 },
+                    { label: "Renggang (20px)", m: 20 },
+                  ].map((item) => (
+                    <button
+                      key={item.m}
+                      type="button"
+                      className={`doc-ribbon-table-subbtn ${Number(shipment.letterheadLogoDividerMarginLeft ?? 14) === item.m ? "active" : ""}`}
+                      style={{ fontSize: "10px", padding: "1px 6px" }}
+                      onClick={() => {
+                        update("letterheadLogoDividerMarginLeft", item.m);
+                        update("letterheadLogoDividerMarginRight", item.m);
+                        toast.success(`Jarak garis pemisah ke logo & teks diatur ke ${item.m}px`);
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
+                    Warna Garis:
+                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    {[
+                      { hex: "#94a3b8", label: "Abu Netral (Standar)" },
+                      { hex: "#0f2942", label: "Navy Ekspor" },
+                      { hex: "#334155", label: "Dark Slate" },
+                      { hex: "#000000", label: "Hitam Pekat" },
+                    ].map((col) => (
+                      <button
+                        key={col.hex}
+                        type="button"
+                        onClick={() => {
+                          update("letterheadLogoDividerColor", col.hex);
+                          toast.success(`Warna garis pemisah: ${col.label}`);
+                        }}
+                        title={col.label}
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "50%",
+                          background: col.hex,
+                          border: (shipment.letterheadLogoDividerColor || "#94a3b8").toLowerCase() === col.hex.toLowerCase() ? "2px solid #2563eb" : "1px solid #cbd5e1",
+                          cursor: "pointer",
+                          transform: (shipment.letterheadLogoDividerColor || "#94a3b8").toLowerCase() === col.hex.toLowerCase() ? "scale(1.2)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                    <label title="Pilih warna kustom" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+                      <input
+                        type="color"
+                        value={shipment.letterheadLogoDividerColor || "#94a3b8"}
+                        onChange={(e) => update("letterheadLogoDividerColor", e.target.value)}
+                        style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <span className="doc-ribbon-group-label">Jarak & Warna Pemisah</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 3. JARAK GARIS GANDA KE KOP (DOUBLE RULE GAP) */}
+              <div className="doc-ribbon-group group-double-rule">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                  <span style={{ fontSize: "10.5px", fontWeight: 700, color: "#1e293b", whiteSpace: "nowrap" }}>
+                    Jarak Garis Ganda:
+                  </span>
+                  {[
+                    { label: "Sangat Rapat (-4px)", gap: -4 },
+                    { label: "Rapat Standar (0px)", gap: 0 },
+                    { label: "Normal (+4px)", gap: 4 },
+                    { label: "Renggang (+8px)", gap: 8 },
+                  ].map((item) => {
+                    const isCurr = Number(shipment.letterheadDividerGap ?? 0) === item.gap;
+                    return (
+                      <button
+                        key={item.gap}
+                        type="button"
+                        className={`doc-ribbon-table-subbtn ${isCurr ? "active" : ""}`}
+                        style={{ fontSize: "10px", padding: "1px 6px" }}
+                        onClick={() => {
+                          update("letterheadDividerGap", item.gap);
+                          toast.success(`Jarak garis ganda ke kop surat diatur ke ${item.gap}px`);
+                        }}
+                      >
+                        {item.label}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>Geser Manual:</span>
+                    <input
+                      type="range"
+                      min="-10"
+                      max="20"
+                      step="1"
+                      value={shipment.letterheadDividerGap ?? 0}
+                      onChange={(e) => update("letterheadDividerGap", Number(e.target.value))}
+                      style={{ width: "90px", accentColor: "#0284c7", cursor: "pointer" }}
+                      title={`Jarak garis ganda ke tulisan kop: ${shipment.letterheadDividerGap ?? 0}px`}
+                    />
+                    <span style={{ fontSize: "10px", fontWeight: 700, minWidth: "28px", color: "#0284c7" }}>
+                      {Number(shipment.letterheadDividerGap ?? 0) > 0 ? `+${shipment.letterheadDividerGap}` : shipment.letterheadDividerGap ?? 0}px
+                    </span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>Warna:</span>
+                    {[
+                      { hex: "#0f2942", label: "Navy Resmi" },
+                      { hex: "#1e293b", label: "Slate" },
+                      { hex: "#000000", label: "Hitam" },
+                      { hex: "#15803d", label: "Green Indico" },
+                    ].map((col) => (
+                      <button
+                        key={col.hex}
+                        type="button"
+                        onClick={() => {
+                          update("letterheadDividerColor", col.hex);
+                          toast.success(`Warna garis ganda: ${col.label}`);
+                        }}
+                        title={col.label}
+                        style={{
+                          width: "16px",
+                          height: "16px",
+                          borderRadius: "50%",
+                          background: col.hex,
+                          border: (shipment.letterheadDividerColor || "#0f2942").toLowerCase() === col.hex.toLowerCase() ? "2px solid #0284c7" : "1px solid #cbd5e1",
+                          cursor: "pointer",
+                          transform: (shipment.letterheadDividerColor || "#0f2942").toLowerCase() === col.hex.toLowerCase() ? "scale(1.2)" : "scale(1)",
+                        }}
+                      />
+                    ))}
+                    <label title="Pilih warna kustom garis ganda" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+                      <input
+                        type="color"
+                        value={shipment.letterheadDividerColor || "#0f2942"}
+                        onChange={(e) => update("letterheadDividerColor", e.target.value)}
+                        style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
+                      />
+                    </label>
+                  </div>
+                </div>
+                <span className="doc-ribbon-group-label">Garis Ganda Kop Surat</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 4. RESET & PRESET CEPAT STANDAR WORD */}
+              <div className="doc-ribbon-group group-line-reset">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ background: "#f0fdf4", borderColor: "#86efac", color: "#166534", fontWeight: 700 }}
+                    onClick={() => {
+                      update("letterheadLogoDividerWidth", 1.5);
+                      update("letterheadLogoDividerHeight", 50);
+                      update("letterheadLogoDividerMarginLeft", 14);
+                      update("letterheadLogoDividerMarginRight", 14);
+                      update("letterheadLogoDividerColor", "#94a3b8");
+                      update("letterheadDividerGap", 0);
+                      update("letterheadDividerColor", "#0f2942");
+                      toast.success("Format garis pemisah (1,5 pt) & kop diatur ke Standar Rapat Word");
+                    }}
+                    title="Terapkan Standar Resmi MS Word: Garis 1.5 pt & Jarak Rapat 0px"
+                  >
+                    <Check size={11} />
+                    <span>Standar Rapat Word</span>
+                  </button>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px" }}>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    onClick={() => {
+                      update("letterheadLogoDividerVisible", !(shipment.letterheadLogoDividerVisible !== false));
+                      toast.info(shipment.letterheadLogoDividerVisible !== false ? "Garis pemisah disembunyikan" : "Garis pemisah ditampilkan");
+                    }}
+                    title="Tampilkan / Sembunyikan Garis Pemisah Logo"
+                  >
+                    <span>{shipment.letterheadLogoDividerVisible !== false ? "Sembunyikan Pemisah" : "Tampilkan Pemisah"}</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Aksi Cepat</span>
+              </div>
+            </>
+          )}
+
+          {/* ================= TAB 7: FORMAT BENTUK (MICROSOFT WORD SHAPE FORMAT) ================= */}
+          {activeRibbonTab === "shape" && (
+            <>
+              {/* 1. SISIPKAN / UBAH BENTUK */}
+              <div className="doc-ribbon-group group-shape-type">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
+                  {[
+                    { type: "rectangle", icon: "🔲", label: "Kotak Teks" },
+                    { type: "rounded", icon: "🟩", label: "Sudut Tumpul" },
+                    { type: "pill", icon: "💊", label: "Kapsul / Pill" },
+                  ].map((item) => (
+                    <button
+                      key={item.type}
+                      type="button"
+                      className={`doc-ribbon-table-subbtn ${activeShape?.type === item.type ? "active" : ""}`}
+                      onClick={() => {
+                        if (activeShape) {
+                          updateActiveShape({ type: item.type as any });
+                          toast.success(`Bentuk diubah ke ${item.label}`);
+                        } else {
+                          insertShape(item.type as any);
+                        }
+                      }}
+                      title={activeShape ? `Ubah ke ${item.label}` : `Sisipkan ${item.label}`}
+                    >
+                      <span>{item.icon} {item.label}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                  {[
+                    { type: "banner", icon: "🎗️", label: "Banner Resmi" },
+                    { type: "callout", icon: "💬", label: "Callout / Catatan" },
+                    { type: "line", icon: "➖", label: "Garis Pembatas" },
+                  ].map((item) => (
+                    <button
+                      key={item.type}
+                      type="button"
+                      className={`doc-ribbon-table-subbtn ${activeShape?.type === item.type ? "active" : ""}`}
+                      onClick={() => {
+                        if (activeShape) {
+                          updateActiveShape({ type: item.type as any });
+                          toast.success(`Bentuk diubah ke ${item.label}`);
+                        } else {
+                          insertShape(item.type as any);
+                        }
+                      }}
+                      title={activeShape ? `Ubah ke ${item.label}` : `Sisipkan ${item.label}`}
+                    >
+                      <span>{item.icon} {item.label}</span>
+                    </button>
+                  ))}
+                </div>
+                <span className="doc-ribbon-group-label">{activeShape ? "Ubah Bentuk" : "Pilih Bentuk"}</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 2. WARNA ISI BENTUK (SHAPE FILL) */}
+              <div className="doc-ribbon-group group-shape-fill">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-table-subbtn ${activeShape?.fillColor === "transparent" ? "active" : ""}`}
+                    onClick={() => {
+                      updateActiveShape({ fillColor: "transparent" });
+                      toast.success("Isi bentuk: Tanpa Isi (Transparan)");
+                    }}
+                    title="Tanpa Isi (Transparent)"
+                  >
+                    <span>Tanpa Isi</span>
+                  </button>
+
+                  {[
+                    { hex: "#ffffff", label: "Putih" },
+                    { hex: "#f8fafc", label: "Abu Terang" },
+                    { hex: "#ecfdf5", label: "Emerald Soft" },
+                    { hex: "#fefce8", label: "Kuning Catatan" },
+                    { hex: "#eff6ff", label: "Biru Muda" },
+                    { hex: "#0f2942", label: "Navy Gelap" },
+                  ].map((col) => (
+                    <button
+                      key={col.hex}
+                      type="button"
+                      onClick={() => {
+                        updateActiveShape({ fillColor: col.hex });
+                        toast.success(`Warna isi bentuk: ${col.label}`);
+                      }}
+                      title={col.label}
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "3px",
+                        background: col.hex,
+                        border: activeShape?.fillColor?.toLowerCase() === col.hex.toLowerCase() ? "2px solid #2563eb" : "1px solid #cbd5e1",
+                        cursor: "pointer",
+                        transform: activeShape?.fillColor?.toLowerCase() === col.hex.toLowerCase() ? "scale(1.15)" : "scale(1)",
+                      }}
+                    />
+                  ))}
+
+                  <label title="Pilih warna isi kustom" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+                    <input
+                      type="color"
+                      value={activeShape?.fillColor?.startsWith("#") ? activeShape.fillColor : "#ffffff"}
+                      onChange={(e) => updateActiveShape({ fillColor: e.target.value })}
+                      style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
+                    />
+                  </label>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>Isi Cepat:</span>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ fontSize: "9.5px", padding: "1px 4px", background: "#ecfdf5", color: "#065f46" }}
+                    onClick={() => {
+                      updateActiveShape({ fillColor: "#ecfdf5", borderColor: "#059669", textColor: "#065f46" });
+                      toast.success("Tema Hijau Resmi diterapkan");
+                    }}
+                  >
+                    Resmi (Hijau)
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ fontSize: "9.5px", padding: "1px 4px", background: "#fefce8", color: "#854d0e" }}
+                    onClick={() => {
+                      updateActiveShape({ fillColor: "#fefce8", borderColor: "#ca8a04", textColor: "#854d0e" });
+                      toast.success("Tema Catatan Kuning diterapkan");
+                    }}
+                  >
+                    Catatan
+                  </button>
+                  <button
+                    type="button"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ fontSize: "9.5px", padding: "1px 4px", background: "#eff6ff", color: "#1e40af" }}
+                    onClick={() => {
+                      updateActiveShape({ fillColor: "#eff6ff", borderColor: "#2563eb", textColor: "#1e40af" });
+                      toast.success("Tema Biru Info diterapkan");
+                    }}
+                  >
+                    Info (Biru)
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Warna Isi Bentuk (Fill)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 3. GARIS LUAR BENTUK (SHAPE OUTLINE) */}
+              <div className="doc-ribbon-group group-shape-outline">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#1e293b" }}>Tebal:</span>
+                  {[0, 1, 1.5, 2, 3].map((w) => (
+                    <button
+                      key={w}
+                      type="button"
+                      className={`doc-ribbon-btn-icon ${Number(activeShape?.borderWidth ?? 1.5) === w ? "active" : ""}`}
+                      style={{ padding: "1px 4px", minWidth: "26px", fontSize: "10px" }}
+                      onClick={() => {
+                        updateActiveShape({ borderWidth: w });
+                        toast.success(`Tebal garis luar: ${w === 0 ? "Tanpa Garis" : `${w} pt`}`);
+                      }}
+                      title={w === 0 ? "Tanpa Garis Luar" : `${w} pt`}
+                    >
+                      {w === 0 ? "0" : `${w}pt`}
+                    </button>
+                  ))}
+
+                  <div style={{ display: "flex", gap: "2px", marginLeft: "4px" }}>
+                    {[
+                      { style: "solid", label: "Solid" },
+                      { style: "dashed", label: "Putus-putus" },
+                      { style: "dotted", label: "Titik" },
+                    ].map((st) => (
+                      <button
+                        key={st.style}
+                        type="button"
+                        className={`doc-ribbon-table-subbtn ${(activeShape?.borderStyle || "solid") === st.style ? "active" : ""}`}
+                        style={{ fontSize: "9.5px", padding: "1px 4px" }}
+                        onClick={() => {
+                          updateActiveShape({ borderStyle: st.style as any });
+                          toast.success(`Gaya garis: ${st.label}`);
+                        }}
+                      >
+                        {st.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>Warna Garis:</span>
+                  {[
+                    { hex: "#0f2942", label: "Navy" },
+                    { hex: "#cbd5e1", label: "Abu Netral" },
+                    { hex: "#000000", label: "Hitam" },
+                    { hex: "#059669", label: "Hijau" },
+                    { hex: "#ca8a04", label: "Emas" },
+                    { hex: "#dc2626", label: "Merah" },
+                  ].map((col) => (
+                    <button
+                      key={col.hex}
+                      type="button"
+                      onClick={() => {
+                        updateActiveShape({ borderColor: col.hex });
+                        toast.success(`Warna garis: ${col.label}`);
+                      }}
+                      title={col.label}
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        background: col.hex,
+                        border: activeShape?.borderColor?.toLowerCase() === col.hex.toLowerCase() ? "2px solid #2563eb" : "1px solid #cbd5e1",
+                        cursor: "pointer",
+                      }}
+                    />
+                  ))}
+
+                  <label title="Warna garis luar kustom" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+                    <input
+                      type="color"
+                      value={activeShape?.borderColor?.startsWith("#") ? activeShape.borderColor : "#0f2942"}
+                      onChange={(e) => updateActiveShape({ borderColor: e.target.value })}
+                      style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
+                    />
+                  </label>
+                </div>
+                <span className="doc-ribbon-group-label">Garis Luar (Outline)</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 4. FORMAT TEKS BENTUK (SHAPE TEXT) */}
+              <div className="doc-ribbon-group group-shape-text">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <button
+                    type="button"
+                    className={`doc-ribbon-btn-icon ${activeShape?.fontWeight === "bold" ? "active" : ""}`}
+                    onClick={() => {
+                      const next = activeShape?.fontWeight === "bold" ? "normal" : "bold";
+                      updateActiveShape({ fontWeight: next });
+                      toast.success(`Teks bentuk: ${next === "bold" ? "Tebal" : "Normal"}`);
+                    }}
+                    title="Tebalkan Teks Bentuk (Bold)"
+                  >
+                    <Bold size={13} />
+                  </button>
+
+                  <div style={{ display: "flex", gap: "2px" }}>
+                    <button
+                      type="button"
+                      className={`doc-ribbon-btn-icon ${(activeShape?.textAlign || "left") === "left" ? "active" : ""}`}
+                      onClick={() => updateActiveShape({ textAlign: "left" })}
+                      title="Rata Kiri"
+                    >
+                      <AlignLeft size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className={`doc-ribbon-btn-icon ${activeShape?.textAlign === "center" ? "active" : ""}`}
+                      onClick={() => updateActiveShape({ textAlign: "center" })}
+                      title="Rata Tengah"
+                    >
+                      <AlignCenter size={13} />
+                    </button>
+                    <button
+                      type="button"
+                      className={`doc-ribbon-btn-icon ${activeShape?.textAlign === "right" ? "active" : ""}`}
+                      onClick={() => updateActiveShape({ textAlign: "right" })}
+                      title="Rata Kanan"
+                    >
+                      <AlignRight size={13} />
+                    </button>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>Font:</span>
+                    <input
+                      type="number"
+                      min="7"
+                      max="24"
+                      step="0.5"
+                      value={activeShape?.fontSize ?? 10.5}
+                      onChange={(e) => updateActiveShape({ fontSize: Number(e.target.value) || 10.5 })}
+                      style={{ width: "36px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "center", border: "none", background: "transparent" }}
+                    />
+                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>pt</span>
+                  </div>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <span style={{ fontSize: "10px", color: "#64748b" }}>Warna Teks:</span>
+                  {[
+                    { hex: "#0f172a", label: "Hitam" },
+                    { hex: "#ffffff", label: "Putih" },
+                    { hex: "#0f2942", label: "Navy" },
+                    { hex: "#065f46", label: "Hijau" },
+                    { hex: "#854d0e", label: "Emas" },
+                  ].map((col) => (
+                    <button
+                      key={col.hex}
+                      type="button"
+                      onClick={() => {
+                        updateActiveShape({ textColor: col.hex });
+                        toast.success(`Warna teks bentuk: ${col.label}`);
+                      }}
+                      title={col.label}
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        borderRadius: "50%",
+                        background: col.hex,
+                        border: activeShape?.textColor?.toLowerCase() === col.hex.toLowerCase() ? "2px solid #2563eb" : "1px solid #cbd5e1",
+                        cursor: "pointer",
+                      }}
+                    />
+                  ))}
+
+                  <label title="Warna teks kustom" style={{ cursor: "pointer", display: "inline-flex", alignItems: "center" }}>
+                    <input
+                      type="color"
+                      value={activeShape?.textColor?.startsWith("#") ? activeShape.textColor : "#0f172a"}
+                      onChange={(e) => updateActiveShape({ textColor: e.target.value })}
+                      style={{ width: "18px", height: "18px", padding: 0, border: "none", cursor: "pointer", background: "transparent" }}
+                    />
+                  </label>
+                </div>
+                <span className="doc-ribbon-group-label">Format Teks Bentuk</span>
+              </div>
+
+              <div className="doc-ribbon-divider" />
+
+              {/* 5. UKURAN & HAPUS BENTUK */}
+              <div className="doc-ribbon-group group-shape-size">
+                <div className="doc-ribbon-row-top" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>P:</span>
+                    <input
+                      type="number"
+                      min="40"
+                      max="750"
+                      step="10"
+                      value={activeShape?.width ?? 160}
+                      onChange={(e) => updateActiveShape({ width: Math.max(40, Number(e.target.value) || 160) })}
+                      style={{ width: "42px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "right", border: "none", background: "transparent" }}
+                    />
+                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>px</span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "center", gap: "2px", background: "#f8fafc", padding: "1px 4px", borderRadius: "4px", border: "1px solid #cbd5e1" }}>
+                    <span style={{ fontSize: "10px", color: "#64748b" }}>T:</span>
+                    <input
+                      type="number"
+                      min="20"
+                      max="300"
+                      step="5"
+                      value={activeShape?.height ?? 50}
+                      onChange={(e) => updateActiveShape({ height: Math.max(20, Number(e.target.value) || 50) })}
+                      style={{ width: "38px", height: "18px", fontSize: "10px", fontWeight: 700, textAlign: "right", border: "none", background: "transparent" }}
+                    />
+                    <span style={{ fontSize: "9.5px", color: "#64748b" }}>px</span>
+                  </div>
+                </div>
+
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                  <button
+                    type="button"
+                    onClick={deleteActiveShape}
+                    disabled={!activeShape}
+                    className="doc-ribbon-table-subbtn"
+                    style={{ background: "#fef2f2", borderColor: "#fca5a5", color: "#dc2626", fontWeight: 700 }}
+                    title="Hapus Bentuk Terpilih (Delete Shape)"
+                  >
+                    <Trash2 size={11} />
+                    <span>Hapus Bentuk</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => insertShape("rectangle")}
+                    className="doc-ribbon-table-subbtn"
+                    style={{ background: "#f0fdf4", borderColor: "#86efac", color: "#166534" }}
+                    title="Tambah Bentuk Baru Lainnya"
+                  >
+                    <Plus size={11} />
+                    <span>Tambah</span>
+                  </button>
+                </div>
+                <span className="doc-ribbon-group-label">Ukuran & Aksi</span>
               </div>
             </>
           )}

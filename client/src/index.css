@@ -18022,3 +18022,66 @@ table.unlk-items-table th.active-cell {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* Document Shapes Layer & Selection (MS Word Style) */
+.doc-word-shape-item {
+  transition: box-shadow 0.15s ease;
+}
+.shape-resize-handle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background-color: #ffffff;
+  border: 1.5px solid #2563eb;
+  border-radius: 2px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  z-index: 40;
+  pointer-events: auto;
+}
+.shape-resize-handle.se {
+  bottom: -4px;
+  right: -4px;
+  cursor: nwse-resize;
+}
+.shape-resize-handle.e {
+  top: 50%;
+  right: -4px;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+.shape-resize-handle.s {
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.doc-ribbon-tab-btn.doc-ribbon-tab-shape {
+  color: #b45309;
+  font-weight: 700;
+}
+.doc-ribbon-tab-btn.doc-ribbon-tab-shape.highlighted {
+  background: #fef3c7;
+  color: #d97706;
+}
+.doc-ribbon-tab-btn.doc-ribbon-tab-shape.active {
+  color: #b45309;
+  font-weight: 800;
+  background: #ffffff;
+  border-bottom: 2px solid #d97706;
+}
+
+.doc-ribbon-tab-btn.doc-ribbon-tab-line {
+  color: #0369a1;
+  font-weight: 700;
+}
+.doc-ribbon-tab-btn.doc-ribbon-tab-line.highlighted {
+  background: #e0f2fe;
+  color: #0284c7;
+}
+.doc-ribbon-tab-btn.doc-ribbon-tab-line.active {
+  color: #0284c7;
+  font-weight: 800;
+  background: #ffffff;
+  border-bottom: 2px solid #0284c7;
+}

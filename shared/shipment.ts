@@ -274,6 +274,24 @@ export type ContainerCalc = {
   shrinkageLoss: number;
 };
 
+export interface DocumentShape {
+  id: string;
+  type: "rectangle" | "rounded" | "pill" | "banner" | "callout" | "line";
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  fillColor: string;
+  borderColor: string;
+  borderWidth: number;
+  borderStyle: "solid" | "dashed" | "dotted";
+  textColor: string;
+  fontSize: number;
+  fontWeight: "normal" | "bold";
+  textAlign: "left" | "center" | "right";
+}
+
 export type Shipment = {
   reference: string;
   exporter: string;
@@ -401,6 +419,7 @@ export type Shipment = {
   bankSwift?: string;
   shipmentStatus: ShipmentStatus;
   attachments: string[];
+  docShapes?: DocumentShape[];
   lineItems: LineItem[];
   additionalCostFactors: AdditionalCostFactor[];
   hppMode?: "trader" | "manufacturer";

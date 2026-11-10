@@ -63,6 +63,7 @@ import {
 } from "./GeometricLetterheadPolygons";
 import { Field, SelectField } from "./Primitives";
 import { DocWordRibbon } from "./DocWordRibbon";
+import { DocumentShapeItem } from "./DocumentShapeItem";
 import { DigitalSignatureModal } from "./DigitalSignatureModal";
 import { DocumentAiScreeningModal } from "./DocumentAiScreeningModal";
 import { BusinessCardOcrModal } from "./BusinessCardOcrModal";
@@ -120,6 +121,20 @@ export function DocumentsModule({
   const [isEditMode, setIsEditMode] = useState(shipment.docEditorMode ?? true);
   const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
   const [signatureParty, setSignatureParty] = useState<"seller" | "buyer">("seller");
+  const [selectedShapeId, setSelectedShapeId] = useState<string | null>(null);
+
+  // Listen for shape focus events from ribbon
+  useEffect(() => {
+    const handleShapeFocus = (e: any) => {
+      if (e.detail?.shapeId) {
+        setSelectedShapeId(e.detail.shapeId);
+      } else if (e.detail?.hasShape === false) {
+        setSelectedShapeId(null);
+      }
+    };
+    window.addEventListener("eksporflow:shape-focus", handleShapeFocus);
+    return () => window.removeEventListener("eksporflow:shape-focus", handleShapeFocus);
+  }, []);
   const [isAiScreeningOpen, setIsAiScreeningOpen] = useState(false);
   const [isBusinessCardOcrOpen, setIsBusinessCardOcrOpen] = useState(false);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
@@ -1806,6 +1821,46 @@ export function DocumentsModule({
             />
           )}
 
+          {/* Document Shapes Layer (MS Word Style: Text Box, Rounded, Pill, Callout, Banner) */}
+          {shipment.docShapes && shipment.docShapes.length > 0 && (
+            <div className="doc-shapes-layer my-2 flex flex-col gap-2 relative z-20">
+              {shipment.docShapes.map((shape) => (
+                <DocumentShapeItem
+                  key={shape.id}
+                  shape={shape}
+                  isEditMode={isEditMode}
+                  isSelected={selectedShapeId === shape.id}
+                  onSelect={() => {
+                    setSelectedShapeId(shape.id);
+                    window.dispatchEvent(new CustomEvent("eksporflow:shape-focus", { detail: { hasLine: false, hasShape: true, shapeId: shape.id } }));
+                  }}
+                  onUpdateText={(text) => {
+                    const currentShapes = shipment.docShapes || [];
+                    const next = currentShapes.map((s) => (s.id === shape.id ? { ...s, text } : s));
+                    trackedUpdate("docShapes", next);
+                  }}
+                  onDelete={() => {
+                    const currentShapes = shipment.docShapes || [];
+                    const next = currentShapes.filter((s) => s.id !== shape.id);
+                    trackedUpdate("docShapes", next);
+                    setSelectedShapeId(null);
+                    window.dispatchEvent(new CustomEvent("eksporflow:shape-focus", { detail: { hasShape: false } }));
+                  }}
+                  onUpdatePosition={(x, y) => {
+                    const currentShapes = shipment.docShapes || [];
+                    const next = currentShapes.map((s) => (s.id === shape.id ? { ...s, x, y } : s));
+                    trackedUpdate("docShapes", next);
+                  }}
+                  onUpdateSize={(width, height) => {
+                    const currentShapes = shipment.docShapes || [];
+                    const next = currentShapes.map((s) => (s.id === shape.id ? { ...s, width, height } : s));
+                    trackedUpdate("docShapes", next);
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
           {/* Official Letterhead Footer / Kop Surat Bawah Grafis & Disclaimer */}
           <OfficialFooter
             shipment={shipment}
@@ -2254,12 +2309,13 @@ function OfficialLetterhead({
     window.addEventListener("mouseup", onMouseUp);
   };
 
+
   // Deselect double rule divider when clicked outside
   useEffect(() => {
     if (!isDoubleRuleSelected) return;
     const handleClickOutsideDoubleRule = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (doubleRuleRef.current && !doubleRuleRef.current.contains(target) && !target.closest(".word-double-rule-popover")) {
+      if (doubleRuleRef.current && !doubleRuleRef.current.contains(target) && !target.closest(".doc-ribbon-group, .doc-ribbon-bar, .doc-ribbon-tools-strip, .doc-table-popover")) {
         setIsDoubleRuleSelected(false);
         setShowDoubleRuleMenu(false);
       }
@@ -2273,7 +2329,7 @@ function OfficialLetterhead({
     if (!isDividerSelected) return;
     const handleClickOutsideDivider = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
-      if (dividerRef.current && !dividerRef.current.contains(target) && !target.closest(".word-divider-popover")) {
+      if (dividerRef.current && !dividerRef.current.contains(target) && !target.closest(".doc-ribbon-group, .doc-ribbon-bar, .doc-ribbon-tools-strip, .doc-table-popover")) {
         setIsDividerSelected(false);
         setShowDividerMenu(false);
       }
@@ -3255,7 +3311,9 @@ function OfficialLetterhead({
                     e.stopPropagation();
                     setIsSelected(false);
                     setShowLayoutMenu(false);
+                    setIsDoubleRuleSelected(false);
                     setIsDividerSelected(true);
+                    window.dispatchEvent(new CustomEvent("eksporflow:line-focus", { detail: { hasLine: true, target: "divider" } }));
                   }
                 }}
                 style={{
@@ -3309,363 +3367,7 @@ function OfficialLetterhead({
                       title="Tarik ke atas/bawah untuk ubah tinggi garis (Microsoft Word)"
                     />
 
-                    {/* Floating Quick Action Button */}
-                    <div
-                      className="letterhead-divider-quick-toolbar no-print flex items-center gap-1"
-                      style={{
-                        position: "absolute",
-                        top: "-28px",
-                        left: "50%",
-                        transform: "translateX(-50%)",
-                        zIndex: 50,
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <button
-                        type="button"
-                        onClick={() => setShowDividerMenu((prev) => !prev)}
-                        className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-400 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-md flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                        title="Buka Menu Pengaturan Lengkap Garis (Word)"
-                      >
-                        <Sliders size={11} />
-                        <span>{logoDividerWidth} pt · {logoDividerHeight}px</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (update) {
-                            update("letterheadLogoDividerVisible", false);
-                            setIsDividerSelected(false);
-                            setShowDividerMenu(false);
-                            toast.success("Garis pemisah logo disembunyikan.");
-                          }
-                        }}
-                        className="bg-white hover:bg-red-50 text-red-500 border border-red-300 rounded p-1 shadow-md cursor-pointer"
-                        title="Sembunyikan Garis Pemisah (Delete)"
-                      >
-                        <Trash2 size={11} />
-                      </button>
-                    </div>
-
-                    {/* Word-style Comprehensive Divider Formatting Popover */}
-                    {showDividerMenu && (
-                      <div
-                        className="word-divider-popover no-print"
-                        onClick={(e) => e.stopPropagation()}
-                        style={{
-                          position: "absolute",
-                          top: "30px",
-                          left: "50%",
-                          transform: "translateX(-50%)",
-                          background: "#ffffff",
-                          border: "1px solid #cbd5e1",
-                          borderRadius: "8px",
-                          boxShadow: "0 10px 30px rgba(15, 23, 42, 0.25)",
-                          padding: "12px",
-                          width: "270px",
-                          zIndex: 60,
-                          fontSize: "11px",
-                          textAlign: "left",
-                        }}
-                      >
-                        {/* Header */}
-                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2.5">
-                          <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
-                            <Sliders size={12} className="text-blue-600" />
-                            Format Garis Pemisah (MS Word)
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setShowDividerMenu(false)}
-                            className="text-slate-400 hover:text-slate-600 p-0.5 rounded text-xs leading-none"
-                          >
-                            ✕
-                          </button>
-                        </div>
-
-                        {/* 1. Ketebalan Garis (Weight / Thickness) */}
-                        <div className="mb-2.5">
-                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Ketebalan Garis (Weight)</span>
-                            <span className="text-blue-600 font-bold">{logoDividerWidth} pt</span>
-                          </div>
-                          <div className="grid grid-cols-5 gap-1 mb-1.5">
-                            {[1, 1.5, 2, 2.5, 3].map((w) => (
-                              <button
-                                key={w}
-                                type="button"
-                                onClick={() => {
-                                  if (update) {
-                                    update("letterheadLogoDividerWidth", w);
-                                    toast.success(`Ketebalan garis diatur ke ${w} pt`);
-                                  }
-                                }}
-                                className={`py-1 px-1 rounded border text-[10px] font-semibold text-center transition-all ${
-                                  logoDividerWidth === w
-                                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {w} pt
-                              </button>
-                            ))}
-                          </div>
-                          <input
-                            type="range"
-                            min="0.5"
-                            max="5"
-                            step="0.5"
-                            value={logoDividerWidth}
-                            onChange={(e) => {
-                              if (update) update("letterheadLogoDividerWidth", Number(e.target.value));
-                            }}
-                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
-                          />
-                        </div>
-
-                        {/* 2. Tinggi Garis (Height) */}
-                        <div className="mb-2.5">
-                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Tinggi Garis (Height)</span>
-                            <span className="text-blue-600 font-bold">{logoDividerHeight}px</span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-1 mb-1.5">
-                            {[
-                              { label: "Pas Teks", val: 40 },
-                              { label: "Standar", val: 48 },
-                              { label: "Penuh", val: 58 },
-                            ].map((h) => (
-                              <button
-                                key={h.val}
-                                type="button"
-                                onClick={() => {
-                                  if (update) update("letterheadLogoDividerHeight", h.val);
-                                }}
-                                className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
-                                  logoDividerHeight === h.val
-                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
-                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {h.label}
-                              </button>
-                            ))}
-                          </div>
-                          <input
-                            type="range"
-                            min="20"
-                            max="80"
-                            value={logoDividerHeight}
-                            onChange={(e) => {
-                              if (update) update("letterheadLogoDividerHeight", Number(e.target.value));
-                            }}
-                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
-                          />
-                        </div>
-
-                        {/* 3. Jarak ke Teks (Gap Kanan) */}
-                        <div className="mb-2.5">
-                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Jarak ke Teks (Gap Kanan)</span>
-                            <span className="text-blue-600 font-bold">{logoDividerMarginRight}px</span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-1 mb-1.5">
-                            {[
-                              { label: "Rapat (4px)", val: 4 },
-                              { label: "Ideal (8px)", val: 8 },
-                              { label: "Lebar (14px)", val: 14 },
-                            ].map((m) => (
-                              <button
-                                key={m.val}
-                                type="button"
-                                onClick={() => {
-                                  if (update) update("letterheadLogoDividerMarginRight", m.val);
-                                }}
-                                className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
-                                  logoDividerMarginRight === m.val
-                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
-                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {m.label}
-                              </button>
-                            ))}
-                          </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="25"
-                            value={logoDividerMarginRight}
-                            onChange={(e) => {
-                              if (update) update("letterheadLogoDividerMarginRight", Number(e.target.value));
-                            }}
-                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
-                          />
-                        </div>
-
-                        {/* 4. Jarak ke Logo (Gap Kiri) */}
-                        <div className="mb-2.5">
-                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Jarak ke Logo (Gap Kiri)</span>
-                            <span className="text-blue-600 font-bold">{logoDividerMarginLeft}px</span>
-                          </div>
-                          <div className="grid grid-cols-3 gap-1 mb-1.5">
-                            {[
-                              { label: "Rapat (4px)", val: 4 },
-                              { label: "Ideal (8px)", val: 8 },
-                              { label: "Lebar (14px)", val: 14 },
-                            ].map((m) => (
-                              <button
-                                key={m.val}
-                                type="button"
-                                onClick={() => {
-                                  if (update) update("letterheadLogoDividerMarginLeft", m.val);
-                                }}
-                                className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
-                                  logoDividerMarginLeft === m.val
-                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
-                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {m.label}
-                              </button>
-                            ))}
-                          </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="25"
-                            value={logoDividerMarginLeft}
-                            onChange={(e) => {
-                              if (update) update("letterheadLogoDividerMarginLeft", Number(e.target.value));
-                            }}
-                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
-                          />
-                        </div>
-
-                        {/* 5. Geser Posisi Horizontal (X Offset) */}
-                        <div className="mb-2.5">
-                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                            <span>Geser Posisi Garis (X)</span>
-                            <span className="text-blue-600 font-bold">{logoDividerOffsetX > 0 ? `+${logoDividerOffsetX}` : logoDividerOffsetX}px</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="-20"
-                            max="20"
-                            value={logoDividerOffsetX}
-                            onChange={(e) => {
-                              if (update) update("letterheadLogoDividerOffsetX", Number(e.target.value));
-                            }}
-                            className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
-                          />
-                        </div>
-
-                        {/* 6. Gaya & Warna Garis */}
-                        <div className="mb-2.5">
-                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
-                            Gaya & Warna Garis
-                          </span>
-                          <div className="grid grid-cols-3 gap-1 mb-1.5">
-                            {(["solid", "dashed", "dotted"] as const).map((styleName) => (
-                              <button
-                                key={styleName}
-                                type="button"
-                                onClick={() => {
-                                  if (update) update("letterheadLogoDividerStyle", styleName);
-                                }}
-                                className={`py-1 px-1 rounded border text-[10px] font-medium capitalize text-center transition-all ${
-                                  logoDividerStyle === styleName
-                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
-                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                                }`}
-                              >
-                                {styleName === "solid" ? "Utuh" : styleName === "dashed" ? "Putus" : "Titik"}
-                              </button>
-                            ))}
-                          </div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            {[
-                              { label: "Standar Word (1,5)", hex: "#cbd5e1" },
-                              { label: "Slate", hex: "#94a3b8" },
-                              { label: "Dark Slate", hex: "#475569" },
-                              { label: "Navy Blue", hex: "#0f2942" },
-                              { label: "Green Indico", hex: "#15803d" },
-                            ].map((col) => (
-                              <button
-                                key={col.hex}
-                                type="button"
-                                onClick={() => {
-                                  if (update) update("letterheadLogoDividerColor", col.hex);
-                                }}
-                                title={col.label}
-                                className={`w-4 h-4 rounded-full border transition-all ${
-                                  logoDividerColor.toLowerCase() === col.hex.toLowerCase()
-                                    ? "ring-2 ring-blue-500 ring-offset-1 scale-110"
-                                    : "border-slate-300 hover:scale-105"
-                                }`}
-                                style={{ backgroundColor: col.hex }}
-                              />
-                            ))}
-                            <label
-                              title="Pilih warna kustom"
-                              className="w-4 h-4 rounded-full border border-slate-300 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-105"
-                            >
-                              <input
-                                type="color"
-                                value={logoDividerColor.startsWith("#") ? logoDividerColor : "#cbd5e1"}
-                                onChange={(e) => {
-                                  if (update) update("letterheadLogoDividerColor", e.target.value);
-                                }}
-                                className="opacity-0 w-0 h-0 cursor-pointer"
-                              />
-                              <Palette size={9} className="text-slate-500" />
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Reset & Hide Action Footer */}
-                        <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (update) {
-                                update("letterheadLogoDividerWidth", 1.5);
-                                update("letterheadLogoDividerColor", "#cbd5e1");
-                                update("letterheadLogoDividerHeight", 48);
-                                update("letterheadLogoDividerStyle", "solid");
-                                update("letterheadLogoDividerMarginLeft", 8);
-                                update("letterheadLogoDividerMarginRight", 8);
-                                update("letterheadLogoDividerOffsetX", 0);
-                                update("letterheadLogoDividerOffsetY", 0);
-                                toast.success("Garis pemisah di-reset ke standar Word (1,5 pt)");
-                              }
-                            }}
-                            className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium"
-                          >
-                            <RotateCcw size={10} />
-                            Reset Standar Word
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              if (update) {
-                                update("letterheadLogoDividerVisible", false);
-                                setIsDividerSelected(false);
-                                setShowDividerMenu(false);
-                                toast.success("Garis pemisah logo disembunyikan.");
-                              }
-                            }}
-                            className="text-[10px] text-red-600 hover:text-red-700 font-medium flex items-center gap-0.5"
-                          >
-                            <Trash2 size={10} />
-                            Sembunyikan
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                    
                   </>
                 )}
               </div>
@@ -4079,6 +3781,7 @@ function OfficialLetterhead({
                 setIsSelected(false);
                 setIsDividerSelected(false);
                 setIsDoubleRuleSelected(true);
+                window.dispatchEvent(new CustomEvent("eksporflow:line-focus", { detail: { hasLine: true, target: "double-rule" } }));
               }
             }}
             style={{
@@ -4095,172 +3798,7 @@ function OfficialLetterhead({
             <div style={{ height: "2.5px", backgroundColor: effectiveDividerColor, width: "100%", marginBottom: "2px" }} />
             <div style={{ height: "1px", backgroundColor: effectiveDividerColor, width: "100%" }} />
 
-            {/* Quick Floating Action Bar for Double Rule Spacing & Style */}
-            {isEditMode && isDoubleRuleSelected && (
-              <>
-                <div
-                  className="letterhead-divider-quick-toolbar no-print flex items-center gap-1"
-                  style={{
-                    position: "absolute",
-                    top: "-26px",
-                    right: "12px",
-                    zIndex: 50,
-                  }}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <button
-                    type="button"
-                    onClick={() => setShowDoubleRuleMenu((prev) => !prev)}
-                    className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-400 rounded px-2 py-0.5 text-[10px] font-bold shadow-md flex items-center gap-1 cursor-pointer whitespace-nowrap"
-                    title="Atur Jarak Garis Ganda ke Kop Surat & Warna"
-                  >
-                    <Sliders size={11} />
-                    <span>Jarak Garis: {dividerGap > 0 ? `+${dividerGap}` : dividerGap}px</span>
-                  </button>
-                </div>
-
-                {/* Double Rule Word Popover */}
-                {showDoubleRuleMenu && (
-                  <div
-                    className="word-double-rule-popover no-print"
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      position: "absolute",
-                      top: "14px",
-                      right: "10px",
-                      background: "#ffffff",
-                      border: "1px solid #cbd5e1",
-                      borderRadius: "8px",
-                      boxShadow: "0 10px 30px rgba(15, 23, 42, 0.25)",
-                      padding: "12px",
-                      width: "270px",
-                      zIndex: 60,
-                      fontSize: "11px",
-                      textAlign: "left",
-                    }}
-                  >
-                    {/* Header */}
-                    <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2.5">
-                      <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
-                        <Sliders size={12} className="text-blue-600" />
-                        Jarak & Format Garis Ganda Kop
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowDoubleRuleMenu(false)}
-                        className="text-slate-400 hover:text-slate-600 p-0.5 rounded text-xs leading-none"
-                      >
-                        ✕
-                      </button>
-                    </div>
-
-                    {/* Jarak ke Tulisan Kop Surat */}
-                    <div className="mb-2.5">
-                      <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
-                        <span>Jarak ke Tulisan Kop (Margin Atas)</span>
-                        <span className="text-blue-600 font-bold">{dividerGap > 0 ? `+${dividerGap}` : dividerGap}px</span>
-                      </div>
-                      <div className="grid grid-cols-4 gap-1 mb-1.5">
-                        {[
-                          { label: "Sangat Rapat", val: -4 },
-                          { label: "Rapat", val: 0 },
-                          { label: "Sedang", val: 4 },
-                          { label: "Renggang", val: 8 },
-                        ].map((p) => (
-                          <button
-                            key={p.val}
-                            type="button"
-                            onClick={() => {
-                              if (update) update("letterheadDividerGap", p.val);
-                            }}
-                            className={`py-1 px-1 rounded border text-[9.5px] font-semibold text-center transition-all ${
-                              dividerGap === p.val
-                                ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                                : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
-                            }`}
-                          >
-                            {p.label}
-                          </button>
-                        ))}
-                      </div>
-                      <input
-                        type="range"
-                        min="-10"
-                        max="20"
-                        value={dividerGap}
-                        onChange={(e) => {
-                          if (update) update("letterheadDividerGap", Number(e.target.value));
-                        }}
-                        className="w-full h-1 bg-slate-200 rounded appearance-none cursor-pointer accent-blue-600"
-                      />
-                    </div>
-
-                    {/* Warna Garis */}
-                    <div className="mb-2.5">
-                      <span className="text-[10px] font-semibold text-slate-600 block mb-1">
-                        Warna Garis Ganda
-                      </span>
-                      <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                        {[
-                          { label: "Navy Blue", hex: "#0f2942" },
-                          { label: "Dark Slate", hex: "#475569" },
-                          { label: "Slate", hex: "#334155" },
-                          { label: "Green Indico", hex: "#15803d" },
-                          { label: "Amber", hex: "#b45309" },
-                        ].map((col) => (
-                          <button
-                            key={col.hex}
-                            type="button"
-                            onClick={() => {
-                              if (update) update("letterheadDividerColor", col.hex);
-                            }}
-                            title={col.label}
-                            className={`w-4 h-4 rounded-full border transition-all ${
-                              effectiveDividerColor.toLowerCase() === col.hex.toLowerCase()
-                                ? "ring-2 ring-blue-500 ring-offset-1 scale-110"
-                                : "border-slate-300 hover:scale-105"
-                            }`}
-                            style={{ backgroundColor: col.hex }}
-                          />
-                        ))}
-                        <label
-                          title="Pilih warna kustom"
-                          className="w-4 h-4 rounded-full border border-slate-300 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-105"
-                        >
-                          <input
-                            type="color"
-                            value={effectiveDividerColor.startsWith("#") ? effectiveDividerColor : "#0f2942"}
-                            onChange={(e) => {
-                              if (update) update("letterheadDividerColor", e.target.value);
-                            }}
-                            className="opacity-0 w-0 h-0 cursor-pointer"
-                          />
-                          <Palette size={9} className="text-slate-500" />
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Reset Button */}
-                    <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (update) {
-                            update("letterheadDividerGap", 0);
-                            update("letterheadDividerColor", "#0f2942");
-                            toast.success("Jarak garis ganda di-reset ke Rapat (0px)");
-                          }
-                        }}
-                        className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium"
-                      >
-                        <RotateCcw size={10} />
-                        Reset ke Standar (0px)
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
+            
           </div>
         ) : dividerStyle === "thick-thin" ? (
           <div
