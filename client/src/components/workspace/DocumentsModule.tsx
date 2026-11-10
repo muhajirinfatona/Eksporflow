@@ -1156,8 +1156,7 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table {
-            border-collapse: separate !important;
-            border-spacing: 0 !important;
+            border-collapse: collapse !important;
             table-layout: fixed !important;
             width: 100% !important;
             max-width: 100% !important;
@@ -1165,7 +1164,13 @@ export function DocumentsModule({
             border: none !important;
             border-top: 1.5px solid #334155 !important;
             border-bottom: 1.5px solid #334155 !important;
+            margin: 0 !important;
             empty-cells: show !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table thead tr {
+            background-color: #f1f5f9 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -1173,57 +1178,60 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table td,
           .paper-document table.unlk-items-table tbody td,
           .paper-document table.unlk-items-table tfoot td {
-            border: none !important;
-            border-right: 1.5px solid #334155 !important;
-            border-bottom: 1.5px solid #334155 !important;
-            background-clip: padding-box !important;
             box-sizing: border-box !important;
+            border: 1.5px solid #334155 !important;
+            background-color: transparent !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          .paper-document table.unlk-items-table th:last-child,
-          .paper-document table.unlk-items-table td:last-child {
-            border-right: none !important;
           }
           .paper-document table.unlk-items-table thead th {
             font-size: 9pt !important;
             font-weight: 600 !important;
-            border: none !important;
-            border-right: 1.5px solid #334155 !important;
-            border-bottom: 1.5px solid #334155 !important;
-            background: #f1f5f9 !important;
+            padding: 3px 5px !important;
+            border: 1.5px solid #334155 !important;
+            background-color: transparent !important;
             color: #0f172a !important;
-            background-clip: padding-box !important;
             empty-cells: show !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
-          .paper-document table.unlk-items-table thead th:last-child {
-            border-right: none !important;
+          .paper-document table.unlk-items-table tbody td {
+            font-size: 9.5pt !important;
+            line-height: 1.2 !important;
+            padding: 3px 6px !important;
+            border: 1.5px solid #334155 !important;
+            background-color: transparent !important;
+            empty-cells: show !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-            border: none !important;
-            border-right: 1.5px solid #334155 !important;
-            border-bottom: 1.5px solid #334155 !important;
-            background-clip: padding-box !important;
-            box-sizing: border-box !important;
+            padding: 2.5px 5px !important;
+            font-size: 9.5pt !important;
+            height: auto !important;
+            border: 1.5px solid #334155 !important;
+            background-color: transparent !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
-          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
-          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
-            border-right: none !important;
-          }
-          .paper-document table.unlk-items-table tfoot tr:last-child td,
-          .paper-document table.unlk-items-table tbody tr:last-child td {
-            border-bottom: none !important;
-          }
-          .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-            background: #f1f5f9 !important;
-            background-clip: padding-box !important;
+          .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row {
+            background-color: #f1f5f9 !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
+            border: 1.5px solid #334155 !important;
+            background-color: transparent !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
+            font-size: 9pt !important;
+            border: 1.5px solid #334155 !important;
           }
           .unlk-total-bar {
             border-bottom: 1.5px solid #334155 !important;
