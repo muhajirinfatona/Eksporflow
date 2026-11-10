@@ -1152,13 +1152,19 @@ export function DocumentsModule({
             width: 100% !important;
             min-height: 2px !important;
             clear: both !important;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table {
-            border: 1px solid #475569 !important;
+            border-top: 1px solid #475569 !important;
+            border-bottom: 1px solid #475569 !important;
+            border-left: none !important;
+            border-right: none !important;
             border-collapse: collapse !important;
+            table-layout: fixed !important;
             width: 100% !important;
+            max-width: 100% !important;
             box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -1167,18 +1173,38 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table tbody td,
           .paper-document table.unlk-items-table tfoot td {
             border-right: 1px solid #475569 !important;
-            border-left: 1px solid #475569 !important;
+            border-left: none !important;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table thead th:last-child,
+          .paper-document table.unlk-items-table tbody td:last-child,
+          .paper-document table.unlk-items-table tfoot td:last-child {
+            border-right: none !important;
+          }
+          .paper-document table.unlk-items-table thead th:first-child,
+          .paper-document table.unlk-items-table tbody td:first-child,
+          .paper-document table.unlk-items-table tfoot td:first-child {
+            border-left: none !important;
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
             border-top: 1px solid #475569 !important;
             border-bottom: 1px solid #475569 !important;
             border-right: 1px solid #475569 !important;
-            border-left: 1px solid #475569 !important;
+            border-left: none !important;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
+            border-right: none !important;
+          }
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
+            border-left: none !important;
           }
           .unlk-total-bar {
             border-bottom: 1px solid #475569 !important;
@@ -2275,7 +2301,7 @@ function OfficialLetterhead({
   let dividerLineStyles: React.CSSProperties = {
     marginTop: `${Math.max(1, dividerGap)}px`,
     marginBottom: "4px",
-    boxSizing: "content-box",
+    boxSizing: "border-box",
     width: "100%",
     WebkitPrintColorAdjust: "exact" as any,
     printColorAdjust: "exact" as any,
@@ -3310,14 +3336,15 @@ function OfficialLetterhead({
                 <h1
                   className="company-name"
                   style={{
-                    fontSize: "16pt",
+                    fontSize: "15pt",
                     fontWeight: "bold",
                     letterSpacing: "0.03em",
                     color: dividerColor || (layoutMode === "geometric" ? "#005f73" : "#0f2942"),
-                    margin: "4px 0",
+                    margin: "2px 0",
                     lineHeight: 1.15,
-                    whiteSpace: "normal",
-                    wordBreak: "break-word",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                     fontFamily: "'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif",
                     textTransform: "uppercase",
                   }}
@@ -3335,15 +3362,16 @@ function OfficialLetterhead({
                 <p
                   className="company-tagline"
                   style={{
-                    fontSize: "10pt",
+                    fontSize: "8.5pt",
                     fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
                     fontWeight: "bold",
-                    letterSpacing: "0.04em",
+                    letterSpacing: "0.015em",
                     color: "#008000",
-                    margin: "4px 0",
+                    margin: "2px 0",
                     lineHeight: 1.15,
-                    whiteSpace: "normal",
-                    wordBreak: "break-word",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                     textTransform: "uppercase",
                   }}
                   onBlur={(e) => {
@@ -3361,14 +3389,15 @@ function OfficialLetterhead({
                   <div
                     className="company-details"
                     style={{
-                      fontSize: "9pt",
+                      fontSize: "8pt",
                       fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif",
                       lineHeight: 1.15,
                       color: "#334155",
                       fontWeight: "normal",
-                      whiteSpace: "normal",
-                      wordBreak: "break-word",
-                      margin: "4px 0",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      margin: "2px 0",
                     }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
@@ -3379,7 +3408,7 @@ function OfficialLetterhead({
                   >
                     <strong
                       style={{
-                        fontSize: "9pt",
+                        fontSize: "8pt",
                         fontWeight: "bold",
                         textTransform: "uppercase",
                         color: dividerColor || "#0f2942",
@@ -3388,7 +3417,7 @@ function OfficialLetterhead({
                     >
                       HEAD OFFICE:{" "}
                     </strong>
-                    <span style={{ fontSize: "9pt", fontStyle: "italic", fontWeight: "normal", color: "#334155" }}>
+                    <span style={{ fontSize: "8pt", fontStyle: "italic", fontWeight: "normal", color: "#334155" }}>
                       {addressBody}
                     </span>
                   </div>
@@ -4749,15 +4778,24 @@ function ProformaInvoiceDoc({
 
         {/* ROW 4: LINE ITEMS TABLE */}
         <table className="unlk-items-table">
+          <colgroup>
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "27%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "7%" }} />
+            <col style={{ width: "14%" }} />
+            <col style={{ width: "18%" }} />
+          </colgroup>
           <thead>
             <tr>
-              <th style={{ width: "12%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "32%" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "13%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "27%" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Kode HS" : "HS Code"}</th>
               <th style={{ width: "11%" }}>{isId ? "Kuantitas" : "Unit Quantity"}</th>
-              <th style={{ width: "8%" }}>{isId ? "Satuan" : "Unit Type"}</th>
-              <th style={{ width: "11%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "13%" }}>{isId ? "Total Harga" : "Amount"}</th>
+              <th style={{ width: "7%" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "14%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+              <th style={{ width: "18%" }}>{isId ? "Total Harga" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -5645,15 +5683,24 @@ function CommercialInvoiceDoc({
 
         {/* ROW 4: LINE ITEMS TABLE */}
         <table className="unlk-items-table">
+          <colgroup>
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "27%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "7%" }} />
+            <col style={{ width: "14%" }} />
+            <col style={{ width: "18%" }} />
+          </colgroup>
           <thead>
             <tr>
-              <th style={{ width: "12%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "32%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "13%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "27%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Kode HS" : "HS Code"}</th>
               <th style={{ width: "11%" }}>{isId ? "Jumlah Kuantitas" : "Unit Quantity"}</th>
-              <th style={{ width: "8%" }}>{isId ? "Satuan" : "Unit Type"}</th>
-              <th style={{ width: "11%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "13%" }}>{isId ? "Jumlah Total" : "Amount"}</th>
+              <th style={{ width: "7%" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "14%" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
+              <th style={{ width: "18%" }}>{isId ? "Jumlah Total" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -5990,15 +6037,24 @@ function PackingListDoc({
 
         {/* ROW 4: PACKING ITEMS TABLE */}
         <table className="unlk-items-table">
+          <colgroup>
+            <col style={{ width: "11%" }} />
+            <col style={{ width: "27%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "12%" }} />
+          </colgroup>
           <thead>
             <tr>
-              <th style={{ width: "12%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
-              <th style={{ width: "34%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
-              <th style={{ width: "10%" }}>{isId ? "Kode HS" : "HS Code"}</th>
-              <th style={{ width: "11%" }}>{isId ? "Jumlah Karung" : "Unit Qty"}</th>
-              <th style={{ width: "11%" }}>{isId ? "Berat Bersih" : "Net Weight"}</th>
-              <th style={{ width: "11%" }}>{isId ? "Berat Kotor" : "Gross Weight"}</th>
-              <th style={{ width: "11%" }}>{isId ? "Ukuran (CBM)" : "Meas. (CBM)"}</th>
+              <th style={{ width: "11%" }}>{isId ? "Kode Produk" : "Product Code"}</th>
+              <th style={{ width: "27%" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Kode HS" : "HS Code"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Jumlah Karung" : "Unit Qty"}</th>
+              <th style={{ width: "13%" }}>{isId ? "Berat Bersih" : "Net Weight"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Berat Kotor" : "Gross Weight"}</th>
+              <th style={{ width: "12%" }}>{isId ? "Ukuran (CBM)" : "Meas. (CBM)"}</th>
             </tr>
           </thead>
           <tbody>

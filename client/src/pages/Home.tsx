@@ -137,6 +137,14 @@ export default function Home() {
       }
     }
 
+    // Pastikan seleksi sel, fokus tabel & outline editor bersih sebelum cetak
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    document.querySelectorAll(".table-cell-selected, .active-cell, .word-image-selected, .active-table, .active-doc-box").forEach((el) => {
+      el.classList.remove("table-cell-selected", "active-cell", "word-image-selected", "active-table", "active-doc-box");
+    });
+
     const existing = document.getElementById("eksporflow-print-page");
     if (existing) {
       existing.remove();
