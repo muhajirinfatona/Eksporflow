@@ -3265,13 +3265,13 @@ function OfficialLetterhead({
                   <div
                     className="company-details"
                     style={{
-                      fontSize: "8.2pt",
-                      lineHeight: 1.35,
+                      fontSize: "6.9pt",
+                      lineHeight: 1.3,
                       color: "#1e293b",
                       fontWeight: 500,
                       whiteSpace: "normal",
                       wordBreak: "break-word",
-                      margin: "3px 0 0 0",
+                      margin: "2.5px 0 0 0",
                     }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
@@ -3280,7 +3280,7 @@ function OfficialLetterhead({
                       }
                     }}
                   >
-                    <strong style={{ fontSize: "8.2pt", fontWeight: 700, color: dividerColor || "#0f2942" }}>
+                    <strong style={{ fontSize: "6.9pt", fontWeight: 700, color: dividerColor || "#0f2942" }}>
                       HEAD OFFICE:{" "}
                     </strong>
                     <span>{addressBody}</span>
