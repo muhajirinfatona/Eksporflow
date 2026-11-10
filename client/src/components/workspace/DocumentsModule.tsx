@@ -4649,6 +4649,15 @@ function UnlkSignatureBox({
   );
 }
 
+function getBuyerBrandMark(buyerName: string): string {
+  const clean = (buyerName || "").replace(/\s+(LLC|L\.L\.C\.|PT|INC|LTD|CORP|CO|GMBH|BV)\.?$/i, "").trim();
+  const words = clean.split(/\s+/);
+  if (words.length >= 2 && words[0].toUpperCase() === "AL") {
+    return `${words[0]} ${words[1]}`.toUpperCase();
+  }
+  return (words.slice(0, 2).join(" ") || "AL BARAKAH").toUpperCase();
+}
+
 // --------------------------------------------------------------------------
 // 1. PROFORMA INVOICE (PI) COMPONENT — INCODOCS / UNLK SINGLE-PAGE FORMAT
 // --------------------------------------------------------------------------
@@ -5808,7 +5817,7 @@ function CommercialInvoiceDoc({
                   • {isId ? "Berat Bersih:" : "Net Weight:"} {formatNumber(netWeightKgs, 2)} Kgs | {isId ? "Berat Kotor:" : "Gross Weight:"} {formatNumber(grossWeightKgs, 2)} Kgs | Muat 1 x 20&apos; FCL
                 </div>
                 <div className="unlk-item-spec">
-                  • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
+                  • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {getBuyerBrandMark(buyerName)} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
                 </div>
               </td>
               <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "1px solid #334155" }}>{hsCode}</td>
@@ -6156,7 +6165,7 @@ function PackingListDoc({
                   • {isId ? "Berat Bersih Satuan: 20,00 Kg / Karung | Berat Kotor Satuan: 20,25 Kg / Karung" : "Unit Net Weight: 20.00 Kg / Bag | Unit Gross Weight: 20.25 Kg / Bag"}
                 </div>
                 <div className="unlk-item-spec">
-                  • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {buyerName.split(" ")[0] || "AL BARAKAH"} / DUBAI - UAE / BATCH 11/26 / MADE IN INDONESIA
+                  • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {getBuyerBrandMark(buyerName)} / {pod.split(",")[0] || "DUBAI"} - {buyerCountry || "UAE"} / C/NO. 1-{formatNumber(bagsCount)} / MADE IN INDONESIA
                 </div>
               </td>
               <td className="text-center font-semibold" style={{ border: "1px solid #334155" }}>{hsCode}</td>
@@ -6487,9 +6496,9 @@ function ShippingInstructionDoc({
           <tbody>
             <tr className="unlk-item-main-row">
               <td style={{ border: "1px solid #334155" }}>
-                <div className="unlk-val-bold">{buyerName.split(" ")[0] || "AL BARAKAH"}</div>
-                <div className="unlk-item-spec">DUBAI - UAE</div>
-                <div className="unlk-item-spec">BATCH: 11/26</div>
+                <div className="unlk-val-bold">{getBuyerBrandMark(buyerName)}</div>
+                <div className="unlk-item-spec">{pod.split(",")[0] || "DUBAI"} - {buyerCountry || "UAE"}</div>
+                <div className="unlk-item-spec">C/NO. 1 - {formatNumber(bagsCount)}</div>
                 <div className="unlk-item-spec">MADE IN INDONESIA</div>
               </td>
               <td style={{ border: "1px solid #334155" }}>
