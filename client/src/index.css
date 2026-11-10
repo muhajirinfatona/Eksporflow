@@ -7229,6 +7229,9 @@ textarea:focus-visible {
   border: 2px solid #334155 !important;
   background-color: transparent !important;
   empty-cells: show !important;
+  word-break: break-word !important;
+  overflow-wrap: anywhere !important;
+  white-space: normal !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -11482,6 +11485,9 @@ textarea:focus-visible {
     border: 2px solid #334155 !important;
     background-color: transparent !important;
     empty-cells: show !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

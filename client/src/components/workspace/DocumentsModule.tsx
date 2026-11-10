@@ -1205,6 +1205,9 @@ export function DocumentsModule({
             border: 2px solid #334155 !important;
             background-color: transparent !important;
             empty-cells: show !important;
+            word-break: break-word !important;
+            overflow-wrap: anywhere !important;
+            white-space: normal !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -4919,11 +4922,11 @@ function ProformaInvoiceDoc({
                     : `Net Weight: ${formatNumber(netWeightKgs, 2)} Kgs | Gross Weight: ${formatNumber(grossWeightKgs, 2)} Kgs | Load: 1 x 20' FCL`}
                 </div>
               </td>
-              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{hsCode}</td>
+              <td className="text-center font-semibold" style={{ border: "2px solid #334155" }}>{hsCode}</td>
               <td className="text-right font-semibold" style={{ border: "2px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center" style={{ border: "2px solid #334155" }}>MT</td>
-              <td className="text-right" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right" style={{ border: "2px solid #334155" }}>{formatMoney(unitPricePerMT, currency)}</td>
+              <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -4932,14 +4935,14 @@ function ProformaInvoiceDoc({
               <td className="text-right font-semibold" style={{ border: "2px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center" style={{ border: "2px solid #334155" }}>MT</td>
               <td className="text-center font-normal text-slate-400" style={{ border: "2px solid #334155" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
               <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "2px solid #334155" }}>{isId ? "Total Konsinyasi" : "Consignment Total"} ({incoterm} Makassar)</td>
               <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold" style={{ border: "2px solid #334155" }}>MT</td>
               <td className="text-center font-normal text-slate-400" style={{ border: "2px solid #334155" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{currency} {formatNumber(totalAmount, 2)}</td>
+              <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
         </table>
@@ -5812,11 +5815,11 @@ function CommercialInvoiceDoc({
                   • {isId ? "Tanda Pengapalan:" : "Shipping Marks:"} {getBuyerBrandMark(buyerName)} / {pod.split(",")[0] || "DUBAI"} / C/NO. 1-{formatNumber(bagsCount)}
                 </div>
               </td>
-              <td className="text-center font-semibold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{hsCode}</td>
+              <td className="text-center font-semibold" style={{ border: "2px solid #334155" }}>{hsCode}</td>
               <td className="text-right font-semibold" style={{ border: "2px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center" style={{ border: "2px solid #334155" }}>MT</td>
-              <td className="text-right" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{formatMoney(unitPricePerMT, currency)}</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right" style={{ border: "2px solid #334155" }}>{formatMoney(unitPricePerMT, currency)}</td>
+              <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
           </tbody>
           <tfoot>
@@ -5825,7 +5828,7 @@ function CommercialInvoiceDoc({
               <td className="text-right font-semibold" style={{ border: "2px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center" style={{ border: "2px solid #334155" }}>MT</td>
               <td className="text-center font-normal text-slate-400" style={{ border: "2px solid #334155" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
+              <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{formatMoney(totalAmount, currency)}</td>
             </tr>
             <tr className="unlk-subtotal-row unlk-consignment-total-row">
               <td colSpan={3} className="unlk-subtotal-label font-bold" style={{ border: "2px solid #334155" }}>
@@ -5834,7 +5837,7 @@ function CommercialInvoiceDoc({
               <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{formatNumber(netWeightMT, 2)}</td>
               <td className="text-center font-bold" style={{ border: "2px solid #334155" }}>MT</td>
               <td className="text-center font-normal text-slate-400" style={{ border: "2px solid #334155" }}>—</td>
-              <td className="text-right font-bold" style={{ whiteSpace: "nowrap", border: "2px solid #334155" }}>{currency} {formatNumber(totalAmount, 2)}</td>
+              <td className="text-right font-bold" style={{ border: "2px solid #334155" }}>{currency} {formatNumber(totalAmount, 2)}</td>
             </tr>
           </tfoot>
         </table>
