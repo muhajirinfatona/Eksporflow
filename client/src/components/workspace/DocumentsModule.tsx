@@ -536,7 +536,7 @@ export function DocumentsModule({
 
         headerCells.forEach((th, idx) => {
           // Hanya pasang divider di antara kolom (jangan di tepi paling kanan)
-          // agar total lebar tabel selalu terkunci pas 100% dan tidak pernah jebol margin
+          // agar total lebar tabel selalu terkunci pas dan tidak pernah jebol margin
           if (idx >= headerCells.length - 1) return;
 
           if (!th.querySelector(".col-resizer")) {
@@ -551,14 +551,14 @@ export function DocumentsModule({
             let colIndex = 0;
             const MIN_COL = 30;
 
-            // Terapkan lebar ke satu kolom (header + semua baris yang tidak di-colspan)
-            const setColWidth = (cellIdx: number, w: string) => {
+            // Terapkan lebar pixel langsung ke satu kolom
+            const setColPixelWidth = (cellIdx: number, px: number) => {
               const head = headerCells[cellIdx] as HTMLElement | undefined;
-              if (head) head.style.width = w;
+              if (head) head.style.width = `${px}px`;
               table.querySelectorAll("tbody tr").forEach((row) => {
                 const cells = Array.from(row.children) as HTMLTableCellElement[];
                 if (cells[cellIdx] && (cells[cellIdx].colSpan || 1) === 1) {
-                  cells[cellIdx].style.width = w;
+                  cells[cellIdx].style.width = `${px}px`;
                 }
               });
             };
@@ -568,22 +568,42 @@ export function DocumentsModule({
               const leftW = startWidths[colIndex];
               const rightW = startWidths[colIndex + 1];
 
-              // Garis di antara 2 kolom: ubah proporsional persentase sehingga total tetap 100%
+              // KUNCI: Ubah HANYA pasangan kolom kiri & kanan garis yang ditarik.
+              // Karena total lebar kedua kolom tetap konstan (newLeft + newRight = leftW + rightW),
+              // SEMUA garis kolom lain (sebelah kiri maupun kanan jauh) TERKUNCI MATI dan TIDAK BERGOYANG SAMA SEKALI.
               const clampedDx = Math.max(MIN_COL - leftW, Math.min(rightW - MIN_COL, dx));
               const newLeft = leftW + clampedDx;
               const newRight = rightW - clampedDx;
 
-              const leftPct = (newLeft / startTableWidth) * 100;
-              const rightPct = (newRight / startTableWidth) * 100;
-
-              setColWidth(colIndex, `${leftPct.toFixed(2)}%`);
-              setColWidth(colIndex + 1, `${rightPct.toFixed(2)}%`);
+              setColPixelWidth(colIndex, newLeft);
+              setColPixelWidth(colIndex + 1, newRight);
             };
 
             const onMouseUp = () => {
               resizer.classList.remove("is-resizing");
               document.removeEventListener("mousemove", onMouseMove);
               document.removeEventListener("mouseup", onMouseUp);
+
+              // Setelah drag selesai, konversi pixel ke persentase (%) agar tabel tetap adaptif dan responsif
+              const finalWidths = Array.from(headerCells).map((c) => (c as HTMLElement).getBoundingClientRect().width);
+              const totalW = (table as HTMLElement).getBoundingClientRect().width || 1;
+              finalWidths.forEach((w, i) => {
+                const pct = `${((w / totalW) * 100).toFixed(2)}%`;
+                const head = headerCells[i] as HTMLElement | undefined;
+                if (head) head.style.width = pct;
+                table.querySelectorAll("tbody tr").forEach((row) => {
+                  const cells = Array.from(row.children) as HTMLTableCellElement[];
+                  if (cells[i] && (cells[i].colSpan || 1) === 1) {
+                    cells[i].style.width = pct;
+                  }
+                });
+              });
+
+              if (table.classList.contains("unlk-items-table")) {
+                (table as HTMLElement).style.width = "";
+              } else {
+                (table as HTMLElement).style.width = "100%";
+              }
             };
 
             resizer.addEventListener("mousedown", (mdEvent: MouseEvent) => {
@@ -592,18 +612,18 @@ export function DocumentsModule({
               startX = mdEvent.clientX;
               colIndex = Array.prototype.indexOf.call(headerCells, th);
 
+              // Kunci SEMUA kolom dalam pixel absolut saat drag dimulai.
+              // Ini mencegah browser meredistribusi sisa persentase ke kolom-kolom lain saat digeser.
               startWidths = Array.from(headerCells).map(
                 (c) => (c as HTMLElement).getBoundingClientRect().width
               );
               startTableWidth = (table as HTMLElement).getBoundingClientRect().width || 1;
               (table as HTMLElement).style.tableLayout = "fixed";
-              (table as HTMLElement).style.width = "100%";
-              (table as HTMLElement).style.maxWidth = "100%";
+              (table as HTMLElement).style.width = `${startTableWidth}px`;
+              (table as HTMLElement).style.maxWidth = "none";
 
-              // Kunci lebar kolom dalam persentase (%) agar selalu adaptif terhadap margin dokumen
               startWidths.forEach((w, i) => {
-                const pct = (w / startTableWidth) * 100;
-                setColWidth(i, `${pct.toFixed(2)}%`);
+                setColPixelWidth(i, w);
               });
 
               resizer.classList.add("is-resizing");
@@ -4867,15 +4887,6 @@ function ProformaInvoiceDoc({
 
         {/* ROW 4: LINE ITEMS TABLE */}
         <table className="unlk-items-table">
-          <colgroup>
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "27%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "7%" }} />
-            <col style={{ width: "14%" }} />
-            <col style={{ width: "18%" }} />
-          </colgroup>
           <thead>
             <tr>
               <th style={{ width: "11%", border: "2px solid #334155" }}>{isId ? "Kode Produk" : "Product Code"}</th>
@@ -5772,15 +5783,6 @@ function CommercialInvoiceDoc({
 
         {/* ROW 4: LINE ITEMS TABLE */}
         <table className="unlk-items-table">
-          <colgroup>
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "27%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "7%" }} />
-            <col style={{ width: "14%" }} />
-            <col style={{ width: "18%" }} />
-          </colgroup>
           <thead>
             <tr>
               <th style={{ width: "11%", border: "2px solid #334155" }}>{isId ? "Kode Produk" : "Product Code"}</th>
@@ -6126,15 +6128,6 @@ function PackingListDoc({
 
         {/* ROW 4: PACKING ITEMS TABLE */}
         <table className="unlk-items-table">
-          <colgroup>
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "27%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "13%" }} />
-            <col style={{ width: "13%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "12%" }} />
-          </colgroup>
           <thead>
             <tr>
               <th style={{ width: "11%", border: "2px solid #334155" }}>{isId ? "Kode Produk" : "Product Code"}</th>
@@ -6473,14 +6466,6 @@ function ShippingInstructionDoc({
 
         {/* ROW 4: CARGO DESCRIPTION TABLE */}
         <table className="unlk-items-table">
-          <colgroup>
-            <col style={{ width: "16%" }} />
-            <col style={{ width: "36%" }} />
-            <col style={{ width: "11%" }} />
-            <col style={{ width: "12%" }} />
-            <col style={{ width: "13%" }} />
-            <col style={{ width: "12%" }} />
-          </colgroup>
           <thead>
             <tr>
               <th style={{ width: "16%", border: "2px solid #334155" }}>{isId ? "Tanda & Nomor Kemasan" : "Marks & Numbers"}</th>
