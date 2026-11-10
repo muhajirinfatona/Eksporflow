@@ -7202,17 +7202,16 @@ textarea:focus-visible {
 
 /* Line Items Table inside UNLK Form - Solid continuous lines without gaps */
 .paper-document table.unlk-items-table {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: calc(100% + 2px) !important;
+  max-width: calc(100% + 2px) !important;
+  margin-left: -1px !important;
+  margin-right: -1px !important;
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
   box-sizing: border-box !important;
   border-collapse: collapse !important;
   table-layout: fixed !important;
-  border: none !important;
-  border-top: 1px solid #334155 !important;
-  border-bottom: 1px solid #334155 !important;
-  border-left: none !important;
-  border-right: none !important;
-  margin: 0 !important;
+  border: 1px solid #334155 !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7232,17 +7231,6 @@ textarea:focus-visible {
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
-}
-
-/* Eliminate perimeter doubling on table outer edges so perimeter matches outer form 1px exactly */
-.paper-document table.unlk-items-table th:first-child,
-.paper-document table.unlk-items-table td:first-child {
-  border-left: none !important;
-}
-
-.paper-document table.unlk-items-table th:last-child,
-.paper-document table.unlk-items-table td:last-child {
-  border-right: none !important;
 }
 
 .paper-document table.unlk-items-table thead th {
@@ -7409,8 +7397,14 @@ textarea:focus-visible {
   letter-spacing: 0.03em !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table {
+  width: calc(100% + 2px) !important;
+  max-width: calc(100% + 2px) !important;
+  margin-left: -1px !important;
+  margin-right: -1px !important;
   border-top: 1.25px solid #0f2942 !important;
   border-bottom: 1.25px solid #0f2942 !important;
+  border-left: 1.25px solid #0f2942 !important;
+  border-right: 1.25px solid #0f2942 !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th {
   background: #0f2942 !important;
@@ -7423,20 +7417,8 @@ textarea:focus-visible {
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th:last-child {
-  border-right: none !important;
-}
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th:first-child {
-  border-left: none !important;
-}
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td {
   border-right: 1px solid #cbd5e1 !important;
-}
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td:last-child {
-  border-right: none !important;
-}
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody td:first-child {
-  border-left: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td,
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td {
@@ -7445,14 +7427,6 @@ textarea:focus-visible {
   background: #f8fafc !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
-}
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child {
-  border-right: none !important;
-}
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
-.paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-  border-left: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate .unlk-total-bar {
   background: #f1f5f9 !important;
@@ -11488,15 +11462,14 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table {
     border-collapse: collapse !important;
     table-layout: fixed !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    width: calc(100% + 2px) !important;
+    max-width: calc(100% + 2px) !important;
+    margin-left: -1px !important;
+    margin-right: -1px !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
     box-sizing: border-box !important;
-    border: none !important;
-    border-top: 1px solid #334155 !important;
-    border-bottom: 1px solid #334155 !important;
-    border-left: none !important;
-    border-right: none !important;
-    margin: 0 !important;
+    border: 1px solid #334155 !important;
     empty-cells: show !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -11516,14 +11489,6 @@ textarea:focus-visible {
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
-  }
-  .paper-document table.unlk-items-table th:first-child,
-  .paper-document table.unlk-items-table td:first-child {
-    border-left: none !important;
-  }
-  .paper-document table.unlk-items-table th:last-child,
-  .paper-document table.unlk-items-table td:last-child {
-    border-right: none !important;
   }
   .paper-document table.unlk-items-table thead th {
     font-size: 9pt !important;

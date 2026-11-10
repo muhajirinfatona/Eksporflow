@@ -1158,16 +1158,17 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table {
             border-collapse: collapse !important;
             table-layout: fixed !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            width: calc(100% + 2px) !important;
+            max-width: calc(100% + 2px) !important;
+            margin-left: -1px !important;
+            margin-right: -1px !important;
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
             box-sizing: border-box !important;
-            border: none !important;
-            border-top: 1px solid #334155 !important;
-            border-bottom: 1px solid #334155 !important;
-            border-left: none !important;
-            border-right: none !important;
-            margin: 0 !important;
+            border: 1px solid #334155 !important;
             empty-cells: show !important;
+            break-inside: avoid !important;
+            page-break-inside: avoid !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -1186,14 +1187,6 @@ export function DocumentsModule({
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
-          }
-          .paper-document table.unlk-items-table th:first-child,
-          .paper-document table.unlk-items-table td:first-child {
-            border-left: none !important;
-          }
-          .paper-document table.unlk-items-table th:last-child,
-          .paper-document table.unlk-items-table td:last-child {
-            border-right: none !important;
           }
           .paper-document table.unlk-items-table thead th {
             font-size: 9pt !important;
