@@ -7049,15 +7049,17 @@ textarea:focus-visible {
 }
 
 .sig-name {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 10.5pt !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.25 !important;
 }
 
 .sig-sub {
-  font-size: 11px;
-  font-weight: 400;
-  color: #334155;
+  font-size: 9.5pt !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  line-height: 1.25 !important;
 }
 
 .doc-single-signature-wrap {
@@ -7109,16 +7111,18 @@ textarea:focus-visible {
 }
 
 .sig-signatory-name {
-  font-size: 12.5px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: 10.5pt !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  line-height: 1.25 !important;
 }
 
 .sig-signatory-title {
-  font-size: 11px;
-  font-weight: 400;
-  color: #334155;
-  margin-top: 1px;
+  font-size: 9.5pt !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+  margin-top: 1px !important;
+  line-height: 1.25 !important;
 }
 
 /* ============================================================================
@@ -11423,16 +11427,16 @@ textarea:focus-visible {
   }
   .sig-signatory-name {
     font-size: 10.5pt !important;
-    font-weight: 800 !important;
+    font-weight: 700 !important;
     line-height: 1.25 !important;
     color: #0f172a !important;
     text-align: left !important;
   }
   .sig-signatory-title {
     font-size: 9.5pt !important;
-    font-weight: 700 !important;
+    font-weight: 500 !important;
     line-height: 1.25 !important;
-    color: #334155 !important;
+    color: #475569 !important;
     margin-top: 1px !important;
     text-align: left !important;
   }
@@ -11769,12 +11773,15 @@ textarea:focus-visible {
     font-size: 9.5px !important;
   }
   .doc-type-sales-contract .sig-name {
-    font-size: 11.5px !important;
+    font-size: 10.5pt !important;
     font-weight: 700 !important;
+    line-height: 1.25 !important;
     text-align: left !important;
   }
   .doc-type-sales-contract .sig-sub {
-    font-size: 10px !important;
+    font-size: 9.5pt !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
     text-align: left !important;
   }
 
@@ -11934,13 +11941,16 @@ textarea:focus-visible {
     text-align: left !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .sig-name {
-    font-size: 12.5px !important;
+    font-size: 10.5pt !important;
     font-weight: 700 !important;
+    line-height: 1.25 !important;
     margin-bottom: 2px !important;
     text-align: left !important;
   }
   .doc-type-sales-contract.doc-contract-mode-1page .sig-sub {
-    font-size: 11.5px !important;
+    font-size: 9.5pt !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
     text-align: left !important;
   }
 
@@ -12159,11 +12169,14 @@ textarea:focus-visible {
     font-size: 9px !important;
   }
   .sig-name {
-    font-size: 11.5px !important;
-    font-weight: 800 !important;
+    font-size: 10.5pt !important;
+    font-weight: 700 !important;
+    line-height: 1.25 !important;
   }
   .sig-sub {
-    font-size: 9.5px !important;
+    font-size: 9.5pt !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
   }
 
   /* Proteksi pemotongan halaman di tengah blok penting */

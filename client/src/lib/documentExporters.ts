@@ -813,8 +813,8 @@ export function exportToHtml(
     .sig-header-txt { font-size: 10.5px; font-weight: 700; color: #0f2942; text-transform: uppercase; }
     .sig-company-name { font-size: 12px; font-weight: 700; color: #0f172a; }
     .sig-box-space { height: 54px; }
-    .sig-name { font-size: 12.5px; font-weight: 700; color: #0f172a; }
-    .sig-sub { font-size: 11.5px; color: #64748b; }
+    .sig-name { font-size: 10.5pt; font-weight: 700; color: #0f172a; line-height: 1.25; }
+    .sig-sub { font-size: 9.5pt; font-weight: 500; color: #475569; line-height: 1.25; }
     @media print {
       body { background: transparent; padding: 0; }
       .paper-document { box-shadow: none; padding: 0; max-width: 100%; }

@@ -3774,8 +3774,8 @@ function OfficialStampAndSignature({
           </div>
         )}
       </div>
-      <b className="sig-signatory-name">{signatoryName}</b>
-      <span className="sig-signatory-title">{displayRole}</span>
+      <b className="sig-signatory-name" style={{ fontSize: "10.5pt", lineHeight: 1.25 }}>{signatoryName}</b>
+      <span className="sig-signatory-title" style={{ fontSize: "9.5pt", lineHeight: 1.25 }}>{displayRole}</span>
     </div>
   );
 }
@@ -4612,13 +4612,13 @@ function UnlkSignatureBox({
       >
         <b
           className="sig-name text-slate-900 block font-bold"
-          style={{ fontSize: "8.8pt", lineHeight: 1.25 }}
+          style={{ fontSize: "10.5pt", lineHeight: 1.25 }}
         >
           {signatoryName || "Muhajirin Fatona"}
         </b>
         <span
           className="sig-sub text-slate-600 block font-medium"
-          style={{ fontSize: "8pt", lineHeight: 1.25 }}
+          style={{ fontSize: "9.5pt", lineHeight: 1.25 }}
         >
           {signatoryRole || "Export Director"}
         </span>
@@ -5442,8 +5442,8 @@ function SalesContractDoc({
           </span>
           <b className="sig-company-name">{isId ? `Untuk ${buyerName}` : `For ${buyerName}`}</b>
           <div className="sig-box-space" />
-          <b className="sig-name">{buyerPicName || "Mr. Tariq Al-Mansoor"}</b>
-          <span className="sig-sub">{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
+          <b className="sig-name" style={{ fontSize: "10.5pt", lineHeight: 1.25 }}>{buyerPicName || "Mr. Tariq Al-Mansoor"}</b>
+          <span className="sig-sub" style={{ fontSize: "9.5pt", lineHeight: 1.25 }}>{buyerPicRole || (isId ? "Direktur Pengadaan" : "Procurement Director")}</span>
         </div>
 
         <div className="sig-side sig-side-right">
@@ -5510,8 +5510,8 @@ function SalesContractDoc({
               </button>
             ) : null}
           </div>
-          <b className="sig-name">{signatoryName || "Muhajirin Fatona"}</b>
-          <span className="sig-sub">
+          <b className="sig-name" style={{ fontSize: "10.5pt", lineHeight: 1.25 }}>{signatoryName || "Muhajirin Fatona"}</b>
+          <span className="sig-sub" style={{ fontSize: "9.5pt", lineHeight: 1.25 }}>
             {signatoryRole || (isId ? "Direktur Ekspor" : "Export Director")}
           </span>
         </div>
