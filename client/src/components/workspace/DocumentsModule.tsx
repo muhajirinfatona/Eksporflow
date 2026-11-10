@@ -39,7 +39,9 @@ import {
   Phone,
   Edit3,
   Printer,
+  Palette,
   RotateCcw,
+  Sliders,
   Ruler,
   ShieldCheck,
   Ship,
@@ -1158,9 +1160,9 @@ export function DocumentsModule({
             display: block !important;
             visibility: visible !important;
             width: 1.5px !important;
-            height: 54px !important;
+            height: 50px !important;
             border-left: 1.5px solid #cbd5e1 !important;
-            margin: 0 16px 0 6px !important;
+            margin: 0 14px 0 6px !important;
             flex-shrink: 0 !important;
             align-self: center !important;
             -webkit-print-color-adjust: exact !important;
@@ -1172,6 +1174,8 @@ export function DocumentsModule({
             width: 100% !important;
             clear: both !important;
             box-sizing: content-box !important;
+            margin-top: 2px !important;
+            margin-bottom: 4px !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
@@ -2053,6 +2057,11 @@ function OfficialLetterhead({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const imgRef = useRef<HTMLImageElement | null>(null);
   const quickFileInputRef = useRef<HTMLInputElement | null>(null);
+  const dividerRef = useRef<HTMLDivElement | null>(null);
+  const [isDividerSelected, setIsDividerSelected] = useState(false);
+  const [showDividerMenu, setShowDividerMenu] = useState(false);
+
+
 
   const effectiveLogoImage =
     shipment.letterheadImage ||
@@ -2060,7 +2069,7 @@ function OfficialLetterhead({
 
   const rawScale = dragScale !== null ? dragScale : (shipment.letterheadLogoScale ?? 100);
   const activeScale = isNaN(rawScale) || rawScale < 30 ? 100 : Math.min(300, rawScale);
-  const baseLogoHeight = 68;
+  const baseLogoHeight = 58;
   const scaledHeight = Math.max(34, Math.round(baseLogoHeight * (activeScale / 100)));
 
   const wrapMode = shipment.letterheadLogoWrap || "inline";
@@ -2077,9 +2086,16 @@ function OfficialLetterhead({
   const bannerHeight = shipment.letterheadBannerHeight ?? 110;
   const lineSpacing = shipment.letterheadSpacing !== undefined ? shipment.letterheadSpacing : 1;
   const kopLineHeight = lineSpacing === 0 ? 1.05 : Number((1.06 + lineSpacing * 0.04).toFixed(2));
-  const dividerGap = shipment.letterheadDividerGap !== undefined ? shipment.letterheadDividerGap : 0;
+  const dividerGap = shipment.letterheadDividerGap !== undefined ? shipment.letterheadDividerGap : 1;
   const dividerStyle = shipment.letterheadDividerStyle || "double";
   const showAddressInHeader = shipment.letterheadShowAddress !== false;
+
+  const logoDividerWidth = shipment.letterheadLogoDividerWidth ?? 1.5;
+  const logoDividerColor = shipment.letterheadLogoDividerColor || "#cbd5e1";
+  const logoDividerHeight = shipment.letterheadLogoDividerHeight ?? (showAddressInHeader ? 50 : 42);
+  const logoDividerStyle = shipment.letterheadLogoDividerStyle || "solid";
+  const logoDividerMargin = shipment.letterheadLogoDividerMargin ?? 14;
+  const logoDividerVisible = shipment.letterheadLogoDividerVisible !== false;
   const dividerColor = shipment.letterheadDividerColor && shipment.letterheadDividerColor !== "#0f2942" ? shipment.letterheadDividerColor : "#475569";
   const layoutMode = shipment.letterheadLayout || "left";
   const rawExporterContact = shipment.exporterContact || "";
@@ -2160,6 +2176,41 @@ function OfficialLetterhead({
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isSelected, isEditMode, update]);
+
+  // Deselect logo divider when clicked outside
+  useEffect(() => {
+    if (!isDividerSelected) return;
+    const handleClickOutsideDivider = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (dividerRef.current && !dividerRef.current.contains(target) && !target.closest(".word-divider-popover")) {
+        setIsDividerSelected(false);
+        setShowDividerMenu(false);
+      }
+    };
+    window.addEventListener("mousedown", handleClickOutsideDivider);
+    return () => window.removeEventListener("mousedown", handleClickOutsideDivider);
+  }, [isDividerSelected]);
+
+  // Keyboard shortcut: Delete / Backspace hides divider when selected
+  useEffect(() => {
+    if (!isDividerSelected || !isEditMode || !update) return;
+    const handleDividerKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Delete" || e.key === "Backspace") {
+        const target = e.target as HTMLElement;
+        if (target.isContentEditable || target.tagName === "INPUT" || target.tagName === "TEXTAREA") return;
+        e.preventDefault();
+        update("letterheadLogoDividerVisible", false);
+        setIsDividerSelected(false);
+        setShowDividerMenu(false);
+        toast.success("Garis pemisah logo disembunyikan.");
+      } else if (e.key === "Escape") {
+        setIsDividerSelected(false);
+        setShowDividerMenu(false);
+      }
+    };
+    window.addEventListener("keydown", handleDividerKeyDown);
+    return () => window.removeEventListener("keydown", handleDividerKeyDown);
+  }, [isDividerSelected, isEditMode, update]);
 
   // Free Drag Move across Document Canvas
   const startDragMove = (e: React.MouseEvent) => {
@@ -2354,7 +2405,7 @@ function OfficialLetterhead({
   // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
   const effectiveDividerColor = dividerColor || "#0f2942";
   let dividerLineStyles: React.CSSProperties = {
-    marginTop: `${Math.max(1, dividerGap)}px`,
+    marginTop: `${dividerGap !== undefined ? Math.min(3, Math.max(0, dividerGap)) : 1}px`,
     marginBottom: "4px",
     boxSizing: "border-box",
     width: "100%",
@@ -2413,7 +2464,7 @@ function OfficialLetterhead({
       className={`paper-letterhead-wrap group/kop relative ${letterheadMode === "hidden" ? "letterhead-hidden" : ""}`}
       style={{
         paddingTop: letterheadMode === "hidden" ? 0 : "2px",
-        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : `${Math.max(6, dividerGap + 4)}px`,
+        marginBottom: letterheadMode === "hidden" ? (isEditMode ? "6px" : "0px") : "4px",
         ["--logo-scale" as any]: `${activeScale / 100}`,
         ["--kop-line-height" as any]: `${kopLineHeight}`,
         ["--kop-line-spacing" as any]: `${lineSpacing}px`,
@@ -3099,22 +3150,350 @@ function OfficialLetterhead({
               </div>
             ) : null}
 
-            {effectiveLogoImage && !isLogoCentered && (
+            {effectiveLogoImage && !isLogoCentered && logoDividerVisible && (
               <div
-                className="letterhead-logo-divider"
+                ref={dividerRef}
+                className={`letterhead-logo-divider ${isEditMode && isDividerSelected ? "selected" : ""}`}
                 contentEditable={false}
+                onClick={(e) => {
+                  if (isEditMode) {
+                    e.stopPropagation();
+                    setIsSelected(false);
+                    setShowLayoutMenu(false);
+                    setIsDividerSelected(true);
+                  }
+                }}
                 style={{
-                  width: "1.5px",
-                  height: showAddressInHeader ? "54px" : "44px",
-                  borderLeft: "1.5px solid #cbd5e1",
+                  width: `${logoDividerWidth}px`,
+                  height: `${logoDividerHeight}px`,
+                  borderLeft: `${logoDividerWidth}px ${logoDividerStyle} ${logoDividerColor}`,
                   background: "transparent",
-                  margin: "0 16px 0 6px",
+                  margin: `0 ${logoDividerMargin}px 0 6px`,
                   flexShrink: 0,
                   alignSelf: "center",
+                  cursor: isEditMode ? "pointer" : "default",
+                  position: "relative",
                   WebkitPrintColorAdjust: "exact" as any,
                   printColorAdjust: "exact" as any,
                 }}
-              />
+                title={
+                  isEditMode
+                    ? "Klik untuk memformat garis pemisah logo (tebal 1,5px, warna, gaya - seperti di Word)"
+                    : undefined
+                }
+              >
+                {/* MS Word Selection Handles & Quick Controls */}
+                {isEditMode && isDividerSelected && (
+                  <>
+                    <span className="letterhead-logo-divider-handle top no-print" />
+                    <span className="letterhead-logo-divider-handle bottom no-print" />
+
+                    {/* Floating Quick Action Button */}
+                    <div
+                      className="letterhead-divider-quick-toolbar no-print flex items-center gap-1"
+                      style={{
+                        position: "absolute",
+                        top: "-26px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        zIndex: 50,
+                      }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => setShowDividerMenu((prev) => !prev)}
+                        className="bg-white hover:bg-blue-50 text-blue-600 border border-blue-400 rounded px-1.5 py-0.5 text-[10px] font-bold shadow-md flex items-center gap-1 cursor-pointer whitespace-nowrap"
+                        title="Buka Format Garis Pemisah (MS Word)"
+                      >
+                        <Sliders size={11} />
+                        <span>{logoDividerWidth} pt</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (update) {
+                            update("letterheadLogoDividerVisible", false);
+                            setIsDividerSelected(false);
+                            setShowDividerMenu(false);
+                            toast.success("Garis pemisah logo disembunyikan.");
+                          }
+                        }}
+                        className="bg-white hover:bg-red-50 text-red-500 border border-red-300 rounded p-1 shadow-md cursor-pointer"
+                        title="Sembunyikan Garis Pemisah (Delete)"
+                      >
+                        <Trash2 size={11} />
+                      </button>
+                    </div>
+
+                    {/* Word-style Divider Formatting Popover */}
+                    {showDividerMenu && (
+                      <div
+                        className="word-divider-popover no-print"
+                        onClick={(e) => e.stopPropagation()}
+                        style={{
+                          position: "absolute",
+                          top: "28px",
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          background: "#ffffff",
+                          border: "1px solid #cbd5e1",
+                          borderRadius: "8px",
+                          boxShadow: "0 10px 28px rgba(15, 23, 42, 0.22)",
+                          padding: "12px",
+                          width: "240px",
+                          zIndex: 60,
+                          fontSize: "11px",
+                          textAlign: "left",
+                        }}
+                      >
+                        {/* Header */}
+                        <div className="flex items-center justify-between pb-1.5 border-b border-slate-200 mb-2">
+                          <span className="font-bold text-slate-800 text-[11px] flex items-center gap-1.5">
+                            <Sliders size={12} className="text-blue-600" />
+                            Format Garis Pemisah (Word)
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setShowDividerMenu(false)}
+                            className="text-slate-400 hover:text-slate-600 p-0.5 rounded text-xs leading-none"
+                          >
+                            ✕
+                          </button>
+                        </div>
+
+                        {/* Ketebalan (Weight / Thickness) */}
+                        <div className="mb-2.5">
+                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
+                            Ketebalan Garis (Weight)
+                          </span>
+                          <div className="grid grid-cols-5 gap-1">
+                            {[1, 1.5, 2, 2.5, 3].map((w) => (
+                              <button
+                                key={w}
+                                type="button"
+                                onClick={() => {
+                                  if (update) {
+                                    update("letterheadLogoDividerWidth", w);
+                                    toast.success(`Ketebalan garis diatur ke ${w} pt`);
+                                  }
+                                }}
+                                className={`py-1 px-1 rounded border text-[10px] font-semibold text-center transition-all ${
+                                  logoDividerWidth === w
+                                    ? "bg-blue-600 text-white border-blue-600 shadow-sm"
+                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {w} pt
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Gaya Garis (Style) */}
+                        <div className="mb-2.5">
+                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
+                            Gaya Garis (Line Style)
+                          </span>
+                          <div className="grid grid-cols-3 gap-1">
+                            {(["solid", "dashed", "dotted"] as const).map((styleName) => (
+                              <button
+                                key={styleName}
+                                type="button"
+                                onClick={() => {
+                                  if (update) {
+                                    update("letterheadLogoDividerStyle", styleName);
+                                  }
+                                }}
+                                className={`py-1 px-1.5 rounded border text-[10px] font-medium capitalize text-center transition-all ${
+                                  logoDividerStyle === styleName
+                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
+                                    : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {styleName === "solid" ? "Utuh" : styleName === "dashed" ? "Putus" : "Titik"}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Warna Garis (Color Palette) */}
+                        <div className="mb-2.5">
+                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
+                            Warna Garis (Color)
+                          </span>
+                          <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                            {[
+                              { label: "Standar (1,5)", hex: "#cbd5e1" },
+                              { label: "Slate", hex: "#94a3b8" },
+                              { label: "Dark Slate", hex: "#475569" },
+                              { label: "Navy Blue", hex: "#0f2942" },
+                              { label: "Green Indico", hex: "#15803d" },
+                            ].map((col) => (
+                              <button
+                                key={col.hex}
+                                type="button"
+                                onClick={() => {
+                                  if (update) update("letterheadLogoDividerColor", col.hex);
+                                }}
+                                title={col.label}
+                                className={`w-5 h-5 rounded-full border transition-all ${
+                                  logoDividerColor.toLowerCase() === col.hex.toLowerCase()
+                                    ? "ring-2 ring-blue-500 ring-offset-1 scale-110"
+                                    : "border-slate-300 hover:scale-105"
+                                }`}
+                                style={{ backgroundColor: col.hex }}
+                              />
+                            ))}
+                            <label
+                              title="Pilih warna kustom"
+                              className="w-5 h-5 rounded-full border border-slate-300 overflow-hidden cursor-pointer flex items-center justify-center hover:scale-105"
+                            >
+                              <input
+                                type="color"
+                                value={logoDividerColor.startsWith("#") ? logoDividerColor : "#cbd5e1"}
+                                onChange={(e) => {
+                                  if (update) update("letterheadLogoDividerColor", e.target.value);
+                                }}
+                                className="opacity-0 w-0 h-0 cursor-pointer"
+                              />
+                              <Palette size={10} className="text-slate-500" />
+                            </label>
+                          </div>
+                        </div>
+
+                        {/* Tinggi Garis (Height) */}
+                        <div className="mb-2.5">
+                          <div className="flex items-center justify-between text-[10px] font-semibold text-slate-600 mb-1">
+                            <span>Tinggi Garis</span>
+                            <span className="text-blue-600 font-bold">{logoDividerHeight}px</span>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1 mb-1.5">
+                            {[
+                              { label: "Pas Teks", val: 44 },
+                              { label: "Standar", val: 50 },
+                              { label: "Penuh", val: 58 },
+                            ].map((h) => (
+                              <button
+                                key={h.val}
+                                type="button"
+                                onClick={() => {
+                                  if (update) update("letterheadLogoDividerHeight", h.val);
+                                }}
+                                className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
+                                  logoDividerHeight === h.val
+                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
+                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {h.label}
+                              </button>
+                            ))}
+                          </div>
+                          <input
+                            type="range"
+                            min="32"
+                            max="70"
+                            value={logoDividerHeight}
+                            onChange={(e) => {
+                              if (update) update("letterheadLogoDividerHeight", Number(e.target.value));
+                            }}
+                            className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                          />
+                        </div>
+
+                        {/* Jarak Samping (Margin) */}
+                        <div className="mb-3">
+                          <span className="text-[10px] font-semibold text-slate-600 block mb-1">
+                            Jarak Samping (Spacing)
+                          </span>
+                          <div className="grid grid-cols-3 gap-1">
+                            {[
+                              { label: "Rapat", val: 10 },
+                              { label: "Normal", val: 14 },
+                              { label: "Lebar", val: 18 },
+                            ].map((m) => (
+                              <button
+                                key={m.val}
+                                type="button"
+                                onClick={() => {
+                                  if (update) update("letterheadLogoDividerMargin", m.val);
+                                }}
+                                className={`py-0.5 px-1 rounded border text-[9.5px] font-medium text-center transition-all ${
+                                  logoDividerMargin === m.val
+                                    ? "bg-blue-50 text-blue-700 border-blue-500 font-bold"
+                                    : "bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100"
+                                }`}
+                              >
+                                {m.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Reset & Hide Action Footer */}
+                        <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (update) {
+                                update("letterheadLogoDividerWidth", 1.5);
+                                update("letterheadLogoDividerColor", "#cbd5e1");
+                                update("letterheadLogoDividerHeight", 50);
+                                update("letterheadLogoDividerStyle", "solid");
+                                update("letterheadLogoDividerMargin", 14);
+                                toast.success("Garis pemisah di-reset ke standar Word (1,5 pt)");
+                              }
+                            }}
+                            className="text-[10px] text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium"
+                          >
+                            <RotateCcw size={10} />
+                            Reset 1,5 pt
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (update) {
+                                update("letterheadLogoDividerVisible", false);
+                                setIsDividerSelected(false);
+                                setShowDividerMenu(false);
+                                toast.success("Garis pemisah logo disembunyikan.");
+                              }
+                            }}
+                            className="text-[10px] text-red-600 hover:text-red-700 font-medium flex items-center gap-0.5"
+                          >
+                            <Trash2 size={10} />
+                            Sembunyikan
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
+            {/* If logo divider was hidden, show a subtle restore trigger button in edit mode */}
+            {effectiveLogoImage && !isLogoCentered && !logoDividerVisible && isEditMode && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (update) {
+                    update("letterheadLogoDividerVisible", true);
+                    update("letterheadLogoDividerWidth", 1.5);
+                    setIsDividerSelected(true);
+                    setShowDividerMenu(true);
+                    toast.success("Garis pemisah logo (1,5 pt) dimunculkan kembali.");
+                  }
+                }}
+                className="no-print my-auto mx-1 px-1.5 py-0.5 border border-dashed border-blue-400 bg-blue-50 text-blue-600 rounded text-[9.5px] font-medium hover:bg-blue-100 flex items-center gap-1 transition-colors flex-shrink-0"
+                title="Tampilkan kembali garis pemisah logo (1,5 pt seperti di Word)"
+              >
+                <span>+ Garis 1,5</span>
+              </button>
             )}
 
             {/* CLEAN EXECUTIVE CORPORATE LETTERHEAD TEMPLATES */}
@@ -3401,7 +3780,7 @@ function OfficialLetterhead({
                     fontWeight: "bold",
                     letterSpacing: "0.03em",
                     color: dividerColor || (layoutMode === "geometric" ? "#005f73" : "#0f2942"),
-                    margin: "2px 0",
+                    margin: "1px 0 1px",
                     lineHeight: 1.15,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -3428,7 +3807,7 @@ function OfficialLetterhead({
                     fontWeight: "bold",
                     letterSpacing: "0.015em",
                     color: "#008000",
-                    margin: "2px 0",
+                    margin: "1px 0",
                     lineHeight: 1.15,
                     whiteSpace: "nowrap",
                     overflow: "hidden",
@@ -3458,7 +3837,7 @@ function OfficialLetterhead({
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
-                      margin: "2px 0",
+                      margin: "1px 0 0 0",
                     }}
                     onBlur={(e) => {
                       const text = e.currentTarget.innerText.trim();
@@ -3497,8 +3876,8 @@ function OfficialLetterhead({
             className="letterhead-divider-line letterhead-double-rule"
             style={{
               width: "100%",
-              marginTop: `${Math.max(2, dividerGap)}px`,
-              marginBottom: "6px",
+              marginTop: `${dividerGap !== undefined ? Math.min(3, Math.max(0, dividerGap)) : 1}px`,
+              marginBottom: "4px",
               clear: "both",
               display: "block",
             }}
@@ -3511,8 +3890,8 @@ function OfficialLetterhead({
             className="letterhead-divider-line letterhead-thick-thin-rule"
             style={{
               width: "100%",
-              marginTop: `${Math.max(2, dividerGap)}px`,
-              marginBottom: "6px",
+              marginTop: `${dividerGap !== undefined ? Math.min(3, Math.max(0, dividerGap)) : 1}px`,
+              marginBottom: "4px",
               clear: "both",
               display: "block",
             }}
@@ -3525,8 +3904,8 @@ function OfficialLetterhead({
             className="letterhead-divider-line letterhead-thin-thick-rule"
             style={{
               width: "100%",
-              marginTop: `${Math.max(2, dividerGap)}px`,
-              marginBottom: "6px",
+              marginTop: `${dividerGap !== undefined ? Math.min(3, Math.max(0, dividerGap)) : 1}px`,
+              marginBottom: "4px",
               clear: "both",
               display: "block",
             }}

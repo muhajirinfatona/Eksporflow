@@ -6518,9 +6518,37 @@ textarea:focus-visible {
 .letterhead-logo-divider {
   width: 1.5px;
   height: 50px;
-  background: #cbd5e1;
-  border-radius: 2px;
+  background: transparent;
+  border-left: 1.5px solid #cbd5e1;
+  border-radius: 1px;
   flex-shrink: 0;
+  position: relative;
+  transition: border-color 0.15s ease, outline 0.15s ease;
+}
+
+.letterhead-logo-divider.selected {
+  outline: 1.5px solid #2563eb !important;
+  outline-offset: 3px !important;
+}
+
+.letterhead-logo-divider-handle {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 7px;
+  height: 7px;
+  background: #ffffff;
+  border: 1.5px solid #2563eb;
+  border-radius: 50%;
+  z-index: 35;
+  pointer-events: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+.letterhead-logo-divider-handle.top {
+  top: -4px;
+}
+.letterhead-logo-divider-handle.bottom {
+  bottom: -4px;
 }
 
 .company-name,
@@ -6530,7 +6558,7 @@ textarea:focus-visible {
   font-weight: bold;
   color: #0f2942;
   letter-spacing: 0.03em;
-  margin: 4px 0;
+  margin: 2px 0 1px;
   line-height: 1.15;
   text-transform: uppercase;
 }
@@ -6541,7 +6569,7 @@ textarea:focus-visible {
   font-weight: bold;
   color: #0f2942;
   letter-spacing: 0.03em;
-  margin: 2px 0;
+  margin: 1px 0 1px;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -6556,7 +6584,7 @@ textarea:focus-visible {
   font-weight: bold;
   color: #008000;
   letter-spacing: 0.015em;
-  margin: 2px 0;
+  margin: 1px 0;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -6570,7 +6598,7 @@ textarea:focus-visible {
   font-family: Calibri, 'Segoe UI', Arial, sans-serif;
   font-weight: normal;
   color: #334155;
-  margin: 2px 0;
+  margin: 1px 0 0;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -6583,7 +6611,7 @@ textarea:focus-visible {
   font-family: Calibri, 'Segoe UI', Arial, sans-serif;
   font-weight: normal;
   color: #0f2942;
-  margin: 2px 0;
+  margin: 1px 0 0;
   line-height: 1.15;
   white-space: nowrap;
   overflow: hidden;
@@ -6592,7 +6620,8 @@ textarea:focus-visible {
 
 .letterhead-divider-line {
   width: 100%;
-  margin-top: 1px !important;
+  margin-top: 2px !important;
+  margin-bottom: 4px !important;
   clear: both;
   box-sizing: content-box !important;
 }
@@ -11012,14 +11041,22 @@ textarea:focus-visible {
     display: block !important;
     visibility: visible !important;
     width: 1.5px !important;
-    height: 54px !important;
+    height: 50px !important;
     border-left: 1.5px solid #cbd5e1 !important;
     background: transparent !important;
-    margin: 0 16px 0 6px !important;
+    margin: 0 14px 0 6px !important;
     flex-shrink: 0 !important;
     align-self: center !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+  }
+  .letterhead-logo-divider.selected {
+    outline: none !important;
+  }
+  .letterhead-logo-divider-handle,
+  .letterhead-divider-quick-toolbar,
+  .word-divider-popover {
+    display: none !important;
   }
   .word-resize-handle,
   .word-resize-tooltip,
@@ -11041,7 +11078,7 @@ textarea:focus-visible {
     font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif !important;
     font-weight: bold !important;
     color: #0f2942 !important;
-    margin: 2px 0 !important;
+    margin: 1px 0 1px !important;
     line-height: 1.15 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -11056,7 +11093,7 @@ textarea:focus-visible {
     font-family: Calibri, 'Segoe UI', Arial, sans-serif !important;
     font-weight: bold !important;
     color: #008000 !important;
-    margin: 2px 0 !important;
+    margin: 1px 0 !important;
     line-height: 1.15 !important;
     letter-spacing: 0.015em !important;
     white-space: nowrap !important;
@@ -11071,7 +11108,7 @@ textarea:focus-visible {
     font-size: 8pt !important;
     font-family: Calibri, 'Segoe UI', Arial, sans-serif !important;
     line-height: 1.15 !important;
-    margin: 2px 0 !important;
+    margin: 1px 0 0 !important;
     color: #334155 !important;
     white-space: nowrap !important;
     overflow: hidden !important;
@@ -11093,6 +11130,8 @@ textarea:focus-visible {
     clear: both !important;
     box-sizing: content-box !important;
     min-height: 2px !important;
+    margin-top: 2px !important;
+    margin-bottom: 4px !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

@@ -370,6 +370,12 @@ export type Shipment = {
     | "dotted"
     | "none";
   letterheadDividerColor?: string;
+  letterheadLogoDividerWidth?: number;
+  letterheadLogoDividerColor?: string;
+  letterheadLogoDividerHeight?: number;
+  letterheadLogoDividerStyle?: "solid" | "dashed" | "dotted";
+  letterheadLogoDividerMargin?: number;
+  letterheadLogoDividerVisible?: boolean;
   letterheadLayout?: "left" | "center" | "split" | "geometric";
   letterheadGeometricStyle?: string;
   exporterContact?: string;
@@ -552,9 +558,15 @@ export const initialShipment: Shipment = {
   letterheadWatermarkOpacity: 8,
   letterheadShowAddress: true,
   letterheadSpacing: 2,
-  letterheadDividerGap: 4,
+  letterheadDividerGap: 2,
   letterheadDividerStyle: "double",
   letterheadDividerColor: "#0f2942",
+  letterheadLogoDividerWidth: 1.5,
+  letterheadLogoDividerColor: "#cbd5e1",
+  letterheadLogoDividerHeight: 50,
+  letterheadLogoDividerStyle: "solid",
+  letterheadLogoDividerMargin: 14,
+  letterheadLogoDividerVisible: true,
   letterheadLayout: "left",
   letterheadGeometricStyle: "teal-slant",
   exporterContact: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
@@ -690,9 +702,15 @@ export function createEmptyShipment(options?: { exporter?: string; reference?: s
     letterheadWatermarkOpacity: 8,
     letterheadShowAddress: true,
     letterheadSpacing: 2,
-    letterheadDividerGap: 4,
+    letterheadDividerGap: 2,
     letterheadDividerStyle: "double",
     letterheadDividerColor: "#0f2942",
+    letterheadLogoDividerWidth: 1.5,
+    letterheadLogoDividerColor: "#cbd5e1",
+    letterheadLogoDividerHeight: 50,
+    letterheadLogoDividerStyle: "solid",
+    letterheadLogoDividerMargin: 14,
+    letterheadLogoDividerVisible: true,
     letterheadLayout: "left",
     letterheadGeometricStyle: "teal-slant",
     exporterContact: "Telp: +62 812 3456 7890 · Email: official@indicoexport.com",
@@ -794,6 +812,12 @@ const REVISION_KEYS: (keyof Shipment)[] = [
   "letterheadDividerGap",
   "letterheadDividerStyle",
   "letterheadDividerColor",
+  "letterheadLogoDividerWidth",
+  "letterheadLogoDividerColor",
+  "letterheadLogoDividerHeight",
+  "letterheadLogoDividerStyle",
+  "letterheadLogoDividerMargin",
+  "letterheadLogoDividerVisible",
   "letterheadLayout",
   "letterheadGeometricStyle",
   "exporterContact",
