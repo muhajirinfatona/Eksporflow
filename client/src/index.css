@@ -7323,9 +7323,10 @@ textarea:focus-visible {
   align-items: center !important;
   padding: 5px 9px !important;
   font-size: 10.5pt !important;
-  background: #f8fafc !important;
-  border-right: none !important;
-  border-bottom: 1px solid #475569 !important;
+  background: #f1f5f9 !important;
+  border-right: 1.5px solid #334155 !important;
+  border-bottom: 1.5px solid #334155 !important;
+  box-sizing: border-box !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
 }
@@ -11556,8 +11557,10 @@ textarea:focus-visible {
   }
   .unlk-total-bar {
     padding: 3px 6px !important;
-    border-right: none !important;
+    border-right: 1.5px solid #334155 !important;
     border-bottom: 1.5px solid #334155 !important;
+    background: #f1f5f9 !important;
+    box-sizing: border-box !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }

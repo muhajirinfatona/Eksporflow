@@ -1234,7 +1234,10 @@ export function DocumentsModule({
             border: 1.5px solid #334155 !important;
           }
           .unlk-total-bar {
+            border-right: 1.5px solid #334155 !important;
             border-bottom: 1.5px solid #334155 !important;
+            background: #f1f5f9 !important;
+            box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
