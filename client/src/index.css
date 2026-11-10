@@ -10992,12 +10992,23 @@ textarea:focus-visible {
     gap: 16px !important;
   }
   .letterhead-logo {
-    height: calc(68px * var(--logo-scale, 1)) !important;
-    max-height: calc(120px * var(--logo-scale, 1)) !important;
-    max-width: calc(240px * var(--logo-scale, 1)) !important;
+    max-height: 120px !important;
+    max-width: 240px !important;
     width: auto !important;
     object-fit: contain !important;
-    border-radius: 4px !important;
+  }
+  .letterhead-logo-divider {
+    display: block !important;
+    visibility: visible !important;
+    width: 1.5px !important;
+    height: 54px !important;
+    border-left: 1.5px solid #cbd5e1 !important;
+    background: transparent !important;
+    margin: 0 16px 0 6px !important;
+    flex-shrink: 0 !important;
+    align-self: center !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .word-resize-handle,
   .word-resize-tooltip,
@@ -11012,12 +11023,40 @@ textarea:focus-visible {
     outline: none !important;
     box-shadow: none !important;
   }
-  .company-title {
-    font-size: 18px !important;
-    font-weight: 800 !important;
-    margin-bottom: 1px !important;
-    line-height: 1.2 !important;
+  .company-title,
+  .company-name,
+  .paper-document .company-name {
+    font-size: 16pt !important;
+    font-family: 'Plus Jakarta Sans', 'Segoe UI', Arial, sans-serif !important;
+    font-weight: bold !important;
     color: #0f2942 !important;
+    margin: 4px 0 !important;
+    line-height: 1.15 !important;
+    text-transform: uppercase !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .company-tagline,
+  .paper-document .company-tagline {
+    font-size: 10pt !important;
+    font-family: Calibri, 'Segoe UI', Arial, sans-serif !important;
+    font-weight: bold !important;
+    color: #008000 !important;
+    margin: 4px 0 !important;
+    line-height: 1.15 !important;
+    text-transform: uppercase !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .company-details,
+  .paper-document .company-details {
+    font-size: 9pt !important;
+    font-family: Calibri, 'Segoe UI', Arial, sans-serif !important;
+    line-height: 1.15 !important;
+    margin: 4px 0 !important;
+    color: #334155 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   .company-meta-line {
     font-size: 11.5px !important;

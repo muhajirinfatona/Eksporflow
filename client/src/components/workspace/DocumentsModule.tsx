@@ -1129,23 +1129,61 @@ export function DocumentsModule({
             margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm !important;
           }
           .paper-document {
-            --doc-font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
-            font-size: ${Math.min(10.2, Number(((shipment.docEditorFontSize || 11) * 0.91).toFixed(1)))}pt !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
           }
-          .paper-document table.unlk-items-table thead th:last-child,
-          .paper-document table.unlk-items-table tbody td:last-child,
-          .paper-document table.unlk-items-table tfoot td:last-child,
-          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:last-child,
-          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:last-child,
+          .letterhead-logo-divider {
+            display: block !important;
+            visibility: visible !important;
+            width: 1.5px !important;
+            height: 54px !important;
+            border-left: 1.5px solid #cbd5e1 !important;
+            margin: 0 16px 0 6px !important;
+            flex-shrink: 0 !important;
+            align-self: center !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .letterhead-divider-line {
+            display: block !important;
+            visibility: visible !important;
+            width: 100% !important;
+            min-height: 2px !important;
+            clear: both !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table {
+            border: 1px solid #475569 !important;
+            border-collapse: collapse !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table thead th,
+          .paper-document table.unlk-items-table tbody td,
+          .paper-document table.unlk-items-table tfoot td {
+            border-right: 1px solid #475569 !important;
+            border-left: 1px solid #475569 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
+          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
+            border-top: 1px solid #475569 !important;
+            border-bottom: 1px solid #475569 !important;
+            border-right: 1px solid #475569 !important;
+            border-left: 1px solid #475569 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
           .unlk-total-bar {
-            border-right: none !important;
-          }
-          .paper-document table.unlk-items-table thead th:first-child,
-          .paper-document table.unlk-items-table tbody td:first-child,
-          .paper-document table.unlk-items-table tfoot td:first-child,
-          .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td:first-child,
-          .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td:first-child {
-            border-left: none !important;
+            border-bottom: 1px solid #475569 !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
@@ -2979,12 +3017,15 @@ function OfficialLetterhead({
                 className="letterhead-logo-divider"
                 contentEditable={false}
                 style={{
-                  width: "1px",
+                  width: "1.5px",
                   height: showAddressInHeader ? "54px" : "44px",
-                  background: "#475569",
+                  borderLeft: "1.5px solid #cbd5e1",
+                  background: "transparent",
                   margin: "0 16px 0 6px",
                   flexShrink: 0,
                   alignSelf: "center",
+                  WebkitPrintColorAdjust: "exact" as any,
+                  printColorAdjust: "exact" as any,
                 }}
               />
             )}
