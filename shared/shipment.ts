@@ -425,6 +425,7 @@ export type Shipment = {
   docEditorLineHeight?: number;
   docEditorTextAlign?: "left" | "center" | "right" | "justify";
   docEditorMode?: boolean;
+  docEditorContentVersion?: number;
   docMarginPreset?: DocMarginPreset;
   docMarginTop?: number;
   docMarginBottom?: number;

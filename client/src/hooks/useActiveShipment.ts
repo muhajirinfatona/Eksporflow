@@ -172,65 +172,89 @@ export function useActiveShipment() {
     [markDirty],
   );
 
-  const saveShipment = useCallback(async () => {
-    if (!user) {
-      // Simpan draft lokal secara otomatis dan aman jika pengguna belum masuk akun
+  const saveShipment = useCallback(
+    async (isAutoSave = false) => {
+      if (!user) {
+        // Simpan draft lokal secara otomatis dan aman jika pengguna belum masuk akun
+        try {
+          localStorage.setItem(getDraftStorageKey(null), JSON.stringify(shipment));
+          localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
+          setSaveState("local-draft");
+          if (!isAutoSave) {
+            toast.success("Draft Transaksi Tersimpan", {
+              description: "Data tersimpan aman di penyimpanan browser perangkat Anda. Masuk akun untuk sinkronisasi ke cloud.",
+            });
+          }
+        } catch {
+          if (!isAutoSave) {
+            toast.info("Draft transaksi tersimpan secara lokal di browser.");
+          }
+        }
+        return;
+      }
+
+      setSaveState("saving");
+      setStatusNote(null);
+      const payload = toShipmentPersistencePayload(shipment);
+
       try {
-        localStorage.setItem(getDraftStorageKey(null), JSON.stringify(shipment));
-        localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
-        setSaveState("local-draft");
-        toast.success("Draft Transaksi Tersimpan", {
-          description: "Data tersimpan aman di penyimpanan browser perangkat Anda. Masuk akun untuk sinkronisasi ke cloud.",
-        });
-      } catch {
-        toast.info("Draft transaksi tersimpan secara lokal di browser.");
+        if (!activeShipmentId) {
+          const created = await createMutation.mutateAsync(payload);
+          setActiveShipmentId(created.id);
+          setVersion(created.version);
+          setSaveState("saved");
+          await utils.shipments.list.invalidate();
+          if (!isAutoSave) {
+            toast.success("Transaksi tersimpan ke Cloud", {
+              description: `${created.reference} · v${created.version} tercatat di audit log Supabase.`,
+            });
+          }
+        } else {
+          const updated = await updateMutation.mutateAsync({
+            id: activeShipmentId,
+            version,
+            ...payload,
+          });
+          setVersion(updated.version);
+          setSaveState("saved");
+          await utils.shipments.list.invalidate();
+          if (!isAutoSave) {
+            toast.success("Perubahan tersimpan ke Cloud", {
+              description: `${updated.reference} · naik ke v${updated.version}.`,
+            });
+          }
+        }
+      } catch (error) {
+        const code = error instanceof TRPCClientError ? error.data?.code : undefined;
+        const message = error instanceof Error ? error.message : "Gagal menyimpan transaksi.";
+        if (code === "CONFLICT") {
+          setSaveState("conflict");
+          setStatusNote(message);
+          toast.error("Konflik penyimpanan terdeteksi", {
+            description: message,
+          });
+        } else {
+          setSaveState("error");
+          setStatusNote(message);
+          if (!isAutoSave) {
+            toast.error("Penyimpanan gagal", { description: message });
+          }
+        }
       }
-      return;
-    }
+    },
+    [user, shipment, activeShipmentId, version, createMutation, updateMutation, utils.shipments.list],
+  );
 
-    setSaveState("saving");
-    setStatusNote(null);
-    const payload = toShipmentPersistencePayload(shipment);
+  // Auto-Save Otomatis: Menyimpan perubahan transaksi & revisi dokumen secara otomatis setelah jeda ketik 1 detik
+  useEffect(() => {
+    if (saveState !== "unsaved") return;
 
-    try {
-      if (!activeShipmentId) {
-        const created = await createMutation.mutateAsync(payload);
-        setActiveShipmentId(created.id);
-        setVersion(created.version);
-        setSaveState("saved");
-        await utils.shipments.list.invalidate();
-        toast.success("Transaksi tersimpan ke Cloud", {
-          description: `${created.reference} · v${created.version} tercatat di audit log Supabase.`,
-        });
-      } else {
-        const updated = await updateMutation.mutateAsync({
-          id: activeShipmentId,
-          version,
-          ...payload,
-        });
-        setVersion(updated.version);
-        setSaveState("saved");
-        await utils.shipments.list.invalidate();
-        toast.success("Perubahan tersimpan ke Cloud", {
-          description: `${updated.reference} · naik ke v${updated.version}.`,
-        });
-      }
-    } catch (error) {
-      const code = error instanceof TRPCClientError ? error.data?.code : undefined;
-      const message = error instanceof Error ? error.message : "Gagal menyimpan transaksi.";
-      if (code === "CONFLICT") {
-        setSaveState("conflict");
-        setStatusNote(message);
-        toast.error("Konflik penyimpanan terdeteksi", {
-          description: message,
-        });
-      } else {
-        setSaveState("error");
-        setStatusNote(message);
-        toast.error("Penyimpanan gagal", { description: message });
-      }
-    }
-  }, [user, shipment, activeShipmentId, version, createMutation, updateMutation, utils.shipments.list]);
+    const timer = setTimeout(() => {
+      void saveShipment(true);
+    }, 1000);
+
+    return () => clearTimeout(timer);
+  }, [saveState, saveShipment]);
 
   const reloadLatest = useCallback(async () => {
     if (!activeShipmentId) return;

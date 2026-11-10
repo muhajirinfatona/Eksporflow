@@ -1417,6 +1417,10 @@ export function DocumentsModule({
           contentEditable={isEditMode}
           suppressContentEditableWarning={true}
           onBeforeInput={() => pushEditorHistory("typing")}
+          onInput={() => {
+            const nextVer = (shipment.docEditorContentVersion || 0) + 1;
+            update("docEditorContentVersion", nextVer);
+          }}
           onPaste={() => pushEditorHistory("paste", "Menempel teks (Paste)")}
           onCut={() => pushEditorHistory("cut", "Memotong teks (Cut)")}
           onDrop={() => pushEditorHistory("drop", "Memindahkan elemen")}
@@ -2214,47 +2218,50 @@ function OfficialLetterhead({
     : {};
 
   // Compute divider line style (boxSizing: content-box ensures crisp white gap between double rules!)
+  const effectiveDividerColor = dividerColor || "#0f2942";
   let dividerLineStyles: React.CSSProperties = {
     marginTop: `${Math.max(1, dividerGap)}px`,
     marginBottom: "4px",
     boxSizing: "content-box",
     width: "100%",
+    WebkitPrintColorAdjust: "exact" as any,
+    printColorAdjust: "exact" as any,
   };
   if (dividerStyle === "none") {
     dividerLineStyles.display = "none";
   } else if (dividerStyle === "double") {
-    dividerLineStyles.borderTop = `1.5px solid ${dividerColor}`;
-    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
-    dividerLineStyles.height = "1.5px";
+    dividerLineStyles.borderTop = `2px solid ${effectiveDividerColor}`;
+    dividerLineStyles.borderBottom = `1px solid ${effectiveDividerColor}`;
+    dividerLineStyles.height = "2px";
   } else if (dividerStyle === "thick-thin") {
-    dividerLineStyles.borderTop = `2px solid ${dividerColor}`;
-    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.borderTop = `2.5px solid ${effectiveDividerColor}`;
+    dividerLineStyles.borderBottom = `1px solid ${effectiveDividerColor}`;
     dividerLineStyles.height = "2px";
   } else if (dividerStyle === "thin-thick") {
-    dividerLineStyles.borderTop = `1px solid ${dividerColor}`;
-    dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
+    dividerLineStyles.borderTop = `1px solid ${effectiveDividerColor}`;
+    dividerLineStyles.borderBottom = `2.5px solid ${effectiveDividerColor}`;
     dividerLineStyles.height = "2px";
   } else if (dividerStyle === "single") {
-    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `1.5px solid ${effectiveDividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "thin") {
-    dividerLineStyles.borderBottom = `1px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `1px solid ${effectiveDividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "bold") {
-    dividerLineStyles.borderBottom = `3.5px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `3.5px solid ${effectiveDividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "dashed") {
-    dividerLineStyles.borderBottom = `2px dashed ${dividerColor}`;
+    dividerLineStyles.borderBottom = `2px dashed ${effectiveDividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "dotted") {
-    dividerLineStyles.borderBottom = `2.5px dotted ${dividerColor}`;
+    dividerLineStyles.borderBottom = `2.5px dotted ${effectiveDividerColor}`;
     dividerLineStyles.height = "0px";
   } else if (dividerStyle === "accent-gradient") {
-    dividerLineStyles.background = `linear-gradient(90deg, ${dividerColor} 0%, ${dividerColor} 74%, #059669 74%, #059669 91%, #d97706 91%, #d97706 100%)`;
+    dividerLineStyles.background = `linear-gradient(90deg, ${effectiveDividerColor} 0%, ${effectiveDividerColor} 74%, #059669 74%, #059669 91%, #d97706 91%, #d97706 100%)`;
     dividerLineStyles.height = "3.5px";
     dividerLineStyles.borderRadius = "1px";
   } else {
-    dividerLineStyles.borderBottom = `2px solid ${dividerColor}`;
+    dividerLineStyles.borderBottom = `2px solid ${effectiveDividerColor}`;
     dividerLineStyles.height = "0px";
   }
 

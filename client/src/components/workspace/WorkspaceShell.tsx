@@ -298,7 +298,7 @@ function renderPersistenceBadge(
     return <StatusPill tone="blue">Menyimpan...</StatusPill>;
   }
   if (saveState === "saved" && activeShipmentId) {
-    return <StatusPill tone="green">Tersimpan · v{version}</StatusPill>;
+    return <StatusPill tone="green">✓ Tersimpan Otomatis · v{version}</StatusPill>;
   }
   if (saveState === "conflict") {
     return <StatusPill tone="red">Konflik Versi</StatusPill>;
@@ -308,7 +308,7 @@ function renderPersistenceBadge(
   }
   return (
     <StatusPill tone="amber">
-      {activeShipmentId ? `Belum Disimpan · v${version}` : "Draft Baru"}
+      {activeShipmentId ? `● Belum Disimpan · v${version}` : "Draft Baru"}
     </StatusPill>
   );
 }

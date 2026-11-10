@@ -113,7 +113,21 @@ export default function Home() {
     document.title = `EksporFlow · ${meta.label}`;
   }, [screen, user]);
 
-  const printDocument = useCallback(() => {
+  const printDocument = useCallback(async () => {
+    // 1. Lepas fokus dari elemen aktif agar perubahan teks langsung tersinkronisasi
+    if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+
+    // 2. Simpan otomatis secara instan sebelum dialog cetak terbuka
+    if (saveState === "unsaved") {
+      try {
+        await saveShipment(true);
+      } catch {
+        // Lanjutkan cetak meskipun ada kendala jaringan
+      }
+    }
+
     const existing = document.getElementById("eksporflow-print-page");
     if (existing) {
       existing.remove();
@@ -149,13 +163,9 @@ export default function Home() {
       if (el) el.remove();
     }, 10000);
   }, [
-    shipment.paperSize,
-    shipment.documentOrientation,
-    shipment.docMarginPreset,
-    shipment.docMarginTop,
-    shipment.docMarginBottom,
-    shipment.docMarginLeft,
-    shipment.docMarginRight,
+    shipment,
+    saveState,
+    saveShipment,
   ]);
 
   if (isAuthLoading) {
