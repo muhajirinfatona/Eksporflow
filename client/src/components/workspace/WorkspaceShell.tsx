@@ -59,31 +59,6 @@ export type ScreenMeta = {
 
 export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
   {
-    group: "Pra-Transaksi & Pasar",
-    items: [
-      {
-        id: "buyer_acquisition",
-        label: "Akuisisi Buyer & Penawaran",
-        group: "Pra-Transaksi & Pasar",
-        phase: "Pra-Transaksi",
-        title: "Akuisisi Buyer & Otomasi Penawaran",
-        description:
-          "Pencarian buyer luar negeri terverifikasi, verifikasi anti-fake buyer, generator surat penawaran, dan bulk email AI.",
-        icon: <Mail size={16} />,
-      },
-      {
-        id: "readiness",
-        label: "Asesmen Kesiapan",
-        group: "Pra-Transaksi & Pasar",
-        phase: "Pra-Transaksi",
-        title: "Asesmen Kesiapan Ekspor",
-        description:
-          "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
-        icon: <CheckCircle2 size={16} />,
-      },
-    ],
-  },
-  {
     group: "Ringkasan",
     items: [
       {
@@ -95,6 +70,16 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         description:
           "Satu sumber data terhubung untuk memantau penawaran, kesiapan dokumen, muatan kontainer, dan langkah operasional.",
         icon: <LayoutGrid size={16} />,
+      },
+      {
+        id: "readiness",
+        label: "Asesmen Kesiapan",
+        group: "Ringkasan",
+        phase: "Ringkasan",
+        title: "Asesmen Kesiapan Ekspor",
+        description:
+          "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
+        icon: <CheckCircle2 size={16} />,
       },
     ],
   },
@@ -166,12 +151,12 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
       },
       {
         id: "tracking",
-        label: "Mid-Sea Tracking",
+        label: "Pelacakan Kontainer",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Mid-Sea Container Tracking",
+        title: "Pelacakan Kontainer Maritim (Mid-Sea Tracking)",
         description:
-          "Pemantauan visual posisi dan pergerakan kontainer secara maritim selama di tengah laut via nomor kontainer / BL.",
+          "Pemantauan visual posisi dan pergerakan kontainer maritim selama di tengah laut via nomor kontainer / BL.",
         icon: <Ship size={16} />,
       },
       {
@@ -186,10 +171,10 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
       },
       {
         id: "scrutiny",
-        label: "AI Document Scrutiny",
+        label: "Validasi Dokumen (B/L)",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "AI Document Scrutiny & Validasi Silang",
+        title: "Pemeriksaan Dokumen & Validasi Silang (Scrutiny)",
         description:
           "Ekstraksi data OCR draft B/L forwarder, validasi silang 3-way dengan CI & PL guna mencegah demurrage.",
         icon: <FileSearch size={16} />,
@@ -343,7 +328,7 @@ function renderPersistenceBadge(
     return <StatusPill tone="red">Konflik Versi</StatusPill>;
   }
   if (saveState === "error") {
-    return <StatusPill tone="red">Gagal Simpan</StatusPill>;
+    return <StatusPill tone="amber">Draft Tersimpan Lokal</StatusPill>;
   }
   return (
     <StatusPill tone="amber">
@@ -638,15 +623,6 @@ export function WorkspaceShell({
                 )}
               </div>
             )}
-
-            <div
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 cursor-pointer hover:bg-emerald-500/20 transition-all"
-              title="Akses Mode Simulasi Uji Coba Demo 3 Hari bagi UMKM Pemula"
-              onClick={() => navigate("settings")}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Demo 3 Hari · Sisa 2 Hari 14 Jam</span>
-            </div>
 
             <IconButton
               label="Cari halaman"

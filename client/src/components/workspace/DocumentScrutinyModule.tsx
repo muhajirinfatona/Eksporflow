@@ -141,54 +141,42 @@ export function DocumentScrutinyModule({
   };
 
   return (
-    <div className="module-stack space-y-6">
-      {/* Banner */}
-      <section className="panel panel-padding bg-gradient-to-r from-indigo-900/20 via-slate-900/40 to-emerald-950/20 border-indigo-500/30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                Fitur 3 MVP · Mitigasi Risiko & Validasi
-              </span>
-              <span className="text-xs text-muted-foreground">Spesifikasi Komprehensif Versi 4</span>
-            </div>
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <FileSearch size={20} className="text-indigo-400" />
-              Validasi Dokumen Eksternal & Mitigasi Risiko Pembayaran
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-              Pencocokan silang OCR 3-Way (Draft B/L vs Commercial Invoice vs Packing List), sistem peringatan dini demurrage, dan otomatisasi cap "Scanned Copy" untuk penagihan TT.
-            </p>
-          </div>
-
-          <div className="flex items-center bg-background/60 p-1 rounded-lg border border-border">
-            <button
-              type="button"
-              onClick={() => setActiveTab("ocr_scrutiny")}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
-                activeTab === "ocr_scrutiny"
-                  ? "bg-primary text-primary-foreground shadow"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <FileSearch size={14} /> 3.1 & 3.2 OCR & Validasi Silang
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("tt_billing")}
-              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
-                activeTab === "tt_billing"
-                  ? "bg-primary text-primary-foreground shadow"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              <Stamp size={14} /> 3.3 Cap Scanned Copy & Penagihan TT
-            </button>
-          </div>
+    <div className="module-stack" style={{ gap: 16 }}>
+      {/* Sleek Sub-Navigation Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
+        <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg border border-border/60">
+          <button
+            type="button"
+            onClick={() => setActiveTab("ocr_scrutiny")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
+              activeTab === "ocr_scrutiny"
+                ? "bg-background text-foreground shadow-sm font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <FileSearch size={13} /> Pemeriksaan Draf B/L (3-Way Matching)
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("tt_billing")}
+            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
+              activeTab === "tt_billing"
+                ? "bg-background text-foreground shadow-sm font-semibold"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            <Stamp size={13} /> Cap Scanned Copy & Tagihan TT
+          </button>
         </div>
-      </section>
 
-      {/* TAB 1: OCR SCRUTINY & NOTIFIKASI REVISI OTOMATIS */}
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            Acuan: <b>{shipment.reference}</b> · Forwarder: MSC / PT Samudera
+          </span>
+        </div>
+      </div>
+
+      {/* TAB 1: OCR SCRUTINY & VALIDASI SILANG */}
       {activeTab === "ocr_scrutiny" && (
         <div className="space-y-4">
           {/* Upload / Simulation Panel */}
@@ -329,7 +317,7 @@ export function DocumentScrutinyModule({
               <div className="text-xs text-muted-foreground flex items-center gap-2">
                 <ShieldAlert size={15} className="text-rose-400" />
                 <span>
-                  <b>Notifikasi Revisi Otomatis (3.2):</b> Peringatan dikirim sebelum proses pengiriman dan cetak final B/L dikunci oleh pihak pelayaran.
+                  <b>Notifikasi Peringatan Demurrage:</b> Deteksi dini ketidaksesuaian data sebelum proses pengiriman dan final B/L dikunci oleh pihak pelayaran.
                 </span>
               </div>
 
@@ -352,7 +340,7 @@ export function DocumentScrutinyModule({
         </div>
       )}
 
-      {/* TAB 2: OTOMATISASI CAP SCANNED COPY & PENAGIHAN TT (3.3) */}
+      {/* TAB 2: OTOMATISASI CAP SCANNED COPY & PENAGIHAN TT */}
       {activeTab === "tt_billing" && (
         <div className="space-y-4">
           <section className="panel panel-padding">
@@ -360,10 +348,10 @@ export function DocumentScrutinyModule({
               <div>
                 <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
                   <Stamp size={16} className="text-primary" />
-                  Otomatisasi Cap Digital "Scanned Copy" & Penagihan Telegraphic Transfer (TT)
+                  Cap Digital "Scanned Copy" & Penagihan Telegraphic Transfer (TT)
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Berikan stempel non-negotiable resmi pada dokumen yang lolos verifikasi, lalu kirim faktur pelunasan TT kepada buyer sebelum barang diberangkatkan.
+                  Berikan stempel non-negotiable resmi pada dokumen yang lolos verifikasi, lalu kirim faktur pelunasan TT kepada buyer sebelum dokumen original diserahkan.
                 </p>
               </div>
 

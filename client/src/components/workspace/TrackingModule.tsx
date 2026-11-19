@@ -114,39 +114,30 @@ export function TrackingModule({
   };
 
   return (
-    <div className="module-stack space-y-6">
-      {/* Overview Banner */}
-      <section className="panel panel-padding bg-gradient-to-r from-cyan-950/30 via-slate-900/50 to-blue-950/30 border-cyan-500/30">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="module-stack" style={{ gap: 16 }}>
+      {/* Query Bar & Quick Actions */}
+      <section className="panel panel-padding">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-border pb-3 mb-3">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <span className="px-2 py-0.5 rounded text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                Fitur 4.1 MVP · Pelacakan Logistik
-              </span>
-              <span className="text-xs text-muted-foreground">Spesifikasi Komprehensif Versi 4</span>
-            </div>
-            <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-              <Ship size={20} className="text-cyan-400" />
-              Mid-Sea Container Tracking (Pelacakan Kontainer Laut)
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5 max-w-2xl">
-              Pemantauan visual posisi dan pergerakan kontainer secara transparan selama berada di tengah laut berdasarkan nomor kontainer atau nomor Bill of Lading (B/L).
+            <h4 className="font-semibold text-sm text-foreground flex items-center gap-2">
+              <Ship size={16} className="text-cyan-400" />
+              Pelacakan Kontainer Maritim Real-Time (AIS Satelit)
+            </h4>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Pemantauan visual posisi dan pergerakan kontainer selama berada di tengah laut berdasarkan nomor kontainer atau B/L.
             </p>
           </div>
 
           <button
             type="button"
             onClick={handleCopyTrackingLink}
-            className="px-3.5 py-2 rounded-md bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow shrink-0"
+            className="px-3 py-1.5 rounded-md bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-medium flex items-center gap-1.5 shadow-sm shrink-0 self-start md:self-auto"
           >
-            {isCopied ? <Check size={14} /> : <Share2 size={14} />}
+            {isCopied ? <Check size={13} /> : <Share2 size={13} />}
             {isCopied ? "Link Tersalin!" : "Bagi Link Pelacakan ke Buyer"}
           </button>
         </div>
-      </section>
 
-      {/* Query Bar */}
-      <section className="panel panel-padding">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
           <div>
             <label className="text-xs font-semibold text-muted-foreground mb-1 block">
@@ -197,7 +188,7 @@ export function TrackingModule({
               type="button"
               onClick={handleSearch}
               disabled={isSearching}
-              className="w-full text-xs font-medium py-1.5 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-1.5 shadow"
+              className="w-full text-xs font-medium py-1.5 px-3 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center gap-1.5 shadow-sm"
             >
               <Search size={13} /> Lacak Posisi Samudra
             </button>

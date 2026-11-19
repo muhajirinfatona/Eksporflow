@@ -1,5 +1,4 @@
 import { AssistantModule } from "@/components/workspace/AssistantModule";
-import { BuyerAcquisitionModule } from "@/components/workspace/BuyerAcquisitionModule";
 import { ContainerModule } from "@/components/workspace/ContainerModule";
 import { DocumentScrutinyModule } from "@/components/workspace/DocumentScrutinyModule";
 import { DocumentsModule } from "@/components/workspace/DocumentsModule";
@@ -238,9 +237,6 @@ export default function Home() {
           navigate={navigate}
           flow={flow}
         />
-      )}
-      {screen === "buyer_acquisition" && (
-        <BuyerAcquisitionModule shipment={shipment} update={update} navigate={navigate} />
       )}
       {screen === "readiness" && (
         <ReadinessView shipment={shipment} update={update} navigate={navigate} flow={flow} />
