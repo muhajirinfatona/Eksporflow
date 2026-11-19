@@ -524,10 +524,10 @@ export function WorkspaceShell({
 
         <div className="sidebar-bottom clean-sidebar-footer">
           <div className="user-row">
-            <div className="user-avatar">{userInitials}</div>
+            <div className="user-avatar">{userInitials || "MF"}</div>
             <div>
-              <b>{user ? user.name || "Pengguna Workspace" : "Belum Masuk Akun"}</b>
-              <small>{user ? "PostgreSQL / Supabase" : "Mode draft browser"}</small>
+              <b>{user?.name || "Muhajirin Fatona"}</b>
+              <small>Cloud Supabase Aktif</small>
             </div>
             {user ? (
               <button
@@ -651,9 +651,7 @@ export function WorkspaceShell({
               <span className="btn-label-desktop">
                 {saveState === "saving"
                   ? "Menyimpan..."
-                  : user
-                    ? "Simpan ke Cloud"
-                    : "Simpan Draft"}
+                  : "Simpan ke Cloud"}
               </span>
               <span className="btn-label-mobile">
                 {saveState === "saving" ? "..." : "Simpan"}

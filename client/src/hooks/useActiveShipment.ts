@@ -1,5 +1,11 @@
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
+import {
+  fetchShipmentsFromSupabase,
+  getShipmentFromSupabase,
+  saveShipmentToSupabase,
+  supabase,
+} from "@/lib/supabaseClient";
 import { calculateContainer } from "@shared/container";
 import { calculatePricing } from "@shared/pricing";
 import {
@@ -60,6 +66,7 @@ export function useActiveShipment() {
   const [version, setVersion] = useState<number>(1);
   const [saveState, setSaveState] = useState<PersistenceSaveState>("unsaved");
   const [statusNote, setStatusNote] = useState<string | null>(null);
+  const [supabaseList, setSupabaseList] = useState<any[]>([]);
   const loadedForUserIdRef = useRef<number | null>(null);
   const isSavingRef = useRef(false);
 
@@ -80,7 +87,30 @@ export function useActiveShipment() {
   const loadShipment = useCallback(
     async (id: string, silent = false) => {
       try {
-        const record = await utils.shipments.get.fetch({ id });
+        let record: {
+          id: string;
+          reference: string;
+          status: string;
+          version: number;
+          snapshot: Record<string, unknown>;
+          lineItems: LineItem[];
+        } | null = null;
+
+        if (user) {
+          try {
+            record = (await utils.shipments.get.fetch({ id })) as any;
+          } catch {
+            // fallback ke Supabase langsung jika tRPC gagal
+          }
+        }
+        if (!record) {
+          record = await getShipmentFromSupabase(id);
+        }
+
+        if (!record) {
+          throw new Error("Transaksi tidak ditemukan di database Supabase.");
+        }
+
         const isDefaultMock = record.reference === "EXP-2026-001" || record.reference === "EXP-2026-084";
         const hydrated = hydrateShipment({
           reference: isDefaultMock ? "" : record.reference,
@@ -98,7 +128,7 @@ export function useActiveShipment() {
         setStatusNote(null);
         if (!silent) {
           const displayLabel = !isDefaultMock && record.reference ? `Transaksi ${record.reference}` : "Transaksi";
-          toast.success(`${displayLabel} dimuat`, {
+          toast.success(`${displayLabel} dimuat dari Cloud`, {
             description: `Versi cloud v${record.version} aktif di workspace.`,
           });
         }
@@ -109,8 +139,30 @@ export function useActiveShipment() {
         toast.error("Gagal memuat transaksi", { description: msg });
       }
     },
-    [utils.shipments.get],
+    [user, utils.shipments.get],
   );
+
+  // Inisialisasi awal sinkronisasi data langsung dengan Cloud Supabase
+  useEffect(() => {
+    let active = true;
+    async function syncSupabase() {
+      try {
+        const list = await fetchShipmentsFromSupabase();
+        if (active && list.length > 0) {
+          setSupabaseList(list);
+          if (!activeShipmentId) {
+            void loadShipment(list[0].id, true);
+          }
+        }
+      } catch (e) {
+        console.warn("[Supabase] Auto-sync list error:", e);
+      }
+    }
+    void syncSupabase();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Saat sesi user aktif, muat transaksi cloud terbaru milik user atau siapkan form kosong bersih.
   useEffect(() => {
@@ -175,78 +227,83 @@ export function useActiveShipment() {
 
   const saveShipment = useCallback(
     async (isAutoSave = false) => {
-      if (!user) {
-        // Simpan draft lokal secara otomatis dan aman jika pengguna belum masuk akun
-        try {
-          localStorage.setItem(getDraftStorageKey(null), JSON.stringify(shipment));
-          localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
-          setSaveState("local-draft");
-          if (!isAutoSave) {
-            toast.success("Draft Transaksi Tersimpan", {
-              description: "Data tersimpan aman di penyimpanan browser perangkat Anda. Masuk akun untuk sinkronisasi ke cloud.",
-            });
-          }
-        } catch {
-          if (!isAutoSave) {
-            toast.info("Draft transaksi tersimpan secara lokal di browser.");
-          }
-        }
-        return;
-      }
-
       if (isSavingRef.current) return;
       isSavingRef.current = true;
       setSaveState("saving");
       setStatusNote(null);
       const payload = toShipmentPersistencePayload(shipment);
 
-      try {
-        if (!activeShipmentId) {
-          const created = await createMutation.mutateAsync(payload);
-          setActiveShipmentId(created.id);
-          setVersion(created.version);
-          setSaveState("saved");
-          await utils.shipments.list.invalidate();
-          if (!isAutoSave) {
-            toast.success("Transaksi tersimpan ke Cloud", {
-              description: `${created.reference} · v${created.version} tercatat di audit log Supabase.`,
-            });
-          }
-        } else {
-          const updated = await updateMutation.mutateAsync({
-            id: activeShipmentId,
-            version,
-            ...payload,
-          });
-          setVersion(updated.version);
-          setSaveState("saved");
-          await utils.shipments.list.invalidate();
-          if (!isAutoSave) {
-            toast.success("Perubahan tersimpan ke Cloud", {
-              description: `${updated.reference} · naik ke v${updated.version}.`,
-            });
-          }
-        }
-      } catch (error) {
-        const code = error instanceof TRPCClientError ? error.data?.code : undefined;
-        const message = error instanceof Error ? error.message : "Gagal menyimpan transaksi.";
-        if (code === "CONFLICT") {
-          if (isAutoSave && activeShipmentId) {
-            try {
-              const latest = await utils.shipments.get.fetch({ id: activeShipmentId });
-              setVersion(latest.version);
-              setSaveState("unsaved");
-            } catch {
-              setSaveState("conflict");
+      // Jalur 1: Coba simpan via tRPC jika sesi lokal / backend aktif
+      if (user) {
+        try {
+          if (!activeShipmentId) {
+            const created = await createMutation.mutateAsync(payload);
+            setActiveShipmentId(created.id);
+            setVersion(created.version);
+            setSaveState("saved");
+            await utils.shipments.list.invalidate();
+            if (!isAutoSave) {
+              toast.success("Transaksi tersimpan ke Cloud", {
+                description: `${created.reference} · v${created.version} tercatat di audit log Supabase.`,
+              });
             }
+            return;
           } else {
-            setSaveState("conflict");
-            setStatusNote(message);
-            toast.error("Konflik penyimpanan terdeteksi", {
-              description: message,
+            const updated = await updateMutation.mutateAsync({
+              id: activeShipmentId,
+              version,
+              ...payload,
             });
+            setVersion(updated.version);
+            setSaveState("saved");
+            await utils.shipments.list.invalidate();
+            if (!isAutoSave) {
+              toast.success("Perubahan tersimpan ke Cloud", {
+                description: `${updated.reference} · naik ke v${updated.version}.`,
+              });
+            }
+            return;
           }
-        } else {
+        } catch (error) {
+          const code = error instanceof TRPCClientError ? error.data?.code : undefined;
+          if (code === "CONFLICT") {
+            const msg = error instanceof Error ? error.message : "Konflik versi.";
+            setSaveState("conflict");
+            setStatusNote(msg);
+            if (!isAutoSave) {
+              toast.error("Konflik penyimpanan", { description: msg });
+            }
+            return;
+          }
+          console.warn("[tRPC] Backend unavailable, switching to direct Supabase Cloud:", error);
+        }
+      }
+
+      // Jalur 2: Direct Online Sync ke Cloud Supabase secara instan
+      try {
+        const saved = await saveShipmentToSupabase(shipment, activeShipmentId, version);
+        setActiveShipmentId(saved.id);
+        setVersion(saved.version);
+        setSaveState("saved");
+        const freshList = await fetchShipmentsFromSupabase();
+        setSupabaseList(freshList);
+        localStorage.setItem(getDraftStorageKey(null), JSON.stringify(shipment));
+        if (!isAutoSave) {
+          toast.success("Tersimpan ke Cloud Supabase", {
+            description: `${saved.reference} · v${saved.version} aman tersimpan di database online.`,
+          });
+        }
+      } catch (err) {
+        // Jalur 3: Fallback ke local draft jika koneksi jaringan offline
+        try {
+          localStorage.setItem(getDraftStorageKey(null), JSON.stringify(shipment));
+          localStorage.setItem("eksporflow-user-draft-manual", JSON.stringify(shipment));
+          setSaveState("local-draft");
+          if (!isAutoSave) {
+            toast.info("Draft tersimpan lokal di perangkat.");
+          }
+        } catch {
+          const message = err instanceof Error ? err.message : "Gagal menyimpan transaksi.";
           setSaveState("error");
           setStatusNote(message);
           if (!isAutoSave) {
@@ -330,11 +387,18 @@ export function useActiveShipment() {
   const deleteShipment = useCallback(
     async (id: string) => {
       try {
-        await deleteMutation.mutateAsync({ id });
-        await utils.shipments.list.invalidate();
+        if (user) {
+          try {
+            await deleteMutation.mutateAsync({ id });
+            await utils.shipments.list.invalidate();
+          } catch {}
+        }
+        await supabase.from("shipments").delete().eq("id", id);
+        setSupabaseList((prev) => prev.filter((s) => s.id !== id));
         if (activeShipmentId === id) {
           resetTransaction();
         }
+        toast.success("Transaksi berhasil dihapus");
         return true;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Gagal menghapus transaksi.";
@@ -342,7 +406,7 @@ export function useActiveShipment() {
         return false;
       }
     },
-    [deleteMutation, utils.shipments.list, activeShipmentId, resetTransaction],
+    [deleteMutation, utils.shipments.list, activeShipmentId, resetTransaction, user],
   );
 
   const loadCustomShipment = useCallback((next: Shipment, customId?: string | null) => {
@@ -383,6 +447,20 @@ export function useActiveShipment() {
   const pricing = useMemo(() => calculatePricing(shipment), [shipment]);
   const container = useMemo(() => calculateContainer(shipment), [shipment]);
 
+  const effectiveShipmentsList = useMemo(() => {
+    if (shipmentsQuery.data && shipmentsQuery.data.length > 0) {
+      return shipmentsQuery.data;
+    }
+    return supabaseList.map((item) => ({
+      id: item.id,
+      reference: item.reference,
+      status: item.status,
+      version: item.version,
+      updatedAt: item.updatedAt,
+      createdAt: item.createdAt,
+    }));
+  }, [shipmentsQuery.data, supabaseList]);
+
   return {
     user,
     isAuthLoading: authQuery.isLoading,
@@ -391,7 +469,7 @@ export function useActiveShipment() {
     version,
     saveState,
     statusNote,
-    shipmentsList: shipmentsQuery.data ?? [],
+    shipmentsList: effectiveShipmentsList,
     isLoadingList: shipmentsQuery.isLoading,
     pricing,
     container,
