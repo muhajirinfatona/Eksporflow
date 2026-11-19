@@ -449,6 +449,12 @@ export type Shipment = {
   buyerVerificationCode?: string;
   includeOfficialStamp?: boolean;
   officialStampColor?: "red" | "blue";
+  includeScannedCopyStamp?: boolean;
+  scannedCopyWatermark?: boolean;
+  kycStatus?: "unverified" | "kyc_personal" | "kyb_enterprise";
+  nik?: string;
+  npwp?: string;
+  nib?: string;
   docEditorFontFamily?: string;
   docEditorFontSize?: number;
   docEditorLineHeight?: number;
@@ -535,6 +541,12 @@ export const initialShipment: Shipment = {
   buyerVerificationCode: "ABF-DIGISIG-1092-DXB",
   includeOfficialStamp: true,
   officialStampColor: "red",
+  includeScannedCopyStamp: false,
+  scannedCopyWatermark: false,
+  kycStatus: "kyb_enterprise",
+  nik: "3171051208920004",
+  npwp: "01.345.678.9-012.000",
+  nib: "9120001234567",
   docEditorFontFamily: "Calibri",
   docEditorFontSize: 10.5,
   docEditorLineHeight: 1.25,

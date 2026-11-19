@@ -1,9 +1,12 @@
 import { AssistantModule } from "@/components/workspace/AssistantModule";
+import { BuyerAcquisitionModule } from "@/components/workspace/BuyerAcquisitionModule";
 import { ContainerModule } from "@/components/workspace/ContainerModule";
+import { DocumentScrutinyModule } from "@/components/workspace/DocumentScrutinyModule";
 import { DocumentsModule } from "@/components/workspace/DocumentsModule";
 import { OperationsModule } from "@/components/workspace/OperationsModule";
 import { PricingModule } from "@/components/workspace/PricingModule";
 import { RiskModule } from "@/components/workspace/RiskModule";
+import { TrackingModule } from "@/components/workspace/TrackingModule";
 import {
   ApprovalsView,
   BankView,
@@ -236,6 +239,9 @@ export default function Home() {
           flow={flow}
         />
       )}
+      {screen === "buyer_acquisition" && (
+        <BuyerAcquisitionModule shipment={shipment} update={update} navigate={navigate} />
+      )}
       {screen === "readiness" && (
         <ReadinessView shipment={shipment} update={update} navigate={navigate} flow={flow} />
       )}
@@ -334,8 +340,14 @@ export default function Home() {
           navigate={navigate}
         />
       )}
+      {screen === "tracking" && (
+        <TrackingModule shipment={shipment} update={update} navigate={navigate} />
+      )}
       {screen === "shipment" && (
         <OperationsModule shipment={shipment} update={update} navigate={navigate} />
+      )}
+      {screen === "scrutiny" && (
+        <DocumentScrutinyModule shipment={shipment} update={update} navigate={navigate} />
       )}
       {screen === "risk" && (
         <RiskModule

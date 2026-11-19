@@ -12,6 +12,8 @@ import {
   ChevronRight,
   ClipboardCheck,
   Cloud,
+  Compass,
+  FileSearch,
   FileSpreadsheet,
   FileText,
   Landmark,
@@ -20,6 +22,7 @@ import {
   ListChecks,
   LogIn,
   LogOut,
+  Mail,
   Menu,
   Package,
   PanelLeftClose,
@@ -30,6 +33,7 @@ import {
   Search,
   Settings2,
   ShieldAlert,
+  Ship,
   Truck,
   Users,
   Wallet,
@@ -55,6 +59,31 @@ export type ScreenMeta = {
 
 export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
   {
+    group: "Pra-Transaksi & Pasar",
+    items: [
+      {
+        id: "buyer_acquisition",
+        label: "Akuisisi Buyer & Penawaran",
+        group: "Pra-Transaksi & Pasar",
+        phase: "Pra-Transaksi",
+        title: "Akuisisi Buyer & Otomasi Penawaran",
+        description:
+          "Pencarian buyer luar negeri terverifikasi, verifikasi anti-fake buyer, generator surat penawaran, dan bulk email AI.",
+        icon: <Mail size={16} />,
+      },
+      {
+        id: "readiness",
+        label: "Asesmen Kesiapan",
+        group: "Pra-Transaksi & Pasar",
+        phase: "Pra-Transaksi",
+        title: "Asesmen Kesiapan Ekspor",
+        description:
+          "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
+        icon: <CheckCircle2 size={16} />,
+      },
+    ],
+  },
+  {
     group: "Ringkasan",
     items: [
       {
@@ -66,16 +95,6 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         description:
           "Satu sumber data terhubung untuk memantau penawaran, kesiapan dokumen, muatan kontainer, dan langkah operasional.",
         icon: <LayoutGrid size={16} />,
-      },
-      {
-        id: "readiness",
-        label: "Asesmen Kesiapan",
-        group: "Ringkasan",
-        phase: "Ringkasan",
-        title: "Asesmen Kesiapan Ekspor",
-        description:
-          "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
-        icon: <CheckCircle2 size={16} />,
       },
     ],
   },
@@ -132,7 +151,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Operasional Ekspor",
         title: "Dokumen Ekspor",
         description:
-          "Siapkan Proforma Invoice, Commercial Invoice, Packing List, dan B/L draft dari satu sumber data transaksi.",
+          "Siapkan 5 Dokumen Inti (PI, SC, CI, PL, SI) dan cap digital Scanned Copy untuk penagihan TT.",
         icon: <FileText size={16} />,
       },
       {
@@ -140,10 +159,20 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "Rencana Muatan",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Rencana Muatan & Simulasi 3D",
+        title: "Rencana Muatan & Kubikasi",
         description:
-          "Hitung kapasitas volume/berat kontainer, pallet kayu, dan susut komoditas tanpa mencampur layar dokumen.",
+          "Kalkulasi kapasitas volume/berat kontainer 20ft, 40ft, 40ft HC, CBM, pallet kayu, dan susut muatan.",
         icon: <Box size={16} />,
+      },
+      {
+        id: "tracking",
+        label: "Mid-Sea Tracking",
+        group: "Operasional Ekspor",
+        phase: "Operasional Ekspor",
+        title: "Mid-Sea Container Tracking",
+        description:
+          "Pemantauan visual posisi dan pergerakan kontainer secara maritim selama di tengah laut via nomor kontainer / BL.",
+        icon: <Ship size={16} />,
       },
       {
         id: "shipment",
@@ -154,6 +183,16 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         description:
           "Pantau tahapan shipment, nomor booking/kontainer/seal, handoff checklist, dan arsip bukti transaksi.",
         icon: <Truck size={16} />,
+      },
+      {
+        id: "scrutiny",
+        label: "AI Document Scrutiny",
+        group: "Operasional Ekspor",
+        phase: "Operasional Ekspor",
+        title: "AI Document Scrutiny & Validasi Silang",
+        description:
+          "Ekstraksi data OCR draft B/L forwarder, validasi silang 3-way dengan CI & PL guna mencegah demurrage.",
+        icon: <FileSearch size={16} />,
       },
       {
         id: "risk",
@@ -599,6 +638,15 @@ export function WorkspaceShell({
                 )}
               </div>
             )}
+
+            <div
+              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 cursor-pointer hover:bg-emerald-500/20 transition-all"
+              title="Akses Mode Simulasi Uji Coba Demo 3 Hari bagi UMKM Pemula"
+              onClick={() => navigate("settings")}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Demo 3 Hari · Sisa 2 Hari 14 Jam</span>
+            </div>
 
             <IconButton
               label="Cari halaman"

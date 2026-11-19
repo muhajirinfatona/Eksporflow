@@ -47,6 +47,8 @@ import {
   Ship,
   SlidersHorizontal,
   Sparkles,
+  Stamp,
+  FileSearch,
   Trash2,
   Upload,
   UploadCloud,
@@ -1404,6 +1406,36 @@ export function DocumentsModule({
               <span>AI Audit</span>
             </button>
 
+            {/* Fitur 3.3: Cap Scanned Copy untuk Penagihan TT */}
+            <button
+              type="button"
+              className={`doc-btn-ai-screen ${shipment.includeScannedCopyStamp ? "active font-bold text-red-500" : ""}`}
+              onClick={() => {
+                const next = !shipment.includeScannedCopyStamp;
+                trackedUpdate("includeScannedCopyStamp", next);
+                toast.success(
+                  next
+                    ? "Cap Digital 'Scanned Copy' Diaktifkan!"
+                    : "Cap Digital 'Scanned Copy' Dinonaktifkan."
+                );
+              }}
+              title="Aktifkan cap/watermark SCANNED COPY untuk penagihan TT"
+            >
+              <Stamp size={14} className={shipment.includeScannedCopyStamp ? "text-red-500" : ""} />
+              <span>{shipment.includeScannedCopyStamp ? "Scanned Copy ✓" : "Cap Scanned"}</span>
+            </button>
+
+            {/* Fitur 3.1: Validasi Silang B/L OCR Scrutiny */}
+            <button
+              type="button"
+              className="doc-btn-ai-screen"
+              onClick={() => navigate("scrutiny")}
+              title="Validasi Silang OCR Dokumen Pihak Ketiga (Draft B/L)"
+            >
+              <FileSearch size={14} />
+              <span>B/L Scrutiny</span>
+            </button>
+
             {/* Setelan Drawer */}
             <button
               type="button"
@@ -1627,6 +1659,23 @@ export function DocumentsModule({
                 opacity: 1,
               }}
             />
+          )}
+
+          {/* Fitur 3.3: SCANNED COPY Watermark & Stempel Digital Resmi untuk Penagihan TT */}
+          {shipment.includeScannedCopyStamp && (
+            <div className="pointer-events-none select-none absolute inset-0 flex flex-col items-center justify-center z-30 overflow-hidden">
+              <div className="transform -rotate-25 border-4 md:border-[6px] border-red-600/35 rounded-2xl px-8 md:px-14 py-4 md:py-6 text-center bg-red-500/[0.03] shadow-lg backdrop-blur-[0.5px]">
+                <div className="text-[11px] md:text-xs font-bold tracking-widest text-red-600/50 uppercase border-b border-red-600/30 pb-1">
+                  ★ NON-NEGOTIABLE OFFICIAL EXPORT COPY ★
+                </div>
+                <div className="text-4xl md:text-6xl font-black tracking-widest text-red-600/40 uppercase font-mono py-1">
+                  SCANNED COPY
+                </div>
+                <div className="text-[10px] md:text-xs font-bold tracking-wider text-red-600/50 uppercase border-t border-red-600/30 pt-1">
+                  RELEASED EXCLUSIVELY FOR TELEGRAPHIC TRANSFER (TT) FINAL PAYMENT
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Official Letterhead Header */}

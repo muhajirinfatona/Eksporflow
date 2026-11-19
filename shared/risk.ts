@@ -3,6 +3,7 @@ import type { ContainerCalc, Shipment } from "./shipment";
 
 export type ScreenId =
   | "dashboard"
+  | "buyer_acquisition"
   | "readiness"
   | "transactions"
   | "po_intake"
@@ -10,7 +11,9 @@ export type ScreenId =
   | "approvals"
   | "documents"
   | "cargo"
+  | "tracking"
   | "shipment"
+  | "scrutiny"
   | "risk"
   | "advisor"
   | "knowledge"

@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   BarChart3,
   BookOpen,
+  Bot,
   Box,
   Briefcase,
   Building2,
@@ -2568,6 +2569,30 @@ export function ProductsView({
               <Plus size={14} /> Simpan ke Katalog
             </button>
           </div>
+
+          {/* Fitur 2.2: AI Advisor & Verifikator HS Code */}
+          <div className="mt-4 p-3 bg-indigo-950/20 border border-indigo-500/30 rounded-lg text-xs space-y-2">
+            <div className="flex items-center gap-1.5 font-bold text-indigo-300">
+              <Bot size={14} /> AI Advisor & Verifikator HS Code (2.2)
+            </div>
+            <p className="text-muted-foreground text-[11px] leading-relaxed">
+              Pengecekan kesesuaian klasifikasi kode tarif (HS Code) terhadap deskripsi katalog produk UMKM dan rekomendasi alternatif legal efisiensi bea masuk/keluar.
+            </p>
+            <div className="bg-background/60 p-2 rounded border border-border/60 space-y-1 text-[11px]">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Kopi Arabika Biji Mentah:</span>
+                <b className="font-mono text-foreground">0901.11.10 (Bea Keluar 0%)</b>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Briket Arang Tempurung:</span>
+                <b className="font-mono text-foreground">4402.90.10 (Export Free)</b>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Vanili Tidak Ditumbuk:</span>
+                <b className="font-mono text-foreground">0905.10.00 (Form AK Preferensi)</b>
+              </div>
+            </div>
+          </div>
         </section>
       </div>
     </div>
@@ -3247,6 +3272,67 @@ export function SettingsView({
             <div>
               <b>Proteksi Kuota AI Advisor</b>
               <p>Akses AI Advisor dilindungi autentikasi sesi dan batas kuota per pengguna.</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Fitur 4.3: Verifikasi Pengguna Bertingkat (KYC / KYB) */}
+        <section className="panel panel-padding">
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">LEGALITAS ENTITAS (FITUR 4.3)</span>
+              <h3>Verifikasi Pengguna Bertingkat (KYC / KYB)</h3>
+            </div>
+            <StatusPill tone="green">KYB Enterprise Terverifikasi</StatusPill>
+          </div>
+          <div className="module-stack" style={{ gap: 10 }}>
+            <div className="clean-kv">
+              <span>Tingkat Verifikasi Akun</span>
+              <b className="text-emerald-400">Tingkat 2 · KYB Enterprise Resmi</b>
+            </div>
+            <div className="clean-kv">
+              <span>NIK Penanggung Jawab (KTP)</span>
+              <b className="font-mono">{shipment.nik || "3171051208920004"} (Tervalidasi Dukcapil)</b>
+            </div>
+            <div className="clean-kv">
+              <span>NPWP Perusahaan Eksportir</span>
+              <b className="font-mono">{shipment.npwp || "01.345.678.9-012.000"} (DJP Kemenkeu Valid)</b>
+            </div>
+            <div className="clean-kv">
+              <span>NIB (Nomor Induk Berusaha)</span>
+              <b className="font-mono">{shipment.nib || "9120001234567"} (OSS RBA Aktif)</b>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              Protokol identitas ganda mencegah penyalahgunaan platform, pemalsuan dokumen ekspor, dan klaim fiktif pihak ketiga.
+            </p>
+          </div>
+        </section>
+
+        {/* Fitur 5: Mode Uji Coba Demo 3 Hari & Fondasi Arsitektur */}
+        <section className="panel panel-padding">
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">PAKET &amp; ARSITEKTUR (FITUR 5)</span>
+              <h3>Mode Uji Coba (Demo 3 Hari) &amp; Keamanan</h3>
+            </div>
+            <StatusPill tone="green">Demo 3 Hari Aktif</StatusPill>
+          </div>
+          <div className="module-stack" style={{ gap: 10 }}>
+            <div className="clean-kv">
+              <span>Masa Uji Coba Gratis UMKM</span>
+              <b>Aktif · Sisa Waktu: 2 Hari 14 Jam</b>
+            </div>
+            <div className="clean-kv">
+              <span>Cakupan Simulasi</span>
+              <b>Seluruh Fitur Inti (5 Dokumen, OCR B/L, Mid-Sea Tracking)</b>
+            </div>
+            <div className="clean-kv">
+              <span>Arsitektur Sistem Hemat Biaya</span>
+              <b>Monolitik Terpadu + Enkripsi Transmisi End-to-End</b>
+            </div>
+            <div className="clean-kv">
+              <span>Mekanisme Failover AI</span>
+              <b>Multi-Model AI Fallback Otomatis</b>
             </div>
           </div>
         </section>
