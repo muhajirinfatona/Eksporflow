@@ -1,4 +1,9 @@
 import { trpc } from "@/lib/trpc";
+import {
+  registerWithSupabase,
+  loginWithSupabase,
+  resetPasswordWithSupabase,
+} from "@/lib/supabaseAuth";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Building2,
@@ -820,29 +825,48 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
     }
 
     try {
-      const result = await registerMutation.mutateAsync({
+      // 1. Coba langsung simpan dan autentikasi ke Supabase Database
+      const session = await registerWithSupabase({
         name: name.trim(),
         companyName: companyName.trim(),
         email: email.trim(),
         password,
       });
-      setEmail(result.email);
-      setOtpDigits(["", "", "", "", "", ""]);
-      if (result.devOtpCode) {
-        setDevOtpHint(result.devOtpCode);
-        try {
-          window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
-        } catch {
-          // Abaikan
-        }
-      }
-      switchStep("verify", { email: result.email, origin: "register" });
-      toast.success("Akun berhasil dibuat!", {
-        description: `Masukkan 6 digit kode verifikasi untuk mengaktifkan workspace ${companyName.trim()}.`,
+
+      markHasLoggedInBefore();
+      setHasLoggedInBefore(true);
+      toast.success("Akun berhasil didaftarkan!", {
+        description: `Selamat datang di EksporFlow, ${session.name}! Workspace ${session.companyName || "Anda"} siap digunakan.`,
       });
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Gagal mendaftarkan akun.";
-      setErrorMessage(msg);
+      await onAuthenticated();
+      return;
+    } catch (sbError) {
+      console.warn("[Register] Supabase direct error, fallback to tRPC:", sbError);
+      try {
+        const result = await registerMutation.mutateAsync({
+          name: name.trim(),
+          companyName: companyName.trim(),
+          email: email.trim(),
+          password,
+        });
+        setEmail(result.email);
+        setOtpDigits(["", "", "", "", "", ""]);
+        if (result.devOtpCode) {
+          setDevOtpHint(result.devOtpCode);
+          try {
+            window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
+          } catch {
+            // Abaikan
+          }
+        }
+        switchStep("verify", { email: result.email, origin: "register" });
+        toast.success("Akun berhasil dibuat!", {
+          description: `Masukkan 6 digit kode verifikasi untuk mengaktifkan workspace ${companyName.trim()}.`,
+        });
+      } catch (error) {
+        const msg = sbError instanceof Error ? sbError.message : (error instanceof Error ? error.message : "Gagal mendaftarkan akun.");
+        setErrorMessage(msg);
+      }
     }
   };
 
@@ -857,28 +881,45 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
 
     setOriginStep("login");
     try {
-      const result = await loginMutation.mutateAsync({
+      // 1. Coba langsung masuk via Supabase Database
+      const session = await loginWithSupabase({
         email: email.trim(),
         password,
       });
 
-      setEmail(result.email);
-      setOtpDigits(["", "", "", "", "", ""]);
-      if (result.devOtpCode) {
-        setDevOtpHint(result.devOtpCode);
-        try {
-          window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
-        } catch {
-          // Abaikan
-        }
-      }
-      switchStep("verify", { email: result.email, origin: "login" });
-      toast.info("Verifikasi akun", {
-        description: "Masukkan 6 digit kode verifikasi untuk melanjutkan ke workspace.",
+      markHasLoggedInBefore();
+      setHasLoggedInBefore(true);
+      toast.success(`Selamat datang kembali, ${session.name}!`, {
+        description: `Workspace ${session.companyName || "EksporFlow"} siap digunakan.`,
       });
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Gagal masuk ke akun.";
-      setErrorMessage(msg);
+      await onAuthenticated();
+      return;
+    } catch (sbError) {
+      console.warn("[Login] Supabase direct error, fallback to tRPC:", sbError);
+      try {
+        const result = await loginMutation.mutateAsync({
+          email: email.trim(),
+          password,
+        });
+
+        setEmail(result.email);
+        setOtpDigits(["", "", "", "", "", ""]);
+        if (result.devOtpCode) {
+          setDevOtpHint(result.devOtpCode);
+          try {
+            window.sessionStorage.setItem("eksporflow:auth_dev_otp", result.devOtpCode);
+          } catch {
+            // Abaikan
+          }
+        }
+        switchStep("verify", { email: result.email, origin: "login" });
+        toast.info("Verifikasi akun", {
+          description: "Masukkan 6 digit kode verifikasi untuk melanjutkan ke workspace.",
+        });
+      } catch (error) {
+        const msg = sbError instanceof Error ? sbError.message : (error instanceof Error ? error.message : "Gagal masuk ke akun.");
+        setErrorMessage(msg);
+      }
     }
   };
 

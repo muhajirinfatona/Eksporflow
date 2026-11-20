@@ -6,6 +6,11 @@ import {
   saveShipmentToSupabase,
   supabase,
 } from "@/lib/supabaseClient";
+import {
+  getCurrentUser,
+  logoutFromSupabase,
+  type UserSession,
+} from "@/lib/supabaseAuth";
 import { calculateContainer } from "@shared/container";
 import { calculatePricing } from "@shared/pricing";
 import {
@@ -59,7 +64,8 @@ export function useActiveShipment() {
     retry: false,
     refetchOnWindowFocus: false,
   });
-  const user = authQuery.data ?? null;
+  const [supabaseUser, setSupabaseUser] = useState<UserSession | null>(() => getCurrentUser());
+  const user = authQuery.data ?? (supabaseUser as any) ?? null;
 
   const [shipment, setShipment] = useState<Shipment>(() => createEmptyShipment());
   const [activeShipmentId, setActiveShipmentId] = useState<string | null>(null);
@@ -425,19 +431,34 @@ export function useActiveShipment() {
 
   const refreshAuth = useCallback(async () => {
     loadedForUserIdRef.current = null;
-    await utils.auth.me.invalidate();
-    await utils.shipments.list.invalidate();
+    setSupabaseUser(getCurrentUser());
+    try {
+      await utils.auth.me.invalidate();
+      await utils.shipments.list.invalidate();
+    } catch {
+      // Abaikan jika tRPC offline
+    }
   }, [utils.auth.me, utils.shipments.list]);
 
   const logout = useCallback(async () => {
     try {
-      await logoutMutation.mutateAsync();
+      logoutFromSupabase();
+      setSupabaseUser(null);
+      try {
+        await logoutMutation.mutateAsync();
+      } catch {
+        // Abaikan jika tRPC offline
+      }
       loadedForUserIdRef.current = null;
       setActiveShipmentId(null);
       setShipment(createEmptyShipment());
       setVersion(1);
       setSaveState("unsaved");
-      await utils.auth.me.invalidate();
+      try {
+        await utils.auth.me.invalidate();
+      } catch {
+        // Abaikan
+      }
       toast("Anda telah keluar dari akun EksporFlow");
     } catch {
       toast.error("Gagal keluar sesi");
