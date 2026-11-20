@@ -11475,8 +11475,8 @@ textarea:focus-visible {
     width: 100% !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
     overflow: visible !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -11486,8 +11486,8 @@ textarea:focus-visible {
     grid-template-columns: 1fr 1fr !important;
     width: 100% !important;
     align-items: stretch !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
   }
   .unlk-border-r {
     border-right: 2px solid #334155 !important;
@@ -11535,8 +11535,8 @@ textarea:focus-visible {
     box-sizing: border-box !important;
     border: 2px solid #334155 !important;
     empty-cells: show !important;
-    break-inside: avoid !important;
-    page-break-inside: avoid !important;
+    break-inside: auto !important;
+    page-break-inside: auto !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
   }
@@ -11633,6 +11633,166 @@ textarea:focus-visible {
   }
   .unlk-sig-zone {
     min-height: 36px !important;
+  }
+
+  /* Standar Presisi 1 Halaman untuk Dokumen Perdagangan (Proforma Invoice, Commercial Invoice, Packing List) */
+  .doc-type-proforma-invoice,
+  .doc-type-commercial-invoice,
+  .doc-type-packing-list,
+  .doc-type-shipping-instruction {
+    font-size: 8.5pt !important;
+    line-height: 1.18 !important;
+  }
+
+  .doc-type-proforma-invoice .paper-letterhead-wrap,
+  .doc-type-commercial-invoice .paper-letterhead-wrap,
+  .doc-type-packing-list .paper-letterhead-wrap,
+  .doc-type-shipping-instruction .paper-letterhead-wrap {
+    margin-bottom: 2px !important;
+    padding-top: 0 !important;
+  }
+
+  .doc-type-proforma-invoice .company-name,
+  .doc-type-commercial-invoice .company-name,
+  .doc-type-packing-list .company-name,
+  .doc-type-shipping-instruction .company-name {
+    font-size: 13pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice .company-tagline,
+  .doc-type-commercial-invoice .company-tagline,
+  .doc-type-packing-list .company-tagline,
+  .doc-type-shipping-instruction .company-tagline {
+    font-size: 6.8pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice .company-details,
+  .doc-type-commercial-invoice .company-details,
+  .doc-type-packing-list .company-details,
+  .doc-type-shipping-instruction .company-details {
+    font-size: 7.4pt !important;
+    line-height: 1.18 !important;
+  }
+
+  .doc-type-proforma-invoice .letterhead-logo-container img,
+  .doc-type-commercial-invoice .letterhead-logo-container img,
+  .doc-type-packing-list .letterhead-logo-container img,
+  .doc-type-shipping-instruction .letterhead-logo-container img {
+    max-height: 44px !important;
+    width: auto !important;
+  }
+
+  .doc-type-proforma-invoice .letterhead-divider-line,
+  .doc-type-commercial-invoice .letterhead-divider-line,
+  .doc-type-packing-list .letterhead-divider-line,
+  .doc-type-shipping-instruction .letterhead-divider-line {
+    margin-top: 1px !important;
+    margin-bottom: 3px !important;
+  }
+
+  .doc-type-proforma-invoice .doc-title-bar,
+  .doc-type-commercial-invoice .doc-title-bar,
+  .doc-type-packing-list .doc-title-bar,
+  .doc-type-shipping-instruction .doc-title-bar {
+    margin: 1px 0 2px 0 !important;
+    padding: 2.5px 6px !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  .doc-type-proforma-invoice .doc-title-bar h2,
+  .doc-type-commercial-invoice .doc-title-bar h2,
+  .doc-type-packing-list .doc-title-bar h2,
+  .doc-type-shipping-instruction .doc-title-bar h2 {
+    font-size: 10pt !important;
+    line-height: 1.15 !important;
+    letter-spacing: 0.05em !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-cell,
+  .doc-type-commercial-invoice .unlk-cell,
+  .doc-type-packing-list .unlk-cell,
+  .doc-type-shipping-instruction .unlk-cell {
+    padding: 2px 5px !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-lbl,
+  .doc-type-commercial-invoice .unlk-lbl,
+  .doc-type-packing-list .unlk-lbl,
+  .doc-type-shipping-instruction .unlk-lbl {
+    font-size: 6.8pt !important;
+    line-height: 1.05 !important;
+    margin-bottom: 0px !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-val,
+  .doc-type-commercial-invoice .unlk-val,
+  .doc-type-packing-list .unlk-val,
+  .doc-type-shipping-instruction .unlk-val {
+    font-size: 7.8pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-val-bold,
+  .doc-type-commercial-invoice .unlk-val-bold,
+  .doc-type-packing-list .unlk-val-bold,
+  .doc-type-shipping-instruction .unlk-val-bold {
+    font-size: 7.8pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice table.unlk-items-table th,
+  .doc-type-commercial-invoice table.unlk-items-table th,
+  .doc-type-packing-list table.unlk-items-table th {
+    font-size: 7.2pt !important;
+    padding: 2.5px 4px !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice table.unlk-items-table td,
+  .doc-type-commercial-invoice table.unlk-items-table td,
+  .doc-type-packing-list table.unlk-items-table td {
+    font-size: 7.6pt !important;
+    padding: 2px 5px !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-item-spec,
+  .doc-type-commercial-invoice .unlk-item-spec,
+  .doc-type-packing-list .unlk-item-spec {
+    font-size: 7.2pt !important;
+    line-height: 1.12 !important;
+  }
+
+  .doc-type-proforma-invoice table.unlk-items-table tfoot td,
+  .doc-type-commercial-invoice table.unlk-items-table tfoot td,
+  .doc-type-packing-list table.unlk-items-table tfoot td {
+    font-size: 7.6pt !important;
+    padding: 2px 4px !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-total-bar,
+  .doc-type-commercial-invoice .unlk-total-bar {
+    padding: 2px 5px !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-bank-lines,
+  .doc-type-commercial-invoice .unlk-bank-lines {
+    font-size: 7.2pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-bank-lines > div,
+  .doc-type-commercial-invoice .unlk-bank-lines > div {
+    font-size: 7.2pt !important;
+    line-height: 1.15 !important;
+  }
+
+  .doc-type-proforma-invoice .unlk-sig-zone,
+  .doc-type-commercial-invoice .unlk-sig-zone {
+    min-height: 32px !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */

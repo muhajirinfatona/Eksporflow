@@ -1208,8 +1208,8 @@ export function DocumentsModule({
             box-sizing: border-box !important;
             border: 2px solid #334155 !important;
             empty-cells: show !important;
-            break-inside: avoid !important;
-            page-break-inside: avoid !important;
+            break-inside: auto !important;
+            page-break-inside: auto !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
