@@ -1159,13 +1159,19 @@ export function DocumentsModule({
     toast.info("Model Kop Surat Standar Garis Ganda diterapkan.");
   };
 
+  const isTradeDoc = ["Proforma Invoice", "Commercial Invoice", "Packing List", "Shipping Instruction"].includes(selectedDocument);
+  const printMarginTop = isTradeDoc ? Math.min(6, docMargins.top) : docMargins.top;
+  const printMarginBottom = isTradeDoc ? Math.min(6, docMargins.bottom) : docMargins.bottom;
+  const printMarginLeft = isTradeDoc ? Math.min(8, docMargins.left) : docMargins.left;
+  const printMarginRight = isTradeDoc ? Math.min(8, docMargins.right) : docMargins.right;
+
   return (
     <div className={`doc-center-root ${isEditMode ? "doc-edit-mode-active" : ""}`}>
       <style>{`
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm !important;
+            margin: ${printMarginTop}mm ${printMarginRight}mm ${printMarginBottom}mm ${printMarginLeft}mm !important;
           }
           .paper-document {
             width: 100% !important;
@@ -1233,9 +1239,9 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table thead th {
-            font-size: 9pt !important;
+            font-size: ${isTradeDoc ? "6.8pt" : "9pt"} !important;
             font-weight: 600 !important;
-            padding: 3px 5px !important;
+            padding: ${isTradeDoc ? "2px 3.5px" : "3px 5px"} !important;
             border: 1.7px solid #64748b !important;
             background-color: transparent !important;
             color: #0f172a !important;
@@ -1244,9 +1250,9 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table tbody td {
-            font-size: 9.5pt !important;
-            line-height: 1.2 !important;
-            padding: 3px 6px !important;
+            font-size: ${isTradeDoc ? "7pt" : "9.5pt"} !important;
+            line-height: ${isTradeDoc ? "1.12" : "1.2"} !important;
+            padding: ${isTradeDoc ? "1.5px 4px" : "3px 6px"} !important;
             border: 1.7px solid #64748b !important;
             background-color: transparent !important;
             empty-cells: show !important;
@@ -1255,8 +1261,8 @@ export function DocumentsModule({
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-            padding: 2.5px 5px !important;
-            font-size: 9.5pt !important;
+            padding: ${isTradeDoc ? "1.5px 4px" : "2.5px 5px"} !important;
+            font-size: ${isTradeDoc ? "7pt" : "9.5pt"} !important;
             height: auto !important;
             border: 1.7px solid #64748b !important;
             background-color: transparent !important;
@@ -1277,12 +1283,17 @@ export function DocumentsModule({
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
-            font-size: 9pt !important;
+            font-size: ${isTradeDoc ? "6.8pt" : "9pt"} !important;
             border: 1.7px solid #64748b !important;
           }
           .unlk-total-bar {
             border-bottom: 1.7px solid #64748b !important;
             background: #f8fafc !important;
+            box-sizing: border-box !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
             box-sizing: border-box !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
