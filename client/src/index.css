@@ -11791,8 +11791,17 @@ textarea:focus-visible {
   }
 
   .doc-type-proforma-invoice .unlk-sig-zone,
-  .doc-type-commercial-invoice .unlk-sig-zone {
-    min-height: 32px !important;
+  .doc-type-commercial-invoice .unlk-sig-zone,
+  .doc-type-packing-list .unlk-sig-zone,
+  .doc-type-shipping-instruction .unlk-sig-zone {
+    min-height: 28px !important;
+  }
+  .doc-type-proforma-invoice .unlk-sig-zone img,
+  .doc-type-commercial-invoice .unlk-sig-zone img,
+  .doc-type-packing-list .unlk-sig-zone img,
+  .doc-type-shipping-instruction .unlk-sig-zone img {
+    max-height: 38px !important;
+    width: auto !important;
   }
 
   /* Shipping Instruction (SI) specific print rules */

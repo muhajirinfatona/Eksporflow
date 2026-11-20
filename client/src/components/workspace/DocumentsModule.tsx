@@ -5014,7 +5014,7 @@ function ProformaInvoiceDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+            <div className="unlk-cell unlk-sig-zone unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
               <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
@@ -5912,7 +5912,7 @@ function CommercialInvoiceDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+            <div className="unlk-cell unlk-sig-zone unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
               <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
@@ -6244,7 +6244,7 @@ function PackingListDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+            <div className="unlk-cell unlk-sig-zone unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
               <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
@@ -6564,7 +6564,7 @@ function ShippingInstructionDoc({
               <div className="unlk-val-bold">{exporterName}</div>
             </div>
 
-            <div className="unlk-cell unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
+            <div className="unlk-cell unlk-sig-zone unlk-flex-fill" style={{ minHeight: "105px", padding: "6px 8px" }}>
               <div className="unlk-lbl mb-1">{isId ? "Tanda Tangan & Cap Resmi" : "Authorized Signature & Official Seal"}</div>
               <UnlkSignatureBox
                 shipment={shipment}
