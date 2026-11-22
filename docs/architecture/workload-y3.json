@@ -1,0 +1,13 @@
+{
+  "daily_active_users": 10000,
+  "requests_per_user_per_day": 120,
+  "peak_multiplier": 6,
+  "avg_request_kb": 6,
+  "avg_response_kb": 40,
+  "write_ratio": 0.15,
+  "stored_kb_per_write": 12,
+  "replication_factor": 2,
+  "index_overhead_multiplier": 1.4,
+  "retention_days": 1825,
+  "target_sla_percent": 99.9
+}

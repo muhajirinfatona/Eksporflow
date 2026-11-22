@@ -1,0 +1,194 @@
+{
+  "objectives": [
+    {
+      "id": "OBJ-01",
+      "title": "Guided Onboarding & Multi-Commodity Activation",
+      "target": "75% pengguna baru menyelesaikan 4 langkah onboarding dan menghasilkan kalkulasi Incoterm pertama dalam <= 5 menit."
+    },
+    {
+      "id": "OBJ-02",
+      "title": "AI Advisor v2 Grounded Accuracy & Governance",
+      "target": ">= 90% jawaban berbasis SOP menyertakan sitasi chunk valid, 100% hitungan memakai deterministic tools, dan >= 95% lulus 100-case eval suite."
+    },
+    {
+      "id": "OBJ-03",
+      "title": "Master Data Persistence, Immutable Documents & Approval SoD",
+      "target": "100% master data, approval, dan snapshot dokumen tersimpan di PostgreSQL dengan RLS aktif, hash SHA-256, dan pencegahan self-approval."
+    },
+    {
+      "id": "OBJ-04",
+      "title": "High-Precision Trade Command Center UI/UX",
+      "target": ">= 85% penyelesaian alur ujung-ke-ujung tanpa salah navigasi, rasio kontras >= 4.5:1, dan waktu respons interaksi tab < 100 ms."
+    }
+  ],
+  "requirements": [
+    {
+      "id": "FR-001",
+      "type": "FR",
+      "objective_id": "OBJ-01",
+      "priority": "Must",
+      "description": "Landing page menyediakan dua jalur masuk eksplisit: Login/Registrasi Akun Terverifikasi OTP 6 digit dan Mode Demo Instan berlabel status sesi simulasi.",
+      "test_cases": ["TC-ONB-01", "TC-ONB-02"]
+    },
+    {
+      "id": "FR-002",
+      "type": "FR",
+      "objective_id": "OBJ-01",
+      "priority": "Must",
+      "description": "Wizard Onboarding memandu pengguna baru melewati 4 langkah berurutan: (1) Identitas Eksportir & NPWP/NIB, (2) Pilihan Preset Multi-Komoditas, (3) Registrasi Buyer & Produk Pertama, (4) Kalkulasi Harga & Preview Dokumen Pertama.",
+      "test_cases": ["TC-ONB-03", "TC-ONB-04"]
+    },
+    {
+      "id": "FR-003",
+      "type": "FR",
+      "objective_id": "OBJ-01",
+      "priority": "Must",
+      "description": "Preset Multi-Komoditas mendukung minimal 4 sektor (Pertanian/Perkebunan, Perikanan/Hasil Laut, Manufaktur/Makanan Olahan, Kerajinan/Furnitur) lengkap dengan kode HS 6 digit, satuan kemasan, dan persentase susut default.",
+      "test_cases": ["TC-ONB-05"]
+    },
+    {
+      "id": "FR-004",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Modul Master Data menyediakan operasi Create, Read, Update, dan Delete server-side pada tabel masterBuyers dan masterProducts yang terikat ke workspaceId dengan aksi terapkan langsung ke transaksi aktif.",
+      "test_cases": ["TC-MD-01", "TC-MD-02", "TC-MD-03"]
+    },
+    {
+      "id": "FR-005",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Modul Pengaturan Workspace menyimpan undangan anggota tim pada tabel workspaceInvitations dengan token unik, role (admin/editor/viewer), masa berlaku 7 hari, dan pencatatan status diterima/kedaluwarsa.",
+      "test_cases": ["TC-INV-01", "TC-INV-02"]
+    },
+    {
+      "id": "FR-006",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Kalkulator Harga menghitung 7 skenario Incoterms 2020 (EXW, FCA, FOB, CFR, CIF, DAP, DDP) memakai formula net price cost / (1 - target_margin) dengan validasi batas 0% <= margin < 100% dan kurs > 0.",
+      "test_cases": ["TC-PRC-01", "TC-PRC-02"]
+    },
+    {
+      "id": "FR-007",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Simulator Muatan menghitung volume produk, volume pallet, net weight, gross weight, shrinkage loss, serta utilisasi kontainer 20GP/40GP/40HC per line item.",
+      "test_cases": ["TC-CRG-01", "TC-CRG-02"]
+    },
+    {
+      "id": "FR-008",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Document Engine menghasilkan 6 jenis dokumen (Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, Shipping Instruction, Draft Bill of Lading) dan menolak penguncian snapshot bila pemeriksaan konsistensi 3-way gagal.",
+      "test_cases": ["TC-DOC-01", "TC-DOC-02"]
+    },
+    {
+      "id": "FR-009",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Setiap penerbitan revisi dokumen resmi menyimpan rekaman append-only di tabel documentSnapshots berisi nomor revisi, payloadJson, contentHashSha256, ukuran kertas, orientasi, dan metadata PDF server-side.",
+      "test_cases": ["TC-DOC-03", "TC-DOC-04"]
+    },
+    {
+      "id": "FR-010",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Risk Center & Screening memvalidasi 4 gate legal (HS Code, COO/Asal Barang, Payment Terms, Buyer/Country Screening), memeriksa konsistensi 3-way, dan menetapkan status akhir 'Review complete — verify' tanpa mengklaim pelepasan pabean otomatis.",
+      "test_cases": ["TC-RSK-01", "TC-RSK-02"]
+    },
+    {
+      "id": "FR-011",
+      "type": "FR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Modul Approval menyimpan keputusan persetujuan di tabel shipmentApprovals, menolak self-approval pada workspace multi-anggota (requesterUserId != reviewerUserId), dan mengubah status efektif menjadi 'Perlu review ulang' jika nilai offer, incoterm, atau margin berubah > 0.01.",
+      "test_cases": ["TC-APR-01", "TC-APR-02", "TC-APR-03"]
+    },
+    {
+      "id": "FR-012",
+      "type": "FR",
+      "objective_id": "OBJ-02",
+      "priority": "Must",
+      "description": "Knowledge Base menyimpan dokumen SOP/regulasi pada tabel knowledgeDocuments dan potongan teks pada knowledgeChunks; AI Advisor hanya mengambil chunk dari dokumen workspace aktif yang berstatus 'Published' dan belum melewati expiresAt.",
+      "test_cases": ["TC-AI-01", "TC-AI-02"]
+    },
+    {
+      "id": "FR-013",
+      "type": "FR",
+      "objective_id": "OBJ-02",
+      "priority": "Must",
+      "description": "AI Advisor v2 mengeksekusi tool calling deterministik untuk perhitungan harga Incoterm, kapasitas kontainer, dan skor risiko, serta menyertakan sitasi sumber dokumen atau melakukan abstention eksplisit ketika bukti tidak tersedia.",
+      "test_cases": ["TC-AI-03", "TC-AI-04"]
+    },
+    {
+      "id": "FR-014",
+      "type": "FR",
+      "objective_id": "OBJ-02",
+      "priority": "Must",
+      "description": "Setiap interaksi AI Advisor menerapkan redaksi PII sebelum memanggil LLM, mencatat model, latencyMs, token usage, toolCallsJson, citationsJson, dan abstained flag ke tabel aiInteractionLogs, serta menyimpan penilaian pengguna di tabel aiFeedback.",
+      "test_cases": ["TC-AI-05", "TC-AI-06"]
+    },
+    {
+      "id": "FR-015",
+      "type": "FR",
+      "objective_id": "OBJ-04",
+      "priority": "Must",
+      "description": "Antarmuka Trade Command Center menampilkan indikator status penyimpanan ('Draft lokal browser' vs 'Tersimpan di Cloud · v{version}' vs 'Konflik versi'), stepper progres alur transaksi 9 tahap, serta empty state terpandu di setiap modul.",
+      "test_cases": ["TC-UX-01", "TC-UX-02"]
+    },
+    {
+      "id": "NFR-001",
+      "type": "NFR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "100% tabel PostgreSQL (7 tabel eksisting dan 9 tabel baru v2) mengaktifkan Row Level Security (ENABLE ROW LEVEL SECURITY) dan memiliki composite index yang diawali workspaceId.",
+      "test_cases": ["TC-SEC-01", "TC-DBA-01"]
+    },
+    {
+      "id": "NFR-002",
+      "type": "NFR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Migrasi database v2 bersifat 100% aditif dengan 0 operasi DROP TABLE, 0 TRUNCATE, dan 0 blocking index creation pada pemeriksaan lint_sql_migration.py.",
+      "test_cases": ["TC-DBA-02"]
+    },
+    {
+      "id": "NFR-003",
+      "type": "NFR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Pembangkitan snapshot dan PDF dokumen server-side selesai dalam waktu <= 3000 ms pada persentil ke-95 (p95) untuk dokumen 1 sampai 5 halaman.",
+      "test_cases": ["TC-PERF-01"]
+    },
+    {
+      "id": "NFR-004",
+      "type": "NFR",
+      "objective_id": "OBJ-02",
+      "priority": "Must",
+      "description": "Waktu respons AI Advisor v2 <= 4500 ms pada p95 dengan batas timeout keras 12000 ms dan pembatasan kuota 20 permintaan per jam per userId.",
+      "test_cases": ["TC-PERF-02", "TC-SEC-02"]
+    },
+    {
+      "id": "NFR-005",
+      "type": "NFR",
+      "objective_id": "OBJ-04",
+      "priority": "Must",
+      "description": "Seluruh teks operasional dan tabel numerik memenuhi rasio kontras warna >= 4.5:1 (WCAG 2.1 AA) dan menggunakan font-variant-numeric: tabular-nums untuk keselarasan desimal.",
+      "test_cases": ["TC-UX-03"]
+    },
+    {
+      "id": "NFR-006",
+      "type": "NFR",
+      "objective_id": "OBJ-03",
+      "priority": "Must",
+      "description": "Layanan API dan persistensi transaksi menargetkan ketersediaan (SLA uptime) >= 99.9% per bulan (error budget maksimal 43.2 menit downtime per 30 hari).",
+      "test_cases": ["TC-OPS-01"]
+    }
+  ]
+}
