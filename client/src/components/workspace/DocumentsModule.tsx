@@ -1201,8 +1201,8 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table {
             border-collapse: collapse !important;
             table-layout: fixed !important;
-            width: 100% !important;
-            max-width: 100% !important;
+            width: calc(100% - 1.5px) !important;
+            max-width: calc(100% - 1.5px) !important;
             margin: 0 !important;
             box-sizing: border-box !important;
             border-top: 1.5px solid #64748b !important;

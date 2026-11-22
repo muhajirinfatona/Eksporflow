@@ -7263,8 +7263,8 @@ textarea:focus-visible {
 
 /* Line Items Table inside UNLK Form - Solid continuous lines without overhang */
 .paper-document table.unlk-items-table {
-  width: 100% !important;
-  max-width: 100% !important;
+  width: calc(100% - 1.5px) !important;
+  max-width: calc(100% - 1.5px) !important;
   margin: 0 !important;
   box-sizing: border-box !important;
   border-collapse: collapse !important;
@@ -7402,6 +7402,7 @@ textarea:focus-visible {
 }
 
 .unlk-total-bar {
+  width: calc(100% - 1.5px) !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
@@ -11565,8 +11566,8 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table {
     border-collapse: collapse !important;
     table-layout: fixed !important;
-    width: 100% !important;
-    max-width: 100% !important;
+    width: calc(100% - 1.5px) !important;
+    max-width: calc(100% - 1.5px) !important;
     margin: 0 !important;
     box-sizing: border-box !important;
     border-top: 1.5px solid #64748b !important;
