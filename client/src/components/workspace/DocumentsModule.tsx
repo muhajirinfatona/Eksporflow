@@ -1247,9 +1247,9 @@ export function DocumentsModule({
             border-right: none !important;
           }
           .paper-document table.unlk-items-table thead th {
-            font-size: ${isTradeDoc ? "8.2pt" : "9pt"} !important;
-            font-weight: 600 !important;
-            padding: ${isTradeDoc ? "4px 5px" : "3px 5px"} !important;
+            font-size: ${isTradeDoc ? "8.8pt" : "9.2pt"} !important;
+            font-weight: 700 !important;
+            padding: ${isTradeDoc ? "5.5px 6px" : "4px 6px"} !important;
             background-color: transparent !important;
             color: #0f172a !important;
             empty-cells: show !important;
@@ -1257,9 +1257,9 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table tbody td {
-            font-size: ${isTradeDoc ? "8.5pt" : "9.5pt"} !important;
-            line-height: ${isTradeDoc ? "1.24" : "1.2"} !important;
-            padding: ${isTradeDoc ? "4.5px 6px" : "3px 6px"} !important;
+            font-size: ${isTradeDoc ? "9.3pt" : "9.5pt"} !important;
+            line-height: ${isTradeDoc ? "1.32" : "1.25"} !important;
+            padding: ${isTradeDoc ? "9px 8px 14px 8px" : "4px 6px"} !important;
             background-color: transparent !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
@@ -1267,8 +1267,8 @@ export function DocumentsModule({
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-            padding: ${isTradeDoc ? "3.5px 6px" : "2.5px 5px"} !important;
-            font-size: ${isTradeDoc ? "8.5pt" : "9.5pt"} !important;
+            padding: ${isTradeDoc ? "4.5px 7px" : "3px 5px"} !important;
+            font-size: ${isTradeDoc ? "9.2pt" : "9.4pt"} !important;
             height: auto !important;
             background-color: transparent !important;
             empty-cells: show !important;
@@ -1287,7 +1287,7 @@ export function DocumentsModule({
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
-            font-size: ${isTradeDoc ? "8.2pt" : "9pt"} !important;
+            font-size: ${isTradeDoc ? "8.8pt" : "9pt"} !important;
           }
           .unlk-total-bar {
             border-bottom: 1.5px solid #64748b !important;
@@ -5871,8 +5871,8 @@ function CommercialInvoiceDoc({
               </div>
               <div className="unlk-val" style={{ marginTop: "2px" }}>
                 {isId
-                  ? "Total Volume: 900 Karung Multiwall Kraft Paper Bag @ 20 Kg dimuat ke dalam 1 x 20' FCL Food-Grade Container."
-                  : "Total Volume: 900 Multiwall Kraft Paper Bags @ 20 Kg net loaded in 1 x 20' FCL Food-Grade Container."}
+                  ? `Total Volume: ${formatNumber(bagsCount)} Karung Multiwall Kraft Paper Bag @ 20 Kg dimuat ke dalam 1 x 20' FCL Food-Grade Container.`
+                  : `Total Volume: ${formatNumber(bagsCount)} Multiwall Kraft Paper Bags @ 20 Kg net loaded in 1 x 20' FCL Food-Grade Container.`}
               </div>
               <div className="unlk-val" style={{ marginTop: "2px" }}>
                 {isId
