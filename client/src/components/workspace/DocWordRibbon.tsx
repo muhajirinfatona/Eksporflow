@@ -250,6 +250,50 @@ interface DocWordRibbonProps {
   onOpenCrop?: () => void;
 }
 
+/** Crisp vector shape preview glyph replacing emojis in Ribbon & Shape menus. */
+function ShapeGlyph({ type, size = 13 }: { type: string; size?: number }) {
+  switch (type) {
+    case "rectangle":
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="10" rx="1" stroke="#0f2942" strokeWidth="1.6" fill="#eff6ff" />
+        </svg>
+      );
+    case "rounded":
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="2" y="3" width="12" height="10" rx="3.2" stroke="#059669" strokeWidth="1.6" fill="#ecfdf5" />
+        </svg>
+      );
+    case "pill":
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <rect x="1.5" y="4.2" width="13" height="7.6" rx="3.8" stroke="#0284c7" strokeWidth="1.6" fill="#e0f2fe" />
+        </svg>
+      );
+    case "banner":
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2 3.5H14V12.5H2V3.5Z" stroke="#b45309" strokeWidth="1.5" fill="#fef3c7" />
+          <line x1="4.5" y1="7" x2="11.5" y2="7" stroke="#b45309" strokeWidth="1.3" strokeLinecap="round" />
+          <line x1="5.5" y1="9.5" x2="10.5" y2="9.5" stroke="#b45309" strokeWidth="1.3" strokeLinecap="round" />
+        </svg>
+      );
+    case "callout":
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <path d="M2.5 3H13.5V10.5H7.2L4.5 13V10.5H2.5V3Z" stroke="#7c3aed" strokeWidth="1.5" fill="#f5f3ff" strokeLinejoin="round" />
+        </svg>
+      );
+    default:
+      return (
+        <svg width={size} height={size} viewBox="0 0 16 16" fill="none" aria-hidden="true">
+          <line x1="2" y1="8" x2="14" y2="8" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+        </svg>
+      );
+  }
+}
+
 export function DocWordRibbon({
   shipment,
   update,
@@ -4209,7 +4253,7 @@ export function DocWordRibbon({
             <>
               {/* SHAPES & BENTUK GROUP (Seperti di MS Word) */}
               <div className="doc-ribbon-group group-shapes" ref={shapeMenuRef}>
-                <div className="doc-ribbon-row-top">
+                <div className="doc-ribbon-row-top" style={{ gap: "4px" }}>
                   <button
                     type="button"
                     className={`doc-ribbon-table-trigger ${showShapeMenu ? "active" : ""}`}
@@ -4226,30 +4270,36 @@ export function DocWordRibbon({
 
                   <button
                     type="button"
-                    className="doc-ribbon-btn-icon"
+                    className="doc-ribbon-table-subbtn"
+                    style={{ height: "26px", padding: "0 8px", gap: "4px", fontSize: "10.5px", color: "#1e293b" }}
                     onClick={() => insertShape("rectangle")}
                     title="Sisipkan Kotak Teks (Text Box)"
                   >
-                    <span className="text-[10px] font-bold">🔲 Kotak</span>
+                    <ShapeGlyph type="rectangle" size={12} />
+                    <span>Kotak</span>
                   </button>
                 </div>
 
-                <div className="doc-ribbon-row-bottom">
+                <div className="doc-ribbon-row-bottom" style={{ gap: "4px" }}>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
+                    style={{ padding: "0 7px", gap: "4px" }}
                     onClick={() => insertShape("pill")}
                     title="Sisipkan Badge Kapsul (Official Pill)"
                   >
-                    💊 Kapsul
+                    <ShapeGlyph type="pill" size={12} />
+                    <span>Kapsul</span>
                   </button>
                   <button
                     type="button"
                     className="doc-ribbon-table-subbtn"
+                    style={{ padding: "0 7px", gap: "4px" }}
                     onClick={() => insertShape("banner")}
                     title="Sisipkan Banner Resmi"
                   >
-                    🎗️ Banner
+                    <ShapeGlyph type="banner" size={12} />
+                    <span>Banner</span>
                   </button>
                 </div>
 
@@ -4263,7 +4313,7 @@ export function DocWordRibbon({
                       position: "fixed",
                       top: `${popoverAnchor.top}px`,
                       left: `${popoverAnchor.left}px`,
-                      width: "230px",
+                      width: "240px",
                       zIndex: 9999,
                       background: "#ffffff",
                       border: "1px solid #cbd5e1",
@@ -4285,20 +4335,22 @@ export function DocWordRibbon({
 
                     <div className="space-y-1">
                       {[
-                        { type: "rectangle", icon: "🔲", name: "Kotak Teks (Text Box)", desc: "Persegi berbingkai dengan teks di dalamnya" },
-                        { type: "rounded", icon: "🟩", name: "Persegi Sudut Tumpul", desc: "Badge dengan sudut lengkung halus" },
-                        { type: "pill", icon: "💊", name: "Badge Kapsul (Pill)", desc: "Label status resmi (ORIGINAL, FOB)" },
-                        { type: "banner", icon: "🎗️", name: "Banner / Pita Resmi", desc: "Kotak panjang untuk judul / pengumuman" },
-                        { type: "callout", icon: "💬", name: "Kotak Catatan (Callout)", desc: "Kotak instruksi khusus / perhatian" },
-                        { type: "line", icon: "➖", name: "Garis Pembatas (Line)", desc: "Garis pemisah horizontal" },
+                        { type: "rectangle", name: "Kotak Teks (Text Box)", desc: "Persegi berbingkai dengan teks di dalamnya" },
+                        { type: "rounded", name: "Persegi Sudut Tumpul", desc: "Badge dengan sudut lengkung halus" },
+                        { type: "pill", name: "Badge Kapsul (Pill)", desc: "Label status resmi (ORIGINAL, FOB)" },
+                        { type: "banner", name: "Banner / Pita Resmi", desc: "Kotak panjang untuk judul / pengumuman" },
+                        { type: "callout", name: "Kotak Catatan (Callout)", desc: "Kotak instruksi khusus / perhatian" },
+                        { type: "line", name: "Garis Pembatas (Line)", desc: "Garis pemisah horizontal" },
                       ].map((item) => (
                         <button
                           key={item.type}
                           type="button"
                           onClick={() => insertShape(item.type as any)}
-                          className="w-full text-left p-1.5 rounded hover:bg-slate-100 flex items-start gap-2 border border-transparent hover:border-slate-200 transition-colors"
+                          className="w-full text-left p-1.5 rounded hover:bg-slate-100 flex items-center gap-2.5 border border-transparent hover:border-slate-200 transition-colors"
                         >
-                          <span className="text-sm">{item.icon}</span>
+                          <span className="shrink-0 flex items-center justify-center w-5 h-5 rounded bg-slate-50 border border-slate-200">
+                            <ShapeGlyph type={item.type} size={13} />
+                          </span>
                           <div>
                             <span className="text-[11px] font-bold text-slate-800 block leading-tight">{item.name}</span>
                             <span className="text-[9.5px] text-slate-500 block leading-tight">{item.desc}</span>
@@ -6473,16 +6525,17 @@ export function DocWordRibbon({
             <>
               {/* 1. SISIPKAN / UBAH BENTUK */}
               <div className="doc-ribbon-group group-shape-type">
-                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "3px" }}>
+                <div className="doc-ribbon-row-top" style={{ display: "flex", gap: "4px" }}>
                   {[
-                    { type: "rectangle", icon: "🔲", label: "Kotak Teks" },
-                    { type: "rounded", icon: "🟩", label: "Sudut Tumpul" },
-                    { type: "pill", icon: "💊", label: "Kapsul / Pill" },
+                    { type: "rectangle", label: "Kotak Teks" },
+                    { type: "rounded", label: "Sudut Tumpul" },
+                    { type: "pill", label: "Kapsul / Pill" },
                   ].map((item) => (
                     <button
                       key={item.type}
                       type="button"
                       className={`doc-ribbon-table-subbtn ${activeShape?.type === item.type ? "active" : ""}`}
+                      style={{ gap: "4px", padding: "0 7px" }}
                       onClick={() => {
                         if (activeShape) {
                           updateActiveShape({ type: item.type as any });
@@ -6493,21 +6546,23 @@ export function DocWordRibbon({
                       }}
                       title={activeShape ? `Ubah ke ${item.label}` : `Sisipkan ${item.label}`}
                     >
-                      <span>{item.icon} {item.label}</span>
+                      <ShapeGlyph type={item.type} size={12} />
+                      <span>{item.label}</span>
                     </button>
                   ))}
                 </div>
 
-                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "3px" }}>
+                <div className="doc-ribbon-row-bottom" style={{ display: "flex", gap: "4px" }}>
                   {[
-                    { type: "banner", icon: "🎗️", label: "Banner Resmi" },
-                    { type: "callout", icon: "💬", label: "Callout / Catatan" },
-                    { type: "line", icon: "➖", label: "Garis Pembatas" },
+                    { type: "banner", label: "Banner Resmi" },
+                    { type: "callout", label: "Callout / Catatan" },
+                    { type: "line", label: "Garis Pembatas" },
                   ].map((item) => (
                     <button
                       key={item.type}
                       type="button"
                       className={`doc-ribbon-table-subbtn ${activeShape?.type === item.type ? "active" : ""}`}
+                      style={{ gap: "4px", padding: "0 7px" }}
                       onClick={() => {
                         if (activeShape) {
                           updateActiveShape({ type: item.type as any });
@@ -6518,7 +6573,8 @@ export function DocWordRibbon({
                       }}
                       title={activeShape ? `Ubah ke ${item.label}` : `Sisipkan ${item.label}`}
                     >
-                      <span>{item.icon} {item.label}</span>
+                      <ShapeGlyph type={item.type} size={12} />
+                      <span>{item.label}</span>
                     </button>
                   ))}
                 </div>

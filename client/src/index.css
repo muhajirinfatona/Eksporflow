@@ -7252,18 +7252,27 @@ textarea:focus-visible {
   word-break: break-word;
 }
 
-/* Line Items Table inside UNLK Form - Solid continuous lines without gaps */
+/* Normalize inline tags inside UNLK grid so <b>, <i>, <span> match cell scale cleanly */
+.paper-document .unlk-trade-form b:not([style*="font-size"]),
+.paper-document .unlk-trade-form strong:not([style*="font-size"]),
+.paper-document .unlk-trade-form i:not([style*="font-size"]),
+.paper-document .unlk-trade-form span:not([style*="font-size"]) {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+
+/* Line Items Table inside UNLK Form - Solid continuous lines without overhang */
 .paper-document table.unlk-items-table {
-  width: calc(100% + 4px) !important;
-  max-width: calc(100% + 4px) !important;
-  margin-left: -2px !important;
-  margin-right: -2px !important;
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
   box-sizing: border-box !important;
   border-collapse: collapse !important;
   table-layout: fixed !important;
-  border: 1.5px solid #64748b !important;
+  border-top: 1.5px solid #64748b !important;
+  border-bottom: 1.5px solid #64748b !important;
+  border-left: none !important;
+  border-right: none !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7281,8 +7290,8 @@ textarea:focus-visible {
   border: 1.5px solid #64748b !important;
   background-color: transparent !important;
   empty-cells: show !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
   white-space: normal !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7362,6 +7371,19 @@ textarea:focus-visible {
   border: 1.5px solid #64748b !important;
 }
 
+.paper-document table.unlk-items-table tr > th:first-child,
+.paper-document table.unlk-items-table tr > td:first-child,
+.paper-document table.unlk-items-table tbody tr > td:first-child,
+.paper-document table.unlk-items-table tfoot tr > td:first-child {
+  border-left: none !important;
+}
+.paper-document table.unlk-items-table tr > th:last-child,
+.paper-document table.unlk-items-table tr > td:last-child,
+.paper-document table.unlk-items-table tbody tr > td:last-child,
+.paper-document table.unlk-items-table tfoot tr > td:last-child {
+  border-right: none !important;
+}
+
 .paper-document .unlk-trade-form .unlk-bank-lines {
   display: flex !important;
   flex-direction: column !important;
@@ -7373,6 +7395,7 @@ textarea:focus-visible {
 
 .paper-document .unlk-trade-form .unlk-bank-lines > div,
 .paper-document .unlk-trade-form .unlk-bank-lines span,
+.paper-document .unlk-trade-form .unlk-bank-lines b,
 .paper-document .unlk-trade-form .unlk-bank-lines strong {
   font-size: 10.5pt !important;
   line-height: 1.32 !important;
@@ -7382,6 +7405,7 @@ textarea:focus-visible {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
+  gap: 8px !important;
   padding: 5px 9px !important;
   font-size: 10.5pt !important;
   background: #f8fafc !important;
@@ -7389,6 +7413,11 @@ textarea:focus-visible {
   box-sizing: border-box !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
+}
+
+.unlk-total-bar > span:last-child {
+  white-space: nowrap !important;
+  flex-shrink: 0 !important;
 }
 
 .unlk-terms-footer {
@@ -7408,11 +7437,21 @@ textarea:focus-visible {
 
 .unlk-sig-zone {
   position: relative;
-  min-height: 54px;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  padding-top: 2px;
+  min-height: 92px;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: space-between !important;
+}
+
+.unlk-sig-zone .sig-name {
+  font-size: 10pt !important;
+  line-height: 1.25 !important;
+}
+
+.unlk-sig-zone .sig-sub {
+  font-size: 9pt !important;
+  line-height: 1.25 !important;
 }
 
 .unlk-sig-zone .official-stamp-seal {
@@ -7449,14 +7488,13 @@ textarea:focus-visible {
   letter-spacing: 0.03em !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table {
-  width: calc(100% + 4px) !important;
-  max-width: calc(100% + 4px) !important;
-  margin-left: -2px !important;
-  margin-right: -2px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
   border-top: 2px solid #0f2942 !important;
   border-bottom: 2px solid #0f2942 !important;
-  border-left: 2px solid #0f2942 !important;
-  border-right: 2px solid #0f2942 !important;
+  border-left: none !important;
+  border-right: none !important;
 }
 .paper-document .unlk-trade-form.unlk-style-corporate table.unlk-items-table thead th {
   background: #0f2942 !important;
@@ -11527,14 +11565,14 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table {
     border-collapse: collapse !important;
     table-layout: fixed !important;
-    width: calc(100% + 4px) !important;
-    max-width: calc(100% + 4px) !important;
-    margin-left: -2px !important;
-    margin-right: -2px !important;
-    margin-top: 0 !important;
-    margin-bottom: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
     box-sizing: border-box !important;
-    border: 1.5px solid #64748b !important;
+    border-top: 1.5px solid #64748b !important;
+    border-bottom: 1.5px solid #64748b !important;
+    border-left: none !important;
+    border-right: none !important;
     empty-cells: show !important;
     break-inside: auto !important;
     page-break-inside: auto !important;
@@ -11561,7 +11599,7 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table thead th {
     font-size: 9pt !important;
     font-weight: 600 !important;
-    padding: 3px 5px !important;
+    padding: 4px 5px !important;
     border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     color: #0f172a !important;
@@ -11571,8 +11609,8 @@ textarea:focus-visible {
   }
   .paper-document table.unlk-items-table tbody td {
     font-size: 9.5pt !important;
-    line-height: 1.2 !important;
-    padding: 3px 6px !important;
+    line-height: 1.25 !important;
+    padding: 4px 6px !important;
     border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     empty-cells: show !important;
@@ -11585,11 +11623,11 @@ textarea:focus-visible {
   }
   .paper-document .unlk-trade-form .unlk-item-spec {
     font-size: 9.5pt !important;
-    line-height: 1.2 !important;
+    line-height: 1.25 !important;
   }
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-    padding: 2.5px 5px !important;
+    padding: 3.5px 5px !important;
     font-size: 9.5pt !important;
     height: auto !important;
     border: 1.5px solid #64748b !important;
@@ -11614,15 +11652,28 @@ textarea:focus-visible {
     font-size: 9pt !important;
     border: 1.5px solid #64748b !important;
   }
+  .paper-document table.unlk-items-table tr > th:first-child,
+  .paper-document table.unlk-items-table tr > td:first-child,
+  .paper-document table.unlk-items-table tbody tr > td:first-child,
+  .paper-document table.unlk-items-table tfoot tr > td:first-child {
+    border-left: none !important;
+  }
+  .paper-document table.unlk-items-table tr > th:last-child,
+  .paper-document table.unlk-items-table tr > td:last-child,
+  .paper-document table.unlk-items-table tbody tr > td:last-child,
+  .paper-document table.unlk-items-table tfoot tr > td:last-child {
+    border-right: none !important;
+  }
   .paper-document .unlk-trade-form .unlk-bank-lines,
   .paper-document .unlk-trade-form .unlk-bank-lines > div,
   .paper-document .unlk-trade-form .unlk-bank-lines span,
+  .paper-document .unlk-trade-form .unlk-bank-lines b,
   .paper-document .unlk-trade-form .unlk-bank-lines strong {
     font-size: 9pt !important;
-    line-height: 1.18 !important;
+    line-height: 1.24 !important;
   }
   .unlk-total-bar {
-    padding: 3px 6px !important;
+    padding: 4px 6px !important;
     border-bottom: 1.5px solid #64748b !important;
     background: #f8fafc !important;
     box-sizing: border-box !important;
@@ -11630,19 +11681,23 @@ textarea:focus-visible {
     print-color-adjust: exact !important;
   }
   .unlk-terms-footer {
-    padding: 3px 6px !important;
+    padding: 4px 6px !important;
   }
   .unlk-sig-zone {
-    min-height: 36px !important;
+    min-height: 76px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
   }
 
-  /* Standar Presisi 1 Halaman untuk Dokumen Perdagangan (Proforma Invoice, Commercial Invoice, Packing List, Shipping Instruction) */
+  /* Standar Presisi 1 Halaman Eksekutif untuk Dokumen Perdagangan (PI, CI, PL, SI) */
   html body .paper-document.doc-type-proforma-invoice,
   html body .paper-document.doc-type-commercial-invoice,
   html body .paper-document.doc-type-packing-list,
   html body .paper-document.doc-type-shipping-instruction {
-    font-size: 7.4pt !important;
-    line-height: 1.15 !important;
+    font-size: 8.8pt !important;
+    line-height: 1.26 !important;
     min-height: 0 !important;
     height: auto !important;
     padding: 0 !important;
@@ -11667,7 +11722,7 @@ textarea:focus-visible {
   html body .paper-document.doc-type-packing-list .paper-letterhead-wrap,
   html body .paper-document.doc-type-shipping-instruction .paper-letterhead-wrap {
     margin-top: 0 !important;
-    margin-bottom: 2px !important;
+    margin-bottom: 4px !important;
     padding-top: 0 !important;
     break-inside: avoid !important;
     page-break-inside: avoid !important;
@@ -11677,31 +11732,31 @@ textarea:focus-visible {
   html body .paper-document.doc-type-commercial-invoice .company-name,
   html body .paper-document.doc-type-packing-list .company-name,
   html body .paper-document.doc-type-shipping-instruction .company-name {
-    font-size: 11pt !important;
-    line-height: 1.12 !important;
+    font-size: 13pt !important;
+    line-height: 1.15 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .company-tagline,
   html body .paper-document.doc-type-commercial-invoice .company-tagline,
   html body .paper-document.doc-type-packing-list .company-tagline,
   html body .paper-document.doc-type-shipping-instruction .company-tagline {
-    font-size: 6.5pt !important;
-    line-height: 1.12 !important;
+    font-size: 7.4pt !important;
+    line-height: 1.15 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .company-details,
   html body .paper-document.doc-type-commercial-invoice .company-details,
   html body .paper-document.doc-type-packing-list .company-details,
   html body .paper-document.doc-type-shipping-instruction .company-details {
-    font-size: 7pt !important;
-    line-height: 1.15 !important;
+    font-size: 7.6pt !important;
+    line-height: 1.2 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .letterhead-logo-container img,
   html body .paper-document.doc-type-commercial-invoice .letterhead-logo-container img,
   html body .paper-document.doc-type-packing-list .letterhead-logo-container img,
   html body .paper-document.doc-type-shipping-instruction .letterhead-logo-container img {
-    max-height: 38px !important;
+    max-height: 46px !important;
     width: auto !important;
   }
 
@@ -11709,16 +11764,16 @@ textarea:focus-visible {
   html body .paper-document.doc-type-commercial-invoice .letterhead-divider-line,
   html body .paper-document.doc-type-packing-list .letterhead-divider-line,
   html body .paper-document.doc-type-shipping-instruction .letterhead-divider-line {
-    margin-top: 1px !important;
-    margin-bottom: 2px !important;
+    margin-top: 2px !important;
+    margin-bottom: 4px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .doc-title-bar,
   html body .paper-document.doc-type-commercial-invoice .doc-title-bar,
   html body .paper-document.doc-type-packing-list .doc-title-bar,
   html body .paper-document.doc-type-shipping-instruction .doc-title-bar {
-    margin: 1px 0 2px 0 !important;
-    padding: 2px 6px !important;
+    margin: 2px 0 0 0 !important;
+    padding: 4px 8px !important;
     break-before: avoid !important;
     page-break-before: avoid !important;
     break-after: avoid !important;
@@ -11729,123 +11784,168 @@ textarea:focus-visible {
   html body .paper-document.doc-type-commercial-invoice .doc-title-bar h2,
   html body .paper-document.doc-type-packing-list .doc-title-bar h2,
   html body .paper-document.doc-type-shipping-instruction .doc-title-bar h2 {
-    font-size: 9.5pt !important;
-    line-height: 1.12 !important;
-    letter-spacing: 0.05em !important;
+    font-size: 10.5pt !important;
+    line-height: 1.18 !important;
+    letter-spacing: 0.06em !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form,
   html body .paper-document.doc-type-packing-list .unlk-trade-form,
   html body .paper-document.doc-type-shipping-instruction .unlk-trade-form {
-    font-size: 7.2pt !important;
-    line-height: 1.14 !important;
+    font-size: 8.8pt !important;
+    line-height: 1.26 !important;
     break-inside: auto !important;
     page-break-inside: auto !important;
+  }
+
+  html body .paper-document.doc-type-proforma-invoice .unlk-trade-form b:not([style*="font-size"]),
+  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form b:not([style*="font-size"]),
+  html body .paper-document.doc-type-packing-list .unlk-trade-form b:not([style*="font-size"]),
+  html body .paper-document.doc-type-shipping-instruction .unlk-trade-form b:not([style*="font-size"]),
+  html body .paper-document.doc-type-proforma-invoice .unlk-trade-form strong:not([style*="font-size"]),
+  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form strong:not([style*="font-size"]),
+  html body .paper-document.doc-type-packing-list .unlk-trade-form strong:not([style*="font-size"]),
+  html body .paper-document.doc-type-shipping-instruction .unlk-trade-form strong:not([style*="font-size"]),
+  html body .paper-document.doc-type-proforma-invoice .unlk-trade-form i:not([style*="font-size"]),
+  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form i:not([style*="font-size"]),
+  html body .paper-document.doc-type-packing-list .unlk-trade-form i:not([style*="font-size"]),
+  html body .paper-document.doc-type-shipping-instruction .unlk-trade-form i:not([style*="font-size"]),
+  html body .paper-document.doc-type-proforma-invoice .unlk-trade-form span:not([style*="font-size"]),
+  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form span:not([style*="font-size"]),
+  html body .paper-document.doc-type-packing-list .unlk-trade-form span:not([style*="font-size"]),
+  html body .paper-document.doc-type-shipping-instruction .unlk-trade-form span:not([style*="font-size"]) {
+    font-size: inherit !important;
+    line-height: inherit !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-cell,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-cell,
   html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-cell,
   html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-cell {
-    padding: 1.5px 4.5px !important;
+    padding: 4px 6.5px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-lbl,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-lbl,
   html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-lbl,
   html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-lbl {
-    font-size: 6.2pt !important;
-    line-height: 1.05 !important;
-    margin-bottom: 0px !important;
+    font-size: 7.5pt !important;
+    line-height: 1.15 !important;
+    margin-bottom: 1.5px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-val,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-val,
   html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-val,
   html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-val {
-    font-size: 7.2pt !important;
-    line-height: 1.14 !important;
+    font-size: 8.8pt !important;
+    line-height: 1.26 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-val-bold,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-val-bold,
   html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-val-bold,
   html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-val-bold {
-    font-size: 7.4pt !important;
-    line-height: 1.14 !important;
+    font-size: 8.8pt !important;
+    line-height: 1.26 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice table.unlk-items-table th,
   html body .paper-document.doc-type-commercial-invoice table.unlk-items-table th,
   html body .paper-document.doc-type-packing-list table.unlk-items-table th,
   html body .paper-document.doc-type-shipping-instruction table.unlk-items-table th {
-    font-size: 6.8pt !important;
-    padding: 2px 3.5px !important;
-    line-height: 1.12 !important;
+    font-size: 8.2pt !important;
+    padding: 4px 5px !important;
+    line-height: 1.2 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice table.unlk-items-table tbody td,
   html body .paper-document.doc-type-commercial-invoice table.unlk-items-table tbody td,
   html body .paper-document.doc-type-packing-list table.unlk-items-table tbody td,
   html body .paper-document.doc-type-shipping-instruction table.unlk-items-table tbody td {
-    font-size: 7.0pt !important;
-    padding: 1.5px 4px !important;
-    line-height: 1.12 !important;
+    font-size: 8.5pt !important;
+    padding: 4.5px 6px !important;
+    line-height: 1.24 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-item-spec,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-item-spec,
   html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-item-spec,
   html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-item-spec {
-    font-size: 6.8pt !important;
-    line-height: 1.1 !important;
-    margin-top: 1px !important;
+    font-size: 8.1pt !important;
+    line-height: 1.22 !important;
+    margin-top: 1.5px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice table.unlk-items-table tfoot td,
   html body .paper-document.doc-type-commercial-invoice table.unlk-items-table tfoot td,
   html body .paper-document.doc-type-packing-list table.unlk-items-table tfoot td,
   html body .paper-document.doc-type-shipping-instruction table.unlk-items-table tfoot td {
-    font-size: 7.0pt !important;
-    padding: 1.5px 4px !important;
+    font-size: 8.5pt !important;
+    padding: 3.5px 6px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-total-bar,
   html body .paper-document.doc-type-commercial-invoice .unlk-total-bar,
   html body .paper-document.doc-type-packing-list .unlk-total-bar,
   html body .paper-document.doc-type-shipping-instruction .unlk-total-bar {
-    padding: 1.5px 4.5px !important;
+    padding: 4px 6.5px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-bank-lines,
-  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-bank-lines {
-    font-size: 6.8pt !important;
-    line-height: 1.12 !important;
-    gap: 1px !important;
+  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-bank-lines,
+  html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-bank-lines,
+  html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-bank-lines {
+    font-size: 8.3pt !important;
+    line-height: 1.24 !important;
+    gap: 2px !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-bank-lines > div,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-bank-lines > div,
+  html body .paper-document.doc-type-packing-list .unlk-trade-form .unlk-bank-lines > div,
+  html body .paper-document.doc-type-shipping-instruction .unlk-trade-form .unlk-bank-lines > div,
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-bank-lines span,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-bank-lines span,
+  html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-bank-lines b,
+  html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-bank-lines b,
   html body .paper-document.doc-type-proforma-invoice .unlk-trade-form .unlk-bank-lines strong,
   html body .paper-document.doc-type-commercial-invoice .unlk-trade-form .unlk-bank-lines strong {
-    font-size: 6.8pt !important;
-    line-height: 1.12 !important;
+    font-size: 8.3pt !important;
+    line-height: 1.24 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .unlk-sig-zone,
   html body .paper-document.doc-type-commercial-invoice .unlk-sig-zone,
   html body .paper-document.doc-type-packing-list .unlk-sig-zone,
   html body .paper-document.doc-type-shipping-instruction .unlk-sig-zone {
-    min-height: 24px !important;
+    min-height: 76px !important;
+    padding: 4px 6.5px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    justify-content: space-between !important;
+  }
+  html body .paper-document.doc-type-proforma-invoice .unlk-sig-zone .sig-name,
+  html body .paper-document.doc-type-commercial-invoice .unlk-sig-zone .sig-name,
+  html body .paper-document.doc-type-packing-list .unlk-sig-zone .sig-name,
+  html body .paper-document.doc-type-shipping-instruction .unlk-sig-zone .sig-name {
+    font-size: 9pt !important;
+    line-height: 1.22 !important;
+  }
+  html body .paper-document.doc-type-proforma-invoice .unlk-sig-zone .sig-sub,
+  html body .paper-document.doc-type-commercial-invoice .unlk-sig-zone .sig-sub,
+  html body .paper-document.doc-type-packing-list .unlk-sig-zone .sig-sub,
+  html body .paper-document.doc-type-shipping-instruction .unlk-sig-zone .sig-sub {
+    font-size: 8pt !important;
+    line-height: 1.2 !important;
   }
   html body .paper-document.doc-type-proforma-invoice .unlk-sig-zone img,
   html body .paper-document.doc-type-commercial-invoice .unlk-sig-zone img,
   html body .paper-document.doc-type-packing-list .unlk-sig-zone img,
   html body .paper-document.doc-type-shipping-instruction .unlk-sig-zone img {
-    max-height: 32px !important;
+    max-height: 44px !important;
     width: auto !important;
   }
 

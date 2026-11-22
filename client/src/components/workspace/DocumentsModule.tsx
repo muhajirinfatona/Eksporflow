@@ -1160,10 +1160,6 @@ export function DocumentsModule({
   };
 
   const isTradeDoc = ["Proforma Invoice", "Commercial Invoice", "Packing List", "Shipping Instruction"].includes(selectedDocument);
-  const printMarginTop = isTradeDoc ? Math.min(6, docMargins.top) : docMargins.top;
-  const printMarginBottom = isTradeDoc ? Math.min(6, docMargins.bottom) : docMargins.bottom;
-  const printMarginLeft = isTradeDoc ? Math.min(8, docMargins.left) : docMargins.left;
-  const printMarginRight = isTradeDoc ? Math.min(8, docMargins.right) : docMargins.right;
 
   return (
     <div className={`doc-center-root ${isEditMode ? "doc-edit-mode-active" : ""}`}>
@@ -1171,7 +1167,7 @@ export function DocumentsModule({
         @media print {
           @page {
             size: ${paperSpec.cssSize} ${shipment.documentOrientation ? shipment.documentOrientation.toLowerCase() : "portrait"};
-            margin: ${printMarginTop}mm ${printMarginRight}mm ${printMarginBottom}mm ${printMarginLeft}mm !important;
+            margin: ${docMargins.top}mm ${docMargins.right}mm ${docMargins.bottom}mm ${docMargins.left}mm !important;
           }
           .paper-document {
             width: 100% !important;
@@ -1183,7 +1179,7 @@ export function DocumentsModule({
             display: block !important;
             visibility: visible !important;
             width: 1.5px !important;
-            height: 50px !important;
+            height: 46px !important;
             border-left: 1.5px solid #cbd5e1 !important;
             margin: 0 14px 0 6px !important;
             flex-shrink: 0 !important;
@@ -1205,14 +1201,14 @@ export function DocumentsModule({
           .paper-document table.unlk-items-table {
             border-collapse: collapse !important;
             table-layout: fixed !important;
-            width: calc(100% + 4px) !important;
-            max-width: calc(100% + 4px) !important;
-            margin-left: -2px !important;
-            margin-right: -2px !important;
-            margin-top: 0 !important;
-            margin-bottom: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 0 !important;
             box-sizing: border-box !important;
-            border: 1.5px solid #64748b !important;
+            border-top: 1.5px solid #64748b !important;
+            border-bottom: 1.5px solid #64748b !important;
+            border-left: none !important;
+            border-right: none !important;
             empty-cells: show !important;
             break-inside: auto !important;
             page-break-inside: auto !important;
@@ -1232,17 +1228,28 @@ export function DocumentsModule({
             border: 1.5px solid #64748b !important;
             background-color: transparent !important;
             empty-cells: show !important;
-            word-break: break-word !important;
-            overflow-wrap: anywhere !important;
+            word-break: normal !important;
+            overflow-wrap: break-word !important;
             white-space: normal !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
+          .paper-document table.unlk-items-table tr > th:first-child,
+          .paper-document table.unlk-items-table tr > td:first-child,
+          .paper-document table.unlk-items-table tbody tr > td:first-child,
+          .paper-document table.unlk-items-table tfoot tr > td:first-child {
+            border-left: none !important;
+          }
+          .paper-document table.unlk-items-table tr > th:last-child,
+          .paper-document table.unlk-items-table tr > td:last-child,
+          .paper-document table.unlk-items-table tbody tr > td:last-child,
+          .paper-document table.unlk-items-table tfoot tr > td:last-child {
+            border-right: none !important;
+          }
           .paper-document table.unlk-items-table thead th {
-            font-size: ${isTradeDoc ? "6.8pt" : "9pt"} !important;
+            font-size: ${isTradeDoc ? "8.2pt" : "9pt"} !important;
             font-weight: 600 !important;
-            padding: ${isTradeDoc ? "2px 3.5px" : "3px 5px"} !important;
-            border: 1.5px solid #64748b !important;
+            padding: ${isTradeDoc ? "4px 5px" : "3px 5px"} !important;
             background-color: transparent !important;
             color: #0f172a !important;
             empty-cells: show !important;
@@ -1250,10 +1257,9 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table tbody td {
-            font-size: ${isTradeDoc ? "7pt" : "9.5pt"} !important;
-            line-height: ${isTradeDoc ? "1.12" : "1.2"} !important;
-            padding: ${isTradeDoc ? "1.5px 4px" : "3px 6px"} !important;
-            border: 1.5px solid #64748b !important;
+            font-size: ${isTradeDoc ? "8.5pt" : "9.5pt"} !important;
+            line-height: ${isTradeDoc ? "1.24" : "1.2"} !important;
+            padding: ${isTradeDoc ? "4.5px 6px" : "3px 6px"} !important;
             background-color: transparent !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
@@ -1261,10 +1267,9 @@ export function DocumentsModule({
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td {
-            padding: ${isTradeDoc ? "1.5px 4px" : "2.5px 5px"} !important;
-            font-size: ${isTradeDoc ? "7pt" : "9.5pt"} !important;
+            padding: ${isTradeDoc ? "3.5px 6px" : "2.5px 5px"} !important;
+            font-size: ${isTradeDoc ? "8.5pt" : "9.5pt"} !important;
             height: auto !important;
-            border: 1.5px solid #64748b !important;
             background-color: transparent !important;
             empty-cells: show !important;
             -webkit-print-color-adjust: exact !important;
@@ -1276,15 +1281,13 @@ export function DocumentsModule({
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-            border: 1.5px solid #64748b !important;
             background-color: transparent !important;
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
           }
           .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
           .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
-            font-size: ${isTradeDoc ? "6.8pt" : "9pt"} !important;
-            border: 1.5px solid #64748b !important;
+            font-size: ${isTradeDoc ? "8.2pt" : "9pt"} !important;
           }
           .unlk-total-bar {
             border-bottom: 1.5px solid #64748b !important;
@@ -4257,16 +4260,17 @@ function UnlkSignatureBox({
 
   return (
     <div
-      className="unlk-sig-zone"
+      className="unlk-sig-inner"
       style={{
         width: "100%",
+        flex: "1 1 auto",
         position: "relative",
-        minHeight: "44px",
+        minHeight: "52px",
         display: "flex",
         flexDirection: "column",
-        justifyContent: "center",
+        justifyContent: "space-between",
         alignItems: sigAlign === "center" ? "center" : sigAlign === "right" ? "flex-end" : "flex-start",
-        padding: "2px 0",
+        padding: "2px 0 0 0",
       }}
     >
       {hasSignature ? (
@@ -4663,17 +4667,16 @@ function UnlkSignatureBox({
         style={{
           borderTop: hasSignature ? "1px solid #cbd5e1" : "none",
           textAlign: "left",
+          width: "100%",
         }}
       >
         <b
           className="sig-name text-slate-900 block font-bold"
-          style={{ fontSize: "10.5pt", lineHeight: 1.25 }}
         >
           {signatoryName || "Muhajirin Fatona"}
         </b>
         <span
           className="sig-sub text-slate-600 block font-medium"
-          style={{ fontSize: "9.5pt", lineHeight: 1.25 }}
         >
           {signatoryRole || "Export Director"}
         </span>
@@ -4916,9 +4919,9 @@ function ProformaInvoiceDoc({
               <th style={{ width: "27%", border: "1.5px solid #64748b" }}>{isId ? "Deskripsi Barang" : "Description of Goods"}</th>
               <th style={{ width: "12%", border: "1.5px solid #64748b" }}>{isId ? "Kode HS" : "HS Code"}</th>
               <th style={{ width: "11%", border: "1.5px solid #64748b" }}>{isId ? "Kuantitas" : "Unit Quantity"}</th>
-              <th style={{ width: "7%", border: "1.5px solid #64748b" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "9%", border: "1.5px solid #64748b" }}>{isId ? "Satuan" : "Unit Type"}</th>
               <th style={{ width: "14%", border: "1.5px solid #64748b" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "18%", border: "1.5px solid #64748b" }}>{isId ? "Total Harga" : "Amount"}</th>
+              <th style={{ width: "16%", border: "1.5px solid #64748b" }}>{isId ? "Total Harga" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
@@ -5812,9 +5815,9 @@ function CommercialInvoiceDoc({
               <th style={{ width: "27%", border: "1.5px solid #64748b" }}>{isId ? "Uraian / Deskripsi Barang" : "Description of Goods"}</th>
               <th style={{ width: "12%", border: "1.5px solid #64748b" }}>{isId ? "Kode HS" : "HS Code"}</th>
               <th style={{ width: "11%", border: "1.5px solid #64748b" }}>{isId ? "Jumlah Kuantitas" : "Unit Quantity"}</th>
-              <th style={{ width: "7%", border: "1.5px solid #64748b" }}>{isId ? "Satuan" : "Unit Type"}</th>
+              <th style={{ width: "9%", border: "1.5px solid #64748b" }}>{isId ? "Satuan" : "Unit Type"}</th>
               <th style={{ width: "14%", border: "1.5px solid #64748b" }}>{isId ? "Harga Satuan" : "Unit Price"}</th>
-              <th style={{ width: "18%", border: "1.5px solid #64748b" }}>{isId ? "Jumlah Total" : "Amount"}</th>
+              <th style={{ width: "16%", border: "1.5px solid #64748b" }}>{isId ? "Jumlah Total" : "Amount"}</th>
             </tr>
           </thead>
           <tbody>
