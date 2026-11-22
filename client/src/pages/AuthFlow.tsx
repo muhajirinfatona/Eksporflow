@@ -6,6 +6,7 @@ import {
 } from "@/lib/supabaseAuth";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  ArrowLeft,
   Building2,
   Check,
   ChevronLeft,
@@ -16,6 +17,7 @@ import {
   KeyRound,
   Lock,
   Mail,
+  Play,
   RefreshCw,
   UserRound,
 } from "lucide-react";
@@ -639,13 +641,27 @@ function ActiveSlideIllustration({ index }: { index: number }) {
   return <SlideGlobalVesselIllustration />;
 }
 
-export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<void> }) {
+export function AuthFlow({
+  onAuthenticated,
+  initialMode,
+  onBackToLanding,
+  onStartDemo,
+}: {
+  onAuthenticated: () => Promise<void>;
+  initialMode?: "login" | "register";
+  onBackToLanding?: () => void;
+  onStartDemo?: () => void;
+}) {
   const [initialData] = useState<InitialAuthData>(readInitialAuthData);
-  const [step, setStep] = useState<AuthStep>(initialData.step);
-  const [originStep, setOriginStep] = useState<"login" | "register">(initialData.origin);
+  const resolvedInitialStep: AuthStep =
+    initialMode && initialData.step === "login" ? initialMode : initialData.step;
+  const [step, setStep] = useState<AuthStep>(resolvedInitialStep);
+  const [originStep, setOriginStep] = useState<"login" | "register">(
+    resolvedInitialStep === "register" ? "register" : initialData.origin,
+  );
   const [hasLoggedInBefore, setHasLoggedInBefore] = useState<boolean>(readHasLoggedInBefore);
   const [[slideIndex, slideDirection], setSlideTuple] = useState<[number, number]>([
-    initialData.step === "login" ? 0 : initialData.step === "register" ? 1 : 2,
+    resolvedInitialStep === "login" ? 0 : resolvedInitialStep === "register" ? 1 : 2,
     1,
   ]);
   const [isSlidePaused, setIsSlidePaused] = useState(false);
@@ -1176,7 +1192,7 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
           onPointerDown={handleSlidePointerDown}
           onPointerUp={handleSlidePointerUp}
         >
-          <div className="auth-split-top-row">
+          <div className="auth-split-top-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <div className="auth-split-logo">
               <div className="brand-mark">
                 <span />
@@ -1186,6 +1202,27 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
                 Ekspor<span>Flow</span>
               </strong>
             </div>
+            {onBackToLanding && (
+              <button
+                type="button"
+                onClick={onBackToLanding}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "rgba(255,255,255,0.1)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  color: "#e2e8f0",
+                  borderRadius: 999,
+                  padding: "6px 12px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                <ArrowLeft size={13} /> Beranda
+              </button>
+            )}
           </div>
 
           <div className="auth-split-art">
@@ -1267,6 +1304,63 @@ export function AuthFlow({ onAuthenticated }: { onAuthenticated: () => Promise<v
         {/* Panel Kanan: Form Putih Bersih & Minimalis */}
         <main className="auth-split-right">
           <div className="auth-clean-pane">
+            {(onBackToLanding || onStartDemo) && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 8,
+                  marginBottom: 16,
+                  paddingBottom: 12,
+                  borderBottom: "1px solid #e2e8f0",
+                }}
+              >
+                {onBackToLanding ? (
+                  <button
+                    type="button"
+                    onClick={onBackToLanding}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: "transparent",
+                      border: "none",
+                      color: "#475569",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      padding: 0,
+                    }}
+                  >
+                    <ArrowLeft size={13} /> Kembali ke Halaman Utama
+                  </button>
+                ) : (
+                  <span />
+                )}
+                {onStartDemo && (
+                  <button
+                    type="button"
+                    onClick={onStartDemo}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      background: "#fef3c7",
+                      border: "1px solid #fcd34d",
+                      color: "#92400e",
+                      borderRadius: 999,
+                      padding: "4px 10px",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <Play size={11} /> Coba Demo 3 Hari
+                  </button>
+                )}
+              </div>
+            )}
             {errorMessage && (
               <div className="auth-clean-alert" role="alert">
                 {errorMessage}

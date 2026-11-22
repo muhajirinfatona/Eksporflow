@@ -11,9 +11,13 @@ export interface UserSession {
   createdAt: string;
   updatedAt: string;
   lastSignedIn: string;
+  isDemo?: boolean;
+  demoExpiresAt?: string;
 }
 
 const STORAGE_KEY = "eksporflow:user_session";
+export const DEMO_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
+export const DEMO_EXPIRES_STORAGE_KEY = "eksporflow:demo_expires_at";
 
 async function hashPassword(password: string): Promise<string> {
   const enc = new TextEncoder();
@@ -27,14 +31,84 @@ export function getCurrentUser(): UserSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw);
+    const parsed = JSON.parse(raw) as UserSession;
     if (parsed && typeof parsed.email === "string") {
-      return parsed as UserSession;
+      if (parsed.isDemo && parsed.demoExpiresAt) {
+        const expMs = new Date(parsed.demoExpiresAt).getTime();
+        if (!Number.isNaN(expMs) && expMs <= Date.now()) {
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
+        }
+      }
+      return parsed;
     }
   } catch {
     // Abaikan
   }
   return null;
+}
+
+export function getDemoRemainingMs(user?: Partial<UserSession> | null, nowMs: number = Date.now()): number {
+  const expiresAt = user?.demoExpiresAt || (() => {
+    try {
+      return localStorage.getItem(DEMO_EXPIRES_STORAGE_KEY) || "";
+    } catch {
+      return "";
+    }
+  })();
+  if (!expiresAt) return 0;
+  const diff = new Date(expiresAt).getTime() - nowMs;
+  return Math.max(0, diff);
+}
+
+export function formatDemoRemainingLabel(remainingMs: number): string {
+  if (remainingMs <= 0) return "Masa Demo Berakhir";
+  const totalMinutes = Math.floor(remainingMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const mins = totalMinutes % 60;
+  if (days > 0) return `${days} Hari ${hours} Jam`;
+  if (hours > 0) return `${hours} Jam ${mins} Menit`;
+  return `${Math.max(1, mins)} Menit`;
+}
+
+export function startDemoSession(companyName = "UMKM Nusantara Ekspor (Demo)"): UserSession {
+  const now = new Date();
+  let expiresAt = "";
+  try {
+    const existingExp = localStorage.getItem(DEMO_EXPIRES_STORAGE_KEY);
+    if (existingExp && new Date(existingExp).getTime() > now.getTime()) {
+      expiresAt = existingExp;
+    }
+  } catch {
+    // Abaikan
+  }
+  if (!expiresAt) {
+    expiresAt = new Date(now.getTime() + DEMO_DURATION_MS).toISOString();
+    try {
+      localStorage.setItem(DEMO_EXPIRES_STORAGE_KEY, expiresAt);
+    } catch {
+      // Abaikan
+    }
+  }
+
+  const nowIso = now.toISOString();
+  const demoSession: UserSession = {
+    id: -999,
+    openId: "demo_trial_3d",
+    name: "Pengunjung Demo UMKM",
+    email: "demo-3hari@eksporflow.id",
+    companyName,
+    role: "demo",
+    emailVerifiedAt: nowIso,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    lastSignedIn: nowIso,
+    isDemo: true,
+    demoExpiresAt: expiresAt,
+  };
+  setCurrentUser(demoSession);
+  return demoSession;
 }
 
 export function setCurrentUser(user: UserSession | null): void {

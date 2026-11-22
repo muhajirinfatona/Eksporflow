@@ -9,6 +9,7 @@ import {
 import {
   getCurrentUser,
   logoutFromSupabase,
+  startDemoSession,
   type UserSession,
 } from "@/lib/supabaseAuth";
 import { calculateContainer } from "@shared/container";
@@ -19,6 +20,7 @@ import {
   applyShipmentNumberUpdate,
   createEmptyShipment,
   hydrateShipment,
+  initialShipment,
   toShipmentPersistencePayload,
   type LineItem,
   type Shipment,
@@ -33,6 +35,63 @@ export type PersistenceSaveState =
   | "saved"
   | "conflict"
   | "error";
+
+const DEMO_DRAFT_STORAGE_KEY = "eksporflow-draft-v2-demo";
+
+function createInitialDemoShipment(): Shipment {
+  const baseDate = new Date();
+  const in18Days = new Date(baseDate.getTime() + 18 * 86400000).toISOString().slice(0, 10);
+  const in75Days = new Date(baseDate.getTime() + 75 * 86400000).toISOString().slice(0, 10);
+  const in7Days = new Date(baseDate.getTime() + 7 * 86400000).toISOString().slice(0, 10);
+  const in5Days = new Date(baseDate.getTime() + 5 * 86400000).toISOString().slice(0, 10);
+
+  return {
+    ...initialShipment,
+    reference: "DEMO-2026-001",
+    exporter: "UMKM Nusantara Ekspor (Demo)",
+    letterheadText:
+      "UMKM NUSANTARA EKSPOR\nIndonesian Organic Agricultural & Coconut Commodities Exporter\nJl. Pettarani No. 18, Makassar, Sulawesi Selatan 90222 · Indonesia",
+    signatoryName: "Tim Ekspor UMKM (Demo)",
+    buyerPicName: "Erik Lindqvist",
+    buyerEmail: "procurement@nordicpantry.se",
+    poNumber: "PO-SE-2026-084",
+    exportPermits: {
+      quarantineNumber: "KT-12/2026/MKS-991",
+      quarantineExpiry: in18Days,
+      cooNumber: "e-SKA-ID-SE-4402",
+      cooExpiry: in75Days,
+      lartasLicenseNumber: "PE-NONLARTAS-BTKI1702",
+      lartasExpiry: in75Days,
+    },
+    preShipmentSchedule: {
+      etdDate: in7Days,
+      pebClosingDate: in5Days,
+      completedIds: ["h7_contract_dp"],
+    },
+    preTransactionData: {
+      docType: "quotation",
+      tone: "formal",
+      prospectCompany: "Nordic Pantry AB",
+      prospectCountry: "Swedia",
+      prospectEmail: "procurement@nordicpantry.se",
+      buyerVerifiedChecklist: ["reg_checked", "domain_checked"],
+    },
+    subscriptionPlan: "growth",
+  };
+}
+
+function readDemoDraft(): Shipment {
+  try {
+    const raw = localStorage.getItem(DEMO_DRAFT_STORAGE_KEY);
+    if (!raw) {
+      return createInitialDemoShipment();
+    }
+    const parsed = JSON.parse(raw) as Record<string, unknown>;
+    return hydrateShipment({ snapshot: parsed });
+  } catch {
+    return createInitialDemoShipment();
+  }
+}
 
 function getDraftStorageKey(userId?: number | null): string {
   return `eksporflow-draft-v2-${userId ? `u${userId}` : "guest"}`;
@@ -66,6 +125,7 @@ export function useActiveShipment() {
   });
   const [supabaseUser, setSupabaseUser] = useState<UserSession | null>(() => getCurrentUser());
   const user = authQuery.data ?? (supabaseUser as any) ?? null;
+  const isDemoUser = Boolean((user as UserSession | null)?.isDemo);
 
   const [shipment, setShipment] = useState<Shipment>(() => createEmptyShipment());
   const [activeShipmentId, setActiveShipmentId] = useState<string | null>(null);
@@ -79,7 +139,7 @@ export function useActiveShipment() {
   const shipmentsQuery = trpc.shipments.list.useQuery(
     { limit: 50, offset: 0 },
     {
-      enabled: Boolean(user),
+      enabled: Boolean(user && !isDemoUser),
       retry: false,
       refetchOnWindowFocus: false,
     },
@@ -148,8 +208,9 @@ export function useActiveShipment() {
     [user, utils.shipments.get],
   );
 
-  // Inisialisasi awal sinkronisasi data langsung dengan Cloud Supabase
+  // Inisialisasi sinkronisasi data langsung dengan Cloud Supabase (hanya untuk akun terautentikasi non-demo)
   useEffect(() => {
+    if (!user || isDemoUser) return;
     let active = true;
     async function syncSupabase() {
       try {
@@ -168,15 +229,27 @@ export function useActiveShipment() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [user?.id, isDemoUser]);
 
-  // Saat sesi user aktif, muat transaksi cloud terbaru milik user atau siapkan form kosong bersih.
+  // Saat sesi user aktif, muat transaksi cloud terbaru milik user atau siapkan sandbox demo / form kosong.
   useEffect(() => {
     if (!user) {
       loadedForUserIdRef.current = null;
       return;
     }
     if (loadedForUserIdRef.current === user.id) return;
+
+    if (isDemoUser) {
+      loadedForUserIdRef.current = user.id;
+      setShipment(readDemoDraft());
+      setActiveShipmentId(null);
+      setSupabaseList([]);
+      setVersion(1);
+      setSaveState("local-draft");
+      setStatusNote("Mode Uji Coba Demo 3 Hari (Sandbox Lokal)");
+      return;
+    }
+
     if (shipmentsQuery.isLoading) return;
 
     loadedForUserIdRef.current = user.id;
@@ -191,21 +264,24 @@ export function useActiveShipment() {
       setSaveState("unsaved");
       setStatusNote(null);
     }
-  }, [user, shipmentsQuery.isLoading, shipmentsQuery.data, loadShipment]);
+  }, [user, isDemoUser, shipmentsQuery.isLoading, shipmentsQuery.data, loadShipment]);
 
-  // Simpan cadangan draft lokal terisolasi per user bila sedang mengedit sebelum klik Simpan ke Cloud.
+  // Simpan cadangan draft lokal terisolasi per user / sandbox demo
   useEffect(() => {
     if (!user) return;
     try {
-      localStorage.setItem(getDraftStorageKey(user.id), JSON.stringify(shipment));
+      const storageKey = isDemoUser ? DEMO_DRAFT_STORAGE_KEY : getDraftStorageKey(user.id);
+      localStorage.setItem(storageKey, JSON.stringify(shipment));
     } catch {
       // Abaikan bila kuota localStorage penuh.
     }
-  }, [shipment, user]);
+  }, [shipment, user, isDemoUser]);
 
   const markDirty = useCallback(() => {
-    setSaveState((prev) => (prev === "conflict" ? "conflict" : user ? "unsaved" : "local-draft"));
-  }, [user]);
+    setSaveState((prev) =>
+      isDemoUser ? "local-draft" : prev === "conflict" ? "conflict" : user ? "unsaved" : "local-draft",
+    );
+  }, [user, isDemoUser]);
 
   const update = useCallback(
     <K extends keyof Shipment>(key: K, value: Shipment[K]) => {
@@ -235,6 +311,25 @@ export function useActiveShipment() {
     async (isAutoSave = false) => {
       if (isSavingRef.current) return;
       isSavingRef.current = true;
+
+      if (!user || isDemoUser) {
+        try {
+          const storageKey = isDemoUser ? DEMO_DRAFT_STORAGE_KEY : getDraftStorageKey(null);
+          localStorage.setItem(storageKey, JSON.stringify(shipment));
+          setSaveState("local-draft");
+          if (!isAutoSave && isDemoUser) {
+            toast.info("Tersimpan di Sandbox Demo Lokal", {
+              description: "Mode Demo 3 Hari tersimpan aman di browser Anda tanpa mengubah database Cloud produksi.",
+            });
+          }
+        } catch {
+          setSaveState("error");
+        } finally {
+          isSavingRef.current = false;
+        }
+        return;
+      }
+
       setSaveState("saving");
       setStatusNote(null);
       const payload = toShipmentPersistencePayload(shipment);
@@ -320,7 +415,7 @@ export function useActiveShipment() {
         isSavingRef.current = false;
       }
     },
-    [user, shipment, activeShipmentId, version, createMutation, updateMutation, utils.shipments.list],
+    [user, isDemoUser, shipment, activeShipmentId, version, createMutation, updateMutation, utils.shipments.list],
   );
 
   // Auto-Save Otomatis: Menyimpan perubahan transaksi & revisi dokumen secara otomatis setelah jeda ketik 1 detik
@@ -383,15 +478,21 @@ export function useActiveShipment() {
     }
     if (user) {
       try {
-        localStorage.removeItem(getDraftStorageKey(user.id));
+        const storageKey = isDemoUser ? DEMO_DRAFT_STORAGE_KEY : getDraftStorageKey(user.id);
+        localStorage.removeItem(storageKey);
       } catch {
         // Abaikan
       }
     }
-  }, [user]);
+  }, [user, isDemoUser]);
 
   const deleteShipment = useCallback(
     async (id: string) => {
+      if (isDemoUser) {
+        resetTransaction();
+        toast.success("Data demo berhasil di-reset");
+        return true;
+      }
       try {
         if (user) {
           try {
@@ -412,7 +513,7 @@ export function useActiveShipment() {
         return false;
       }
     },
-    [deleteMutation, utils.shipments.list, activeShipmentId, resetTransaction, user],
+    [deleteMutation, utils.shipments.list, activeShipmentId, resetTransaction, user, isDemoUser],
   );
 
   const loadCustomShipment = useCallback((next: Shipment, customId?: string | null) => {
@@ -440,35 +541,50 @@ export function useActiveShipment() {
     }
   }, [utils.auth.me, utils.shipments.list]);
 
+  const enterDemoMode = useCallback(() => {
+    loadedForUserIdRef.current = null;
+    const demoUser = startDemoSession();
+    setSupabaseUser(demoUser);
+    toast.success("Mode Demo 3 Hari Aktif!", {
+      description: "Data sandbox siap dicoba selama 72 jam tanpa menulis ke database Cloud produksi.",
+    });
+  }, []);
+
   const logout = useCallback(async () => {
     try {
+      const wasDemo = isDemoUser;
       logoutFromSupabase();
       setSupabaseUser(null);
-      try {
-        await logoutMutation.mutateAsync();
-      } catch {
-        // Abaikan jika tRPC offline
+      if (!wasDemo) {
+        try {
+          await logoutMutation.mutateAsync();
+        } catch {
+          // Abaikan jika tRPC offline
+        }
       }
       loadedForUserIdRef.current = null;
       setActiveShipmentId(null);
       setShipment(createEmptyShipment());
       setVersion(1);
       setSaveState("unsaved");
-      try {
-        await utils.auth.me.invalidate();
-      } catch {
-        // Abaikan
+      if (!wasDemo) {
+        try {
+          await utils.auth.me.invalidate();
+        } catch {
+          // Abaikan
+        }
       }
-      toast("Anda telah keluar dari akun EksporFlow");
+      toast(wasDemo ? "Anda keluar dari Mode Demo EksporFlow" : "Anda telah keluar dari akun EksporFlow");
     } catch {
       toast.error("Gagal keluar sesi");
     }
-  }, [logoutMutation, utils.auth.me]);
+  }, [isDemoUser, logoutMutation, utils.auth.me]);
 
   const pricing = useMemo(() => calculatePricing(shipment), [shipment]);
   const container = useMemo(() => calculateContainer(shipment), [shipment]);
 
   const effectiveShipmentsList = useMemo(() => {
+    if (isDemoUser) return [];
     if (shipmentsQuery.data && shipmentsQuery.data.length > 0) {
       return shipmentsQuery.data;
     }
@@ -480,11 +596,12 @@ export function useActiveShipment() {
       updatedAt: item.updatedAt,
       createdAt: item.createdAt,
     }));
-  }, [shipmentsQuery.data, supabaseList]);
+  }, [isDemoUser, shipmentsQuery.data, supabaseList]);
 
   return {
     user,
-    isAuthLoading: authQuery.isLoading,
+    isDemoUser,
+    isAuthLoading: Boolean(!supabaseUser && authQuery.isLoading),
     shipment,
     activeShipmentId,
     version,
@@ -505,6 +622,7 @@ export function useActiveShipment() {
     deleteShipment,
     resetTransaction,
     refreshAuth,
+    enterDemoMode,
     logout,
   };
 }

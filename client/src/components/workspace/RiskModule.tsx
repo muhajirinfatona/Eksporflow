@@ -1,4 +1,5 @@
 import type { ApprovalDecision } from "@/hooks/useWorkspaceFlow";
+import { buildPreShipmentTimeline } from "@shared/exportCompliance";
 import { formatMoney } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import type {
@@ -10,8 +11,10 @@ import type { ContainerCalc, Shipment } from "@shared/shipment";
 import {
   ArrowUpRight,
   Bot,
+  CalendarClock,
   Check,
   ChevronRight,
+  Clock,
   FileSearch,
   MailCheck,
   MessageCircle,
@@ -84,6 +87,25 @@ export function RiskModule({
 
   const { checks, passed, total, readinessPercent, riskLevel, hasPoEvidence, hasEmailEvidence } =
     evaluation;
+
+  const preShipmentTimeline = buildPreShipmentTimeline(shipment.preShipmentSchedule);
+
+  const updatePreShipmentSchedule = (patch: Partial<NonNullable<Shipment["preShipmentSchedule"]>>) => {
+    update("preShipmentSchedule", {
+      etdDate: preShipmentTimeline.etdDate,
+      pebClosingDate: preShipmentTimeline.pebClosingDate,
+      completedIds: shipment.preShipmentSchedule?.completedIds || [],
+      ...patch,
+    });
+  };
+
+  const toggleTimelineStep = (milestoneId: string) => {
+    const existing = shipment.preShipmentSchedule?.completedIds || [];
+    const next = existing.includes(milestoneId)
+      ? existing.filter((id) => id !== milestoneId)
+      : [...existing, milestoneId];
+    updatePreShipmentSchedule({ completedIds: next });
+  };
 
   return (
     <div className="module-stack">
@@ -250,6 +272,139 @@ export function RiskModule({
           </label>
         </section>
       </div>
+
+      {/* Timeline Checkpoint Pra-Pengiriman (H-7 hingga Closing PEB) */}
+      <section className="panel panel-padding">
+        <div className="panel-head">
+          <div>
+            <span className="eyebrow">TIMELINE CHECKPOINT PRA-PENGIRIMAN (H-7 S/D CLOSING PEB)</span>
+            <h3>Pelacak Batas Waktu ETD &amp; Pengajuan PEB</h3>
+          </div>
+          <StatusPill tone={preShipmentTimeline.completionPercent === 100 ? "green" : "amber"}>
+            <Clock size={12} /> {preShipmentTimeline.completedCount}/
+            {preShipmentTimeline.milestones.length} Tahap Selesai (
+            {preShipmentTimeline.completionPercent}%)
+          </StatusPill>
+        </div>
+
+        <div
+          className="ef-form"
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+            gap: 12,
+            marginBottom: 14,
+            padding: 12,
+            borderRadius: 10,
+            background: "#f8fafc",
+            border: "1px solid #e2e8f0",
+          }}
+        >
+          <label style={{ fontSize: 12, color: "#475569" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+              <CalendarClock size={13} /> Rencana ETD Kapal (H-0)
+            </span>
+            <input
+              type="date"
+              value={preShipmentTimeline.etdDate}
+              onChange={(e) => updatePreShipmentSchedule({ etdDate: e.target.value })}
+              style={{ marginTop: 4 }}
+            />
+          </label>
+          <label style={{ fontSize: 12, color: "#475569" }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontWeight: 600 }}>
+              <CalendarClock size={13} /> Batas Closing PEB &amp; Gate-In (H-2)
+            </span>
+            <input
+              type="date"
+              value={preShipmentTimeline.pebClosingDate}
+              onChange={(e) => updatePreShipmentSchedule({ pebClosingDate: e.target.value })}
+              style={{ marginTop: 4 }}
+            />
+          </label>
+        </div>
+
+        <div className="module-stack" style={{ gap: 8 }}>
+          {preShipmentTimeline.milestones.map((ms) => {
+            const pillTone =
+              ms.urgency === "completed"
+                ? "green"
+                : ms.urgency === "overdue"
+                  ? "red"
+                  : ms.urgency === "due_soon"
+                    ? "amber"
+                    : "blue";
+            const dueLabel =
+              ms.urgency === "completed"
+                ? "Selesai"
+                : ms.daysUntilDue < 0
+                  ? `Lewat ${Math.abs(ms.daysUntilDue)} hari`
+                  : ms.daysUntilDue === 0
+                    ? "Jatuh Tempo Hari Ini!"
+                    : `H-${ms.daysUntilDue}`;
+
+            return (
+              <div
+                key={ms.id}
+                className={`legal-check-row ${ms.completed ? "done" : ""}`}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 12,
+                }}
+              >
+                <label
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                    cursor: "pointer",
+                    flex: 1,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    checked={ms.completed}
+                    onChange={() => toggleTimelineStep(ms.id)}
+                  />
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                      <span
+                        className="mono-code"
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#0f2942",
+                          background: "#e2e8f0",
+                          padding: "1px 6px",
+                          borderRadius: 4,
+                        }}
+                      >
+                        {ms.tag}
+                      </span>
+                      <b>{ms.title}</b>
+                      <small style={{ color: "#64748b" }}>Target: {ms.dueDateIso}</small>
+                    </div>
+                    <small style={{ display: "block", marginTop: 2 }}>{ms.detail}</small>
+                  </div>
+                </label>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  <StatusPill tone={pillTone}>{dueLabel}</StatusPill>
+                  <button
+                    type="button"
+                    className="table-inline-btn"
+                    onClick={() => navigate(ms.targetScreen)}
+                  >
+                    Buka →
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       <section className="panel panel-padding">
         <div className="panel-head">

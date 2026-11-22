@@ -1,29 +1,27 @@
-import React, { useState } from "react";
+import { StatusPill } from "@/components/workspace/Primitives";
+import { calculateContainer } from "@shared/container";
+import { formatMoney } from "@shared/format";
+import { calculatePricing } from "@shared/pricing";
+import type { ScreenId } from "@shared/risk";
+import type { Shipment } from "@shared/shipment";
 import {
-  FileSearch,
-  CheckCircle2,
   AlertTriangle,
-  UploadCloud,
+  BellRing,
+  CheckCircle2,
+  Copy,
   FileCheck,
-  ShieldAlert,
-  ShieldCheck,
+  FileSearch,
+  Info,
+  Mail,
   RefreshCw,
   Send,
-  Stamp,
-  Mail,
-  Copy,
-  ArrowRight,
+  ShieldAlert,
   Sparkles,
-  Info,
-  Building,
-  Anchor,
-  FileText,
-  DollarSign,
-  Lock,
+  Stamp,
+  UploadCloud,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import type { Shipment } from "@shared/shipment";
-import type { ScreenId } from "@shared/risk";
 
 interface DocumentScrutinyModuleProps {
   shipment: Shipment;
@@ -34,8 +32,8 @@ interface DocumentScrutinyModuleProps {
 export interface DiscrepancyItem {
   id: string;
   field: string;
-  internalValue: string; // CI / PL
-  draftBlValue: string; // Draft BL dari forwarder
+  internalValue: string;
+  draftBlValue: string;
   severity: "error" | "warning" | "pass";
   description: string;
   demurrageRisk: string;
@@ -48,65 +46,116 @@ export function DocumentScrutinyModule({
 }: DocumentScrutinyModuleProps) {
   const [activeTab, setActiveTab] = useState<"ocr_scrutiny" | "tt_billing">("ocr_scrutiny");
   const [isSimulatingOcr, setIsSimulatingOcr] = useState<boolean>(false);
-  const [hasScannedDraft, setHasScannedDraft] = useState<boolean>(true);
+  const [draftBlResolved, setDraftBlResolved] = useState<boolean>(false);
+  const [dpPercent, setDpPercent] = useState<number>(30);
+  const [forwarderEmail, setForwarderEmail] = useState<string>("docs-ops@forwarder-line.example");
   const [isEmailSending, setIsEmailSending] = useState<boolean>(false);
 
-  // Bill of Lading Draft mock data
-  const [draftBlNumber, setDraftBlNumber] = useState<string>("MEDU-JKT-892104-E");
-  const [forwarderName, setForwarderName] = useState<string>("Mediterranean Shipping Company (MSC) / PT Samudera Forwarding");
-  const [blGrossWeight, setBlGrossWeight] = useState<string>("24,850 kg");
-  const [blSealNumber, setBlSealNumber] = useState<string>("(KOSONG / BELUM TERCANTUM)");
-  const [blConsignee, setBlConsignee] = useState<string>(shipment.buyer || "Nordic Specialty Coffee ApS");
+  const pricing = useMemo(() => calculatePricing(shipment), [shipment]);
+  const container = useMemo(() => calculateContainer(shipment), [shipment]);
 
-  // Discrepancy List
-  const [discrepancies, setDiscrepancies] = useState<DiscrepancyItem[]>([
-    {
-      id: "disc-01",
-      field: "Gross Weight (Berat Kotor Total)",
-      internalValue: "24,800 kg (Packing List)",
-      draftBlValue: "24,850 kg (Draft B/L Forwarder)",
-      severity: "error",
-      description: "Selisih 50 kg antara Packing List dan draf B/L. Bea Cukai pelabuhan tujuan akan menahan kontainer untuk pemeriksaan timbang ulang (VGM discrepancy).",
-      demurrageRisk: "Potensi denda demurrage & detention EUR €150/hari bila dokumen tertahan di bea cukai Rotterdam.",
-    },
-    {
-      id: "disc-02",
-      field: "Nomor Segel Kontainer (Seal Number)",
-      internalValue: shipment.sealNumber || "ID-SEAL-889102",
-      draftBlValue: "TIDAK DITAMPILKAN DI DRAF",
-      severity: "warning",
-      description: "Forwarder belum mencantumkan nomor seal fisik kontainer pada draf B/L. Wajib dilengkapi sebelum final B/L diterbitkan.",
-      demurrageRisk: "Risiko penolakan rilis muatan oleh terminal pelabuhan bongkar.",
-    },
-    {
-      id: "disc-03",
-      field: "Nama & Alamat Consignee (Importir)",
-      internalValue: shipment.buyer || "Nordic Specialty Coffee ApS",
-      draftBlValue: "Nordic Specialty Coffee ApS",
-      severity: "pass",
-      description: "Nama perusahaan, alamat, dan negara tujuan cocok 100% dengan Commercial Invoice.",
-      demurrageRisk: "Aman - Sesuai standar korespondensi perbankan.",
-    },
-    {
-      id: "disc-04",
-      field: "Pelabuhan Muat & Pelabuhan Bongkar (POL / POD)",
-      internalValue: `${shipment.namedPlace || "Tanjung Priok, Jakarta"} -> ${shipment.destination || "Port of Rotterdam"}`,
-      draftBlValue: `${shipment.namedPlace || "Tanjung Priok, Jakarta"} -> ${shipment.destination || "Port of Rotterdam"}`,
-      severity: "pass",
-      description: "Rute pelayaran laut sesuai kesepakatan Sales Contract & Shipping Instruction.",
-      demurrageRisk: "Aman - Tidak ada deviasi rute.",
-    },
-  ]);
+  const draftBlNumber = shipment.blNumber?.trim() || "MEDU-JKT-892104-E";
+  const forwarderName =
+    shipment.vesselName?.trim()
+      ? `Forwarder · Vessel ${shipment.vesselName.trim()}`
+      : "Mediterranean Shipping Company (MSC) / Freight Forwarder";
+  const internalGrossWeightKg = Math.round(container.totalWeight || 24800);
+  const blGrossWeight = draftBlResolved
+    ? `${internalGrossWeightKg.toLocaleString("en-US")} kg`
+    : `${(internalGrossWeightKg + 50).toLocaleString("en-US")} kg`;
 
-  const handleRunOcrScrutiny = () => {
+  const discrepancies: DiscrepancyItem[] = useMemo(
+    () => [
+      {
+        id: "disc-01",
+        field: "Gross Weight (Berat Kotor Total)",
+        internalValue: `${internalGrossWeightKg.toLocaleString("en-US")} kg (Packing List)`,
+        draftBlValue: `${blGrossWeight} (Draft B/L Forwarder)`,
+        severity: draftBlResolved ? "pass" : "error",
+        description: draftBlResolved
+          ? "Berat kotor pada draf B/L revisi telah sesuai 100% dengan Packing List."
+          : "Terdeteksi selisih +50 kg antara Packing List dan draf B/L. Bea Cukai pelabuhan tujuan dapat menahan kontainer untuk pemeriksaan VGM.",
+        demurrageRisk: draftBlResolved
+          ? "Risiko VGM teratasi."
+          : "Potensi denda demurrage & detention USD $150/hari bila dokumen tertahan.",
+      },
+      {
+        id: "disc-02",
+        field: "Nomor Segel Kontainer (Seal Number)",
+        internalValue: shipment.sealNumber || "ID-SEAL-889102",
+        draftBlValue: draftBlResolved
+          ? shipment.sealNumber || "ID-SEAL-889102"
+          : "TIDAK DITAMPILKAN DI DRAF",
+        severity: draftBlResolved ? "pass" : "warning",
+        description: draftBlResolved
+          ? "Nomor segel kontainer sudah tercantum konsisten di final draft B/L."
+          : "Forwarder belum mencantumkan nomor seal fisik kontainer pada draf B/L. Wajib dilengkapi sebelum final B/L dikunci.",
+        demurrageRisk: draftBlResolved
+          ? "Aman - Siap Gate-In."
+          : "Risiko penolakan rilis muatan di terminal bongkar tujuan.",
+      },
+      {
+        id: "disc-03",
+        field: "Nama & Alamat Consignee (Importir)",
+        internalValue: shipment.buyer || "Nordic Pantry AB",
+        draftBlValue: shipment.buyer || "Nordic Pantry AB",
+        severity: "pass",
+        description: "Nama perusahaan, alamat, dan negara tujuan cocok 100% dengan Commercial Invoice.",
+        demurrageRisk: "Aman - Sesuai korespondensi perbankan.",
+      },
+      {
+        id: "disc-04",
+        field: "Pelabuhan Muat & Pelabuhan Bongkar (POL / POD)",
+        internalValue: `${shipment.namedPlace || "Tanjung Priok, Jakarta"} -> ${shipment.destination || "Port of Destination"}`,
+        draftBlValue: `${shipment.namedPlace || "Tanjung Priok, Jakarta"} -> ${shipment.destination || "Port of Destination"}`,
+        severity: "pass",
+        description: "Rute pelayaran laut sesuai kesepakatan Sales Contract & Shipping Instruction.",
+        demurrageRisk: "Aman - Tidak ada deviasi rute.",
+      },
+    ],
+    [
+      internalGrossWeightKg,
+      blGrossWeight,
+      draftBlResolved,
+      shipment.sealNumber,
+      shipment.buyer,
+      shipment.namedPlace,
+      shipment.destination,
+    ],
+  );
+
+  const issueCount = discrepancies.filter((d) => d.severity !== "pass").length;
+
+  const revisionRequestText = useMemo(
+    () =>
+      `Kepada Yth. Tim Operasional ${forwarderName}\nPerihal: Permintaan Revisi Draf B/L No. ${draftBlNumber} (Ref: ${shipment.reference || "Draft"})\n\nBerdasarkan validasi silang sistem EksporFlow (Commercial Invoice & Packing List), mohon lakukan koreksi sebelum B/L dikunci:\n1. Gross Weight tertulis ${(internalGrossWeightKg + 50).toLocaleString("en-US")} kg, mohon sesuaikan menjadi ${internalGrossWeightKg.toLocaleString("en-US")} kg sesuai Packing List resmi.\n2. Mohon cantumkan Nomor Segel (Seal No.) fisik kontainer: ${shipment.sealNumber || "ID-SEAL-889102"}.\n\nMohon kirimkan draf revisi sebelum vessel cut-off time agar terhindar dari biaya amandemen & demurrage.\n\nHormat kami,\n${shipment.signatoryName || "Tim Operasional"} · ${shipment.exporter || "Eksportir"}`,
+    [
+      forwarderName,
+      draftBlNumber,
+      shipment.reference,
+      internalGrossWeightKg,
+      shipment.sealNumber,
+      shipment.signatoryName,
+      shipment.exporter,
+    ],
+  );
+
+  const handleRunOcrScrutiny = (resolveIssues: boolean) => {
     setIsSimulatingOcr(true);
     setTimeout(() => {
       setIsSimulatingOcr(false);
-      setHasScannedDraft(true);
-      toast.success("AI Document Scrutiny Selesai", {
-        description: "Ekstraksi OCR draft B/L berhasil dicocokkan silang dengan Commercial Invoice dan Packing List.",
-      });
-    }, 1400);
+      setDraftBlResolved(resolveIssues);
+      toast.success(
+        resolveIssues
+          ? "Draf B/L Revisi Lolos Validasi 3-Way!"
+          : "Simulasi AI OCR Scrutiny Selesai — Temuan Terdeteksi",
+        {
+          description: resolveIssues
+            ? "Seluruh field berat, segel, consignee, dan pelabuhan cocok 100%."
+            : "Notifikasi revisi otomatis aktif sebelum draf final B/L dikunci.",
+        },
+      );
+    }, 650);
   };
 
   const handleToggleScannedStamp = () => {
@@ -114,227 +163,326 @@ export function DocumentScrutinyModule({
     update("includeScannedCopyStamp", next);
     toast.success(
       next
-        ? "Cap Digital 'Scanned Copy' Berhasil Diterapkan!"
+        ? "Cap Digital 'Scanned Copy' Diterapkan ke Dokumen!"
         : "Cap Digital 'Scanned Copy' Dinonaktifkan.",
       {
         description: next
-          ? "Seluruh dokumen ekspor (PI, CI, PL, SI) kini dilengkapi stempel digital resmi SCANNED COPY untuk penagihan TT."
-          : "Stempel SCANNED COPY telah dihapus dari tampilan dokumen.",
-      }
+          ? "Seluruh dokumen ekspor (PI, CI, PL, SI) kini dilengkapi stempel SCANNED COPY untuk penagihan T/T."
+          : "Stempel SCANNED COPY dihapus dari preview dokumen.",
+      },
     );
   };
 
-  // TT Billing parameters
-  const totalValue = 78625; // USD
-  const dpPercentage = 30; // 30%
-  const dpPaid = (totalValue * dpPercentage) / 100;
-  const balanceDue = totalValue - dpPaid;
+  // TT Billing parameters terhubung langsung ke perhitungan Pricing transaksi aktif
+  const totalValue = pricing.active.offer > 0 ? pricing.active.offer : 44400;
+  const dpPaid = (totalValue * dpPercent) / 100;
+  const balanceDue = Math.max(0, totalValue - dpPaid);
 
-  const handleSendTtBilling = () => {
+  const ttBillingEmailText = useMemo(
+    () =>
+      `Dear ${shipment.buyerPicName || shipment.buyer || "Accounts Payable Team"},\n\nPlease find attached the SCANNED COPY of our finalized Commercial Invoice, Packing List, and Bill of Lading (${draftBlNumber}) for shipment reference ${shipment.reference || "Export Order"}.\n\nSETTLEMENT SUMMARY (${shipment.currency}):\n• Total Contract Value (${shipment.incoterm}): ${formatMoney(totalValue, shipment.currency)}\n• Initial Deposit Received (${dpPercent}%): ${formatMoney(dpPaid, shipment.currency)}\n• Remaining T/T Balance Due (${100 - dpPercent}%): ${formatMoney(balanceDue, shipment.currency)}\n\nREMITTANCE BANK ACCOUNT:\n• Bank: ${shipment.bankName || "PT. Bank Mandiri (Persero) Tbk"}\n• SWIFT Code: ${shipment.bankSwift || "BMRIIDJA"}\n• Account Name: ${shipment.exporter || "Indonesian Exporter"}\n• Account No.: ${shipment.bankAccountNo || "152-00-9876543-2"}\n\nUpon receipt of your SWIFT TT copy, we will proceed with Telex Release / courier of original export documents.\n\nBest regards,\n${shipment.signatoryName || "Export Finance"} · ${shipment.exporter || ""}`,
+    [
+      shipment.buyerPicName,
+      shipment.buyer,
+      draftBlNumber,
+      shipment.reference,
+      shipment.currency,
+      shipment.incoterm,
+      totalValue,
+      dpPercent,
+      dpPaid,
+      balanceDue,
+      shipment.bankName,
+      shipment.bankSwift,
+      shipment.exporter,
+      shipment.bankAccountNo,
+      shipment.signatoryName,
+    ],
+  );
+
+  const handleCopyRevision = async () => {
+    try {
+      await navigator.clipboard.writeText(revisionRequestText);
+      toast.success("Notifikasi Permintaan Revisi B/L Disalin", {
+        description: "Siap dikirim ke Forwarder sebelum draf final dikunci pelayaran.",
+      });
+    } catch {
+      toast.error("Gagal menyalin ke clipboard.");
+    }
+  };
+
+  const handleSendTtBilling = async () => {
     setIsEmailSending(true);
+    try {
+      await navigator.clipboard.writeText(ttBillingEmailText);
+    } catch {
+      // Abaikan jika browser memblokir clipboard
+    }
     setTimeout(() => {
       setIsEmailSending(false);
-      toast.success("Faktur Penagihan TT Berhasil Dikirim!", {
-        description: `Email penagihan pelunasan sisa 70% (USD $${balanceDue.toLocaleString()}) dengan lampiran Scanned Copy telah dikirim ke ${shipment.buyer || "Buyer"}.`,
+      toast.success("Draf Tagihan Pelunasan T/T Disiapkan!", {
+        description: `Teks penagihan sisa ${formatMoney(balanceDue, shipment.currency)} disalin. Lampirkan PDF berstempel SCANNED COPY pada email Anda.`,
       });
-    }, 1500);
+    }, 550);
   };
 
   return (
     <div className="module-stack" style={{ gap: 16 }}>
-      {/* Sleek Sub-Navigation Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border pb-3">
-        <div className="flex items-center gap-1 bg-muted/40 p-1 rounded-lg border border-border/60">
+      {/* Sub-Navigation Bar */}
+      <div
+        className="panel panel-padding"
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div className="clean-tabs">
           <button
             type="button"
+            className={activeTab === "ocr_scrutiny" ? "active" : ""}
             onClick={() => setActiveTab("ocr_scrutiny")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
-              activeTab === "ocr_scrutiny"
-                ? "bg-background text-foreground shadow-sm font-semibold"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
           >
-            <FileSearch size={13} /> Pemeriksaan Draf B/L (3-Way Matching)
+            <FileSearch size={14} /> Pemeriksaan Draf B/L (3-Way Matching)
           </button>
           <button
             type="button"
+            className={activeTab === "tt_billing" ? "active" : ""}
             onClick={() => setActiveTab("tt_billing")}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all flex items-center gap-1.5 ${
-              activeTab === "tt_billing"
-                ? "bg-background text-foreground shadow-sm font-semibold"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
           >
-            <Stamp size={13} /> Cap Scanned Copy & Tagihan TT
+            <Stamp size={14} /> Otomatisasi Cap Scanned Copy &amp; Tagihan TT
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">
-            Acuan: <b>{shipment.reference}</b> · Forwarder: MSC / PT Samudera
-          </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <StatusPill tone={issueCount > 0 ? "amber" : "green"}>
+            {issueCount > 0 ? `${issueCount} Temuan Perlu Revisi` : "3-Way Lolos Sempurna"}
+          </StatusPill>
+          <button type="button" className="ghost-button" onClick={() => navigate("audit_vault")}>
+            Audit Vault →
+          </button>
         </div>
       </div>
 
-      {/* TAB 1: OCR SCRUTINY & VALIDASI SILANG */}
+      {/* TAB 1: OCR SCRUTINY & NOTIFIKASI REVISI OTOMATIS */}
       {activeTab === "ocr_scrutiny" && (
-        <div className="space-y-4">
-          {/* Upload / Simulation Panel */}
+        <div className="module-stack" style={{ gap: 14 }}>
+          {/* Alert Notifikasi Revisi Otomatis Sebelum Kunci Final */}
+          {issueCount > 0 && (
+            <section
+              className="panel panel-padding"
+              style={{
+                background: "#fef2f2",
+                borderColor: "#fca5a5",
+                display: "flex",
+                flexWrap: "wrap",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 10, maxWidth: 700 }}>
+                <BellRing size={18} style={{ color: "#dc2626", marginTop: 2, flexShrink: 0 }} />
+                <div style={{ fontSize: 12.5, color: "#7f1d1d", lineHeight: 1.5 }}>
+                  <b>Notifikasi Revisi Otomatis Aktif:</b> Sistem mendeteksi {issueCount}{" "}
+                  ketidaksesuaian antara Commercial Invoice / Packing List dengan Draft B/L{" "}
+                  <span className="mono-code">{draftBlNumber}</span>. Kirim permintaan koreksi sebelum
+                  pelayaran menerbitkan Final B/L guna menghindari denda revisi &amp; demurrage.
+                </div>
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  type="button"
+                  className="save-button"
+                  style={{ background: "#dc2626" }}
+                  onClick={handleCopyRevision}
+                >
+                  <Copy size={13} /> Salin Surat Revisi Forwarder
+                </button>
+                <a
+                  href={`mailto:${encodeURIComponent(forwarderEmail)}?subject=${encodeURIComponent(
+                    `Revisi Draft B/L ${draftBlNumber} (${shipment.reference || "Ekspor"})`,
+                  )}&body=${encodeURIComponent(revisionRequestText)}`}
+                  className="ghost-button"
+                  style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <Mail size={13} /> Kirim ke Email Forwarder
+                </a>
+              </div>
+            </section>
+          )}
+
+          {/* Panel OCR & Snapshot */}
           <section className="panel panel-padding">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
+            <div className="panel-head">
               <div>
-                <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                  <UploadCloud size={16} className="text-indigo-400" />
-                  Unggah Draf Dokumen Eksternal (Bill of Lading dari Forwarder)
+                <span className="eyebrow">AI DOCUMENT SCRUTINY</span>
+                <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <UploadCloud size={17} style={{ color: "#0f2942" }} />
+                  Validasi Silang Draft B/L vs Commercial Invoice &amp; Packing List
                 </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Sistem mengekstrak nomor BL, consignee, bobot kotor/bersih, dan nomor seal untuk dicocokkan otomatis dengan data internal.
+                <p className="muted-note" style={{ marginTop: 4 }}>
+                  Mencocokkan nomor B/L, consignee, berat kotor (VGM), dan nomor segel kontainer sebelum
+                  finalisasi pelayaran.
                 </p>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
                 <button
                   type="button"
-                  onClick={handleRunOcrScrutiny}
                   disabled={isSimulatingOcr}
-                  className="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium flex items-center gap-1.5 shadow"
+                  onClick={() => handleRunOcrScrutiny(false)}
+                  className="ghost-button"
                 >
-                  {isSimulatingOcr ? (
-                    <>
-                      <RefreshCw size={13} className="animate-spin" /> Menganalisis Dokumen...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={13} /> Muat & Jalankan OCR Scrutiny
-                    </>
-                  )}
+                  <RefreshCw size={13} className={isSimulatingOcr ? "animate-spin" : ""} />{" "}
+                  Uji Simulasi Temuan
+                </button>
+                <button
+                  type="button"
+                  disabled={isSimulatingOcr}
+                  onClick={() => handleRunOcrScrutiny(true)}
+                  className="save-button"
+                >
+                  <Sparkles size={13} /> Verifikasi Draf Revisi (Lolos 100%)
                 </button>
               </div>
             </div>
 
-            {/* Extracted Snapshot Info */}
-            <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-xs bg-background/50 p-3 rounded-lg border border-border">
-              <div>
-                <span className="text-[11px] text-muted-foreground block">Nomor Draf B/L:</span>
-                <b className="font-mono text-foreground">{draftBlNumber}</b>
+            <div className="clean-tabs" style={{ marginBottom: 14, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+              <div className="clean-kv">
+                <span>Nomor Draft B/L</span>
+                <b className="mono-code">{draftBlNumber}</b>
               </div>
-              <div>
-                <span className="text-[11px] text-muted-foreground block">Shipping Line / Forwarder:</span>
-                <span className="text-foreground">{forwarderName}</span>
+              <div className="clean-kv">
+                <span>Forwarder / Pelayaran</span>
+                <b>{forwarderName}</b>
               </div>
-              <div>
-                <span className="text-[11px] text-muted-foreground block">Gross Weight pada B/L:</span>
-                <b className="text-amber-400 font-mono">{blGrossWeight}</b>
+              <div className="clean-kv ef-form">
+                <span>Email Forwarder (Notifikasi Revisi)</span>
+                <input
+                  type="email"
+                  className="ef-input-clean"
+                  value={forwarderEmail}
+                  onChange={(e) => setForwarderEmail(e.target.value)}
+                  style={{ marginTop: 4 }}
+                />
               </div>
-              <div>
-                <span className="text-[11px] text-muted-foreground block">Status Verifikasi Silang:</span>
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                  Perlu Revisi (1 Error, 1 Warning)
-                </span>
+              <div className="clean-kv">
+                <span>Status Pencocokan 3-Way</span>
+                <b>
+                  {issueCount === 0 ? "100% Konsisten (Siap Kunci B/L)" : `${issueCount} Item Perlu Koreksi`}
+                </b>
               </div>
             </div>
-          </section>
 
-          {/* 3-Way Matching Comparison Table */}
-          <section className="panel panel-padding">
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="font-bold text-sm text-foreground flex items-center gap-1.5">
-                <FileCheck size={16} className="text-emerald-400" />
-                Hasil Pencocokan Silang 3-Way (Draft B/L vs Commercial Invoice vs Packing List)
-              </h3>
-              <span className="text-xs text-muted-foreground">
-                Acuan: Transaksi <b>{shipment.reference}</b>
-              </span>
-            </div>
+            <div className="module-stack" style={{ gap: 10 }}>
+              {discrepancies.map((disc) => {
+                const bg =
+                  disc.severity === "error"
+                    ? "#fef2f2"
+                    : disc.severity === "warning"
+                      ? "#fffbeb"
+                      : "#f0fdf4";
+                const border =
+                  disc.severity === "error"
+                    ? "#fca5a5"
+                    : disc.severity === "warning"
+                      ? "#fcd34d"
+                      : "#86efac";
 
-            <div className="space-y-3">
-              {discrepancies.map((disc) => (
-                <div
-                  key={disc.id}
-                  className={`p-3.5 rounded-lg border text-xs transition-all ${
-                    disc.severity === "error"
-                      ? "border-rose-500/50 bg-rose-950/15"
-                      : disc.severity === "warning"
-                      ? "border-amber-500/50 bg-amber-950/15"
-                      : "border-emerald-500/30 bg-emerald-950/10"
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        {disc.severity === "error" ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 flex items-center gap-1">
-                            <AlertTriangle size={11} /> KETIDAKSESUAIAN KRITIS
-                          </span>
-                        ) : disc.severity === "warning" ? (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1">
-                            <Info size={11} /> PERINGATAN REVISI
-                          </span>
-                        ) : (
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                            <CheckCircle2 size={11} /> TERVERIFIKASI COCOK
-                          </span>
-                        )}
-                        <b className="text-foreground text-sm">{disc.field}</b>
+                return (
+                  <div
+                    key={disc.id}
+                    style={{
+                      padding: 14,
+                      borderRadius: 10,
+                      background: bg,
+                      border: `1px solid ${border}`,
+                      display: "flex",
+                      flexWrap: "wrap",
+                      justifyContent: "space-between",
+                      gap: 12,
+                    }}
+                  >
+                    <div style={{ flex: 1, minWidth: 260 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                        <StatusPill
+                          tone={
+                            disc.severity === "error"
+                              ? "red"
+                              : disc.severity === "warning"
+                                ? "amber"
+                                : "green"
+                          }
+                        >
+                          {disc.severity === "error" ? (
+                            <AlertTriangle size={11} />
+                          ) : disc.severity === "warning" ? (
+                            <Info size={11} />
+                          ) : (
+                            <CheckCircle2 size={11} />
+                          )}
+                          {disc.severity === "error"
+                            ? "KETIDAKSESUAIAN KRITIS"
+                            : disc.severity === "warning"
+                              ? "PERINGATAN REVISI"
+                              : "TERVERIFIKASI COCOK"}
+                        </StatusPill>
+                        <b style={{ fontSize: 13.5, color: "#0f172a" }}>{disc.field}</b>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs pt-1">
-                        <div className="bg-background/60 p-2 rounded border border-border/70">
-                          <span className="text-muted-foreground block text-[11px]">Data Internal (CI / PL):</span>
-                          <span className="font-mono font-medium text-foreground">{disc.internalValue}</span>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+                        <div style={{ background: "#ffffff", padding: 8, borderRadius: 6, border: "1px solid #e2e8f0" }}>
+                          <span style={{ color: "#64748b", display: "block", fontSize: 11 }}>
+                            Data Internal (CI / PL)
+                          </span>
+                          <b className="mono-code" style={{ color: "#0f172a" }}>
+                            {disc.internalValue}
+                          </b>
                         </div>
-                        <div className="bg-background/60 p-2 rounded border border-border/70">
-                          <span className="text-muted-foreground block text-[11px]">Draf Dokumen Pihak Ketiga (B/L):</span>
-                          <span
-                            className={`font-mono font-medium ${
-                              disc.severity === "error"
-                                ? "text-rose-400"
-                                : disc.severity === "warning"
-                                ? "text-amber-400"
-                                : "text-emerald-400"
-                            }`}
+                        <div style={{ background: "#ffffff", padding: 8, borderRadius: 6, border: "1px solid #e2e8f0" }}>
+                          <span style={{ color: "#64748b", display: "block", fontSize: 11 }}>
+                            Draft Pihak Ketiga (B/L)
+                          </span>
+                          <b
+                            className="mono-code"
+                            style={{
+                              color:
+                                disc.severity === "error"
+                                  ? "#dc2626"
+                                  : disc.severity === "warning"
+                                    ? "#b45309"
+                                    : "#047857",
+                            }}
                           >
                             {disc.draftBlValue}
-                          </span>
+                          </b>
                         </div>
                       </div>
-
-                      <p className="text-muted-foreground text-xs mt-2">{disc.description}</p>
+                      <p style={{ margin: "8px 0 0", fontSize: 12, color: "#334155" }}>{disc.description}</p>
                     </div>
 
-                    <div className="text-right shrink-0 max-w-[280px]">
-                      <span className="text-[10px] font-semibold text-rose-300 block bg-rose-500/10 p-2 rounded border border-rose-500/20">
-                        {disc.demurrageRisk}
-                      </span>
+                    <div
+                      style={{
+                        maxWidth: 260,
+                        alignSelf: "center",
+                        padding: 10,
+                        borderRadius: 8,
+                        background: "#ffffff",
+                        border: "1px solid #e2e8f0",
+                        fontSize: 11.5,
+                        color: disc.severity === "pass" ? "#047857" : "#991b1b",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <ShieldAlert size={13} style={{ display: "inline", marginRight: 5 }} />
+                      {disc.demurrageRisk}
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Notification & Revision Request Action */}
-            <div className="mt-4 pt-3 border-t border-border flex flex-col md:flex-row md:items-center justify-between gap-3">
-              <div className="text-xs text-muted-foreground flex items-center gap-2">
-                <ShieldAlert size={15} className="text-rose-400" />
-                <span>
-                  <b>Notifikasi Peringatan Demurrage:</b> Deteksi dini ketidaksesuaian data sebelum proses pengiriman dan final B/L dikunci oleh pihak pelayaran.
-                </span>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    `Kepada Yth. Tim Operasional ${forwarderName}\nPerihal: Permintaan Revisi Draf B/L No. ${draftBlNumber} (Ref: ${shipment.reference})\n\nBerdasarkan validasi silang sistem EksporFlow dengan Packing List kami, mohon lakukan koreksi:\n1. Gross Weight tertulis 24,850 kg, seharusnya 24,800 kg sesuai timbangan resmi (Packing List terlampir).\n2. Mohon cantumkan Nomor Segel (Seal No.) resmi: ${shipment.sealNumber || "ID-SEAL-889102"}.\n\nMohon kirimkan draf revisi sebelum vessel cut-off time. Terima kasih.`
-                  );
-                  toast.success("Draf Permintaan Revisi Disalin!", {
-                    description: "Teks permintaan koreksi B/L ke freight forwarder siap dikirim melalui email/WhatsApp.",
-                  });
-                }}
-                className="px-3.5 py-2 rounded-md bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow"
-              >
-                <Mail size={13} /> Buat Permintaan Revisi B/L ke Forwarder
-              </button>
+                );
+              })}
             </div>
           </section>
         </div>
@@ -342,123 +490,191 @@ export function DocumentScrutinyModule({
 
       {/* TAB 2: OTOMATISASI CAP SCANNED COPY & PENAGIHAN TT */}
       {activeTab === "tt_billing" && (
-        <div className="space-y-4">
-          <section className="panel panel-padding">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-border">
-              <div>
-                <h3 className="font-bold text-sm text-foreground flex items-center gap-2">
-                  <Stamp size={16} className="text-primary" />
-                  Cap Digital "Scanned Copy" & Penagihan Telegraphic Transfer (TT)
-                </h3>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Berikan stempel non-negotiable resmi pada dokumen yang lolos verifikasi, lalu kirim faktur pelunasan TT kepada buyer sebelum dokumen original diserahkan.
-                </p>
+        <section className="panel panel-padding">
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">OTOMATISASI CAP DIGITAL &amp; SETTLEMENT TELEGRAPHIC TRANSFER</span>
+              <h3 style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Stamp size={17} style={{ color: "#0f2942" }} />
+                Stempel &quot;SCANNED COPY&quot; &amp; Draf Email Penagihan Pelunasan T/T
+              </h3>
+              <p className="muted-note" style={{ marginTop: 4 }}>
+                Terapkan stempel non-negotiable ke dokumen CI/PL untuk penagihan sisa pelunasan sebelum
+                dokumen original / telex release dikirimkan ke buyer.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleToggleScannedStamp}
+              className="save-button"
+              style={{
+                background: shipment.includeScannedCopyStamp ? "#059669" : "#0f2942",
+              }}
+            >
+              <Stamp size={14} />
+              {shipment.includeScannedCopyStamp
+                ? "✓ Cap Scanned Copy Aktif di Dokumen"
+                : "Aktifkan Cap 'SCANNED COPY'"}
+            </button>
+          </div>
+
+          <div className="content-grid two-thirds" style={{ marginTop: 12 }}>
+            {/* Kiri: Preview Stempel & Email Penagihan TT Otomatis */}
+            <div className="module-stack" style={{ gap: 12 }}>
+              <div
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 10,
+                  padding: 16,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  textAlign: "center",
+                }}
+              >
+                <span className="eyebrow" style={{ marginBottom: 10 }}>
+                  SIMULASI CAP DIGITAL PADA DOKUMEN EKSPOR (PI / CI / PL / SI)
+                </span>
+                <div
+                  style={{
+                    border: "3px solid #dc2626",
+                    borderRadius: 6,
+                    padding: "8px 14px",
+                    transform: "rotate(-5deg)",
+                    color: "#dc2626",
+                    background: "rgba(254, 242, 242, 0.85)",
+                    margin: "8px 0 12px",
+                  }}
+                >
+                  <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1.5, borderBottom: "1.5px solid #dc2626", paddingBottom: 2 }}>
+                    OFFICIAL EXPORT DOCUMENT
+                  </div>
+                  <div style={{ fontSize: 17, fontWeight: 900, letterSpacing: 1.2, padding: "4px 0" }}>
+                    SCANNED COPY
+                  </div>
+                  <div style={{ fontSize: 9, fontWeight: 700, borderTop: "1.5px solid #dc2626", paddingTop: 2 }}>
+                    NON-NEGOTIABLE · RELEASED FOR T/T SETTLEMENT
+                  </div>
+                </div>
+                <small style={{ color: "#475569" }}>
+                  Status pada tab Dokumen Ekspor:{" "}
+                  <b style={{ color: shipment.includeScannedCopyStamp ? "#059669" : "#b45309" }}>
+                    {shipment.includeScannedCopyStamp
+                      ? "Aktif & Muncul Saat Cetak / PDF"
+                      : "Belum Diaktifkan"}
+                  </b>
+                </small>
               </div>
 
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={handleToggleScannedStamp}
-                  className={`px-3.5 py-2 rounded-md text-xs font-semibold flex items-center gap-1.5 transition-all shadow ${
-                    shipment.includeScannedCopyStamp
-                      ? "bg-emerald-600 hover:bg-emerald-700 text-white"
-                      : "bg-primary hover:bg-primary/90 text-primary-foreground"
-                  }`}
+              <div
+                style={{
+                  background: "#f8fafc",
+                  border: "1px solid #cbd5e1",
+                  borderRadius: 10,
+                  padding: 14,
+                }}
+              >
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                  <span className="eyebrow">DRAF OTOMATIS EMAIL TAGIHAN PELUNASAN T/T</span>
+                  <StatusPill tone="blue">Sinkron dengan Pricing</StatusPill>
+                </div>
+                <pre
+                  style={{
+                    margin: 0,
+                    whiteSpace: "pre-wrap",
+                    fontFamily: "var(--font-sans)",
+                    fontSize: 12,
+                    lineHeight: 1.55,
+                    color: "#1e293b",
+                  }}
                 >
-                  <Stamp size={14} />
-                  {shipment.includeScannedCopyStamp
-                    ? "✓ Cap Scanned Copy Aktif"
-                    : "Aktifkan Cap 'Scanned Copy'"}
-                </button>
+                  {ttBillingEmailText}
+                </pre>
               </div>
             </div>
 
-            {/* Visual Stamp Card */}
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Preview Cap Stempel Digital */}
-              <div className="bg-background rounded-lg border border-border p-5 flex flex-col justify-between items-center text-center relative overflow-hidden min-h-[220px]">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Simulasi Cap Digital Pada Dokumen Ekspor
-                </span>
+            {/* Kanan: Kalkulator Tagihan TT & Kirim */}
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #cbd5e1",
+                borderRadius: 10,
+                padding: 16,
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+                height: "fit-content",
+              }}
+            >
+              <span className="eyebrow">RINCIAN SISA TAGIHAN PELUNASAN T/T</span>
 
-                <div className="my-auto relative p-4 border-2 border-dashed border-primary/40 rounded-lg max-w-sm">
-                  {/* Stempel Fisik Emulasi */}
-                  <div className="border-4 border-red-600 rounded-md p-2.5 transform -rotate-6 text-red-600 shadow-md bg-red-500/5 select-none">
-                    <div className="text-[11px] font-bold tracking-widest border-b-2 border-red-600 pb-0.5">
-                      ★ OFFICIAL EXPORT DOCUMENT ★
-                    </div>
-                    <div className="text-base font-black tracking-wider py-1">
-                      SCANNED COPY
-                    </div>
-                    <div className="text-[9px] font-semibold tracking-wide border-t-2 border-red-600 pt-0.5 uppercase">
-                      NON-NEGOTIABLE · RELEASED FOR TT PAYMENT
-                    </div>
-                  </div>
+              <label style={{ fontSize: 12, color: "#475569" }}>
+                Persentase Uang Muka (DP Telah Diterima %)
+                <input
+                  type="number"
+                  min={0}
+                  max={100}
+                  className="ef-input-clean"
+                  value={dpPercent}
+                  onChange={(e) => setDpPercent(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+                  style={{ marginTop: 4 }}
+                />
+              </label>
+
+              <div className="module-stack" style={{ gap: 8, padding: "10px 0", borderTop: "1px solid #e2e8f0", borderBottom: "1px solid #e2e8f0" }}>
+                <div className="clean-kv">
+                  <span>Nilai Total ({shipment.incoterm})</span>
+                  <b>{formatMoney(totalValue, shipment.currency)}</b>
                 </div>
-
-                <div className="text-[11px] text-muted-foreground mt-2">
-                  Status Stempel Saat Ini:{" "}
-                  <b className={shipment.includeScannedCopyStamp ? "text-emerald-400" : "text-muted-foreground"}>
-                    {shipment.includeScannedCopyStamp ? "Diterapkan ke Dokumen Ekspor" : "Belum Diaktifkan"}
+                <div className="clean-kv">
+                  <span>Deposit Masuk ({dpPercent}%)</span>
+                  <b style={{ color: "#059669" }}>- {formatMoney(dpPaid, shipment.currency)}</b>
+                </div>
+                <div className="clean-kv">
+                  <span>Sisa Wajib Lunasi ({100 - dpPercent}%)</span>
+                  <b style={{ color: "#0f2942", fontSize: 15 }}>
+                    {formatMoney(balanceDue, shipment.currency)}
                   </b>
                 </div>
               </div>
 
-              {/* Financial TT Breakdown */}
-              <div className="bg-background rounded-lg border border-border p-5 space-y-3 text-xs">
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
-                  Perhitungan Sisa Tagihan Pelunasan TT
-                </span>
-
-                <div className="space-y-2 border-b border-border pb-3">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Nilai Kontrak (FOB / CIF):</span>
-                    <b className="font-mono text-foreground">USD ${totalValue.toLocaleString()}</b>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Uang Muka Diterima (Deposit 30%):</span>
-                    <span className="font-mono text-emerald-400">- USD ${dpPaid.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm pt-1 border-t border-border/60">
-                    <b className="text-foreground">Sisa Pelunasan Wajib Bayar (70%):</b>
-                    <b className="font-mono text-primary text-base">USD ${balanceDue.toLocaleString()}</b>
-                  </div>
+              <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.55 }}>
+                <div>
+                  Bank Penerima: <b>{shipment.bankName || "Bank Mandiri"}</b>
                 </div>
-
-                <div className="space-y-1 text-muted-foreground text-[11px]">
-                  <div>
-                    Bank Penerima: <b>Bank Mandiri (Persero) Tbk</b> · Cabang Jakarta Thamrin
-                  </div>
-                  <div>
-                    SWIFT Code: <b className="font-mono">BMRIIDJA</b> · Rekening USD: <b className="font-mono">102-00-889123-9</b>
-                  </div>
-                  <div>
-                    Atas Nama: <b>{shipment.exporter || "PT. INDICO EXPORT NUSANTARA"}</b>
-                  </div>
+                <div>
+                  SWIFT: <b className="mono-code">{shipment.bankSwift || "BMRIIDJA"}</b> · Rek:{" "}
+                  <b className="mono-code">{shipment.bankAccountNo || "152-00-9876543-2"}</b>
                 </div>
-
-                <div className="pt-2">
-                  <button
-                    type="button"
-                    onClick={handleSendTtBilling}
-                    disabled={isEmailSending}
-                    className="w-full py-2 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 shadow"
-                  >
-                    {isEmailSending ? (
-                      <>
-                        <RefreshCw size={13} className="animate-spin" /> Mengirim Tagihan TT...
-                      </>
-                    ) : (
-                      <>
-                        <Send size={13} /> Kirim Faktur Penagihan Pelunasan TT ke Buyer
-                      </>
-                    )}
-                  </button>
+                <div>
+                  Email Buyer: <b>{shipment.buyerEmail || "(Belum diisi di Pra-Transaksi/Buyer)"}</b>
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={handleSendTtBilling}
+                disabled={isEmailSending}
+                className="save-button"
+                style={{ width: "100%", justifyContent: "center" }}
+              >
+                <Send size={14} />{" "}
+                {isEmailSending ? "Menyiapkan Tagihan..." : "Salin Draf Tagihan Pelunasan T/T"}
+              </button>
+              <a
+                href={`mailto:${encodeURIComponent(shipment.buyerEmail || "")}?subject=${encodeURIComponent(
+                  `T/T Balance Settlement & Scanned Copy Documents — ${shipment.reference || "Export"}`,
+                )}&body=${encodeURIComponent(ttBillingEmailText)}`}
+                className="ghost-button"
+                style={{ width: "100%", justifyContent: "center", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+              >
+                <Mail size={14} /> Buka Tagihan di Email Client
+              </a>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       )}
     </div>
   );

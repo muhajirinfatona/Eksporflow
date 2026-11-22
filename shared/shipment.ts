@@ -1,4 +1,10 @@
 // Tipe domain dan data awal transaksi EksporFlow. Dipisahkan dari Home.tsx agar dapat dipakai bersama oleh client, server, dan test.
+import type {
+  AuditVaultCustomDoc,
+  ExportPermitRecord,
+  PreShipmentSchedule,
+  PreTransactionDraftData,
+} from "./exportCompliance";
 
 export type Incoterm = "EXW" | "FCA" | "FOB" | "CFR" | "CIF" | "DAP" | "DDP";
 export type DocumentType =
@@ -476,6 +482,13 @@ export type Shipment = {
   mfgAuxiliary?: number;
   mfgDirectLabor?: number;
   mfgOverhead?: number;
+  exportPermits?: ExportPermitRecord;
+  preShipmentSchedule?: PreShipmentSchedule;
+  auditVaultDocs?: AuditVaultCustomDoc[];
+  preTransactionData?: PreTransactionDraftData;
+  onboardingCompletedIds?: string[];
+  subscriptionPlan?: "personal" | "growth" | "enterprise";
+  activeRbacRole?: "owner_admin" | "dokumen_ops" | "finance_tax" | "viewer_auditor";
 };
 
 export const DEFAULT_INDICO_LOGO = "/indico_logo_official.png";

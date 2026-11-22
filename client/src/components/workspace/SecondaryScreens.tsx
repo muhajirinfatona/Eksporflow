@@ -1,5 +1,16 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
+import {
+  formatDemoRemainingLabel,
+  getDemoRemainingMs,
+  type UserSession,
+} from "@/lib/supabaseAuth";
+import {
+  buildOnboarding30Days,
+  calculatePlanBilling,
+  SUBSCRIPTION_PLANS,
+  type SubscriptionPlanSpec,
+} from "@shared/exportCompliance";
 import { formatMoney, formatNumber } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import type { ScreenId } from "@shared/risk";
@@ -100,6 +111,27 @@ export function DashboardView({
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
+  const onboarding = useMemo(
+    () =>
+      buildOnboarding30Days(
+        shipment,
+        {
+          productsCount: flow.products.length,
+          partnersCount: flow.partners.length,
+        },
+        shipment.onboardingCompletedIds || [],
+      ),
+    [shipment, flow.products.length, flow.partners.length],
+  );
+
+  const toggleOnboardingStep = (stepId: string) => {
+    const existing = shipment.onboardingCompletedIds || [];
+    const next = existing.includes(stepId)
+      ? existing.filter((id) => id !== stepId)
+      : [...existing, stepId];
+    update("onboardingCompletedIds", next);
+  };
+
   return (
     <div className="module-stack">
       {/* 1. Compact Executive Deal Summary Bar */}
@@ -289,6 +321,97 @@ export function DashboardView({
                   </button>
                 )}
               </span>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* 5. Panduan Implementasi 30 Hari (Onboarding Terstruktur UMKM) */}
+      <section className="panel panel-padding">
+        <div className="panel-head">
+          <div>
+            <span className="eyebrow">PANDUAN IMPLEMENTASI 30 HARI (ONBOARDING EKSPOR)</span>
+            <h3>Tahapan Menuju Pengapalan Perdana</h3>
+          </div>
+          <StatusPill tone={onboarding.progressPercent === 100 ? "green" : "amber"}>
+            {onboarding.completedCount}/{onboarding.totalCount} Tahap · {onboarding.progressPercent}%
+          </StatusPill>
+        </div>
+
+        <div
+          style={{
+            height: 8,
+            borderRadius: 999,
+            background: "#e2e8f0",
+            overflow: "hidden",
+            marginBottom: 14,
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${onboarding.progressPercent}%`,
+              background: onboarding.progressPercent === 100 ? "#10b981" : "#0f2942",
+              transition: "width 0.25s ease",
+            }}
+          />
+        </div>
+
+        <div className="module-stack" style={{ gap: 8 }}>
+          {onboarding.steps.map((step) => (
+            <div
+              key={step.id}
+              className={`legal-check-row ${step.autoCompleted ? "done" : ""}`}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 12,
+              }}
+            >
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: 10,
+                  cursor: "pointer",
+                  flex: 1,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={step.autoCompleted}
+                  onChange={() => toggleOnboardingStep(step.id)}
+                />
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <span
+                      className="mono-code"
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 700,
+                        background: "#eff6ff",
+                        color: "#0f2942",
+                        padding: "1px 6px",
+                        borderRadius: 4,
+                      }}
+                    >
+                      {step.daysWindow}
+                    </span>
+                    <b>{step.title}</b>
+                    <small style={{ color: "#64748b" }}>{step.phase}</small>
+                  </div>
+                  <small style={{ display: "block", marginTop: 2 }}>{step.detail}</small>
+                </div>
+              </label>
+
+              <button
+                type="button"
+                className="table-inline-btn"
+                onClick={() => navigate(step.targetScreen)}
+              >
+                Buka <ChevronRight size={13} />
+              </button>
             </div>
           ))}
         </div>
@@ -3165,25 +3288,117 @@ export function ReportsView({
   );
 }
 
+const RBAC_ROLES: {
+  id: NonNullable<Shipment["activeRbacRole"]>;
+  label: string;
+  scope: string;
+  permissions: string[];
+}[] = [
+  {
+    id: "owner_admin",
+    label: "Owner / Direktur Ekspor",
+    scope: "Akses Penuh Seluruh Modul & Persetujuan",
+    permissions: [
+      "Kelola Pra-Transaksi, Harga Incoterms & Approval Kontrak",
+      "Ekspor Final Dokumen & Pengaturan Rekening Bank T/T",
+      "Akses Penuh Audit Vault DJBC & Manajemen Tim",
+    ],
+  },
+  {
+    id: "dokumen_ops",
+    label: "Staf Operasional & Dokumen Ekspor",
+    scope: "Fokus Dokumen, Kepatuhan Lartas, Muatan & Logistik",
+    permissions: [
+      "Buat & Edit PI, SC, CI, PL, SI serta OCR Scrutiny B/L",
+      "Kelola Sertifikat Karantina, e-SKA/COO & Timeline H-7 PEB",
+      "Terkunci: Tidak dapat mengubah Margin Profit atau Rekening Bank",
+    ],
+  },
+  {
+    id: "finance_tax",
+    label: "Keuangan, Pajak & Penagihan T/T",
+    scope: "Fokus Harga Pokok, Kurs BI, Invoice & Rekonsiliasi T/T",
+    permissions: [
+      "Verifikasi DP 30%, Pelunasan T/T & Penerbitan Cap Scanned Copy",
+      "Ekspor Dossier Audit Pajak & Kepabeanan (DJBC)",
+      "Hanya-Baca pada Rencana Muatan Kontainer & Data Teknis Forwarder",
+    ],
+  },
+  {
+    id: "viewer_auditor",
+    label: "Auditor / Konsultan PPJK (Read-Only)",
+    scope: "Pemeriksaan Indeks Audit & Validasi HS Code / Lartas",
+    permissions: [
+      "Baca & Unduh Manifest Audit Vault DJBC & Riwayat Revisi",
+      "Tinjau HS Code, Checklist Risiko & Draf Surat Jalan",
+      "Terkunci: Tidak dapat mengubah nominal atau menghapus transaksi",
+    ],
+  },
+];
+
 export function SettingsView({
   user,
   shipment,
+  update,
   version,
   saveState,
   activeShipmentId,
   login,
   logout,
+  onUpgradeFromDemo,
   navigate,
 }: {
-  user: { name?: string | null; email?: string | null; role?: string | null } | null;
+  user:
+    | ({
+        name?: string | null;
+        email?: string | null;
+        role?: string | null;
+        isDemo?: boolean;
+        demoExpiresAt?: string;
+      } & Partial<UserSession>)
+    | null;
   shipment: Shipment;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   version: number;
   saveState: PersistenceSaveState;
   activeShipmentId: string | null;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  onUpgradeFromDemo?: () => void;
   navigate: (screen: ScreenId) => void;
 }) {
+  const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
+  const [simDocsPerMonth, setSimDocsPerMonth] = useState<number>(45);
+  const [localPlan, setLocalPlan] = useState<SubscriptionPlanSpec["id"]>(
+    shipment.subscriptionPlan || "growth",
+  );
+  const [localRole, setLocalRole] = useState<NonNullable<Shipment["activeRbacRole"]>>(
+    shipment.activeRbacRole || "owner_admin",
+  );
+
+  const selectedPlan = shipment.subscriptionPlan || localPlan;
+  const selectedRole = shipment.activeRbacRole || localRole;
+  const isDemo = Boolean(user?.isDemo);
+  const demoRemainingMs = isDemo ? getDemoRemainingMs(user as UserSession) : 0;
+  const demoRemainingLabel = isDemo ? formatDemoRemainingLabel(demoRemainingMs) : "";
+  const billingPreview = useMemo(
+    () => calculatePlanBilling(selectedPlan, billingCycle, simDocsPerMonth),
+    [selectedPlan, billingCycle, simDocsPerMonth],
+  );
+  const activeRoleSpec = RBAC_ROLES.find((r) => r.id === selectedRole) ?? RBAC_ROLES[0];
+
+  const handleSelectPlan = (planId: SubscriptionPlanSpec["id"]) => {
+    setLocalPlan(planId);
+    update?.("subscriptionPlan", planId);
+    toast.success(`Simulasi paket diubah ke ${planId.toUpperCase()}`);
+  };
+
+  const handleSelectRole = (roleId: NonNullable<Shipment["activeRbacRole"]>) => {
+    setLocalRole(roleId);
+    update?.("activeRbacRole", roleId);
+    const label = RBAC_ROLES.find((r) => r.id === roleId)?.label || roleId;
+    toast.info(`Pratinjau hak akses RBAC: ${label}`);
+  };
   const exportJson = () => {
     const blob = new Blob(
       [JSON.stringify({ shipment, version, exportedAt: new Date().toISOString() }, null, 2)],
@@ -3276,64 +3491,229 @@ export function SettingsView({
           </div>
         </section>
 
-        {/* Fitur 4.3: Verifikasi Pengguna Bertingkat (KYC / KYB) */}
+        {/* Fitur 4.3: Kesiapan Legalitas Entitas (KYC / KYB) */}
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">LEGALITAS ENTITAS (FITUR 4.3)</span>
-              <h3>Verifikasi Pengguna Bertingkat (KYC / KYB)</h3>
+              <span className="eyebrow">LEGALITAS ENTITAS (SIAP LAUNCH VPS)</span>
+              <h3>Identitas Usaha &amp; Kesiapan KYC / KYB</h3>
             </div>
-            <StatusPill tone="green">KYB Enterprise Terverifikasi</StatusPill>
+            <StatusPill tone="blue">KYC/OTP Diaktifkan Saat Rilis VPS</StatusPill>
           </div>
           <div className="module-stack" style={{ gap: 10 }}>
             <div className="clean-kv">
-              <span>Tingkat Verifikasi Akun</span>
-              <b className="text-emerald-400">Tingkat 2 · KYB Enterprise Resmi</b>
+              <span>Status Verifikasi Lanjutan</span>
+              <b>Draft Identitas Lokal (Verifikasi KTP/NPWP &amp; OTP Email aktif saat migrasi VPS)</b>
             </div>
             <div className="clean-kv">
-              <span>NIK Penanggung Jawab (KTP)</span>
-              <b className="font-mono">{shipment.nik || "3171051208920004"} (Tervalidasi Dukcapil)</b>
-            </div>
-            <div className="clean-kv">
-              <span>NPWP Perusahaan Eksportir</span>
-              <b className="font-mono">{shipment.npwp || "01.345.678.9-012.000"} (DJP Kemenkeu Valid)</b>
+              <span>NPWP Perusahaan (dari profil transaksi)</span>
+              <b className="mono-code">{shipment.npwp?.trim() || "Belum dicatat"}</b>
             </div>
             <div className="clean-kv">
               <span>NIB (Nomor Induk Berusaha)</span>
-              <b className="font-mono">{shipment.nib || "9120001234567"} (OSS RBA Aktif)</b>
+              <b className="mono-code">{shipment.nib?.trim() || "Belum dicatat"}</b>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Protokol identitas ganda mencegah penyalahgunaan platform, pemalsuan dokumen ekspor, dan klaim fiktif pihak ketiga.
+            <p className="muted-note" style={{ marginTop: 4 }}>
+              Saat peluncuran penuh di VPS, setiap pengajuan final PEB dan multi-user RBAC terlindungi oleh
+              otentikasi OTP dan verifikasi legalitas KYB perusahaan.
             </p>
           </div>
         </section>
 
-        {/* Fitur 5: Mode Uji Coba Demo 3 Hari & Fondasi Arsitektur */}
+        {/* Fitur 5: Mode Demo 3 Hari Real-Time & Skema Langganan 3 Tingkat */}
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">PAKET &amp; ARSITEKTUR (FITUR 5)</span>
-              <h3>Mode Uji Coba (Demo 3 Hari) &amp; Keamanan</h3>
+              <span className="eyebrow">MODE DEMO 3 HARI &amp; KUOTA HIBRIDA</span>
+              <h3>Status Masa Uji Coba &amp; Kalkulator Paket</h3>
             </div>
-            <StatusPill tone="green">Demo 3 Hari Aktif</StatusPill>
+            <StatusPill tone={isDemo ? "amber" : "green"}>
+              {isDemo ? `Demo Aktif · Sisa ${demoRemainingLabel}` : "Akun Cloud Terdaftar"}
+            </StatusPill>
           </div>
           <div className="module-stack" style={{ gap: 10 }}>
             <div className="clean-kv">
-              <span>Masa Uji Coba Gratis UMKM</span>
-              <b>Aktif · Sisa Waktu: 2 Hari 14 Jam</b>
+              <span>Status Sesi Saat Ini</span>
+              <b>
+                {isDemo
+                  ? `Sandbox Demo 3 Hari (Terisolasi Lokal · Sisa ${demoRemainingLabel})`
+                  : "Akun Perusahaan Terdaftar (Cloud Sync Supabase Aktif)"}
+              </b>
             </div>
             <div className="clean-kv">
-              <span>Cakupan Simulasi</span>
-              <b>Seluruh Fitur Inti (5 Dokumen, OCR B/L, Mid-Sea Tracking)</b>
+              <span>Simulasi Paket Pilihan</span>
+              <b>
+                {billingPreview.plan.name} · Kuota {billingPreview.plan.monthlyDocQuota} dokumen/bln
+              </b>
             </div>
-            <div className="clean-kv">
-              <span>Arsitektur Sistem Hemat Biaya</span>
-              <b>Monolitik Terpadu + Enkripsi Transmisi End-to-End</b>
+
+            {isDemo && (
+              <div
+                style={{
+                  padding: 12,
+                  borderRadius: 8,
+                  background: "#fffbeb",
+                  border: "1px solid #fcd34d",
+                  display: "flex",
+                  flexWrap: "wrap",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 10,
+                }}
+              >
+                <span style={{ fontSize: 12, color: "#78350f" }}>
+                  Mode Demo tidak menyimpan data ke Cloud produksi. Daftarkan akun gratis kapan saja untuk
+                  sinkronisasi cloud permanen.
+                </span>
+                {onUpgradeFromDemo && (
+                  <button type="button" className="save-button" onClick={onUpgradeFromDemo}>
+                    Buat Akun / Masuk Permanen →
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+
+      {/* Skema Langganan 3 Tingkat & Kuota Hibrida + Pratinjau RBAC */}
+      <div className="content-grid two-thirds">
+        <section className="panel panel-padding">
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">SKEMA LANGGANAN 3 TINGKAT (PERSONAL / GROWTH / ENTERPRISE)</span>
+              <h3>Kalkulator Kuota Bulanan &amp; Ekstra Kuota Hibrida</h3>
             </div>
-            <div className="clean-kv">
-              <span>Mekanisme Failover AI</span>
-              <b>Multi-Model AI Fallback Otomatis</b>
+            <div className="clean-tabs">
+              <button
+                type="button"
+                className={billingCycle === "monthly" ? "active" : ""}
+                onClick={() => setBillingCycle("monthly")}
+              >
+                Bulanan
+              </button>
+              <button
+                type="button"
+                className={billingCycle === "annual" ? "active" : ""}
+                onClick={() => setBillingCycle("annual")}
+              >
+                Tahunan (-10%)
+              </button>
             </div>
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12.5, marginBottom: 6 }}>
+              <span>Estimasi Kebutuhan Penerbitan Dokumen:</span>
+              <b>{simDocsPerMonth} dokumen / bulan</b>
+            </div>
+            <input
+              type="range"
+              min={5}
+              max={300}
+              step={5}
+              value={simDocsPerMonth}
+              onChange={(e) => setSimDocsPerMonth(Number(e.target.value))}
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
+              gap: 10,
+            }}
+          >
+            {SUBSCRIPTION_PLANS.map((plan) => {
+              const est = calculatePlanBilling(plan.id, billingCycle, simDocsPerMonth);
+              const active = selectedPlan === plan.id;
+              return (
+                <button
+                  key={plan.id}
+                  type="button"
+                  onClick={() => handleSelectPlan(plan.id)}
+                  style={{
+                    textAlign: "left",
+                    padding: 12,
+                    borderRadius: 10,
+                    border: active ? "2px solid #0f2942" : "1px solid #cbd5e1",
+                    background: active ? "#eff6ff" : "#ffffff",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <b style={{ fontSize: 14, color: "#0f172a" }}>{plan.name}</b>
+                    {active && <StatusPill tone="green">Dipilih</StatusPill>}
+                  </div>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#0f2942", margin: "6px 0 2px" }}>
+                    Rp {est.effectiveMonthlyIdr.toLocaleString("id-ID")}
+                    <small style={{ fontWeight: 500, fontSize: 11, color: "#64748b" }}>/bln</small>
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#475569" }}>
+                    Kuota: <b>{plan.monthlyDocQuota} dok/bln</b> · Maks {plan.maxUsers} user
+                  </div>
+                  <div style={{ fontSize: 11.5, color: "#0369a1", marginTop: 4 }}>
+                    {est.extraDocsCount === 0
+                      ? "Cukup dalam kuota dasar"
+                      : `+${est.extraDocsCount} dok ekstra = Rp ${est.overageChargeIdr.toLocaleString("id-ID")}`}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* RBAC Role Access Control Preview */}
+        <section className="panel panel-padding">
+          <div className="panel-head">
+            <div>
+              <span className="eyebrow">ROLE-BASED ACCESS CONTROL (RBAC)</span>
+              <h3>Simulasi Hak Akses Peran Tim Ekspor</h3>
+            </div>
+            <StatusPill tone="blue">{activeRoleSpec.label.split(" ")[0]}</StatusPill>
+          </div>
+
+          <div className="module-stack" style={{ gap: 8, marginBottom: 12 }}>
+            {RBAC_ROLES.map((roleItem) => {
+              const active = selectedRole === roleItem.id;
+              return (
+                <button
+                  key={roleItem.id}
+                  type="button"
+                  onClick={() => handleSelectRole(roleItem.id)}
+                  style={{
+                    textAlign: "left",
+                    padding: "9px 12px",
+                    borderRadius: 8,
+                    border: active ? "2px solid #0f2942" : "1px solid #e2e8f0",
+                    background: active ? "#eff6ff" : "#f8fafc",
+                    cursor: "pointer",
+                  }}
+                >
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>{roleItem.label}</div>
+                  <small style={{ color: "#64748b" }}>{roleItem.scope}</small>
+                </button>
+              );
+            })}
+          </div>
+
+          <div
+            style={{
+              padding: 12,
+              borderRadius: 8,
+              background: "#f8fafc",
+              border: "1px solid #cbd5e1",
+            }}
+          >
+            <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
+              MATRIKS IZIN PERAN AKTIF
+            </span>
+            <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, color: "#334155", lineHeight: 1.65 }}>
+              {activeRoleSpec.permissions.map((perm) => (
+                <li key={perm}>{perm}</li>
+              ))}
+            </ul>
           </div>
         </section>
       </div>

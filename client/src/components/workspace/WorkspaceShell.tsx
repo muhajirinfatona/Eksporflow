@@ -1,4 +1,9 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
+import {
+  formatDemoRemainingLabel,
+  getDemoRemainingMs,
+  type UserSession,
+} from "@/lib/supabaseAuth";
 import type { ScreenId } from "@shared/risk";
 import {
   AlertTriangle,
@@ -11,11 +16,13 @@ import {
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
+  Clock,
   Cloud,
   Compass,
   FileSearch,
   FileSpreadsheet,
   FileText,
+  FolderArchive,
   Landmark,
   Layers,
   LayoutGrid,
@@ -30,10 +37,12 @@ import {
   PlusCircle,
   RefreshCcw,
   Save,
+  Scale,
   Search,
   Settings2,
   ShieldAlert,
   Ship,
+  Sparkles,
   Truck,
   Users,
   Wallet,
@@ -87,6 +96,16 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
     group: "Penjualan",
     items: [
       {
+        id: "pre_transaction",
+        label: "Pra-Transaksi & Buyer",
+        group: "Penjualan",
+        phase: "Penjualan",
+        title: "Akuisisi Buyer & Pra-Transaksi",
+        description:
+          "Generator surat Inquiry, Quotation, Negosiasi AI 3 gaya bahasa & checklist validasi legalitas buyer.",
+        icon: <Sparkles size={16} />,
+      },
+      {
         id: "transactions",
         label: "Pesanan Ekspor",
         group: "Penjualan",
@@ -129,6 +148,16 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
   {
     group: "Operasional Ekspor",
     items: [
+      {
+        id: "compliance",
+        label: "HS Code & Lartas",
+        group: "Operasional Ekspor",
+        phase: "Operasional Ekspor",
+        title: "Verifikator HS Code, Lartas & Masa Berlaku Izin",
+        description:
+          "Simulasi BTKI, efisiensi tarif legal FTA/CEPA, status Lartas, dan peringatan dini Karantina, e-SKA & SVLK.",
+        icon: <Scale size={16} />,
+      },
       {
         id: "documents",
         label: "Dokumen Ekspor",
@@ -181,13 +210,23 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
       },
       {
         id: "risk",
-        label: "Risk Center",
+        label: "Risk Center & H-7 PEB",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Risk Center",
+        title: "Risk Center & Timeline Pra-Pengiriman",
         description:
-          "Tampilkan temuan konsistensi 3-way, kelengkapan bukti PO/email, dan checklist verifikasi sebelum keberangkatan.",
+          "Tampilkan temuan konsistensi 3-way, timeline countdown H-7 hingga Closing PEB, dan checklist verifikasi sebelum keberangkatan.",
         icon: <ShieldAlert size={16} />,
+      },
+      {
+        id: "audit_vault",
+        label: "Audit Vault DJBC",
+        group: "Operasional Ekspor",
+        phase: "Operasional Ekspor",
+        title: "Arsip Digital Siap Audit Bea Cukai (DJBC)",
+        description:
+          "Pengelompokan otomatis PO, PI/CI/PL, revisi, PEB/NPE, Karantina, B/L & bukti transfer T/T dalam 5 folder indeks audit.",
+        icon: <FolderArchive size={16} />,
       },
     ],
   },
@@ -310,11 +349,14 @@ export function getScreenMeta(screen: ScreenId): ScreenMeta {
 }
 
 function renderPersistenceBadge(
-  user: { name?: string | null } | null,
+  user: ({ name?: string | null; isDemo?: boolean } & Partial<UserSession>) | null,
   saveState: PersistenceSaveState,
   version: number,
   activeShipmentId: string | null,
 ) {
+  if (user?.isDemo) {
+    return <StatusPill tone="amber">Sandbox Demo · Lokal</StatusPill>;
+  }
   if (!user) {
     return <StatusPill tone="gray">Draft Lokal</StatusPill>;
   }
@@ -356,13 +398,21 @@ export function WorkspaceShell({
   onReset,
   onLogin,
   onLogout,
+  onUpgradeFromDemo,
   children,
 }: {
   screen: ScreenId;
   navigate: (next: ScreenId) => void;
   exporterName: string;
   reference: string;
-  user: { name?: string | null; email?: string | null } | null;
+  user:
+    | ({
+        name?: string | null;
+        email?: string | null;
+        isDemo?: boolean;
+        demoExpiresAt?: string;
+      } & Partial<UserSession>)
+    | null;
   saveState: PersistenceSaveState;
   statusNote: string | null;
   version: number;
@@ -376,8 +426,13 @@ export function WorkspaceShell({
   onReset: () => void;
   onLogin: () => Promise<void>;
   onLogout: () => Promise<void>;
+  onUpgradeFromDemo?: () => void;
   children: React.ReactNode;
 }) {
+  const isDemoUser = Boolean(user?.isDemo);
+  const demoRemainingLabel = isDemoUser
+    ? formatDemoRemainingLabel(getDemoRemainingMs(user as UserSession))
+    : "";
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth > 1024 : true,
   );
@@ -489,13 +544,15 @@ export function WorkspaceShell({
           <div>
             <b>{exporterName}</b>
             <small>
-              {user
-                ? reference && !reference.startsWith("EXP-")
-                  ? `Cloud aktif · ${reference}`
-                  : "Cloud aktif · Workspace"
-                : reference && !reference.startsWith("EXP-")
-                  ? `Draft lokal · ${reference}`
-                  : "Draft lokal"}
+              {isDemoUser
+                ? `Demo 3 Hari · Sisa ${demoRemainingLabel}`
+                : user
+                  ? reference && !reference.startsWith("EXP-")
+                    ? `Cloud aktif · ${reference}`
+                    : "Cloud aktif · Workspace"
+                  : reference && !reference.startsWith("EXP-")
+                    ? `Draft lokal · ${reference}`
+                    : "Draft lokal"}
             </small>
           </div>
         </button>
@@ -527,7 +584,11 @@ export function WorkspaceShell({
             <div className="user-avatar">{userInitials || "MF"}</div>
             <div>
               <b>{user?.name || "Muhajirin Fatona"}</b>
-              <small>Cloud Supabase Aktif</small>
+              <small>
+                {isDemoUser
+                  ? `Mode Demo · Sisa ${demoRemainingLabel}`
+                  : "Cloud Supabase Aktif"}
+              </small>
             </div>
             {user ? (
               <button
@@ -635,6 +696,26 @@ export function WorkspaceShell({
               <Settings2 size={17} />
             </IconButton>
 
+            {isDemoUser && (
+              <button
+                type="button"
+                className="ghost-button topbar-login-btn"
+                onClick={onUpgradeFromDemo}
+                style={{
+                  background: "#fef3c7",
+                  borderColor: "#fcd34d",
+                  color: "#92400e",
+                  fontWeight: 700,
+                }}
+              >
+                <Clock size={14} />{" "}
+                <span className="btn-label-desktop">
+                  Demo 3 Hari ({demoRemainingLabel}) · Daftar Akun
+                </span>
+                <span className="btn-label-mobile">Demo · Daftar</span>
+              </button>
+            )}
+
             {!user ? (
               <button type="button" className="ghost-button topbar-login-btn" onClick={() => void onLogin()}>
                 <Cloud size={14} /> <span className="btn-label-desktop">Masuk Cloud</span><span className="btn-label-mobile">Masuk</span>
@@ -649,9 +730,11 @@ export function WorkspaceShell({
             >
               <Save size={14} />
               <span className="btn-label-desktop">
-                {saveState === "saving"
-                  ? "Menyimpan..."
-                  : "Simpan ke Cloud"}
+                {isDemoUser
+                  ? "Simpan Sandbox"
+                  : saveState === "saving"
+                    ? "Menyimpan..."
+                    : "Simpan ke Cloud"}
               </span>
               <span className="btn-label-mobile">
                 {saveState === "saving" ? "..." : "Simpan"}

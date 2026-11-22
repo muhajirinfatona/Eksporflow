@@ -526,6 +526,54 @@ export function getScreenAdvisorInsight(
         welcomeGreeting: "Halo! Saya siap membantu konsultasi strategis ekspor komprehensif untuk transaksi Anda.\n\nSilakan ajukan pertanyaan seputar negosiasi kontrak, mitigasi risiko, atau efisiensi biaya.",
       };
 
+    case "pre_transaction":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Strategi Akuisisi & Validasi Buyer",
+        title: `Penawaran Pra-Transaksi untuk ${shipment.buyer || "Calon Importir"}`,
+        mitigationText: `Gunakan gaya bahasa sesuai profil buyer, kunci skema DP minimal 30% T/T sebelum stuffing, dan lakukan verifikasi domain email korporat serta legalitas perusahaan.`,
+        suggestedQuestions: [
+          "Bagaimana menyusun email penawaran ekspor pertama agar direspons importir?",
+          "Apa tanda bahaya (red flags) calon buyer luar negeri yang berisiko wanprestasi?",
+          "Kapan waktu tepat mengirim Quotation vs Proforma Invoice?",
+        ],
+        initialPrompt: `Bantu strategi penawaran pra-transaksi dan verifikasi calon buyer untuk produk ${shipment.product || "ekspor"}.`,
+        welcomeGreeting: "Halo! Saya siap membantu menyusun strategi pra-transaksi dan verifikasi calon buyer Anda.",
+      };
+
+    case "compliance":
+      return {
+        screenId: screen,
+        riskLevel: "info",
+        badgeText: "Kepatuhan BTKI, Lartas & Izin",
+        title: `Pemeriksaan HS Code ${shipment.hsCode || "(Belum Diisi)"} & Izin Ekspor`,
+        mitigationText: `Pastikan kesesuaian uraian barang dengan BTKI, manfaatkan e-SKA / CEPA untuk efisiensi tarif legal di negara tujuan, dan perbarui Karantina/SVLK minimal 30 hari sebelum expired.`,
+        suggestedQuestions: [
+          `Dokumen Lartas dan karantina apa yang wajib untuk HS Code ${shipment.hsCode || "ini"}?`,
+          `Skema FTA / e-SKA mana yang paling menguntungkan menuju ${shipment.buyerCountry || "negara tujuan"}?`,
+          "Apa konsekuensi jika Sertifikat Karantina atau SVLK habis masa berlakunya saat stuffing?",
+        ],
+        initialPrompt: `Analisis kepatuhan Lartas, kelengkapan izin karantina/e-SKA, dan alternatif tarif HS Code untuk ${shipment.product || "komoditas ini"}.`,
+        welcomeGreeting: "Halo! Saya siap memandu verifikasi HS Code, persyaratan Lartas, dan pengurusan izin ekspor Anda.",
+      };
+
+    case "audit_vault":
+      return {
+        screenId: screen,
+        riskLevel: "success",
+        badgeText: "Kesiapan Pemeriksaan DJBC",
+        title: "Panduan Kelengkapan Audit Vault Bea Cukai",
+        mitigationText: `Pastikan kelima folder (Pra-Transaksi, Komersial/Revisi, PEB/NPE/Lartas, B/L Kontainer, dan Bukti T/T) terindeks lengkap minimal selama masa retensi audit kepabeanan.`,
+        suggestedQuestions: [
+          "Dokumen apa saja yang paling sering diperiksa saat audit post-clearance DJBC?",
+          "Bagaimana mengaitkan nomor PEB/NPE dengan bukti penerimaan devisa T/T?",
+          "Mengapa riwayat revisi Proforma hingga Commercial Invoice wajib diarsipkan?",
+        ],
+        initialPrompt: `Tinjau kelengkapan arsip Audit Vault DJBC untuk transaksi ${shipment.reference || "ekspor aktif"} dan tandai celah dokumen yang perlu dilengkapi.`,
+        welcomeGreeting: "Halo! Saya siap membantu memastikan arsip digital ekspor Anda lengkap dan siap hadapi pemeriksaan audit DJBC.",
+      };
+
     default:
       return {
         screenId: screen,

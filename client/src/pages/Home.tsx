@@ -1,8 +1,11 @@
 import { AssistantModule } from "@/components/workspace/AssistantModule";
+import { AuditVaultModule } from "@/components/workspace/AuditVaultModule";
+import { ComplianceLartasModule } from "@/components/workspace/ComplianceLartasModule";
 import { ContainerModule } from "@/components/workspace/ContainerModule";
 import { DocumentScrutinyModule } from "@/components/workspace/DocumentScrutinyModule";
 import { DocumentsModule } from "@/components/workspace/DocumentsModule";
 import { OperationsModule } from "@/components/workspace/OperationsModule";
+import { PreTransactionModule } from "@/components/workspace/PreTransactionModule";
 import { PricingModule } from "@/components/workspace/PricingModule";
 import { RiskModule } from "@/components/workspace/RiskModule";
 import { TrackingModule } from "@/components/workspace/TrackingModule";
@@ -23,7 +26,9 @@ import { TransactionsModule } from "@/components/workspace/TransactionsModule";
 import { ALL_SCREENS, getScreenMeta, WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { useActiveShipment } from "@/hooks/useActiveShipment";
 import { useWorkspaceFlow } from "@/hooks/useWorkspaceFlow";
+import { formatDemoRemainingLabel, getDemoRemainingMs } from "@/lib/supabaseAuth";
 import { AuthFlow } from "@/pages/AuthFlow";
+import { LandingPage } from "@/pages/LandingPage";
 import type { ScreenId } from "@shared/risk";
 import { type DocumentType, getPaperSizeSpec, getDocMargins } from "@shared/shipment";
 import { useCallback, useEffect, useState } from "react";
@@ -52,9 +57,36 @@ function readDocFromUrl(): DocumentType {
   return "Proforma Invoice";
 }
 
+function readInitialUnauthView(): {
+  view: "landing" | "auth";
+  mode: "login" | "register";
+} {
+  try {
+    const rawAuth = new URLSearchParams(window.location.search).get("auth");
+    if (
+      rawAuth === "login" ||
+      rawAuth === "register" ||
+      rawAuth === "verify" ||
+      rawAuth === "forgot_password" ||
+      rawAuth === "reset_password"
+    ) {
+      return {
+        view: "auth",
+        mode: rawAuth === "register" ? "register" : "login",
+      };
+    }
+  } catch {
+    // Abaikan
+  }
+  return { view: "landing", mode: "login" };
+}
+
 export default function Home() {
   const [screen, setScreen] = useState<ScreenId>(readScreenFromUrl);
   const [selectedDocument, setSelectedDocument] = useState<DocumentType>(readDocFromUrl);
+  const [initialUnauth] = useState(readInitialUnauthView);
+  const [unauthView, setUnauthView] = useState<"landing" | "auth">(initialUnauth.view);
+  const [authMode, setAuthMode] = useState<"login" | "register">(initialUnauth.mode);
 
   const {
     user,
@@ -79,6 +111,7 @@ export default function Home() {
     deleteShipment,
     resetTransaction,
     refreshAuth,
+    enterDemoMode,
     logout,
   } = useActiveShipment();
 
@@ -110,10 +143,15 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      if (unauthView === "landing") {
+        document.title = "EksporFlow · Platform Operasional & Anti-Demurrage Ekspor UMKM";
+      }
+      return;
+    }
     const meta = getScreenMeta(screen);
     document.title = `EksporFlow · ${meta.label}`;
-  }, [screen, user]);
+  }, [user, unauthView, screen]);
 
   const printDocument = useCallback(async () => {
     // 1. Lepas fokus dari elemen aktif agar perubahan teks langsung tersinkronisasi
@@ -187,6 +225,12 @@ export default function Home() {
     saveShipment,
   ]);
 
+  const handleUpgradeFromDemo = useCallback(async () => {
+    await logout();
+    setAuthMode("register");
+    setUnauthView("auth");
+  }, [logout]);
+
   if (isAuthLoading) {
     return (
       <div className="auth-loading-screen">
@@ -202,9 +246,30 @@ export default function Home() {
     );
   }
 
-  // Wajib Registrasi -> Verifikasi -> Login sebelum masuk ke tampilan utama workspace.
+  // Gerbang Masuk: Landing Page Publik (Kalkulator Demurrage + Demo 3 Hari + Login/Daftar)
   if (!user || !user.emailVerifiedAt) {
-    return <AuthFlow onAuthenticated={refreshAuth} />;
+    if (unauthView === "auth") {
+      return (
+        <AuthFlow
+          initialMode={authMode}
+          onAuthenticated={refreshAuth}
+          onBackToLanding={() => setUnauthView("landing")}
+          onStartDemo={enterDemoMode}
+        />
+      );
+    }
+
+    const demoMs = getDemoRemainingMs(null);
+    return (
+      <LandingPage
+        onOpenAuth={(mode) => {
+          setAuthMode(mode);
+          setUnauthView("auth");
+        }}
+        onStartDemo={enterDemoMode}
+        demoRemainingLabel={demoMs > 0 ? formatDemoRemainingLabel(demoMs) : null}
+      />
+    );
   }
 
   return (
@@ -227,6 +292,7 @@ export default function Home() {
       onReset={resetTransaction}
       onLogin={refreshAuth}
       onLogout={logout}
+      onUpgradeFromDemo={() => void handleUpgradeFromDemo()}
     >
       {screen === "dashboard" && (
         <DashboardView
@@ -240,6 +306,14 @@ export default function Home() {
       )}
       {screen === "readiness" && (
         <ReadinessView shipment={shipment} update={update} navigate={navigate} flow={flow} />
+      )}
+      {screen === "pre_transaction" && (
+        <PreTransactionModule
+          shipment={shipment}
+          update={update}
+          pricing={pricing}
+          navigate={navigate}
+        />
       )}
       {screen === "transactions" && (
         <TransactionsModule
@@ -313,6 +387,9 @@ export default function Home() {
           loadCustomShipment={loadCustomShipment}
         />
       )}
+      {screen === "compliance" && (
+        <ComplianceLartasModule shipment={shipment} update={update} navigate={navigate} />
+      )}
       {screen === "documents" && (
         <DocumentsModule
           shipment={shipment}
@@ -358,6 +435,15 @@ export default function Home() {
           effectiveApprovalStatus={flow.effectiveApprovalStatus}
         />
       )}
+      {screen === "audit_vault" && (
+        <AuditVaultModule
+          shipment={shipment}
+          update={update}
+          flow={flow}
+          version={version}
+          navigate={navigate}
+        />
+      )}
       {screen === "advisor" && (
         <AssistantModule
           shipment={shipment}
@@ -397,11 +483,13 @@ export default function Home() {
         <SettingsView
           user={user}
           shipment={shipment}
+          update={update}
           version={version}
           saveState={saveState}
           activeShipmentId={activeShipmentId}
           login={refreshAuth}
           logout={logout}
+          onUpgradeFromDemo={() => void handleUpgradeFromDemo()}
           navigate={navigate}
         />
       )}
