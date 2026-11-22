@@ -221,7 +221,7 @@ export const DOC_MARGIN_PRESETS: Record<"Normal" | "Sempit" | "Sedang" | "Lebar"
 };
 
 export function getDocMargins(shipment: Partial<Shipment>): DocMarginSpec {
-  const preset = shipment.docMarginPreset || "Normal";
+  const preset = shipment.docMarginPreset || "Sedang";
   if (preset !== "Kustom" && DOC_MARGIN_PRESETS[preset]) {
     return DOC_MARGIN_PRESETS[preset];
   }
@@ -552,11 +552,11 @@ export const initialShipment: Shipment = {
   docEditorLineHeight: 1.25,
   docEditorTextAlign: "left",
   docEditorMode: true,
-  docMarginPreset: "Normal",
-  docMarginTop: 25.4,
-  docMarginBottom: 25.4,
-  docMarginLeft: 25.4,
-  docMarginRight: 25.4,
+  docMarginPreset: "Sedang",
+  docMarginTop: 8,
+  docMarginBottom: 8,
+  docMarginLeft: 19.1,
+  docMarginRight: 19.1,
   docHeaderEnabled: true,
   docHeaderText: "OFFICIAL COMMERCIAL EXPORT CONTRACT",
   docFooterEnabled: true,

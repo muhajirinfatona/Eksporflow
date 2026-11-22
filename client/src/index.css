@@ -7154,11 +7154,11 @@ textarea:focus-visible {
 .unlk-trade-form {
   --unlk-outer-color: #64748b;
   --unlk-line-color: #64748b;
-  --unlk-outer-width: 1.7px;
+  --unlk-outer-width: 1.5px;
   width: 100% !important;
   max-width: 100% !important;
   box-sizing: border-box !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   background: #ffffff;
   color: #0f172a;
 }
@@ -7201,15 +7201,15 @@ textarea:focus-visible {
 }
 
 .unlk-border-r {
-  border-right: 1.7px solid #64748b !important;
+  border-right: 1.5px solid #64748b !important;
 }
 
 .unlk-border-t {
-  border-top: 1.7px solid #64748b !important;
+  border-top: 1.5px solid #64748b !important;
 }
 
 .unlk-border-b {
-  border-bottom: 1.7px solid #64748b !important;
+  border-bottom: 1.5px solid #64748b !important;
 }
 
 .unlk-cell {
@@ -7263,7 +7263,7 @@ textarea:focus-visible {
   box-sizing: border-box !important;
   border-collapse: collapse !important;
   table-layout: fixed !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7278,7 +7278,7 @@ textarea:focus-visible {
 .paper-document table.unlk-items-table th,
 .paper-document table.unlk-items-table td {
   box-sizing: border-box !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   background-color: transparent !important;
   empty-cells: show !important;
   word-break: break-word !important;
@@ -7294,7 +7294,7 @@ textarea:focus-visible {
   font-weight: 600 !important;
   line-height: 1.25 !important;
   padding: 6px 6px !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   background-color: transparent !important;
   text-align: center !important;
   text-transform: none !important;
@@ -7310,13 +7310,13 @@ textarea:focus-visible {
   line-height: 1.32 !important;
   color: #0f172a !important;
   vertical-align: top !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   background-color: transparent !important;
 }
 
 .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
   height: auto !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
 }
 
 .paper-document .unlk-trade-form .unlk-item-spec {
@@ -7333,7 +7333,7 @@ textarea:focus-visible {
   height: auto !important;
   vertical-align: middle !important;
   color: #0f172a !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   background-color: transparent !important;
   empty-cells: show !important;
   -webkit-print-color-adjust: exact !important;
@@ -7347,7 +7347,7 @@ textarea:focus-visible {
 }
 
 .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
   background-color: transparent !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -7359,7 +7359,7 @@ textarea:focus-visible {
   font-weight: 500 !important;
   color: #334155 !important;
   font-size: 9.5pt !important;
-  border: 1.7px solid #64748b !important;
+  border: 1.5px solid #64748b !important;
 }
 
 .paper-document .unlk-trade-form .unlk-bank-lines {
@@ -7385,7 +7385,7 @@ textarea:focus-visible {
   padding: 5px 9px !important;
   font-size: 10.5pt !important;
   background: #f8fafc !important;
-  border-bottom: 1.7px solid #64748b !important;
+  border-bottom: 1.5px solid #64748b !important;
   box-sizing: border-box !important;
   -webkit-print-color-adjust: exact !important;
   print-color-adjust: exact !important;
@@ -11028,7 +11028,8 @@ textarea:focus-visible {
     padding: 0 !important;
     width: 100% !important;
     max-width: 100% !important;
-    min-height: auto !important;
+    min-height: 0 !important;
+    height: auto !important;
     background: #ffffff !important;
     overflow: visible !important;
     font-size: var(--doc-font-size, 10pt) !important;
@@ -11471,7 +11472,7 @@ textarea:focus-visible {
     page-break-after: avoid !important;
   }
   .unlk-trade-form {
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     width: 100% !important;
     box-sizing: border-box !important;
     background: #ffffff !important;
@@ -11490,13 +11491,13 @@ textarea:focus-visible {
     page-break-inside: auto !important;
   }
   .unlk-border-r {
-    border-right: 1.7px solid #64748b !important;
+    border-right: 1.5px solid #64748b !important;
   }
   .unlk-border-t {
-    border-top: 1.7px solid #64748b !important;
+    border-top: 1.5px solid #64748b !important;
   }
   .unlk-border-b {
-    border-bottom: 1.7px solid #64748b !important;
+    border-bottom: 1.5px solid #64748b !important;
   }
   .unlk-cell {
     padding: 3px 6px !important;
@@ -11533,7 +11534,7 @@ textarea:focus-visible {
     margin-top: 0 !important;
     margin-bottom: 0 !important;
     box-sizing: border-box !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     empty-cells: show !important;
     break-inside: auto !important;
     page-break-inside: auto !important;
@@ -11548,7 +11549,7 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table th,
   .paper-document table.unlk-items-table td {
     box-sizing: border-box !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     empty-cells: show !important;
     word-break: break-word !important;
@@ -11561,7 +11562,7 @@ textarea:focus-visible {
     font-size: 9pt !important;
     font-weight: 600 !important;
     padding: 3px 5px !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     color: #0f172a !important;
     empty-cells: show !important;
@@ -11572,7 +11573,7 @@ textarea:focus-visible {
     font-size: 9.5pt !important;
     line-height: 1.2 !important;
     padding: 3px 6px !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
@@ -11580,7 +11581,7 @@ textarea:focus-visible {
   }
   .paper-document table.unlk-items-table tbody tr.unlk-item-main-row td {
     height: auto !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
   }
   .paper-document .unlk-trade-form .unlk-item-spec {
     font-size: 9.5pt !important;
@@ -11591,7 +11592,7 @@ textarea:focus-visible {
     padding: 2.5px 5px !important;
     font-size: 9.5pt !important;
     height: auto !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     empty-cells: show !important;
     -webkit-print-color-adjust: exact !important;
@@ -11603,7 +11604,7 @@ textarea:focus-visible {
     print-color-adjust: exact !important;
   }
   .paper-document table.unlk-items-table tfoot tr.unlk-consignment-total-row td {
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
     background-color: transparent !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -11611,7 +11612,7 @@ textarea:focus-visible {
   .paper-document table.unlk-items-table tbody tr.unlk-subtotal-row td.unlk-subtotal-label,
   .paper-document table.unlk-items-table tfoot tr.unlk-subtotal-row td.unlk-subtotal-label {
     font-size: 9pt !important;
-    border: 1.7px solid #64748b !important;
+    border: 1.5px solid #64748b !important;
   }
   .paper-document .unlk-trade-form .unlk-bank-lines,
   .paper-document .unlk-trade-form .unlk-bank-lines > div,
@@ -11622,7 +11623,7 @@ textarea:focus-visible {
   }
   .unlk-total-bar {
     padding: 3px 6px !important;
-    border-bottom: 1.7px solid #64748b !important;
+    border-bottom: 1.5px solid #64748b !important;
     background: #f8fafc !important;
     box-sizing: border-box !important;
     -webkit-print-color-adjust: exact !important;
@@ -11642,12 +11643,30 @@ textarea:focus-visible {
   html body .paper-document.doc-type-shipping-instruction {
     font-size: 7.4pt !important;
     line-height: 1.15 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    padding: 0 !important;
+  }
+
+  html body .paper-document.doc-type-proforma-invoice .doc-content-wrapper,
+  html body .paper-document.doc-type-commercial-invoice .doc-content-wrapper,
+  html body .paper-document.doc-type-packing-list .doc-content-wrapper,
+  html body .paper-document.doc-type-shipping-instruction .doc-content-wrapper,
+  html body .paper-document.doc-type-proforma-invoice .unlk-doc-wrapper,
+  html body .paper-document.doc-type-commercial-invoice .unlk-doc-wrapper,
+  html body .paper-document.doc-type-packing-list .unlk-doc-wrapper,
+  html body .paper-document.doc-type-shipping-instruction .unlk-doc-wrapper {
+    position: static !important;
+    z-index: auto !important;
+    margin-top: 0 !important;
+    padding-top: 0 !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .paper-letterhead-wrap,
   html body .paper-document.doc-type-commercial-invoice .paper-letterhead-wrap,
   html body .paper-document.doc-type-packing-list .paper-letterhead-wrap,
   html body .paper-document.doc-type-shipping-instruction .paper-letterhead-wrap {
+    margin-top: 0 !important;
     margin-bottom: 2px !important;
     padding-top: 0 !important;
     break-inside: avoid !important;
@@ -11700,8 +11719,10 @@ textarea:focus-visible {
   html body .paper-document.doc-type-shipping-instruction .doc-title-bar {
     margin: 1px 0 2px 0 !important;
     padding: 2px 6px !important;
-    break-after: auto !important;
-    page-break-after: auto !important;
+    break-before: avoid !important;
+    page-break-before: avoid !important;
+    break-after: avoid !important;
+    page-break-after: avoid !important;
   }
 
   html body .paper-document.doc-type-proforma-invoice .doc-title-bar h2,

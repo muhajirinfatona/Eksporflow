@@ -70,6 +70,8 @@ import {
   Building2,
   FlipHorizontal,
   FlipVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import type { Shipment, PaperSize, DocumentOrientation, DocMarginPreset, DocumentShape } from "@shared/shipment";
@@ -3871,13 +3873,13 @@ export function DocWordRibbon({
                     </button>
                   </div>
 
-                  {/* Mode IncoDocs Toggle */}
+                  {/* Tampilkan / Sembunyikan Kop Surat Toggle */}
                   <button
                     type="button"
                     onClick={() => {
                       const next = (shipment.letterheadMode as any) === "hidden" ? "standard" : "hidden";
                       update("letterheadMode", next as any);
-                      toast.success(next === "hidden" ? "Mode IncoDocs aktif: logo di kotak Seller" : "Kop surat atas standar aktif");
+                      toast.success(next === "hidden" ? "Kop surat disembunyikan" : "Kop surat ditampilkan");
                     }}
                     style={{
                       fontSize: "10px",
@@ -3885,14 +3887,28 @@ export function DocWordRibbon({
                       height: "22px",
                       padding: "0 6px",
                       borderRadius: "3px",
-                      border: (shipment.letterheadMode as any) === "hidden" ? "1px solid #3b82f6" : "1px solid #cbd5e1",
-                      background: (shipment.letterheadMode as any) === "hidden" ? "#eff6ff" : "#f8fafc",
-                      color: (shipment.letterheadMode as any) === "hidden" ? "#1d4ed8" : "#475569",
+                      border: (shipment.letterheadMode as any) === "hidden" ? "1px solid #f59e0b" : "1px solid #cbd5e1",
+                      background: (shipment.letterheadMode as any) === "hidden" ? "#fffbeb" : "#f8fafc",
+                      color: (shipment.letterheadMode as any) === "hidden" ? "#b45309" : "#475569",
                       cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "3.5px",
+                      whiteSpace: "nowrap",
                     }}
-                    title="Toggle Mode IncoDocs (Logo langsung di Kotak Seller tanpa kop atas terpisah)"
+                    title={(shipment.letterheadMode as any) === "hidden" ? "Tampilkan Kop Surat Atas" : "Sembunyikan Kop Surat Atas"}
                   >
-                    {(shipment.letterheadMode as any) === "hidden" ? "Kop Standar" : "IncoDocs"}
+                    {(shipment.letterheadMode as any) === "hidden" ? (
+                      <>
+                        <Eye size={11} className="text-amber-600" />
+                        <span>Tampilkan Kop</span>
+                      </>
+                    ) : (
+                      <>
+                        <EyeOff size={11} className="text-slate-500" />
+                        <span>Sembunyikan Kop</span>
+                      </>
+                    )}
                   </button>
 
                   {/* Tanda Tangan */}
@@ -4069,7 +4085,7 @@ export function DocWordRibbon({
                     <Maximize2 size={13} className="doc-field-prefix-icon" />
                     <select
                       className="doc-ribbon-select doc-margin-preset-select"
-                      value={shipment.docMarginPreset || "Normal"}
+                      value={shipment.docMarginPreset || "Sedang"}
                       onChange={(e) => {
                         const val = e.target.value as DocMarginPreset;
                         if (val === "Kustom") {
