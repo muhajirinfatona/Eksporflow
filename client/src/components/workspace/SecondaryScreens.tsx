@@ -205,14 +205,17 @@ export function DashboardView({
               </span>
             </div>
           </div>
-          <div className="hero-orbit">
-            <div className="orbit-label">HARGA / UNIT</div>
-            <strong>{formatMoney(pricing.active.unit, shipment.currency)}</strong>
-            <span>
-              {shipment.incoterm} · {shipment.currency}
+          <div style={{ textAlign: "right", alignSelf: "center", zIndex: 1 }}>
+            <span style={{ fontSize: "11px", letterSpacing: "0.06em", color: "#94a3b8", display: "block", fontFamily: "var(--font-mono)" }}>
+              HARGA SATUAN
+            </span>
+            <strong style={{ fontSize: "20px", fontWeight: 700, color: "#ffffff", display: "block", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
+              {formatMoney(pricing.active.unit, shipment.currency)}
+            </strong>
+            <span style={{ fontSize: "11px", color: "#94a3b8" }}>
+              per {shipment.unit} · {shipment.incoterm}
             </span>
           </div>
-          <div className="hero-wave" />
         </section>
 
         <MetricCard

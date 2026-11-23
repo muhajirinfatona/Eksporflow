@@ -157,9 +157,9 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "HS Code & Lartas",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Verifikator HS Code, Lartas & Masa Berlaku Izin",
+        title: "HS Code & Kepatuhan Lartas",
         description:
-          "Simulasi BTKI, efisiensi tarif legal FTA/CEPA, status Lartas, dan peringatan dini Karantina, e-SKA & SVLK.",
+          "Verifikasi BTKI, tarif FTA/CEPA, dan status lartas kementerian teknis.",
         icon: <Scale size={16} />,
       },
       {
@@ -169,7 +169,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Operasional Ekspor",
         title: "Dokumen Ekspor",
         description:
-          "Siapkan 5 Dokumen Inti (PI, SC, CI, PL, SI) dan cap digital Scanned Copy untuk penagihan TT.",
+          "Penerbitan 6 dokumen ekspor resmi (PI, SC, CI, PL, SI, COO) berstandar internasional.",
         icon: <FileText size={16} />,
       },
       {
@@ -177,9 +177,9 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "Rencana Muatan",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Rencana Muatan & Kubikasi",
+        title: "Rencana Muatan Kontainer",
         description:
-          "Kalkulasi kapasitas volume/berat kontainer 20ft, 40ft, 40ft HC, CBM, pallet kayu, dan susut muatan.",
+          "Kalkulasi kubikasi CBM, kapasitas kontainer 20ft/40ft/40HC, dan susut muatan.",
         icon: <Box size={16} />,
       },
       {
@@ -187,9 +187,9 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "Pelacakan Kontainer",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Pelacakan Kontainer Maritim (Mid-Sea Tracking)",
+        title: "Pelacakan Kontainer Maritim",
         description:
-          "Pemantauan visual posisi dan pergerakan kontainer maritim selama di tengah laut via nomor kontainer / BL.",
+          "Pemantauan posisi kontainer dan jadwal kapal selama pelayaran.",
         icon: <Ship size={16} />,
       },
       {
@@ -199,7 +199,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Operasional Ekspor",
         title: "Logistik & Pengiriman",
         description:
-          "Pantau tahapan shipment, nomor booking/kontainer/seal, handoff checklist, dan arsip bukti transaksi.",
+          "Status booking kapal, nomor kontainer/seal, dan checklist serah terima barang.",
         icon: <Truck size={16} />,
       },
       {
@@ -207,9 +207,9 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "Validasi Dokumen (B/L)",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Pemeriksaan Dokumen & Validasi Silang (Scrutiny)",
+        title: "Validasi Silang Draft B/L",
         description:
-          "Ekstraksi data OCR draft B/L forwarder, validasi silang 3-way dengan CI & PL guna mencegah demurrage.",
+          "Pemeriksaan OCR 3-way antara Draft B/L, Commercial Invoice, dan Packing List.",
         icon: <FileSearch size={16} />,
       },
       {
@@ -217,9 +217,9 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "Risk Center & H-7 PEB",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Risk Center & Timeline Pra-Pengiriman",
+        title: "Risk Center & Timeline PEB",
         description:
-          "Tampilkan temuan konsistensi 3-way, timeline countdown H-7 hingga Closing PEB, dan checklist verifikasi sebelum keberangkatan.",
+          "Monitoring kepatuhan dokumen pra-pengapalan dan countdown closing PEB.",
         icon: <ShieldAlert size={16} />,
       },
       {
@@ -227,9 +227,9 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         label: "Audit Vault DJBC",
         group: "Operasional Ekspor",
         phase: "Operasional Ekspor",
-        title: "Arsip Digital Siap Audit Bea Cukai (DJBC)",
+        title: "Arsip Digital Audit DJBC",
         description:
-          "Pengelompokan otomatis PO, PI/CI/PL, revisi, PEB/NPE, Karantina, B/L & bukti transfer T/T dalam 5 folder indeks audit.",
+          "Pengelompokan arsip transaksi 5 folder siap audit kepabeanan Bea Cukai.",
         icon: <FolderArchive size={16} />,
       },
     ],

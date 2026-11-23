@@ -349,8 +349,8 @@ textarea:focus-visible {
 .clean-nav-item.active {
   color: #ffffff;
   font-weight: 600;
-  background: rgba(245, 158, 11, 0.14);
-  border-left-color: var(--saffron);
+  background: #1e3a5f;
+  border-left-color: #3b82f6;
 }
 
 .nav-icon {
@@ -361,7 +361,7 @@ textarea:focus-visible {
 }
 
 .clean-nav-item.active .nav-icon {
-  color: var(--saffron);
+  color: #60a5fa;
 }
 
 .sidebar-bottom.clean-sidebar-footer {
@@ -1219,9 +1219,10 @@ textarea:focus-visible {
 
 .hero-card {
   grid-row: span 2;
-  min-height: 228px;
+  min-height: 200px;
   border-radius: var(--radius);
-  background: linear-gradient(135deg, #0b192c 0%, #132f4c 100%);
+  background: #0b192c;
+  border: 1px solid #1e3a5f;
   overflow: hidden;
   position: relative;
   padding: 24px;
@@ -1229,7 +1230,7 @@ textarea:focus-visible {
   display: flex;
   justify-content: space-between;
   gap: 18px;
-  box-shadow: var(--shadow-card);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .hero-card-copy {

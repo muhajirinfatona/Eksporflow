@@ -9,18 +9,14 @@ import {
   Calculator,
   Check,
   CheckCircle2,
-  Clock,
-  FileCheck2,
+  ChevronRight,
+  FileText,
   FolderArchive,
   LogIn,
   Play,
-  Radar,
   Scale,
-  ShieldAlert,
   ShieldCheck,
   Ship,
-  Sparkles,
-  TrendingUp,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 
@@ -39,164 +35,193 @@ export function LandingPage({
   onStartDemo,
   demoRemainingLabel,
 }: LandingPageProps) {
-  // Kalkulator Simulasi Kerugian Demurrage
+  // Simulasi Demurrage
   const [containerCount, setContainerCount] = useState(2);
-  const [delayedDays, setDelayedDays] = useState(5);
+  const [delayedDays, setDelayedDays] = useState(4);
   const [dailyRateUsd, setDailyRateUsd] = useState(150);
-  const [selectedSimPlan, setSelectedSimPlan] = useState<SubscriptionPlanSpec["id"]>("growth");
+  const [selectedPlanId, setSelectedPlanId] = useState<SubscriptionPlanSpec["id"]>("growth");
 
-  // Kalkulator Harga Langganan 3 Tingkat
+  // Kalkulator Langganan
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-  const [monthlyDocsEstimate, setMonthlyDocsEstimate] = useState(40);
+  const [docVolume, setDocVolume] = useState(40);
 
-  const demurrageResult = useMemo(
+  const demurrage = useMemo(
     () =>
       calculateDemurrageSimulation({
         containerCount,
         delayedDays,
         dailyRateUsd,
         exchangeRateIdr: 16200,
-        planId: selectedSimPlan,
+        planId: selectedPlanId,
       }),
-    [containerCount, delayedDays, dailyRateUsd, selectedSimPlan],
+    [containerCount, delayedDays, dailyRateUsd, selectedPlanId],
   );
 
   return (
-    <div className="ef-landing-root">
-      {/* 1. Sticky Navigation Header */}
-      <header className="ef-landing-nav">
-        <div className="ef-landing-container ef-landing-nav-inner">
-          <div className="ef-landing-brand">
-            <div className="brand-mark">
-              <span />
-              <span />
+    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans antialiased selection:bg-blue-900 selection:text-white">
+      {/* 1. Header Minimalis & Berwibawa */}
+      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-[#0A192F] flex items-center justify-center text-white font-bold text-sm tracking-tight border border-slate-800">
+              EF
             </div>
             <div>
-              <strong>
-                Ekspor<span>Flow</span>
-              </strong>
-              <small>Platform Operasional Ekspor UMKM</small>
+              <span className="font-bold text-slate-900 text-base tracking-tight">EksporFlow</span>
+              <span className="text-[11px] text-slate-500 font-mono ml-2 hidden sm:inline">TRADE OS</span>
             </div>
           </div>
 
-          <nav className="ef-landing-links" aria-label="Navigasi halaman utama">
-            <a href="#kalkulator-demurrage">Kalkulator Demurrage</a>
-            <a href="#fitur-unggulan">6 Pilar Ekspor</a>
-            <a href="#paket-harga">Paket &amp; Kuota Hibrida</a>
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-600">
+            <a href="#kalkulator" className="hover:text-blue-900 transition-colors">Simulasi Biaya</a>
+            <a href="#fitur" className="hover:text-blue-900 transition-colors">Fitur Utama</a>
+            <a href="#harga" className="hover:text-blue-900 transition-colors">Harga & Paket</a>
           </nav>
 
-          <div className="ef-landing-nav-actions">
+          <div className="flex items-center gap-3">
             <button
               type="button"
-              className="ef-btn-demo-nav"
-              onClick={onStartDemo}
+              onClick={() => onOpenAuth("login")}
+              className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-100 transition-colors"
             >
-              <Play size={14} />
-              {demoRemainingLabel ? `Lanjutkan Demo (${demoRemainingLabel})` : "Coba Demo 3 Hari"}
+              Masuk
             </button>
             <button
               type="button"
-              className="ef-btn-login-nav"
-              onClick={() => onOpenAuth("login")}
+              onClick={onStartDemo}
+              className="inline-flex items-center gap-1.5 bg-[#0F2942] hover:bg-[#163a5c] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm"
             >
-              <LogIn size={14} /> Masuk / Daftar
+              <Play size={13} />
+              <span>{demoRemainingLabel ? `Lanjutkan Demo (${demoRemainingLabel})` : "Coba Demo 3 Hari"}</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* 2. Hero Showcase */}
-      <section className="ef-landing-hero">
-        <div className="ef-landing-hero-glow" aria-hidden="true" />
-        <div className="ef-landing-container ef-landing-hero-grid">
-          <div className="ef-hero-copy">
-            <div className="ef-hero-badge" style={{ background: "linear-gradient(90deg, #0b192c, #163a5c)", border: "1px solid #3b82f6" }}>
-              <Sparkles size={13} className="text-amber-400" />
-              <span>EksporFlow v2 · Platform Ekspor Institusional &amp; AI Trade Intelligence</span>
+      {/* 2. Hero Section: Bersih, Tegas, Tanpa Hiasan AI yang Berlebihan */}
+      <section className="pt-16 pb-20 border-b border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold mb-6">
+              <span className="w-2 h-2 rounded-full bg-blue-600" />
+              Sistem Operasional Ekspor Terstandarisasi
             </div>
-            <h1>
-              Eliminasi Risiko Denda <span>Demurrage</span> &amp; Otomatisasi Dokumen Ekspor Resmi UMKM.
+
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-950 tracking-tight leading-[1.15] mb-5">
+              Otomatisasi Dokumen Ekspor &amp; Pencegahan Denda Demurrage.
             </h1>
-            <p className="ef-hero-subtitle">
-              Solusi end-to-end terintegrasi bagi eksportir Indonesia: Panduan Onboarding 4 Langkah, AI Advisor anti-halusinasi terverifikasi, kalkulator HPP &amp; kontainer presisi, serta penerbitan dokumen resmi (COO, PI, SC, CI, PL, SI) dengan audit snapshot immutable Bea Cukai.
+
+            <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-8 max-w-2xl">
+              Platform terpadu untuk eksportir dan UMKM Indonesia. Dari simulasi kontainer dan kepatuhan HS Code hingga penerbitan dokumen resmi (COO, PI, SC, CI, PL, SI) dengan audit trail Bea Cukai.
             </p>
 
-            <div className="ef-hero-cta-row">
-              <button type="button" className="ef-cta-primary" onClick={onStartDemo} style={{ background: "linear-gradient(135deg, #0284c7, #0369a1)", boxShadow: "0 4px 14px rgba(2, 132, 199, 0.35)" }}>
-                <Play size={16} />
-                Buka Workspace Eksporflow v2 (Demo 3 Hari)
-              </button>
+            <div className="flex flex-wrap items-center gap-3 mb-10">
               <button
                 type="button"
-                className="ef-cta-secondary"
-                onClick={() => onOpenAuth("login")}
+                onClick={onStartDemo}
+                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm px-5 py-3 rounded-lg shadow-sm transition-all"
               >
-                Masuk ke Akun Perusahaan <ArrowRight size={15} />
+                <span>Buka Sandbox Demo (Gratis)</span>
+                <ArrowRight size={16} />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onOpenAuth("register")}
+                className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm px-5 py-3 rounded-lg transition-all border border-slate-300"
+              >
+                <span>Daftar Akun Perusahaan</span>
               </button>
             </div>
 
-            <div className="ef-hero-trust-row">
-              <div>
-                <CheckCircle2 size={14} className="text-emerald-500" /> <span>Panduan Interaktif 4 Langkah UMKM</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-100 text-xs text-slate-600 font-medium">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <span>Dokumen Multi-Item</span>
               </div>
-              <div>
-                <CheckCircle2 size={14} className="text-emerald-500" /> <span>Dokumen Multi-Item &amp; COO Resmi</span>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <span>Format COO / SKA Resmi</span>
               </div>
-              <div>
-                <CheckCircle2 size={14} className="text-emerald-500" /> <span>AI Advisor dengan Deterministic Tools</span>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <span>AI Advisor Terverifikasi</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
+                <span>Audit DJBC Terisolasi</span>
               </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          {/* 3. Widget Interaktif: Kalkulator Simulasi Kerugian Demurrage */}
-          <div id="kalkulator-demurrage" className="ef-demurrage-card">
-            <div className="ef-demurrage-head">
-              <div>
-                <span className="eyebrow" style={{ color: "#fbbf24" }}>
-                  SIMULASI KERUGIAN DEMURRAGE
-                </span>
-                <h2>Hitung Potensi Denda Pelabuhan Anda</h2>
+      {/* 3. Interactive Demurrage Risk Instrument */}
+      <section id="kalkulator" className="py-16 bg-[#0B1523] text-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            <div className="lg:col-span-5 space-y-4">
+              <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
+                KALKULATOR RISIKO PELABUHAN
+              </span>
+              <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
+                Berapa Biaya Typo Dokumen di Pelabuhan Tujuan?
+              </h2>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Ketidaksesuaian nomor kontainer, selisih berat kotor, atau HS Code yang keliru dapat menahan kontainer 3-7 hari. Hitung potensi denda demurrage Anda sebelum kapal berlayar.
+              </p>
+
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={onStartDemo}
+                  className="inline-flex items-center gap-2 text-xs font-bold text-amber-400 hover:text-amber-300 transition-colors"
+                >
+                  <span>Mulai Uji Coba Pencegahan di Eksporflow</span>
+                  <ChevronRight size={14} />
+                </button>
               </div>
-              <Calculator size={20} style={{ color: "#fbbf24" }} />
             </div>
 
-            <p className="ef-demurrage-desc">
-              Satu typo berat kotor di Draft B/L atau izin karantina kedaluwarsa dapat menahan kontainer 3–7 hari di
-              pelabuhan tujuan. Simulasikan dampaknya dibanding biaya langganan bulanan:
-            </p>
-
-            <div className="ef-demurrage-inputs">
-              <label>
-                <span>Jumlah Kontainer (Shipment)</span>
-                <div className="ef-range-row">
+            <div className="lg:col-span-7 bg-[#112237] rounded-xl border border-slate-700/80 p-6 space-y-6 shadow-xl">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                  <div className="flex justify-between text-xs font-medium text-slate-300 mb-1.5">
+                    <span>Jumlah Kontainer</span>
+                    <span className="font-mono text-white font-bold">{containerCount} Kontainer</span>
+                  </div>
                   <input
                     type="range"
                     min={1}
                     max={10}
                     value={containerCount}
                     onChange={(e) => setContainerCount(Number(e.target.value))}
+                    className="w-full accent-blue-500 cursor-pointer"
                   />
-                  <b>{containerCount} Kontainer</b>
                 </div>
-              </label>
 
-              <label>
-                <span>Estimasi Hari Tertahan (Hold / Revisi B/L)</span>
-                <div className="ef-range-row">
+                <div>
+                  <div className="flex justify-between text-xs font-medium text-slate-300 mb-1.5">
+                    <span>Hari Tertahan (Revisi Dokumen)</span>
+                    <span className="font-mono text-white font-bold">{delayedDays} Hari</span>
+                  </div>
                   <input
                     type="range"
                     min={1}
                     max={14}
                     value={delayedDays}
                     onChange={(e) => setDelayedDays(Number(e.target.value))}
+                    className="w-full accent-blue-500 cursor-pointer"
                   />
-                  <b>{delayedDays} Hari</b>
                 </div>
-              </label>
+              </div>
 
-              <div className="ef-demurrage-two-col">
-                <label>
-                  <span>Tarif Demurrage (USD / Kontainer / Hari)</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    Tarif Demurrage (USD / Kontainer / Hari)
+                  </label>
                   <input
                     type="number"
                     min={50}
@@ -204,14 +229,18 @@ export function LandingPage({
                     step={10}
                     value={dailyRateUsd}
                     onChange={(e) => setDailyRateUsd(Math.max(10, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 bg-[#0B1523] border border-slate-700 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-blue-400"
                   />
-                </label>
+                </div>
 
-                <label>
-                  <span>Pembanding Paket EksporFlow</span>
+                <div>
+                  <label className="block text-xs font-medium text-slate-300 mb-1">
+                    Paket Perlindungan Eksporflow
+                  </label>
                   <select
-                    value={selectedSimPlan}
-                    onChange={(e) => setSelectedSimPlan(e.target.value as SubscriptionPlanSpec["id"])}
+                    value={selectedPlanId}
+                    onChange={(e) => setSelectedPlanId(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-[#0B1523] border border-slate-700 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-blue-400"
                   >
                     {SUBSCRIPTION_PLANS.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -219,263 +248,234 @@ export function LandingPage({
                       </option>
                     ))}
                   </select>
-                </label>
+                </div>
+              </div>
+
+              <div className="p-4 rounded-lg bg-[#070D16] border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-semibold block">
+                    POTENSI DENDA DEMURRAGE
+                  </span>
+                  <div className="text-2xl font-extrabold font-mono text-white tracking-tight">
+                    USD ${demurrage.totalLossUsd.toLocaleString("en-US")}
+                  </div>
+                  <span className="text-xs text-slate-400 font-mono">
+                    ≈ {formatIdr(demurrage.totalLossIdr)} per kejadian
+                  </span>
+                </div>
+
+                <div className="text-left sm:text-right border-t sm:border-t-0 sm:border-l border-slate-800 pt-3 sm:pt-0 sm:pl-5">
+                  <span className="text-[11px] text-slate-400 block mb-0.5">Rasio Proteksi Biaya</span>
+                  <div className="text-base font-bold font-mono text-emerald-400">
+                    {demurrage.roiMultiple}x Lebih Hemat
+                  </div>
+                  <span className="text-[11px] text-slate-500">
+                    dibanding {SUBSCRIPTION_PLANS.find((p) => p.id === selectedPlanId)?.name}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="ef-demurrage-results">
-              <div className="ef-result-danger">
-                <span>Potensi Kerugian Demurrage &amp; Detention</span>
-                <strong>USD ${demurrageResult.totalLossUsd.toLocaleString("en-US")}</strong>
-                <small>≈ {formatIdr(demurrageResult.totalLossIdr)} per kejadian hold</small>
-              </div>
-
-              <div className="ef-result-metrics">
-                <div>
-                  <span>Biaya Paket {SUBSCRIPTION_PLANS.find((p) => p.id === selectedSimPlan)?.name}</span>
-                  <b>{formatIdr(demurrageResult.subscriptionMonthlyIdr)} / bln</b>
-                </div>
-                <div>
-                  <span>Rasio Proteksi Biaya</span>
-                  <b className="ef-roi-badge">{demurrageResult.roiMultiple}x Lipat lebih hemat</b>
-                </div>
-              </div>
-            </div>
-
-            <button type="button" className="ef-demurrage-cta" onClick={onStartDemo}>
-              Cegah Kerugian {formatIdr(demurrageResult.totalLossIdr)} · Coba Demo Sekarang{" "}
-              <ArrowRight size={15} />
-            </button>
           </div>
         </div>
       </section>
 
-      {/* 4. Enam Pilar Fitur EksporFlow */}
-      <section id="fitur-unggulan" className="ef-landing-section">
-        <div className="ef-landing-container">
-          <div className="ef-section-heading">
-            <span className="eyebrow">ALUR KERJA TERINTEGRASI HULU KE HILIR</span>
-            <h2>6 Pilar Operasional &amp; Kepatuhan Ekspor</h2>
-            <p>
-              Dirancang khusus untuk menjawab kendala utama eksportir pemula maupun perusahaan berkembang:
-              konsistensi data, kecepatan dokumen, kepatuhan regulasi, dan keamanan pembayaran T/T.
+      {/* 4. 4 Pilar Sistem Operasional (Tersusun Rapi & Padat) */}
+      <section id="fitur" className="py-20 border-b border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="max-w-xl mb-12">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-700">
+              ARSITEKTUR PLATFORM
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-3">
+              Fungsionalitas Inti untuk Setiap Transaksi
+            </h2>
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Dirancang tanpa jargon berlebih. Semua modul bekerja terpadu dari satu sumber data transaksi.
             </p>
           </div>
 
-          <div className="ef-pillars-grid">
-            <article className="ef-pillar-card">
-              <div className="ef-pillar-icon navy">
-                <Sparkles size={18} />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="p-6 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 border border-blue-200 text-blue-800 flex items-center justify-center font-bold mb-4">
+                <FileText size={20} />
               </div>
-              <h3>1. Akuisisi Buyer &amp; Pra-Transaksi</h3>
-              <p>
-                Generator Inquiry, Quotation, &amp; Offer Letter otomatis dengan 3 gaya AI copywriting
-                (Formal, Semi-Formal, Casual) plus checklist validasi legalitas calon buyer.
+              <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                Dokumen Ekspor Multi-Barang
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Terbitkan 6 dokumen resmi (Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, Shipping Instruction, Certificate of Origin) dengan tabel multi-item dan bobot terkalibrasi.
               </p>
-            </article>
+              <span className="text-[11px] font-mono text-slate-500">Format: PDF A4 Resmi &amp; DOCX</span>
+            </div>
 
-            <article className="ef-pillar-card">
-              <div className="ef-pillar-icon amber">
-                <Scale size={18} />
+            <div className="p-6 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-emerald-100 border border-emerald-200 text-emerald-800 flex items-center justify-center font-bold mb-4">
+                <Scale size={20} />
               </div>
-              <h3>2. Verifikator HS Code &amp; Lartas</h3>
-              <p>
-                Deteksi potensi Lartas komoditas, opsi tarif FTA/CEPA yang lebih efisien, serta pengingat
-                kedaluwarsa Karantina, e-SKA/COO, SVLK, Halal &amp; BPOM secara dini.
+              <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                HS Code &amp; Kepatuhan Lartas
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Pencarian kode HS terverifikasi, verifikasi izin lartas kementerian teknis, serta pengingat masa kedaluwarsa karantina tumbuhan/hewan sebelum closing PEB.
               </p>
-            </article>
+              <span className="text-[11px] font-mono text-slate-500">Standar: BTKI &amp; Regulasi Kemendag</span>
+            </div>
 
-            <article className="ef-pillar-card">
-              <div className="ef-pillar-icon blue">
-                <FileCheck2 size={18} />
+            <div className="p-6 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center font-bold mb-4">
+                <Calculator size={20} />
               </div>
-              <h3>3. 5 Dokumen Inti + Word Editor</h3>
-              <p>
-                Sekali input untuk Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, dan
-                Shipping Instruction yang konsisten, siap PDF A4/Folio/Letter &amp; ekspor .docx.
+              <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                Kalkulator Kontainer &amp; 7 Incoterms
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Simulasi muatan kontainer 20ft, 40ft, 40HC, perhitungan susut bobot komoditas, dan kalkulasi harga jual akurat di skenario FOB, CIF, CFR, hingga DDP.
               </p>
-            </article>
+              <span className="text-[11px] font-mono text-slate-500">Mesin: Kalkulator Deterministik</span>
+            </div>
 
-            <article className="ef-pillar-card">
-              <div className="ef-pillar-icon red">
-                <ShieldAlert size={18} />
+            <div className="p-6 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
+              <div className="w-10 h-10 rounded-lg bg-indigo-100 border border-indigo-200 text-indigo-800 flex items-center justify-center font-bold mb-4">
+                <FolderArchive size={20} />
               </div>
-              <h3>4. AI OCR B/L Scrutiny &amp; H-7 PEB</h3>
-              <p>
-                Pencocokan silang 3-Way Draft B/L vs CI/PL sebelum finalisasi pelayaran, notifikasi revisi
-                ke forwarder, dan timeline countdown H-7 hingga closing PEB.
+              <h3 className="text-base font-bold text-slate-900 mb-1.5">
+                Snapshot Audit &amp; Brankas DJBC
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed mb-4">
+                Kunci versi dokumen final dengan hash SHA-256 yang tidak dapat diubah (immutable), terorganisir dalam 5 indeks siap audit Bea Cukai.
               </p>
-            </article>
-
-            <article className="ef-pillar-card">
-              <div className="ef-pillar-icon green">
-                <Ship size={18} />
-              </div>
-              <h3>5. Muatan 3D, HPP &amp; Penagihan TT</h3>
-              <p>
-                Kalkulator HPP Trader/Manufaktur, 7 skenario Incoterms® 2020, visualisasi 3D kontainer
-                20ft/40HC, cap digital <i>Scanned Copy</i> &amp; draf email pelunasan T/T otomatis.
-              </p>
-            </article>
-
-            <article className="ef-pillar-card">
-              <div className="ef-pillar-icon indigo">
-                <FolderArchive size={18} />
-              </div>
-              <h3>6. Audit Vault DJBC &amp; Tracking</h3>
-              <p>
-                Arsip digital 5 folder siap pemeriksaan Bea Cukai (PO, Komersial, PEB/NPE, B/L, Bukti T/T),
-                peta pelacakan pelayaran laut, dan panduan onboarding 30 hari.
-              </p>
-            </article>
+              <span className="text-[11px] font-mono text-slate-500">Keamanan: PostgreSQL Row-Level Security</span>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* 5. Skema Langganan 3 Tingkat & Kuota Hibrida */}
-      <section id="paket-harga" className="ef-landing-section ef-pricing-band">
-        <div className="ef-landing-container">
-          <div className="ef-section-heading">
-            <span className="eyebrow">SKEMA LANGGANAN 3 TINGKAT &amp; KUOTA HIBRIDA</span>
-            <h2>Mulai dari Gratis 3 Hari, Tumbuh Sesuai Volume Ekspor</h2>
-            <p>
-              Setiap paket sudah mencakup kuota dokumen bulanan. Saat shipment sedang tinggi, sistem kuota
-              hibrida memungkinkan Anda membayar selisih ekstra per dokumen saja tanpa harus paksa upgrade.
+      {/* 5. Paket Langganan: Bersih, Transparan, Bebas Klaim Berlebihan */}
+      <section id="harga" className="py-20 bg-slate-50 border-b border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="text-center max-w-xl mx-auto mb-12">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-700">
+              TRANSPARANSI BIAYA
+            </span>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-2">
+              Paket Sederhana Sesuai Volume Ekspor
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600">
+              Mulai gratis 3 hari. Pembayaran tahunan mendapatkan potongan 10%.
             </p>
-          </div>
 
-          {/* Toggle Siklus Tagihan & Simulasi Volume Dokumen */}
-          <div className="ef-pricing-controls">
-            <div className="ef-billing-toggle" role="group" aria-label="Pilih siklus penagihan">
+            <div className="inline-flex p-1 bg-white rounded-lg border border-slate-300 mt-6 shadow-sm">
               <button
                 type="button"
-                className={billingCycle === "monthly" ? "active" : ""}
                 onClick={() => setBillingCycle("monthly")}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  billingCycle === "monthly" ? "bg-slate-900 text-white" : "text-slate-600 hover:text-slate-900"
+                }`}
               >
-                Tagihan Bulanan
+                Bulanan
               </button>
               <button
                 type="button"
-                className={billingCycle === "annual" ? "active" : ""}
                 onClick={() => setBillingCycle("annual")}
+                className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  billingCycle === "annual" ? "bg-slate-900 text-white" : "text-slate-600 hover:text-slate-900"
+                }`}
               >
-                Tahunan (Hemat 10%)
+                Tahunan (-10%)
               </button>
-            </div>
-
-            <div className="ef-quota-slider-box">
-              <label htmlFor="landing-quota-slider">
-                Simulasi Volume Dokumen Anda: <b>{monthlyDocsEstimate} dokumen / bulan</b>
-              </label>
-              <input
-                id="landing-quota-slider"
-                type="range"
-                min={10}
-                max={300}
-                step={5}
-                value={monthlyDocsEstimate}
-                onChange={(e) => setMonthlyDocsEstimate(Number(e.target.value))}
-              />
             </div>
           </div>
 
-          <div className="ef-pricing-grid">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {SUBSCRIPTION_PLANS.map((plan) => {
-              const calc = calculatePlanBilling(plan.id, billingCycle, monthlyDocsEstimate);
+              const calc = calculatePlanBilling(plan.id, billingCycle, docVolume);
+              const isHighlight = plan.id === "growth";
               return (
-                <article
+                <div
                   key={plan.id}
-                  className={`ef-plan-card ${plan.highlighted ? "highlighted" : ""}`}
+                  className={`rounded-xl p-6 bg-white border transition-all flex flex-col justify-between ${
+                    isHighlight
+                      ? "border-blue-600 shadow-md ring-1 ring-blue-600"
+                      : "border-slate-200 shadow-sm"
+                  }`}
                 >
-                  {plan.highlighted && <div className="ef-plan-ribbon">REKOMENDASI UMKM AKTIF</div>}
-                  <div className="ef-plan-top">
-                    <h3>{plan.name}</h3>
-                    <p>{plan.tagline}</p>
-                    <div className="ef-plan-price">
-                      <strong>{formatIdr(calc.effectiveMonthlyIdr)}</strong>
-                      <span>/ bulan</span>
-                    </div>
-                    {billingCycle === "annual" && (
-                      <small className="ef-plan-annual-note">
-                        Total {formatIdr(calc.annualTotalIdr)}/thn · Hemat{" "}
-                        {formatIdr(calc.annualDiscountSavedIdr)}
-                      </small>
+                  <div>
+                    {isHighlight && (
+                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 inline-block mb-3">
+                        Paling Banyak Digunakan
+                      </span>
                     )}
+                    <h3 className="text-base font-bold text-slate-950">{plan.name}</h3>
+                    <p className="text-xs text-slate-500 mt-0.5 mb-4">{plan.tagline}</p>
+
+                    <div className="mb-5 pb-5 border-b border-slate-100">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 font-mono tracking-tight">
+                          {formatIdr(calc.effectiveMonthlyIdr)}
+                        </span>
+                        <span className="text-xs text-slate-500 font-medium">/bln</span>
+                      </div>
+                      <span className="text-[11px] text-slate-500 font-mono block mt-1">
+                        Kuota: {plan.monthlyDocQuota} dokumen / bulan
+                      </span>
+                    </div>
+
+                    <ul className="space-y-2.5 text-xs text-slate-700 mb-6">
+                      {plan.features.slice(0, 5).map((f) => (
+                        <li key={f} className="flex items-start gap-2">
+                          <Check size={14} className="text-blue-700 shrink-0 mt-0.5" />
+                          <span>{f}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
 
-                  <div className="ef-plan-quota-summary">
-                    <div>
-                      <span>Kuota Termasuk</span>
-                      <b>{plan.monthlyDocQuota} dokumen / bln</b>
-                    </div>
-                    <div>
-                      <span>Maks. Pengguna / RBAC</span>
-                      <b>{plan.maxUsers} akun</b>
-                    </div>
-                    <div>
-                      <span>Simulasi ({monthlyDocsEstimate} dok/bln)</span>
-                      <b>
-                        {calc.extraDocsCount === 0
-                          ? "Masuk Kuota (Rp 0 ekstra)"
-                          : `+${calc.extraDocsCount} dok (${formatIdr(calc.overageChargeIdr)})`}
-                      </b>
-                    </div>
-                  </div>
-
-                  <ul className="ef-plan-features">
-                    {plan.features.map((feat) => (
-                      <li key={feat}>
-                        <Check size={14} /> <span>{feat}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="ef-plan-actions">
+                  <div className="space-y-2 pt-4 border-t border-slate-100">
                     <button
                       type="button"
-                      className={plan.highlighted ? "ef-plan-btn primary" : "ef-plan-btn"}
                       onClick={onStartDemo}
+                      className={`w-full py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
+                        isHighlight
+                          ? "bg-blue-700 hover:bg-blue-800 text-white shadow-sm"
+                          : "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300"
+                      }`}
                     >
-                      Coba Demo 3 Hari Dulu
+                      Coba Demo 3 Hari
                     </button>
                     <button
                       type="button"
-                      className="ef-plan-btn ghost"
                       onClick={() => onOpenAuth("register")}
+                      className="w-full text-center text-xs font-semibold text-slate-600 hover:text-slate-900 py-1.5 transition-colors"
                     >
-                      Daftar Paket {plan.name}
+                      Daftar Langsung
                     </button>
                   </div>
-                </article>
+                </div>
               );
             })}
           </div>
         </div>
       </section>
 
-      {/* 6. Footer CTA Banner */}
-      <footer className="ef-landing-footer">
-        <div className="ef-landing-container ef-landing-footer-inner">
-          <div>
-            <div className="ef-footer-pill">
-              <Clock size={13} /> Akses Uji Coba Gratis 72 Jam (3 Hari)
-            </div>
-            <h2>Siap Mengirim Ekspor Pertama Anda Tanpa Cemas Revisi B/L?</h2>
-            <p>
-              Masuk ke Sandbox Demo secara instan dengan 1 klik—uji coba seluruh kalkulator harga, AI Lartas,
-              dokumen ekspor, hingga Audit Vault DJBC.
-            </p>
+      {/* 6. Footer Sederhana & Bersih */}
+      <footer className="py-12 bg-white border-t border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-800">EksporFlow</span>
+            <span>·</span>
+            <span>Platform Kepatuhan &amp; Operasional Ekspor</span>
           </div>
-          <div className="ef-footer-cta-col">
-            <button type="button" className="ef-cta-primary" onClick={onStartDemo}>
-              <TrendingUp size={16} /> Luncurkan Demo 3 Hari
+
+          <div className="flex items-center gap-6">
+            <button type="button" onClick={onStartDemo} className="hover:text-slate-900">
+              Demo 3 Hari
             </button>
-            <button
-              type="button"
-              className="ef-cta-secondary"
-              onClick={() => onOpenAuth("login")}
-            >
-              <ShieldCheck size={16} /> Masuk ke Workspace Perusahaan
+            <button type="button" onClick={() => onOpenAuth("login")} className="hover:text-slate-900">
+              Masuk
+            </button>
+            <button type="button" onClick={() => onOpenAuth("register")} className="hover:text-slate-900">
+              Daftar
             </button>
           </div>
         </div>

@@ -7,19 +7,17 @@ import {
   FileText,
   Package,
   Scale,
-  Sparkles,
   Ship,
   ShieldCheck,
   ArrowRight,
   X,
   Compass,
   Boxes,
-  Percent,
   Calculator,
 } from "lucide-react";
 import type { Shipment, LineItem } from "@shared/shipment";
 import { formatMoney, formatNumber } from "@shared/format";
-import { calculateContainer, containerSpecs } from "@shared/container";
+import { containerSpecs } from "@shared/container";
 
 export interface OnboardingSectorPreset {
   id: string;
@@ -42,17 +40,16 @@ export interface OnboardingSectorPreset {
   buyerName: string;
   incoterm: "FOB" | "CIF" | "CFR";
   containerType: "20GP" | "40GP" | "40HC";
-  description: string;
 }
 
 export const SECTOR_PRESETS: OnboardingSectorPreset[] = [
   {
     id: "coffee",
-    name: "Kopi & Rempah-Rempah",
-    categoryName: "Komoditas Perkebunan",
-    productName: "Specialty Arabica Green Coffee Beans (Gayo Grade 1)",
+    name: "Kopi Arabika Gayo",
+    categoryName: "Perkebunan",
+    productName: "Specialty Arabica Green Coffee Beans (Grade 1)",
     hsCode: "0901.11.00",
-    packagingType: "Karung Goni Ekspor (Jute Bag)",
+    packagingType: "Jute Bag (Karung Goni 60kg)",
     unit: "karung",
     defaultQty: 300,
     weightPerUnit: 60,
@@ -60,22 +57,21 @@ export const SECTOR_PRESETS: OnboardingSectorPreset[] = [
     widthCm: 60,
     heightCm: 30,
     shrinkageRate: 3.0,
-    defaultUnitPrice: 7.50, // per kg = 450 per bag
+    defaultUnitPrice: 7.50,
     defaultCurrency: "USD",
-    targetPort: "Port of Tokyo / Yokohama, Japan",
+    targetPort: "Port of Tokyo, Japan",
     buyerCountry: "Jepang",
     buyerName: "Kyoto Specialty Coffee Importers Co., Ltd.",
     incoterm: "FOB",
     containerType: "20GP",
-    description: "Sektor primadona ekspor Indonesia dengan pasar stabil di Jepang, Korea, Uni Eropa, dan Amerika Serikat.",
   },
   {
     id: "fishery",
-    name: "Perikanan & Hasil Laut",
-    categoryName: "Produk Bahari Segar/Beku",
-    productName: "Frozen Black Tiger Prawns (Head-On Shell-On Grade A)",
+    name: "Udang Windu Beku",
+    categoryName: "Perikanan",
+    productName: "Frozen Black Tiger Prawns (Head-On Shell-On)",
     hsCode: "0306.17.00",
-    packagingType: "Master Carton 5-Ply with Food-Grade PE Liner",
+    packagingType: "Master Carton 10kg with PE Liner",
     unit: "karton",
     defaultQty: 1400,
     weightPerUnit: 10,
@@ -83,45 +79,43 @@ export const SECTOR_PRESETS: OnboardingSectorPreset[] = [
     widthCm: 30,
     heightCm: 22,
     shrinkageRate: 1.0,
-    defaultUnitPrice: 12.50, // per kg = 125 per carton
+    defaultUnitPrice: 12.50,
     defaultCurrency: "USD",
     targetPort: "Port of Busan, South Korea",
     buyerCountry: "Korea Selatan",
-    buyerName: "Hansol Marine Logistics & Foods Corp.",
+    buyerName: "Hansol Marine Foods Corp.",
     incoterm: "CIF",
     containerType: "20GP",
-    description: "Komoditas bernilai tinggi dengan sertifikasi HACCP & cold chain terpadu menuju pasar Asia Timur.",
   },
   {
     id: "coconutsugar",
-    name: "Pertanian & Pangan Organik",
-    categoryName: "Produk Olahan Alami",
-    productName: "Organic Coconut Sugar (Granulated Grade A Export Quality)",
+    name: "Gula Kelapa Organik",
+    categoryName: "Pangan Olahan",
+    productName: "Organic Granulated Coconut Sugar",
     hsCode: "1702.90.10",
-    packagingType: "3-Ply Kraft Paper Bag with PE Food-Grade Inner",
+    packagingType: "Kraft Paper Bag 20kg",
     unit: "karung",
     defaultQty: 900,
     weightPerUnit: 20,
     lengthCm: 60,
     widthCm: 40,
     heightCm: 15,
-    shrinkageRate: 4.0,
-    defaultUnitPrice: 2.20, // per kg = 44 per bag
+    shrinkageRate: 3.5,
+    defaultUnitPrice: 2.20,
     defaultCurrency: "USD",
-    targetPort: "Jebel Ali Port, Dubai (AEJEA)",
-    buyerCountry: "United Arab Emirates",
-    buyerName: "Al-Barakah International Foodstuff Trading LLC",
+    targetPort: "Jebel Ali Port, Dubai",
+    buyerCountry: "Uni Emirat Arab",
+    buyerName: "Al-Barakah Foodstuff Trading LLC",
     incoterm: "FOB",
     containerType: "20GP",
-    description: "Permintaan pasar Timur Tengah & Eropa yang berkembang pesat untuk pemanis organik rendah glikemik.",
   },
   {
     id: "furniture",
-    name: "Kerajinan & Furnitur Kayu",
-    categoryName: "Manufaktur Kreatif & Kayu",
-    productName: "Handcrafted Teak & Natural Rattan Outdoor Lounge Set",
+    name: "Mebel Kayu & Rotan",
+    categoryName: "Manufaktur",
+    productName: "Teak & Natural Rattan Outdoor Lounge Set",
     hsCode: "9403.82.00",
-    packagingType: "Heavy-Duty Corrugated Carton Box (Corner-Protected)",
+    packagingType: "Corrugated Box with Corner Guard",
     unit: "set",
     defaultQty: 120,
     weightPerUnit: 45,
@@ -136,7 +130,6 @@ export const SECTOR_PRESETS: OnboardingSectorPreset[] = [
     buyerName: "Van Der Berg Home & Garden BV",
     incoterm: "FOB",
     containerType: "40HC",
-    description: "Produk furnitur legalitas SVLK berdaya saing tinggi dengan pembebasan bea masuk skema FLEGT Uni Eropa.",
   },
 ];
 
@@ -174,13 +167,13 @@ export function GuidedOnboardingModal({
 
   if (!isOpen) return null;
 
-  // Live container calculations for step 3
+  // Live calculations
   const totalWeightKgs = targetQuantity * selectedSector.weightPerUnit;
   const singleCbm = (selectedSector.lengthCm * selectedSector.widthCm * selectedSector.heightCm) / 1_000_000;
   const totalVolumeCbm = targetQuantity * singleCbm;
   const spec = containerSpecs[selectedSector.containerType] || containerSpecs["20GP"];
-  const volumeUtilization = (totalVolumeCbm / spec.volume) * 100;
-  const weightUtilization = (totalWeightKgs / spec.weight) * 100;
+  const volumeUtilization = Math.min(100, (totalVolumeCbm / spec.volume) * 100);
+  const weightUtilization = Math.min(100, (totalWeightKgs / spec.weight) * 100);
   const totalContractUsd = selectedSector.id === "furniture"
     ? targetQuantity * targetUnitPrice
     : totalWeightKgs * targetUnitPrice;
@@ -192,11 +185,8 @@ export function GuidedOnboardingModal({
   };
 
   const handleFinishOnboarding = () => {
-    // 1. Simpan profil eksportir
     update("exporter", companyName);
     update("namedPlace", selectedPort);
-
-    // 2. Simpan produk & komoditas
     update("product", selectedSector.productName);
     update("hsCode", selectedSector.hsCode);
     update("cartonQty", targetQuantity);
@@ -213,7 +203,6 @@ export function GuidedOnboardingModal({
     update("buyer", selectedSector.buyerName);
     update("unitPrice", targetUnitPrice);
 
-    // 3. Simpan line item terstruktur
     const newLineItem: LineItem = {
       id: "item-1",
       description: selectedSector.productName,
@@ -236,471 +225,318 @@ export function GuidedOnboardingModal({
     };
     updateLineItems([newLineItem]);
 
-    // 4. Tutup dan arahkan ke tab dokumen
     onClose();
     onFinish("documents");
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[92vh] flex flex-col bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
+      <div className="relative w-full max-w-3xl bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden text-slate-800">
         
-        {/* HEADER MARITIME TRADE INTELLIGENCE */}
-        <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-[#0B192C] to-[#0F2942] text-white border-b border-slate-800">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-blue-600/30 border border-blue-400/40 text-blue-300">
-              <Compass size={22} className="animate-spin-slow" />
+        {/* Header Bersih & Ringkas */}
+        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 rounded-md bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-300">
+              <Compass size={16} />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-mono uppercase tracking-widest text-blue-400 font-bold">
-                  PANDUAN EKSPORTIR UMKM
-                </span>
-                <span className="text-[10px] bg-blue-500/20 text-blue-200 border border-blue-400/30 px-2 py-0.5 rounded-full font-mono">
-                  4 Langkah Cepat
-                </span>
-              </div>
-              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight">
-                Setup Transaksi & Ekspor Perdana
-              </h2>
+              <h2 className="text-sm font-bold tracking-tight text-white">Panduan Transaksi Ekspor</h2>
+              <span className="text-[11px] text-slate-400">Setup profil, komoditas, dan terbitkan draf dokumen</span>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="text-slate-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-slate-800/60"
-            aria-label="Tutup panduan"
+            className="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition-colors"
+            aria-label="Tutup"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* STEP PROGRESS BAR */}
-        <div className="grid grid-cols-4 bg-slate-50 border-b border-slate-200 text-xs font-semibold">
+        {/* Stepper Minimalis */}
+        <div className="grid grid-cols-4 border-b border-slate-200 bg-slate-50/70 text-xs">
           {[
-            { num: 1, label: "Profil & Legalitas", icon: Building2 },
-            { num: 2, label: "Sektor Komoditas", icon: Package },
-            { num: 3, label: "Kalkulasi Kontainer", icon: Scale },
-            { num: 4, label: "Dokumen Ekspor", icon: FileText },
+            { num: 1, label: "1. Profil Eksportir" },
+            { num: 2, label: "2. Komoditas & HS" },
+            { num: 3, label: "3. Kontainer & Harga" },
+            { num: 4, label: "4. Draf Dokumen" },
           ].map((s) => {
-            const Icon = s.icon;
-            const isCompleted = currentStep > s.num;
             const isCurrent = currentStep === s.num;
+            const isDone = currentStep > s.num;
             return (
               <button
                 key={s.num}
                 type="button"
                 onClick={() => setCurrentStep(s.num as any)}
-                className={`flex items-center justify-center gap-2 py-3 px-2 border-b-2 transition-all ${
+                className={`py-2.5 px-3 text-center border-b-2 font-medium transition-all ${
                   isCurrent
-                    ? "border-blue-600 bg-white text-blue-900 shadow-sm"
-                    : isCompleted
-                      ? "border-emerald-500 text-emerald-800 bg-emerald-50/50"
-                      : "border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-100/60"
+                    ? "border-blue-700 text-blue-900 bg-white font-bold"
+                    : isDone
+                      ? "border-emerald-600 text-emerald-800"
+                      : "border-transparent text-slate-500 hover:text-slate-800"
                 }`}
               >
-                <div
-                  className={`flex items-center justify-center w-5 h-5 rounded-full text-[11px] font-mono font-bold ${
-                    isCurrent
-                      ? "bg-blue-600 text-white"
-                      : isCompleted
-                        ? "bg-emerald-600 text-white"
-                        : "bg-slate-200 text-slate-600"
-                  }`}
-                >
-                  {isCompleted ? "✓" : s.num}
-                </div>
-                <span className="hidden sm:inline truncate">{s.label}</span>
+                <span className="truncate block">{s.label}</span>
               </button>
             );
           })}
         </div>
 
-        {/* CONTENT AREA */}
-        <div className="flex-1 overflow-y-auto p-5 sm:p-7 space-y-6">
+        {/* Isi Modal per Langkah */}
+        <div className="p-6 space-y-5 min-h-[360px]">
           
-          {/* STEP 1: PROFIL EKSPORTIR & LEGALITAS */}
+          {/* LANGKAH 1 */}
           {currentStep === 1 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Building2 size={18} className="text-blue-700" />
-                  Langkah 1: Identitas Eksportir & Dokumen Legalitas Dasar
-                </h3>
-                <p className="text-xs text-slate-600 mt-1">
-                  Legalitas NIB dan NPWP resmi diperlukan agar terhubung dengan sistem Pemberitahuan Ekspor Barang (PEB) di Bea Cukai.
-                </p>
-              </div>
-
+            <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nama Badan Usaha / Perusahaan Eksportir
+                    Nama Badan Usaha
                   </label>
                   <input
                     type="text"
                     value={companyName}
                     onChange={(e) => setCompanyName(e.target.value)}
                     placeholder="Contoh: PT. Sumber Alam Nusantara"
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 font-medium"
                   />
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    Nama ini akan otomatis tercantum pada kop surat seluruh 5 dokumen ekspor resmi.
-                  </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nomor Induk Berusaha (NIB - 13 Digit)
+                    NIB (Nomor Induk Berusaha)
                   </label>
                   <input
                     type="text"
                     value={nibNumber}
                     onChange={(e) => setNibNumber(e.target.value)}
-                    placeholder="0123456789012"
-                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    placeholder="13 Digit NIB"
+                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
                   />
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    NIB berfungsi sebagai Tanda Pengenal Importir/Eksportir (API) sekaligus hak akses kepabeanan.
-                  </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Nomor Pokok Wajib Pajak (NPWP Perusahaan)
+                    NPWP Perusahaan
                   </label>
                   <input
                     type="text"
                     value={npwpNumber}
                     onChange={(e) => setNpwpNumber(e.target.value)}
-                    placeholder="01.234.567.8-012.000"
-                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none"
+                    placeholder="00.000.000.0-000.000"
+                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
                   />
-                  <span className="text-[11px] text-emerald-700 font-medium mt-1 flex items-center gap-1">
-                    <ShieldCheck size={13} /> Terlindungi oleh modul sensor otomatis PII Eksporflow.
-                  </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Pelabuhan Muat Asal Indonesia (Port of Loading)
+                    Pelabuhan Muat Asal (POL)
                   </label>
                   <select
                     value={selectedPort}
                     onChange={(e) => setSelectedPort(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white"
                   >
                     <option value="Pelabuhan Tanjung Priok, Jakarta (IDTPP)">Pelabuhan Tanjung Priok, Jakarta (IDTPP)</option>
                     <option value="Pelabuhan Tanjung Perak, Surabaya (IDSUB)">Pelabuhan Tanjung Perak, Surabaya (IDSUB)</option>
                     <option value="Pelabuhan Belawan, Medan (IDBLW)">Pelabuhan Belawan, Medan (IDBLW)</option>
-                    <option value="Pelabuhan Makassar New Port, Makassar (IDMAK)">Pelabuhan Makassar New Port, Makassar (IDMAK)</option>
+                    <option value="Pelabuhan Makassar New Port (IDMAK)">Pelabuhan Makassar New Port (IDMAK)</option>
                     <option value="Pelabuhan Tanjung Emas, Semarang (IDSRG)">Pelabuhan Tanjung Emas, Semarang (IDSRG)</option>
                   </select>
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    Pelabuhan penyerahan barang resmi untuk klausul FOB (Incoterms® 2020).
-                  </span>
                 </div>
               </div>
 
-              <div className="p-3.5 bg-blue-50/80 border border-blue-200 rounded-xl flex items-start gap-3">
-                <ShieldCheck size={20} className="text-blue-700 shrink-0 mt-0.5" />
-                <div className="text-xs text-blue-900 leading-relaxed">
-                  <b>Standar Kepatuhan Ekspor Mandiri:</b> Data profil legalitas ini disimpan dengan aman di database terenkripsi RLS Anda. Platform secara otomatis menyensor data finansial rahasia saat Anda berkonsultasi dengan AI Advisor.
-                </div>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 flex items-center gap-2">
+                <ShieldCheck size={16} className="text-emerald-600 shrink-0" />
+                <span>Identitas ini otomatis terisi pada kop surat seluruh 6 dokumen ekspor resmi Anda.</span>
               </div>
             </div>
           )}
 
-          {/* STEP 2: PILIH SEKTOR KOMODITAS DENGAN PRESET OTOMATIS */}
+          {/* LANGKAH 2 */}
           {currentStep === 2 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Package size={18} className="text-blue-700" />
-                  Langkah 2: Pilih Sektor Komoditas Ekspor
-                </h3>
-                <p className="text-xs text-slate-600 mt-1">
-                  Pilih salah satu sektor unggulan ekspor di bawah untuk menerapkan otomatis kode HS 6-digit terverifikasi, jenis kemasan, dan parameter susut muatan.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {SECTOR_PRESETS.map((sector) => {
                   const isSelected = selectedSector.id === sector.id;
                   return (
-                    <button
+                    <div
                       key={sector.id}
-                      type="button"
                       onClick={() => handleApplyPreset(sector)}
-                      className={`text-left p-4 rounded-xl border-2 transition-all flex flex-col justify-between ${
+                      className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-blue-600 bg-blue-50/40 shadow-sm ring-1 ring-blue-500"
-                          : "border-slate-200 hover:border-slate-300 hover:bg-slate-50/70"
+                          ? "border-blue-700 bg-blue-50/50 shadow-xs ring-1 ring-blue-700"
+                          : "border-slate-200 bg-white hover:border-slate-300"
                       }`}
                     >
-                      <div>
-                        <div className="flex items-center justify-between mb-1.5">
-                          <span className="text-[10px] font-mono uppercase tracking-wider text-blue-700 font-bold bg-blue-100/70 px-2 py-0.5 rounded">
-                            {sector.categoryName}
-                          </span>
-                          <span className="text-xs font-mono font-bold text-slate-700">
-                            HS {sector.hsCode}
-                          </span>
-                        </div>
-                        <h4 className="text-sm font-bold text-slate-900 mb-1">
-                          {sector.name}
-                        </h4>
-                        <div className="text-xs text-slate-600 font-medium mb-2">
-                          {sector.productName}
-                        </div>
-                        <p className="text-[11px] text-slate-500 line-clamp-2 leading-relaxed">
-                          {sector.description}
-                        </p>
-                      </div>
-
-                      <div className="mt-3 pt-3 border-t border-slate-200/80 flex items-center justify-between text-[11px] text-slate-600">
-                        <span>Kemasan: <b>{sector.weightPerUnit} kg/{sector.unit}</b></span>
-                        <span className="text-blue-700 font-bold flex items-center gap-1">
-                          {isSelected ? "✓ Terpilih" : "Gunakan Preset"} <ChevronRight size={13} />
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-bold text-xs text-slate-900">{sector.name}</span>
+                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">
+                          HS {sector.hsCode}
                         </span>
                       </div>
-                    </button>
+                      <div className="text-[11px] text-slate-600 truncate mb-2">{sector.productName}</div>
+                      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500">
+                        <span>{sector.containerType}</span>
+                        <span>•</span>
+                        <span>{sector.incoterm}</span>
+                        <span>•</span>
+                        <span>{sector.buyerCountry}</span>
+                      </div>
+                    </div>
                   );
                 })}
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-700 flex items-center justify-between">
-                <span>
-                  Preset Terpilih: <b>{selectedSector.productName}</b> (HS: <code>{selectedSector.hsCode}</code>)
-                </span>
-                <span className="font-mono text-emerald-700 font-bold text-xs">
-                  Susut: {selectedSector.shrinkageRate}%
-                </span>
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600">
+                Preset otomatis mengisi kode HS 6-digit terverifikasi, spesifikasi kemasan, dan buyer referensi.
               </div>
             </div>
           )}
 
-          {/* STEP 3: SIMULASI CEPAT BIAYA & KONTAINER */}
+          {/* LANGKAH 3 */}
           {currentStep === 3 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Calculator size={18} className="text-blue-700" />
-                  Langkah 3: Simulasi Cepat Kalkulasi Biaya & Kapasitas Muatan
-                </h3>
-                <p className="text-xs text-slate-600 mt-1">
-                  Atur target kuantitas pesanan dan harga penawaran. Mesin deterministik akan menghitung kecukupan muatan kontainer dan nilai transaksi.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 p-4 bg-slate-50 border border-slate-200 rounded-xl">
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Jumlah Kemasan ({selectedSector.unit})
+                    Kuantitas Pesanan ({selectedSector.unit})
                   </label>
                   <input
                     type="number"
-                    min="1"
+                    min={1}
                     value={targetQuantity}
-                    onChange={(e) => setTargetQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full px-3 py-2 text-xs font-mono font-bold border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none tabular-nums"
+                    onChange={(e) => setTargetQuantity(Math.max(1, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
                   />
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    Total Berat: <b>{formatNumber(totalWeightKgs, 0)} kg</b> ({formatNumber(totalWeightKgs / 1000, 2)} MT)
-                  </span>
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Harga Jual Satuan ({selectedSector.defaultCurrency})
+                    Harga Satuan ({selectedSector.defaultCurrency} / {selectedSector.unit})
                   </label>
                   <input
                     type="number"
                     step="0.01"
-                    min="0.1"
+                    min={0.01}
                     value={targetUnitPrice}
-                    onChange={(e) => setTargetUnitPrice(Math.max(0.1, parseFloat(e.target.value) || 0.1))}
-                    className="w-full px-3 py-2 text-xs font-mono font-bold border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:outline-none tabular-nums"
+                    onChange={(e) => setTargetUnitPrice(Math.max(0.01, Number(e.target.value) || 0))}
+                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
                   />
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    {selectedSector.id === "furniture" ? "Per Unit Set" : `Per Kg (${selectedSector.incoterm})`}
-                  </span>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
-                    Tipe Kontainer Pengapalan
-                  </label>
-                  <div className="px-3 py-2 text-xs font-bold text-slate-800 bg-white border border-slate-300 rounded-lg">
-                    {spec.name} ({spec.volume} CBM)
-                  </div>
-                  <span className="text-[11px] text-slate-500 mt-1 block">
-                    Incoterm: <b>{selectedSector.incoterm}</b> ke {selectedSector.targetPort.split(",")[0]}
-                  </span>
                 </div>
               </div>
 
-              {/* LIVE METRICS CARDS */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase font-mono">Volume Kargo</div>
-                  <div className="text-lg font-bold text-slate-900 font-mono tabular-nums mt-0.5">
-                    {formatNumber(totalVolumeCbm, 2)} CBM
-                  </div>
-                  <div className="text-[10px] text-slate-500 mt-1">
-                    Utilisasi: <b>{formatNumber(volumeUtilization, 1)}%</b> dari {spec.volume} CBM
-                  </div>
+              {/* Status Muatan Kontainer */}
+              <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-slate-700">Tipe Kontainer: {selectedSector.containerType}</span>
+                  <span className="font-mono text-slate-900 font-bold">
+                    Est. Nilai: ${totalContractUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
+                  </span>
                 </div>
 
-                <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase font-mono">Berat Bersih / Kotor</div>
-                  <div className="text-lg font-bold text-slate-900 font-mono tabular-nums mt-0.5">
-                    {formatNumber(totalWeightKgs, 0)} Kg
+                <div className="space-y-2 text-xs">
+                  <div>
+                    <div className="flex justify-between text-[11px] text-slate-600 mb-1">
+                      <span>Kapasitas Volume ({totalVolumeCbm.toFixed(2)} / {spec.volume} CBM)</span>
+                      <span className="font-mono font-bold">{volumeUtilization.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-blue-600 h-full rounded-full" style={{ width: `${volumeUtilization}%` }} />
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-500 mt-1">
-                    Payload: <b>{formatNumber(weightUtilization, 1)}%</b> dari {formatNumber(spec.weight, 0)} kg
-                  </div>
-                </div>
 
-                <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase font-mono">Kebutuhan Kontainer</div>
-                  <div className="text-lg font-bold text-blue-700 font-mono tabular-nums mt-0.5">
-                    {Math.ceil(Math.max(volumeUtilization, weightUtilization) / 100)} Unit FCL
-                  </div>
-                  <div className="text-[10px] text-emerald-700 font-medium mt-1">
-                    ✓ Optimal 1 x {selectedSector.containerType}
-                  </div>
-                </div>
-
-                <div className="p-3 bg-white border border-slate-200 rounded-xl shadow-xs">
-                  <div className="text-[11px] font-semibold text-slate-500 uppercase font-mono">Nilai Kontrak (Est.)</div>
-                  <div className="text-lg font-bold text-emerald-700 font-mono tabular-nums mt-0.5">
-                    USD {formatNumber(totalContractUsd, 2)}
-                  </div>
-                  <div className="text-[10px] text-slate-500 mt-1">
-                    {selectedSector.incoterm} {selectedSector.targetPort.split(",")[0]}
+                  <div>
+                    <div className="flex justify-between text-[11px] text-slate-600 mb-1">
+                      <span>Kapasitas Berat ({(totalWeightKgs / 1000).toFixed(2)} / {(spec.weight / 1000).toFixed(1)} Ton)</span>
+                      <span className="font-mono font-bold">{weightUtilization.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
+                      <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${weightUtilization}%` }} />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           )}
 
-          {/* STEP 4: TERBITKAN DRAF DOKUMEN EKSPOR PERTAMA */}
+          {/* LANGKAH 4 */}
           {currentStep === 4 && (
-            <div className="space-y-5 animate-in fade-in duration-150">
-              <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <FileText size={18} className="text-blue-700" />
-                  Langkah 4: Terbitkan Dokumen Dagang Ekspor Resmi Perdana
-                </h3>
-                <p className="text-xs text-slate-600 mt-1">
-                  Seluruh data parameter dari langkah 1–3 telah dikompilasi menjadi naskah draf Sales Contract dan Commercial Invoice berstandar UN/CEFACT.
-                </p>
+            <div className="space-y-4">
+              <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-3">
+                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
+                  Ringkasan Setup Transaksi
+                </h4>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500 block">Eksportir:</span>
+                    <span className="font-semibold text-slate-900">{companyName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Buyer:</span>
+                    <span className="font-semibold text-slate-900">{selectedSector.buyerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Komoditas:</span>
+                    <span className="font-semibold text-slate-900">{selectedSector.productName}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block">Incoterm / Tujuan:</span>
+                    <span className="font-semibold text-slate-900">{selectedSector.incoterm} · {selectedSector.targetPort}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* MOCK DOCUMENT PREVIEW PARCHMENT */}
-              <div className="p-5 bg-[#FAF7F2] border-2 border-slate-300 rounded-xl shadow-inner font-serif text-slate-800 space-y-4">
-                <div className="flex items-center justify-between border-b-2 border-slate-800 pb-3 font-sans">
-                  <div>
-                    <h4 className="text-sm font-bold tracking-tight uppercase text-slate-900">
-                      {companyName}
-                    </h4>
-                    <p className="text-[11px] text-slate-600">
-                      Jl. Pelabuhan Ekspor Nusantara No. 88, Makassar · Indonesia · Tel: +62 812-3456-7890
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <span className="text-[10px] font-mono bg-blue-900 text-white px-2 py-0.5 rounded font-bold">
-                      SALES CONTRACT DRAFT
-                    </span>
-                    <div className="text-xs font-mono font-bold mt-1 text-slate-900">
-                      SC/EXP-{new Date().getFullYear()}/001
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 text-xs font-sans">
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-slate-500">Pembeli (Buyer):</div>
-                    <div className="font-bold text-slate-900">{selectedSector.buyerName}</div>
-                    <div className="text-[11px] text-slate-600">{selectedSector.buyerCountry}</div>
-                  </div>
-                  <div>
-                    <div className="text-[10px] uppercase font-bold text-slate-500">Ketentuan Penyerahan & Bayar:</div>
-                    <div className="font-bold text-slate-900">{selectedSector.incoterm} {selectedSector.targetPort.split(",")[0]} (Incoterms 2020)</div>
-                    <div className="text-[11px] text-slate-600">50% T/T Advance DP, 50% against Scanned B/L</div>
-                  </div>
-                </div>
-
-                <table className="w-full text-xs font-sans border-collapse border border-slate-400">
-                  <thead>
-                    <tr className="bg-slate-200/80 text-[11px]">
-                      <th className="border border-slate-400 p-1.5 text-center">Kode HS</th>
-                      <th className="border border-slate-400 p-1.5 text-left">Deskripsi Komoditas</th>
-                      <th className="border border-slate-400 p-1.5 text-center">Kemasan</th>
-                      <th className="border border-slate-400 p-1.5 text-right">Kuantitas</th>
-                      <th className="border border-slate-400 p-1.5 text-right">Total Nilai</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td className="border border-slate-400 p-1.5 text-center font-mono font-bold">{selectedSector.hsCode}</td>
-                      <td className="border border-slate-400 p-1.5 font-semibold">{selectedSector.productName}</td>
-                      <td className="border border-slate-400 p-1.5 text-center">{selectedSector.weightPerUnit} kg/{selectedSector.unit}</td>
-                      <td className="border border-slate-400 p-1.5 text-right font-mono tabular-nums">{formatNumber(targetQuantity)} {selectedSector.unit}</td>
-                      <td className="border border-slate-400 p-1.5 text-right font-mono font-bold tabular-nums">USD {formatNumber(totalContractUsd, 2)}</td>
-                    </tr>
-                  </tbody>
-                </table>
-
-                <div className="flex items-center justify-between text-[11px] font-sans text-slate-600 pt-2 border-t border-slate-300">
-                  <span>Status Audit: <b>Ready for Dual-Signature & Stamp</b></span>
-                  <span>Integritas Hash: <b>SHA-256 Enabled</b></span>
-                </div>
+              <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-900">
+                Data akan langsung diterapkan ke modul Dokumen Ekspor (Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, Shipping Instruction, &amp; COO).
               </div>
             </div>
           )}
 
         </div>
 
-        {/* FOOTER NAVIGATION BUTTONS */}
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-50 border-t border-slate-200">
+        {/* Footer Navigasi */}
+        <div className="px-6 py-3.5 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
           <div>
             {currentStep > 1 && (
               <button
                 type="button"
-                onClick={() => setCurrentStep((prev) => (prev - 1) as any)}
-                className="px-4 py-2 text-xs font-semibold text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5"
+                onClick={() => setCurrentStep((s) => (s - 1) as any)}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-200/60 transition-colors"
               >
-                <ChevronLeft size={16} /> Sebelumnya
+                <ChevronLeft size={15} />
+                Kembali
               </button>
             )}
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={onClose}
-              className="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 transition-colors"
+              className="text-xs font-semibold text-slate-600 hover:text-slate-800 px-3 py-2 rounded-lg transition-colors"
             >
-              Lewati Panduan
+              Lewati
             </button>
 
             {currentStep < 4 ? (
               <button
                 type="button"
-                onClick={() => setCurrentStep((prev) => (prev + 1) as any)}
-                className="px-5 py-2 text-xs font-bold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow-sm transition-all flex items-center gap-1.5"
+                onClick={() => setCurrentStep((s) => (s + 1) as any)}
+                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
               >
-                Lanjutkan <ChevronRight size={16} />
+                <span>Lanjut</span>
+                <ChevronRight size={14} />
               </button>
             ) : (
               <button
                 type="button"
                 onClick={handleFinishOnboarding}
-                className="px-6 py-2.5 text-xs font-bold text-white bg-emerald-700 hover:bg-emerald-800 rounded-lg shadow-md hover:shadow-lg transition-all flex items-center gap-2"
+                className="inline-flex items-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-5 py-2 rounded-lg shadow-sm transition-all"
               >
-                <Sparkles size={16} /> Terapkan & Buka Dokumen Ekspor
+                <FileText size={14} />
+                <span>Buka Dokumen Ekspor</span>
               </button>
             )}
           </div>
