@@ -36,16 +36,18 @@ describe("Word Editor Engine - Microsoft Word Selection & Formatting", () => {
       applied: false,
       isLetterhead: false,
       allLetterheadSelected: false,
-      mappedSpacingPx: 8,
+      mappedSpacingPx: 5,
     });
   });
 
   it("maps line-height presets to proportional vertical gap pixels", () => {
     expect(mapLineHeightToGapPx(1.0)).toBe(0);
-    expect(mapLineHeightToGapPx(1.15)).toBe(2);
-    expect(mapLineHeightToGapPx(1.25)).toBe(4);
-    expect(mapLineHeightToGapPx(1.5)).toBe(8);
-    expect(mapLineHeightToGapPx(2.0)).toBe(14);
+    expect(mapLineHeightToGapPx(1.15)).toBe(1);
+    expect(mapLineHeightToGapPx(1.25)).toBe(2);
+    expect(mapLineHeightToGapPx(1.35)).toBe(3);
+    expect(mapLineHeightToGapPx(1.5)).toBe(5);
+    expect(mapLineHeightToGapPx(1.75)).toBe(8);
+    expect(mapLineHeightToGapPx(2.0)).toBe(11);
   });
 
   it("safely resets and manages saved selection state", () => {

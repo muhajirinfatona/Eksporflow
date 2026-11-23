@@ -8,8 +8,8 @@ type Database = NonNullable<Awaited<ReturnType<typeof getDb>>>;
 
 type JsonRecord = Record<string, unknown>;
 
-const roleRank = { viewer: 1, editor: 2, admin: 3, owner: 4 } as const;
-type WorkspaceRole = keyof typeof roleRank;
+export const roleRank = { viewer: 1, editor: 2, admin: 3, owner: 4 } as const;
+export type WorkspaceRole = keyof typeof roleRank;
 
 export class ShipmentPersistenceError extends Error {
   constructor(public readonly code: "DATABASE_UNAVAILABLE" | "FORBIDDEN" | "NOT_FOUND" | "CONFLICT", message: string) {
@@ -19,7 +19,7 @@ export class ShipmentPersistenceError extends Error {
 
 const DUPLICATE_REFERENCE_MESSAGE = "Referensi transaksi sudah dipakai di workspace ini.";
 
-function requireDatabase(db: Database | null): Database {
+export function requireDatabase(db: Database | null): Database {
   if (!db) throw new ShipmentPersistenceError("DATABASE_UNAVAILABLE", "Database belum tersedia.");
   return db;
 }
@@ -49,7 +49,7 @@ async function findMemberWorkspace(db: Database, userId: number) {
  * dimiliki orang lain dan mengundang user). Jika user belum punya membership,
  * workspace pribadi dibuat bersama membership owner dalam satu transaksi.
  */
-async function resolveWorkspace(db: Database, userId: number, fallbackName?: string) {
+export async function resolveWorkspace(db: Database, userId: number, fallbackName?: string) {
   const existing = await findMemberWorkspace(db, userId);
   if (existing) return existing;
 
@@ -85,7 +85,7 @@ async function resolveWorkspace(db: Database, userId: number, fallbackName?: str
   return created;
 }
 
-async function assertWorkspaceAccess(db: Database, workspaceId: string, userId: number, minimumRole: WorkspaceRole = "viewer") {
+export async function assertWorkspaceAccess(db: Database, workspaceId: string, userId: number, minimumRole: WorkspaceRole = "viewer") {
   const member = await db.select({ role: workspaceMembers.role })
     .from(workspaceMembers)
     .where(and(eq(workspaceMembers.workspaceId, workspaceId), eq(workspaceMembers.userId, userId)))

@@ -18,6 +18,24 @@ import {
   verifyEmailCodeAndSignIn,
 } from "./authService";
 import { createShipment, deleteShipment, getShipment, listShipments, ShipmentPersistenceError, updateShipment } from "./shipmentDb";
+import {
+  archiveMasterBuyer,
+  archiveMasterProduct,
+  createMasterBuyer,
+  createMasterProduct,
+  createWorkspaceInvitation,
+  deleteMasterBuyer,
+  deleteMasterProduct,
+  getMasterBuyer,
+  getMasterProduct,
+  listMasterBuyers,
+  listMasterProducts,
+  listWorkspaceInvitations,
+  MasterDataError,
+  revokeWorkspaceInvitation,
+  updateMasterBuyer,
+  updateMasterProduct,
+} from "./masterDataDb";
 
 import { createRateLimiter } from "./rateLimit";
 
@@ -56,6 +74,27 @@ function authError(error: unknown): never {
   throw new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
     message: "Layanan autentikasi sedang tidak tersedia. Pastikan koneksi database aktif.",
+  });
+}
+
+function masterDataError(error: unknown): never {
+  if (error instanceof MasterDataError) {
+    const code =
+      error.code === "FORBIDDEN"
+        ? "FORBIDDEN"
+        : error.code === "NOT_FOUND"
+          ? "NOT_FOUND"
+          : error.code === "CONFLICT"
+            ? "CONFLICT"
+            : error.code === "BAD_REQUEST"
+              ? "BAD_REQUEST"
+              : "INTERNAL_SERVER_ERROR";
+    throw new TRPCError({ code, message: error.message });
+  }
+  console.error("master data failed", error);
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Layanan data utama sedang tidak tersedia.",
   });
 }
 
@@ -286,6 +325,234 @@ export const appRouter = router({
       .input(z.object({ forceRefresh: z.boolean().optional() }).optional())
       .query(async ({ input }) => {
         return getLiveExchangeRates(Boolean(input?.forceRefresh));
+      }),
+  }),
+
+  masterBuyers: router({
+    list: protectedProcedure
+      .input(
+        z
+          .object({
+            limit: z.number().int().min(1).max(100).default(50),
+            offset: z.number().int().min(0).default(0),
+            search: z.string().trim().max(100).optional(),
+            includeArchived: z.boolean().default(false),
+          })
+          .optional(),
+      )
+      .query(async ({ ctx, input }) => {
+        try {
+          return await listMasterBuyers(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    get: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        try {
+          return await getMasterBuyer(ctx.user.id, input.id);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          name: z.string().trim().min(2, "Nama buyer minimal 2 karakter.").max(200),
+          country: z.string().trim().max(80).optional(),
+          destination: z.string().trim().max(200).optional(),
+          address: z.string().trim().max(1000).optional(),
+          picName: z.string().trim().max(160).optional(),
+          picEmail: z.string().trim().email().max(320).optional().or(z.literal("")),
+          picPhone: z.string().trim().max(60).optional(),
+          defaultPaymentTerms: z.string().trim().max(200).optional(),
+          screeningStatus: z.string().trim().max(30).optional(),
+          notes: z.string().trim().max(2000).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await createMasterBuyer(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.string().uuid(),
+          version: z.number().int().min(1),
+          name: z.string().trim().min(2).max(200),
+          country: z.string().trim().max(80).optional(),
+          destination: z.string().trim().max(200).optional(),
+          address: z.string().trim().max(1000).optional(),
+          picName: z.string().trim().max(160).optional(),
+          picEmail: z.string().trim().email().max(320).optional().or(z.literal("")),
+          picPhone: z.string().trim().max(60).optional(),
+          defaultPaymentTerms: z.string().trim().max(200).optional(),
+          screeningStatus: z.string().trim().max(30).optional(),
+          notes: z.string().trim().max(2000).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await updateMasterBuyer(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    archive: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), archive: z.boolean().default(true) }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await archiveMasterBuyer(ctx.user.id, input.id, input.archive);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await deleteMasterBuyer(ctx.user.id, input.id);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+  }),
+
+  masterProducts: router({
+    list: protectedProcedure
+      .input(
+        z
+          .object({
+            limit: z.number().int().min(1).max(100).default(50),
+            offset: z.number().int().min(0).default(0),
+            search: z.string().trim().max(100).optional(),
+            commodityPreset: z.string().trim().max(40).optional(),
+            includeArchived: z.boolean().default(false),
+          })
+          .optional(),
+      )
+      .query(async ({ ctx, input }) => {
+        try {
+          return await listMasterProducts(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    get: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        try {
+          return await getMasterProduct(ctx.user.id, input.id);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          sku: z.string().trim().max(80).optional(),
+          name: z.string().trim().min(2, "Nama produk minimal 2 karakter.").max(200),
+          commodityPreset: z.string().trim().max(40).optional(),
+          hsCode: z.string().trim().max(20).optional(),
+          unit: z.string().trim().max(30).default("carton"),
+          unitPrice: z.number().min(0).default(0),
+          currency: z.string().trim().max(3).default("USD"),
+          packagingType: z.string().trim().max(60).default("Karton box"),
+          unitWeightKg: z.number().min(0).default(0),
+          lengthCm: z.number().min(0).default(0),
+          widthCm: z.number().min(0).default(0),
+          heightCm: z.number().min(0).default(0),
+          shrinkageRatePct: z.number().min(0).max(100).default(0),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await createMasterProduct(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    update: protectedProcedure
+      .input(
+        z.object({
+          id: z.string().uuid(),
+          version: z.number().int().min(1),
+          sku: z.string().trim().max(80).optional(),
+          name: z.string().trim().min(2).max(200),
+          commodityPreset: z.string().trim().max(40).optional(),
+          hsCode: z.string().trim().max(20).optional(),
+          unit: z.string().trim().max(30).default("carton"),
+          unitPrice: z.number().min(0).default(0),
+          currency: z.string().trim().max(3).default("USD"),
+          packagingType: z.string().trim().max(60).default("Karton box"),
+          unitWeightKg: z.number().min(0).default(0),
+          lengthCm: z.number().min(0).default(0),
+          widthCm: z.number().min(0).default(0),
+          heightCm: z.number().min(0).default(0),
+          shrinkageRatePct: z.number().min(0).max(100).default(0),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await updateMasterProduct(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    archive: protectedProcedure
+      .input(z.object({ id: z.string().uuid(), archive: z.boolean().default(true) }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await archiveMasterProduct(ctx.user.id, input.id, input.archive);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    delete: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await deleteMasterProduct(ctx.user.id, input.id);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+  }),
+
+  invitations: router({
+    list: protectedProcedure.query(async ({ ctx }) => {
+      try {
+        return await listWorkspaceInvitations(ctx.user.id);
+      } catch (error) {
+        return masterDataError(error);
+      }
+    }),
+    create: protectedProcedure
+      .input(
+        z.object({
+          email: z.string().trim().email("Format email tidak valid.").max(320),
+          role: z.enum(["admin", "editor", "viewer"]).default("viewer"),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await createWorkspaceInvitation(ctx.user.id, input);
+        } catch (error) {
+          return masterDataError(error);
+        }
+      }),
+    revoke: protectedProcedure
+      .input(z.object({ id: z.string().uuid() }))
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await revokeWorkspaceInvitation(ctx.user.id, input.id);
+        } catch (error) {
+          return masterDataError(error);
+        }
       }),
   }),
 
