@@ -110,23 +110,21 @@ export function LandingPage({
         <div className="ef-landing-hero-glow" aria-hidden="true" />
         <div className="ef-landing-container ef-landing-hero-grid">
           <div className="ef-hero-copy">
-            <div className="ef-hero-badge">
-              <Sparkles size={13} />
-              <span>EksporFlow MVP · Proteksi Demurrage &amp; Kepatuhan DJBC</span>
+            <div className="ef-hero-badge" style={{ background: "linear-gradient(90deg, #0b192c, #163a5c)", border: "1px solid #3b82f6" }}>
+              <Sparkles size={13} className="text-amber-400" />
+              <span>EksporFlow v2 · Platform Ekspor Institusional &amp; AI Trade Intelligence</span>
             </div>
             <h1>
-              Eliminasi Risiko Denda <span>Demurrage</span> &amp; Kesalahan Dokumen Sebelum Kontainer Jalan.
+              Eliminasi Risiko Denda <span>Demurrage</span> &amp; Otomatisasi Dokumen Ekspor Resmi UMKM.
             </h1>
             <p className="ef-hero-subtitle">
-              Platform komprehensif bagi UMKM dan eksportir Indonesia: mulai dari penawaran AI pra-transaksi,
-              kalkulator HPP &amp; 7 Incoterms, deteksi Lartas/HS Code, OCR validasi Draft B/L, timeline H-7 closing
-              PEB, hingga brankas arsip digital siap audit Bea Cukai.
+              Solusi end-to-end terintegrasi bagi eksportir Indonesia: Panduan Onboarding 4 Langkah, AI Advisor anti-halusinasi terverifikasi, kalkulator HPP &amp; kontainer presisi, serta penerbitan dokumen resmi (COO, PI, SC, CI, PL, SI) dengan audit snapshot immutable Bea Cukai.
             </p>
 
             <div className="ef-hero-cta-row">
-              <button type="button" className="ef-cta-primary" onClick={onStartDemo}>
+              <button type="button" className="ef-cta-primary" onClick={onStartDemo} style={{ background: "linear-gradient(135deg, #0284c7, #0369a1)", boxShadow: "0 4px 14px rgba(2, 132, 199, 0.35)" }}>
                 <Play size={16} />
-                Coba Demo 3 Hari Gratis (Tanpa Kartu Kredit)
+                Buka Workspace Eksporflow v2 (Demo 3 Hari)
               </button>
               <button
                 type="button"
@@ -139,13 +137,13 @@ export function LandingPage({
 
             <div className="ef-hero-trust-row">
               <div>
-                <CheckCircle2 size={14} /> <span>5 Dokumen Inti 1-Klik + Cap Scanned Copy</span>
+                <CheckCircle2 size={14} className="text-emerald-500" /> <span>Panduan Interaktif 4 Langkah UMKM</span>
               </div>
               <div>
-                <CheckCircle2 size={14} /> <span>Sandbox Demo 72 Jam Terisolasi</span>
+                <CheckCircle2 size={14} className="text-emerald-500" /> <span>Dokumen Multi-Item &amp; COO Resmi</span>
               </div>
               <div>
-                <CheckCircle2 size={14} /> <span>Onboarding Terstruktur 30 Hari</span>
+                <CheckCircle2 size={14} className="text-emerald-500" /> <span>AI Advisor dengan Deterministic Tools</span>
               </div>
             </div>
           </div>

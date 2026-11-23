@@ -474,7 +474,11 @@ export function WorkspaceShell({
   const demoRemainingLabel = isDemoUser
     ? formatDemoRemainingLabel(getDemoRemainingMs(user as UserSession))
     : "";
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    // Tampilkan onboarding secara otomatis jika belum pernah ditutup atau jika user berada dalam mode demo
+    return localStorage.getItem("ef_onboarding_completed") !== "true";
+  });
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth > 1024 : true,
   );
@@ -869,12 +873,29 @@ export function WorkspaceShell({
       {shipment && update && (
         <GuidedOnboardingModal
           isOpen={isOnboardingOpen}
-          onClose={() => setIsOnboardingOpen(false)}
+          onClose={() => {
+            setIsOnboardingOpen(false);
+            try {
+              localStorage.setItem("ef_onboarding_completed", "true");
+            } catch {}
+          }}
           shipment={shipment}
           update={update}
-          updateNumber={(_key, _val) => {}}
+          updateNumber={(key, val) => {
+            if (updateNumber) {
+              updateNumber(key, String(val));
+            } else if (update) {
+              update(key, val as any);
+            }
+          }}
           updateLineItems={updateLineItems ?? (() => {})}
-          onFinish={(targetScreen) => navigate(targetScreen)}
+          onFinish={(targetScreen) => {
+            setIsOnboardingOpen(false);
+            try {
+              localStorage.setItem("ef_onboarding_completed", "true");
+            } catch {}
+            navigate(targetScreen);
+          }}
         />
       )}
 
