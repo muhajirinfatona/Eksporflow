@@ -64,7 +64,23 @@ export async function resolveWorkspace(db: Database, userId: number, fallbackNam
     return owned[0];
   }
 
-  const userRows = await db.select({ companyName: users.companyName, name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+  let userRows = await db.select({ companyName: users.companyName, name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!userRows[0]) {
+    try {
+      await db.insert(users).values({
+        id: userId,
+        openId: `user-${userId}`,
+        name: "Pengguna Workspace",
+        companyName: "PT. INDICO EXPORT INDONESIA",
+        email: `user${userId}@eksporflow.local`,
+        passwordHash: "",
+        role: "admin",
+      }).onConflictDoNothing();
+      userRows = await db.select({ companyName: users.companyName, name: users.name }).from(users).where(eq(users.id, userId)).limit(1);
+    } catch {
+      // Lanjutkan bila database read-only atau sekuens konflik
+    }
+  }
   const resolvedName =
     fallbackName?.trim() ||
     userRows[0]?.companyName?.trim() ||
