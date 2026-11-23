@@ -1,4 +1,5 @@
 import type { Shipment, DocumentType } from "@shared/shipment";
+export * from "@shared/crossDocumentScreening";
 
 export type ScreeningSeverity = "error" | "warning" | "info" | "pass";
 export type ScreeningCategory =
@@ -97,6 +98,21 @@ export function screenExportDocument(
       location: "Spesifikasi Kemasan",
       description: `${bagsCount.toLocaleString()} karung @ ${weightPerBag} kg = ${(calculatedKgs / 1000).toFixed(0)} MT (Sesuai 100%).`,
       recommendation: "Pertahankan spesifikasi packing ini.",
+    });
+  }
+
+  // Cek Tare Weight & Kelayakan Berat Kotor vs Bersih
+  const cartonGrossKgs = (shipment.cartonWeight || 20) * (shipment.cartonQty || 900);
+  const totalNetKgs = expectedKgs;
+  if (cartonGrossKgs > 0 && totalNetKgs > 0 && cartonGrossKgs < totalNetKgs) {
+    findings.push({
+      id: "err-gross-le-net",
+      category: "commercial",
+      severity: "error",
+      title: "Berat Kotor Lebih Kecil dari Berat Bersih (Tare Weight Negatif)",
+      location: isId ? "Spesifikasi Bobot Kargo" : "Cargo Weight Specification",
+      description: `Berat kotor kargo (${cartonGrossKgs.toLocaleString()} kg) tidak boleh lebih kecil dari berat bersih (${totalNetKgs.toLocaleString()} kg). Tare weight kemasan wajib bernilai positif.`,
+      recommendation: "Koreksi data berat kotor dengan menyertakan bobot karung, kardus, atau pallet pembungkus.",
     });
   }
 

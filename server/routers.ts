@@ -42,6 +42,17 @@ import {
   listDocumentSnapshots,
   DocumentSnapshotError,
 } from "./shipmentSnapshotDb";
+import { redactPii, computePromptHash } from "./aiSanitizer";
+import { logAiInteraction, recordAiFeedback, listAiInteractionLogs } from "./aiAuditDb";
+import {
+  executeDeterministicTool,
+  executeCalculateHpp,
+  executeCalculateContainerFit,
+  executeAssessExportRisk,
+  type DeterministicToolResult,
+} from "./aiAdvisorTools";
+import { evaluateExportGuardrails } from "./aiGuardrails";
+import { screenCrossDocumentInconsistencies } from "@shared/crossDocumentScreening";
 
 import { createRateLimiter } from "./rateLimit";
 
@@ -312,6 +323,107 @@ export const appRouter = router({
             message: `Batas pertanyaan Copilot tercapai. Coba lagi dalam ${Math.ceil(limit.retryAfterMs / 60_000)} menit.`,
           });
         }
+
+        const startTime = Date.now();
+
+        // 1. PII Redaction & Sanitizer (NPWP, NIK, Rekening, Email, API Key)
+        const piiQuestion = redactPii(input.question);
+        const piiSnapshot = redactPii(input.snapshot || "");
+        const promptSha256 = computePromptHash(input.question);
+        const totalRedactions = piiQuestion.redactionCount + piiSnapshot.redactionCount;
+        const detectedPiiTypes = Array.from(new Set([...piiQuestion.detectedTypes, ...piiSnapshot.detectedTypes]));
+
+        // 2. Guardrails & Abstention Logic Regulasi Ekspor
+        const guardrailResult = evaluateExportGuardrails(piiQuestion.sanitizedText, piiSnapshot.sanitizedText);
+        if (guardrailResult.shouldAbstain) {
+          const latencyMs = Date.now() - startTime;
+          let logRecord = null;
+          try {
+            logRecord = await logAiInteraction(ctx.user.id, {
+              model: "guardrail-abstention",
+              questionChars: input.question.length,
+              questionSha256: promptSha256,
+              redactionCount: totalRedactions,
+              abstained: true,
+              abstainReason: guardrailResult.abstainReason || "unverified_hs_code",
+              status: "abstained",
+              latencyMs,
+            });
+          } catch (e) {
+            console.warn("Failed to log AI abstention interaction:", e);
+          }
+
+          return {
+            answer: guardrailResult.responseMessage || "Data regulasi resmi untuk kode HS tersebut belum terverifikasi.",
+            model: "guardrail-abstention",
+            abstained: true,
+            abstainReason: guardrailResult.abstainReason,
+            interactionId: logRecord?.id || null,
+            detectedPii: detectedPiiTypes,
+            toolCalls: [],
+          };
+        }
+
+        // 3. Deterministic Tool Calling
+        const executedTools: DeterministicToolResult[] = [];
+        let snapshotObj: Record<string, any> = {};
+        try {
+          snapshotObj = JSON.parse(input.snapshot || "{}");
+        } catch {
+          snapshotObj = {};
+        }
+
+        const qLower = piiQuestion.sanitizedText.toLowerCase();
+
+        // Eksekusi kalkulator matematis internal jika pertanyaan meminta perhitungan HPP/biaya
+        if (qLower.includes("hpp") || qLower.includes("margin") || qLower.includes("harga modal") || qLower.includes("biaya produksi") || qLower.includes("cogs")) {
+          const qty = snapshotObj.quantity || snapshotObj.cartonQty || 1000;
+          const buyPrice = snapshotObj.supplierBuyPrice || 25000;
+          const tool = executeCalculateHpp({
+            mode: "trader",
+            quantity: qty,
+            supplierBuyPrice: buyPrice,
+            shrinkageRatePercent: snapshotObj.shrinkageRatePercent || 5,
+            sourcingFreightPerUnit: snapshotObj.sourcingFreightPerUnit || 1000,
+            sortingLaborPerUnit: snapshotObj.sortingLaborPerUnit || 1500,
+            innerPackagingPerUnit: snapshotObj.innerPackagingPerUnit || 2000,
+            traderMarginPerUnit: snapshotObj.traderMarginPerUnit || 3000,
+          });
+          executedTools.push(tool);
+        }
+
+        // Eksekusi kalkulator kapasitas muatan kontainer jika relevan
+        if (qLower.includes("kontainer") || qLower.includes("container") || qLower.includes("stuffing") || qLower.includes("cbm") || qLower.includes("muatan") || qLower.includes("kapasitas")) {
+          const tool = executeCalculateContainerFit({
+            containerType: snapshotObj.containerType || "20GP",
+            cartonLength: snapshotObj.cartonLength || 40,
+            cartonWidth: snapshotObj.cartonWidth || 30,
+            cartonHeight: snapshotObj.cartonHeight || 20,
+            cartonWeight: snapshotObj.cartonWeight || 10,
+            cartonQty: snapshotObj.cartonQty || snapshotObj.quantity || 900,
+          });
+          executedTools.push(tool);
+        }
+
+        // Eksekusi checklist risiko ekspor jika relevan
+        if (qLower.includes("risiko") || qLower.includes("risk") || qLower.includes("checklist") || qLower.includes("kepatuhan") || qLower.includes("legalitas")) {
+          const tool = executeAssessExportRisk({
+            buyerCountry: snapshotObj.buyerCountry,
+            paymentTerms: snapshotObj.paymentTerms,
+            incoterm: snapshotObj.incoterm,
+            quantity: snapshotObj.quantity,
+            cartonQty: snapshotObj.cartonQty,
+            hasPoEvidence: Boolean(snapshotObj.poNumber),
+            hasEmailEvidence: true,
+          });
+          executedTools.push(tool);
+        }
+
+        const deterministicContext = executedTools.length > 0
+          ? "\n\n[HASIL PERHITUNGAN RESMI DETERMINISTIK EKSPORFLOW - WAJIB DIGUNAKAN SECARA PERSIS TANPA MENGARANG ANGKA]:\n" +
+            executedTools.map(t => t.groundedSummary).join("\n\n")
+          : "";
+
         try {
           const result = await invokeLLM({
             model: "gpt-5-mini",
@@ -319,19 +431,112 @@ export const appRouter = router({
             messages: [
               {
                 role: "system",
-                content: "Kamu adalah EksporFlow Copilot, asisten operasional ekspor untuk eksportir Indonesia. Jawab dalam bahasa Indonesia yang ringkas, praktis, dan berbasis konteks transaksi. Bantu menjelaskan incoterm, packing, dokumen, stuffing, dan risiko operasional. Jangan mengklaim dokumen legal valid secara final, jangan menjamin buyer/perusahaan asli, dan jangan menggantikan verifikasi bea cukai, bank, forwarder, atau penasihat hukum. Jika data kurang, sebutkan data yang perlu dilengkapi. Berikan langkah tindakan yang jelas dan prioritaskan risiko terbesar terlebih dahulu. Konteks transaksi akan dikirim dalam JSON berikut:\n" + input.snapshot,
+                content:
+                  "Kamu adalah EksporFlow Copilot, asisten operasional ekspor untuk eksportir Indonesia. Jawab dalam bahasa Indonesia yang ringkas, praktis, dan berbasis konteks transaksi. Bantu menjelaskan incoterm, packing, dokumen, stuffing, dan risiko operasional. Jangan mengklaim dokumen legal valid secara final, jangan menjamin buyer/perusahaan asli, dan jangan menggantikan verifikasi bea cukai, bank, forwarder, atau penasihat hukum. Jika data kurang, sebutkan data yang perlu dilengkapi. Berikan langkah tindakan yang jelas dan prioritaskan risiko terbesar terlebih dahulu. Konteks transaksi akan dikirim dalam JSON berikut:\n" +
+                  piiSnapshot.sanitizedText +
+                  deterministicContext,
               },
-              { role: "user", content: input.question },
+              { role: "user", content: piiQuestion.sanitizedText },
             ],
           });
+
           const content = result.choices?.[0]?.message?.content;
           if (typeof content !== "string" || !content.trim()) throw new Error("Asisten tidak menghasilkan jawaban.");
-          // Log metadata saja (tanpa isi pertanyaan/snapshot) untuk audit biaya dan penyalahgunaan.
-          console.info("assistant.ask", { userId: ctx.user.id, questionChars: input.question.length, model: result.model });
-          return { answer: content.trim(), model: result.model };
+
+          const latencyMs = Date.now() - startTime;
+          const promptTokens = Math.ceil((piiQuestion.sanitizedText.length + piiSnapshot.sanitizedText.length) / 4);
+          const completionTokens = Math.ceil(content.length / 4);
+          const estimatedCostUsd = ((promptTokens * 0.00000015) + (completionTokens * 0.00000060)).toFixed(6);
+
+          let logRecord = null;
+          try {
+            logRecord = await logAiInteraction(ctx.user.id, {
+              model: result.model,
+              questionChars: input.question.length,
+              questionSha256: promptSha256,
+              redactionCount: totalRedactions,
+              toolCallsJson: executedTools.length > 0 ? JSON.stringify(executedTools.map(t => ({ tool: t.toolName, output: t.output }))) : null,
+              citationsJson: guardrailResult.isVerified && guardrailResult.verificationData ? JSON.stringify(guardrailResult.verificationData) : null,
+              abstained: false,
+              latencyMs,
+              promptTokens,
+              completionTokens,
+              estimatedCostUsd,
+              status: "ok",
+            });
+          } catch (e) {
+            console.warn("Failed to log AI interaction:", e);
+          }
+
+          console.info("assistant.ask", {
+            userId: ctx.user.id,
+            questionChars: input.question.length,
+            model: result.model,
+            redactions: totalRedactions,
+            toolsRun: executedTools.length,
+          });
+
+          return {
+            answer: content.trim(),
+            model: result.model,
+            interactionId: logRecord?.id || null,
+            abstained: false,
+            detectedPii: detectedPiiTypes,
+            toolCalls: executedTools.map(t => ({ tool: t.toolName, summary: t.groundedSummary })),
+          };
         } catch (error) {
           console.error("assistant.ask failed", error);
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Asisten AI sedang tidak tersedia. Coba lagi sebentar." });
+        }
+      }),
+
+    // Endpoint feedback untuk mencatat rating thumbs-up/down dan koreksi user
+    feedback: protectedProcedure
+      .input(
+        z.object({
+          interactionId: z.string().uuid("ID interaksi wajib berupa UUID valid."),
+          rating: z.enum(["up", "down"]),
+          reasonCode: z.string().trim().max(40).optional(),
+          comment: z.string().trim().max(2000).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await recordAiFeedback(ctx.user.id, input);
+        } catch (error) {
+          if (error instanceof ShipmentPersistenceError && error.code === "NOT_FOUND") {
+            throw new TRPCError({ code: "NOT_FOUND", message: error.message });
+          }
+          console.error("assistant.feedback failed", error);
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Gagal mencatat feedback AI." });
+        }
+      }),
+
+    // Eksekusi tool deterministik langsung untuk AI / client kalkulator
+    toolCall: protectedProcedure
+      .input(
+        z.object({
+          toolName: z.enum(["calculateHpp", "calculateContainerFit", "assessExportRisk"]),
+          args: z.record(z.string(), z.unknown()),
+        }),
+      )
+      .mutation(async ({ input }) => {
+        try {
+          return executeDeterministicTool(input.toolName, input.args);
+        } catch (error: any) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: error.message || "Gagal mengeksekusi tool." });
+        }
+      }),
+
+    // Mengambil histori audit interaksi AI untuk audit trail
+    logs: protectedProcedure
+      .input(z.object({ limit: z.number().int().min(1).max(100).default(20) }).optional())
+      .query(async ({ ctx, input }) => {
+        try {
+          return await listAiInteractionLogs(ctx.user.id, input?.limit ?? 20);
+        } catch (error) {
+          console.error("assistant.logs failed", error);
+          return [];
         }
       }),
 
@@ -340,10 +545,24 @@ export const appRouter = router({
         z.object({
           poText: z.string().trim().min(5).max(12000),
           fileName: z.string().optional(),
+          piText: z.string().max(12000).optional(),
+          contractText: z.string().max(12000).optional(),
         }),
       )
       .mutation(async ({ input }) => {
-        return parsePoTextAndScreen(input.poText, input.fileName);
+        const poResult = parsePoTextAndScreen(input.poText, input.fileName);
+        let crossDocumentReport = null;
+        if (input.piText || input.contractText) {
+          crossDocumentReport = screenCrossDocumentInconsistencies({
+            po: input.poText,
+            pi: input.piText,
+            contract: input.contractText,
+          });
+        }
+        return {
+          ...poResult,
+          crossDocumentReport,
+        };
       }),
   }),
 
