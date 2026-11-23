@@ -11,10 +11,15 @@ import {
   ExternalLink,
   Info,
   Loader2,
+  Maximize2,
   MessageSquare,
+  Minimize2,
   Send,
   ShieldAlert,
+  ShieldCheck,
   Sparkles,
+  ThumbsDown,
+  ThumbsUp,
   User,
   X,
 } from "lucide-react";
@@ -31,6 +36,14 @@ export interface ScreenAdvisorInsight {
   suggestedQuestions: string[];
   initialPrompt: string;
   welcomeGreeting: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
+  interactionId?: string | null;
+  feedbackGiven?: "up" | "down" | null;
+  detectedPii?: string[];
 }
 
 export function getScreenAdvisorInsight(
@@ -693,10 +706,11 @@ export function ScreenAIAdvisorDrawer({
   }, [screen, shipment, pricing, container, flow]);
 
   const [inputQuestion, setInputQuestion] = useState("");
-  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const assistantMutation = trpc.assistant.ask.useMutation();
+  const feedbackMutation = trpc.assistant.feedback.useMutation();
 
   // Snapshot transaksi aktif untuk dikirim ke LLM
   const snapshot = useMemo(() => {
@@ -788,7 +802,15 @@ export function ScreenAIAdvisorDrawer({
       },
       {
         onSuccess: (data) => {
-          setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: data.answer,
+              interactionId: data.interactionId,
+              detectedPii: data.detectedPii,
+            },
+          ]);
         },
         onError: (err) => {
           setMessages((prev) => [
@@ -800,6 +822,23 @@ export function ScreenAIAdvisorDrawer({
           ]);
         },
       },
+    );
+  };
+
+  const handleFeedback = (interactionId: string, rating: "up" | "down", msgIndex: number) => {
+    feedbackMutation.mutate(
+      { interactionId, rating },
+      {
+        onSuccess: () => {
+          toast.success(rating === "up" ? "Terima kasih atas ulasan positif Anda!" : "Ulasan tercatat untuk audit evaluasi model.");
+          setMessages((prev) =>
+            prev.map((m, idx) => (idx === msgIndex ? { ...m, feedbackGiven: rating } : m))
+          );
+        },
+        onError: () => {
+          toast.error("Gagal mengirim umpan balik.");
+        },
+      }
     );
   };
 
@@ -830,6 +869,16 @@ export function ScreenAIAdvisorDrawer({
             <X size={16} />
           </button>
         </header>
+
+        {/* Citations & Trust Bar */}
+        <div className="ai-citations-bar">
+          <span className="ai-badge-citation">
+            <ShieldCheck size={11} style={{ color: "#10b981" }} /> PII Terproteksi
+          </span>
+          <span className="ai-badge-citation">INSW/BTKI 2022</span>
+          <span className="ai-badge-citation">Incoterms® 2020</span>
+          <span className="ai-badge-citation">ISO 668</span>
+        </div>
 
         {/* Kartu Ringkasan Rekomendasi Modul Aktif */}
         <div className={`ai-drawer-insight-card ${insight.riskLevel}`}>
@@ -868,7 +917,38 @@ export function ScreenAIAdvisorDrawer({
               </div>
               <div className="bubble-text">
                 {m.role === "assistant" ? (
-                  <Streamdown>{m.content}</Streamdown>
+                  <>
+                    <Streamdown>{m.content}</Streamdown>
+                    {m.interactionId && (
+                      <div className="ai-msg-actions">
+                        {m.detectedPii && m.detectedPii.length > 0 && (
+                          <span className="ai-pii-tag" title={`Data sensitif disensor: ${m.detectedPii.join(", ")}`}>
+                            <ShieldCheck size={10} /> Disensor ({m.detectedPii.length})
+                          </span>
+                        )}
+                        <div className="ai-feedback-group">
+                          <button
+                            type="button"
+                            className={`ai-feedback-btn ${m.feedbackGiven === "up" ? "active" : ""}`}
+                            onClick={() => handleFeedback(m.interactionId!, "up", index)}
+                            title="Jawaban akurat & membantu"
+                            disabled={feedbackMutation.isPending || !!m.feedbackGiven}
+                          >
+                            <ThumbsUp size={11} />
+                          </button>
+                          <button
+                            type="button"
+                            className={`ai-feedback-btn ${m.feedbackGiven === "down" ? "active" : ""}`}
+                            onClick={() => handleFeedback(m.interactionId!, "down", index)}
+                            title="Kurang relevan / ada koreksi"
+                            disabled={feedbackMutation.isPending || !!m.feedbackGiven}
+                          >
+                            <ThumbsDown size={11} />
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 ) : (
                   <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{m.content}</p>
                 )}
@@ -977,11 +1057,21 @@ export function ScreenAIFloatingWidget({
   }, [screen, shipment, pricing, container, flow]);
 
   const [inputQuestion, setInputQuestion] = useState("");
-  const [messages, setMessages] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [messages, setMessages] = useState<
+    Array<{
+      role: "user" | "assistant";
+      content: string;
+      interactionId?: string | null;
+      feedbackGiven?: "up" | "down" | null;
+      detectedPii?: string[];
+    }>
+  >([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const prevScreenRef = useRef<ScreenId>(screen);
 
   const assistantMutation = trpc.assistant.ask.useMutation();
+  const feedbackMutation = trpc.assistant.feedback.useMutation();
 
   const snapshot = useMemo(() => {
     return JSON.stringify({
@@ -1093,7 +1183,15 @@ export function ScreenAIFloatingWidget({
       },
       {
         onSuccess: (data) => {
-          setMessages((prev) => [...prev, { role: "assistant", content: data.answer }]);
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: data.answer,
+              interactionId: data.interactionId,
+              detectedPii: data.detectedPii,
+            },
+          ]);
         },
         onError: (err) => {
           setMessages((prev) => [
@@ -1105,6 +1203,23 @@ export function ScreenAIFloatingWidget({
           ]);
         },
       },
+    );
+  };
+
+  const handleFeedback = (interactionId: string, rating: "up" | "down", msgIndex: number) => {
+    feedbackMutation.mutate(
+      { interactionId, rating },
+      {
+        onSuccess: () => {
+          toast.success(rating === "up" ? "Terima kasih atas ulasan positif Anda!" : "Ulasan tercatat untuk audit evaluasi model.");
+          setMessages((prev) =>
+            prev.map((m, idx) => (idx === msgIndex ? { ...m, feedbackGiven: rating } : m))
+          );
+        },
+        onError: () => {
+          toast.error("Gagal mengirim umpan balik.");
+        },
+      }
     );
   };
 
@@ -1135,7 +1250,7 @@ export function ScreenAIFloatingWidget({
 
       {/* Floating Chat Popup (Sleek Enterprise Panel) */}
       {isOpen && (
-        <div className="ai-float-popup" role="dialog" aria-label="Tanya AI Advisor Ekspor">
+        <div className={`ai-float-popup ${isExpanded ? "expanded" : ""}`} role="dialog" aria-label="Tanya AI Advisor Ekspor">
           <div className="ai-float-header">
             <div className="ai-float-header-top">
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
@@ -1144,14 +1259,26 @@ export function ScreenAIFloatingWidget({
                 </span>
                 <span className="ai-float-screen-tag">{screenTitle}</span>
               </div>
-              <button
-                type="button"
-                className="ai-float-header-close"
-                onClick={onClose}
-                aria-label="Tutup"
-              >
-                <X size={15} />
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                <button
+                  type="button"
+                  className="ai-float-header-expand"
+                  onClick={() => setIsExpanded(!isExpanded)}
+                  aria-label={isExpanded ? "Perkecil panel" : "Perbesar panel"}
+                  title={isExpanded ? "Perkecil panel" : "Perbesar panel"}
+                  style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", padding: "4px", display: "inline-flex", alignItems: "center", borderRadius: "4px" }}
+                >
+                  {isExpanded ? <Minimize2 size={13} /> : <Maximize2 size={13} />}
+                </button>
+                <button
+                  type="button"
+                  className="ai-float-header-close"
+                  onClick={onClose}
+                  aria-label="Tutup"
+                >
+                  <X size={15} />
+                </button>
+              </div>
             </div>
 
             <div style={{ marginTop: "6px" }}>
@@ -1160,6 +1287,16 @@ export function ScreenAIFloatingWidget({
                 <span className="ai-float-dot" /> Analisis real-time · {shipment.reference || "EksporFlow"}
               </p>
             </div>
+          </div>
+
+          {/* Citations & Trust Bar */}
+          <div className="ai-citations-bar">
+            <span className="ai-badge-citation">
+              <ShieldCheck size={11} style={{ color: "#10b981" }} /> PII Terproteksi
+            </span>
+            <span className="ai-badge-citation">INSW/BTKI 2022</span>
+            <span className="ai-badge-citation">Incoterms® 2020</span>
+            <span className="ai-badge-citation">ISO 668</span>
           </div>
 
           {/* Isi Pesan Konsultasi */}
@@ -1197,7 +1334,38 @@ export function ScreenAIFloatingWidget({
                 </div>
                 <div className="bubble-text">
                   {m.role === "assistant" ? (
-                    <Streamdown>{m.content}</Streamdown>
+                    <>
+                      <Streamdown>{m.content}</Streamdown>
+                      {m.interactionId && (
+                        <div className="ai-msg-actions">
+                          {m.detectedPii && m.detectedPii.length > 0 && (
+                            <span className="ai-pii-tag" title={`Data sensitif disensor: ${m.detectedPii.join(", ")}`}>
+                              <ShieldCheck size={10} /> Disensor ({m.detectedPii.length})
+                            </span>
+                          )}
+                          <div className="ai-feedback-group">
+                            <button
+                              type="button"
+                              className={`ai-feedback-btn ${m.feedbackGiven === "up" ? "active" : ""}`}
+                              onClick={() => handleFeedback(m.interactionId!, "up", index)}
+                              title="Jawaban akurat & membantu"
+                              disabled={feedbackMutation.isPending || !!m.feedbackGiven}
+                            >
+                              <ThumbsUp size={11} />
+                            </button>
+                            <button
+                              type="button"
+                              className={`ai-feedback-btn ${m.feedbackGiven === "down" ? "active" : ""}`}
+                              onClick={() => handleFeedback(m.interactionId!, "down", index)}
+                              title="Kurang relevan / ada koreksi"
+                              disabled={feedbackMutation.isPending || !!m.feedbackGiven}
+                            >
+                              <ThumbsDown size={11} />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{m.content}</p>
                   )}

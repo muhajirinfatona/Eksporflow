@@ -174,6 +174,8 @@ export default defineConfig({
   plugins,
   resolve: {
     alias: {
+      "node:crypto": path.resolve(import.meta.dirname, "client", "src", "lib", "cryptoStub.ts"),
+      crypto: path.resolve(import.meta.dirname, "client", "src", "lib", "cryptoStub.ts"),
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),

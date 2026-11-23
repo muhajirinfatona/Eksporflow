@@ -287,6 +287,9 @@ export default function Home() {
       pricing={pricing}
       container={container}
       flow={flow}
+      update={update}
+      updateNumber={updateNumber}
+      updateLineItems={updateLineItems}
       onSave={saveShipment}
       onReloadLatest={reloadLatest}
       onReset={resetTransaction}

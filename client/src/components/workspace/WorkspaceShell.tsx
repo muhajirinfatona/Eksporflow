@@ -18,11 +18,13 @@ import {
   ClipboardCheck,
   Clock,
   Cloud,
+  CloudOff,
   Compass,
   FileSearch,
   FileSpreadsheet,
   FileText,
   FolderArchive,
+  HardDrive,
   Landmark,
   Layers,
   LayoutGrid,
@@ -36,6 +38,7 @@ import {
   PanelLeftOpen,
   PlusCircle,
   RefreshCcw,
+  RefreshCw,
   Save,
   Scale,
   Search,
@@ -51,10 +54,11 @@ import {
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import type { Pricing } from "@shared/pricing";
-import type { ContainerCalc, Shipment } from "@shared/shipment";
+import type { ContainerCalc, LineItem, Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { IconButton, StatusPill } from "./Primitives";
 import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
+import { GuidedOnboardingModal } from "./GuidedOnboardingModal";
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -355,27 +359,58 @@ function renderPersistenceBadge(
   activeShipmentId: string | null,
 ) {
   if (user?.isDemo) {
-    return <StatusPill tone="amber">Sandbox Demo · Lokal</StatusPill>;
+    return (
+      <span className="sync-status-badge sync-demo tabular-nums" title="Data tersimpan di sandbox browser lokal">
+        <HardDrive size={13} className="text-amber-500" />
+        <span>Sandbox Demo · Lokal</span>
+      </span>
+    );
   }
   if (!user) {
-    return <StatusPill tone="gray">Draft Lokal</StatusPill>;
+    return (
+      <span className="sync-status-badge sync-local tabular-nums" title="Sesi belum login, perubahan disimpan di draf lokal">
+        <HardDrive size={13} className="text-slate-400" />
+        <span>Draf Lokal (Offline)</span>
+      </span>
+    );
   }
   if (saveState === "saving") {
-    return <StatusPill tone="blue">Menyimpan...</StatusPill>;
+    return (
+      <span className="sync-status-badge sync-saving tabular-nums" title="Sedang menyinkronkan data ke cloud database...">
+        <RefreshCw size={13} className="spin text-blue-500" />
+        <span>Sinkronisasi Berjalan...</span>
+      </span>
+    );
   }
   if (saveState === "saved" && activeShipmentId) {
-    return <StatusPill tone="green">✓ Tersimpan Otomatis · v{version}</StatusPill>;
+    return (
+      <span className="sync-status-badge sync-saved tabular-nums" title={`Data transaksi aman tersimpan di cloud database (Revisi v${version})`}>
+        <Cloud size={13} className="text-emerald-500" />
+        <span>Tersimpan di Cloud · v{version}</span>
+      </span>
+    );
   }
   if (saveState === "conflict") {
-    return <StatusPill tone="red">Konflik Versi</StatusPill>;
+    return (
+      <span className="sync-status-badge sync-conflict tabular-nums" title="Terdapat pembaruan data dari perangkat/sesi lain">
+        <AlertTriangle size={13} className="text-rose-500" />
+        <span>Konflik Versi Cloud</span>
+      </span>
+    );
   }
   if (saveState === "error") {
-    return <StatusPill tone="amber">Draft Tersimpan Lokal</StatusPill>;
+    return (
+      <span className="sync-status-badge sync-error tabular-nums" title="Gagal terhubung ke cloud, data tersimpan di draf lokal">
+        <AlertTriangle size={13} className="text-amber-500" />
+        <span>Draf Tersimpan Lokal</span>
+      </span>
+    );
   }
   return (
-    <StatusPill tone="amber">
-      {activeShipmentId ? `● Belum Disimpan · v${version}` : "Draft Baru"}
-    </StatusPill>
+    <span className="sync-status-badge sync-pending tabular-nums" title="Ada perubahan yang belum disimpan ke cloud">
+      <CloudOff size={13} className="text-amber-500" />
+      <span>{activeShipmentId ? `Belum Disimpan · v${version}` : "Draf Baru"}</span>
+    </span>
   );
 }
 
@@ -393,6 +428,9 @@ export function WorkspaceShell({
   pricing,
   container,
   flow,
+  update,
+  updateNumber,
+  updateLineItems,
   onSave,
   onReloadLatest,
   onReset,
@@ -421,6 +459,9 @@ export function WorkspaceShell({
   pricing?: Pricing;
   container?: ContainerCalc;
   flow?: WorkspaceFlow;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
+  updateNumber?: (key: keyof Shipment, rawValue: string) => void;
+  updateLineItems?: (items: LineItem[]) => void;
   onSave: () => Promise<void>;
   onReloadLatest: () => Promise<void>;
   onReset: () => void;
@@ -433,6 +474,7 @@ export function WorkspaceShell({
   const demoRemainingLabel = isDemoUser
     ? formatDemoRemainingLabel(getDemoRemainingMs(user as UserSession))
     : "";
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth > 1024 : true,
   );
@@ -696,6 +738,19 @@ export function WorkspaceShell({
               <Settings2 size={17} />
             </IconButton>
 
+            {shipment && update && (
+              <button
+                type="button"
+                className="topbar-guide-btn"
+                onClick={() => setIsOnboardingOpen(true)}
+                title="Panduan 4 Langkah Mulai Ekspor untuk Eksportir & UMKM"
+              >
+                <Compass size={14} className="text-amber-400" />
+                <span className="btn-label-desktop">Panduan Ekspor</span>
+                <span className="btn-label-mobile">Panduan</span>
+              </button>
+            )}
+
             {isDemoUser && (
               <button
                 type="button"
@@ -808,6 +863,18 @@ export function WorkspaceShell({
           isAuthenticated={Boolean(user)}
           onLogin={() => void onLogin()}
           onNavigateFullAdvisor={() => navigate("advisor")}
+        />
+      )}
+
+      {shipment && update && (
+        <GuidedOnboardingModal
+          isOpen={isOnboardingOpen}
+          onClose={() => setIsOnboardingOpen(false)}
+          shipment={shipment}
+          update={update}
+          updateNumber={(_key, _val) => {}}
+          updateLineItems={updateLineItems ?? (() => {})}
+          onFinish={(targetScreen) => navigate(targetScreen)}
         />
       )}
 

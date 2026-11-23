@@ -2403,8 +2403,16 @@ export function KnowledgeView({
               <tbody>
                 {visible.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", color: "var(--muted)", padding: "20px 14px" }}>
-                      Belum ada dokumen SOP / pedoman tim. Tambahkan pedoman pertama di sebelah kanan agar terhubung ke AI Advisor.
+                    <td colSpan={5} style={{ textAlign: "center", padding: "28px 16px" }}>
+                      <div className="empty-state-card compact">
+                        <div className="empty-state-icon">
+                          <BookOpen size={24} className="text-blue-500" />
+                        </div>
+                        <h4>Belum Ada Dokumen SOP / Regulasi Tim</h4>
+                        <p>
+                          Unggah pedoman operasional internal, instruksi kerja fumigasi, atau checklist pabean agar AI Advisor dapat memverifikasi kepatuhan transaksi secara kontekstual.
+                        </p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
@@ -2529,8 +2537,18 @@ export function PartnersView({
           </div>
           <div className="master-list">
             {flow.partners.length === 0 ? (
-              <div className="empty-attachment">
-                Direktori mitra masih kosong. Tambahkan profil buyer di sebelah kanan.
+              <div className="empty-state-card">
+                <div className="empty-state-icon">
+                  <Users size={26} className="text-blue-500" />
+                </div>
+                <h4>Belum Ada Data Rekanan &amp; Buyer</h4>
+                <p>
+                  Daftarkan buyer luar negeri, forwarder rekanan, atau surveyor independen pada formulir di sebelah kanan untuk mempercepat pembuatan Sales Contract dan validasi 3-way match.
+                </p>
+                <div className="empty-state-tip">
+                  <Sparkles size={13} className="text-amber-500" />
+                  <span>Tip: Anda juga dapat menggunakan <b>Panduan Ekspor</b> di bilah atas untuk memuat profil buyer instan.</span>
+                </div>
               </div>
             ) : (
               flow.partners.map((buyer) => (
@@ -2639,8 +2657,18 @@ export function ProductsView({
           </div>
           <div className="master-list">
             {flow.products.length === 0 ? (
-              <div className="empty-attachment">
-                Katalog produk masih kosong. Tambahkan spesifikasi produk di sebelah kanan.
+              <div className="empty-state-card">
+                <div className="empty-state-icon">
+                  <Package size={26} className="text-blue-500" />
+                </div>
+                <h4>Katalog Komoditas Masih Kosong</h4>
+                <p>
+                  Tambahkan data komoditas beserta HS Code 8-10 digit, dimensi kemasan (PxLxT), dan estimasi susut muatan untuk otomasi kalkulasi kontainer dan dokumen ekspor.
+                </p>
+                <div className="empty-state-tip">
+                  <Sparkles size={13} className="text-amber-500" />
+                  <span>Tip: Sektor komoditas umum (Kopi, Perikanan, Rempah, Furnitur) dapat diisi otomatis via tombol <b>Panduan Ekspor</b>.</span>
+                </div>
               </div>
             ) : (
               flow.products.map((prod) => (
