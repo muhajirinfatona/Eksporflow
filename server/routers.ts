@@ -36,6 +36,12 @@ import {
   updateMasterBuyer,
   updateMasterProduct,
 } from "./masterDataDb";
+import {
+  createDocumentSnapshot,
+  getDocumentSnapshot,
+  listDocumentSnapshots,
+  DocumentSnapshotError,
+} from "./shipmentSnapshotDb";
 
 import { createRateLimiter } from "./rateLimit";
 
@@ -95,6 +101,27 @@ function masterDataError(error: unknown): never {
   throw new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
     message: "Layanan data utama sedang tidak tersedia.",
+  });
+}
+
+function snapshotError(error: unknown): never {
+  if (error instanceof DocumentSnapshotError) {
+    const code =
+      error.code === "FORBIDDEN"
+        ? "FORBIDDEN"
+        : error.code === "NOT_FOUND"
+          ? "NOT_FOUND"
+          : error.code === "CONFLICT"
+            ? "CONFLICT"
+            : error.code === "BAD_REQUEST"
+              ? "BAD_REQUEST"
+              : "INTERNAL_SERVER_ERROR";
+    throw new TRPCError({ code, message: error.message });
+  }
+  console.error("snapshot operation failed", error);
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Layanan snapshot dokumen sedang tidak tersedia.",
   });
 }
 
@@ -552,6 +579,65 @@ export const appRouter = router({
           return await revokeWorkspaceInvitation(ctx.user.id, input.id);
         } catch (error) {
           return masterDataError(error);
+        }
+      }),
+  }),
+
+  snapshots: router({
+    list: protectedProcedure
+      .input(
+        z.object({
+          shipmentId: z.string().uuid(),
+          documentType: z.string().optional(),
+        }),
+      )
+      .query(async ({ ctx, input }) => {
+        try {
+          return await listDocumentSnapshots(ctx.user.id, input.shipmentId, input.documentType);
+        } catch (error) {
+          return snapshotError(error);
+        }
+      }),
+
+    get: protectedProcedure
+      .input(z.object({ snapshotId: z.string().uuid() }))
+      .query(async ({ ctx, input }) => {
+        try {
+          return await getDocumentSnapshot(ctx.user.id, input.snapshotId);
+        } catch (error) {
+          return snapshotError(error);
+        }
+      }),
+
+    create: protectedProcedure
+      .input(
+        z.object({
+          shipmentId: z.string().uuid(),
+          documentType: z.string().min(1, "Jenis dokumen wajib diisi."),
+          payload: z.record(z.string(), z.unknown()).optional(),
+          paperSize: z.string().optional(),
+          orientation: z.string().optional(),
+          language: z.string().optional(),
+          template: z.string().optional(),
+          threeWayStatus: z.string().optional(),
+          overrideReason: z.string().max(500).optional(),
+        }),
+      )
+      .mutation(async ({ ctx, input }) => {
+        try {
+          return await createDocumentSnapshot(ctx.user.id, {
+            shipmentId: input.shipmentId,
+            documentType: input.documentType,
+            payload: input.payload,
+            paperSize: input.paperSize,
+            orientation: input.orientation,
+            language: input.language,
+            template: input.template,
+            threeWayStatus: input.threeWayStatus,
+            overrideReason: input.overrideReason,
+          });
+        } catch (error) {
+          return snapshotError(error);
         }
       }),
   }),

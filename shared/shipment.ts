@@ -12,6 +12,7 @@ export type DocumentType =
   | "Sales Contract"
   | "Commercial Invoice"
   | "Packing List"
+  | "Certificate of Origin"
   | "Shipping Instruction"
   | "Bill of Lading";
 export type PaperSize =
@@ -299,6 +300,7 @@ export interface DocumentShape {
 }
 
 export type Shipment = {
+  id?: string;
   reference: string;
   exporter: string;
   buyer: string;

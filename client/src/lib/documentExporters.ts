@@ -25,6 +25,7 @@ import {
   getPaperSizeSpec,
   getDocMargins,
 } from "@shared/shipment";
+import type { DocumentLineItem } from "@shared/documentEngine";
 
 export type ExportFormat = "pdf" | "docx" | "xlsx" | "html" | "txt";
 
@@ -84,6 +85,7 @@ export interface ExportDocData {
   docFooterEnabled?: boolean;
   docFooterText?: string;
   docShowPageNumber?: boolean;
+  lineItems?: DocumentLineItem[];
 }
 
 export function downloadBlob(blob: Blob, filename: string) {
@@ -107,6 +109,8 @@ export function getDocumentNumber(docType: DocumentType, isId: boolean): string 
       return "INV/IEI-DXB/XI/2026/001";
     case "Packing List":
       return "PL/IEI-DXB/XI/2026/001";
+    case "Certificate of Origin":
+      return "COO/IEI-DXB/XI/2026/001";
     case "Shipping Instruction":
       return "SI/IEI-KMTC/XI/2026/001";
     default:
@@ -439,6 +443,7 @@ export async function exportToDocx(
     });
   } else {
     // Format Tabel Barang untuk Invoice / Packing List
+    const hasItems = data.lineItems && data.lineItems.length > 0;
     const tableHeaderBorder = {
       top: { style: BorderStyle.SINGLE, size: 1, color: "0F2942" },
       bottom: { style: BorderStyle.SINGLE, size: 1, color: "0F2942" },
@@ -446,58 +451,76 @@ export async function exportToDocx(
       right: { style: BorderStyle.NONE },
     };
 
+    const headerCells = [
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("No / Marks", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Description of Goods", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("HS Code", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Pkg / Unit", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Qty", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Unit Price", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Total Amount", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Net Wt (Kg)", { bold: true, size: baseRunSize - 2 })] })] }),
+      new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("Gross Wt (Kg)", { bold: true, size: baseRunSize - 2 })] })] }),
+    ];
+
+    const itemRows: TableRow[] = hasItems
+      ? data.lineItems!.map((it, idx) =>
+          new TableRow({
+            children: [
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${idx + 1}\n${it.marksAndNumbers}`, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(it.description, { bold: true, size: baseRunSize - 2 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(it.hsCode, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${it.packagingType} (${it.unit})`, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${it.quantity.toLocaleString()}`, { size: baseRunSize - 2 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${data.currency} ${it.unitPrice.toFixed(2)}`, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${data.currency} ${it.totalAmount.toFixed(2)}`, { bold: true, size: baseRunSize - 2 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(it.netWeightKg.toLocaleString(), { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(it.grossWeightKg.toLocaleString(), { size: baseRunSize - 3 })] })] }),
+            ],
+          })
+        )
+      : [
+          new TableRow({
+            children: [
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`1\nIEI / DUBAI / 2026\n1 - ${data.bagsCount}`, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(data.productName, { bold: true, size: baseRunSize - 2 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(data.hsCode, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`Bags @ 20 kg`, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${data.netWeightMT} MT`, { size: baseRunSize - 2 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${data.currency} ${data.unitPricePerMT.toFixed(2)}`, { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(`${data.currency} ${data.totalAmount.toFixed(2)}`, { bold: true, size: baseRunSize - 2 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr((data.netWeightMT * 1000).toLocaleString(), { size: baseRunSize - 3 })] })] }),
+              new TableCell({ borders: cellBorder, children: [new Paragraph({ children: [tr(((data.netWeightMT * 1000) * 1.02).toLocaleString(), { size: baseRunSize - 3 })] })] }),
+            ],
+          }),
+        ];
+
+    const totalQty = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.quantity, 0) : data.bagsCount;
+    const totalNetKg = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.netWeightKg, 0) : data.netWeightMT * 1000;
+    const totalGrossKg = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.grossWeightKg, 0) : data.netWeightMT * 1020;
+    const totalAmt = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.totalAmount, 0) : data.totalAmount;
+
+    const totalRow = new TableRow({
+      children: [
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("TOTAL / GRAND TOTAL", { bold: true, size: baseRunSize - 2 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr(`Total Items: ${hasItems ? data.lineItems!.length : 1}`, { size: baseRunSize - 3 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("—", { size: baseRunSize - 3 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("—", { size: baseRunSize - 3 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr(totalQty.toLocaleString(), { bold: true, size: baseRunSize - 2 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr("—", { size: baseRunSize - 3 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr(`${data.currency} ${totalAmt.toFixed(2)}`, { bold: true, size: baseRunSize - 1 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr(totalNetKg.toLocaleString(), { bold: true, size: baseRunSize - 2 })] })] }),
+        new TableCell({ borders: tableHeaderBorder, children: [new Paragraph({ children: [tr(totalGrossKg.toLocaleString(), { bold: true, size: baseRunSize - 2 })] })] }),
+      ],
+    });
+
     children.push(
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         rows: [
-          new TableRow({
-            children: [
-              new TableCell({
-                borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [tr("Marks & Numbers", { bold: true, size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [tr("Description of Goods", { bold: true, size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [tr("Quantity", { bold: true, size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [tr("Unit Price", { bold: true, size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: tableHeaderBorder,
-                children: [new Paragraph({ children: [tr("Total Amount", { bold: true, size: baseRunSize })] })],
-              }),
-            ],
-          }),
-          new TableRow({
-            children: [
-              new TableCell({
-                borders: cellBorder,
-                children: [new Paragraph({ children: [tr(`IEI / DUBAI / 2026\n1 - ${data.bagsCount}`, { size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: cellBorder,
-                children: [new Paragraph({ children: [tr(`${data.productName}\nHS Code: ${data.hsCode}\nPacking: ${data.bagsCount} bags @ 20 kg`, { size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: cellBorder,
-                children: [new Paragraph({ children: [tr(`${data.netWeightMT} MT\n(${data.bagsCount} Bags)`, { size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: cellBorder,
-                children: [new Paragraph({ children: [tr(`${data.currency} ${data.unitPricePerMT.toFixed(2)}`, { size: baseRunSize })] })],
-              }),
-              new TableCell({
-                borders: cellBorder,
-                children: [new Paragraph({ children: [tr(`${data.currency} ${data.totalAmount.toFixed(2)}`, { bold: true, size: baseRunSize })] })],
-              }),
-            ],
-          }),
+          new TableRow({ children: headerCells }),
+          ...itemRows,
+          totalRow,
         ],
       }),
       new Paragraph({ spacing: { after: 120 } })
@@ -695,21 +718,65 @@ export function exportToXlsx(
   XLSX.utils.book_append_sheet(wb, wsSummary, "Informasi Dokumen");
 
   // Sheet 2: Rincian Barang & Finansial
+  const hasItems = data.lineItems && data.lineItems.length > 0;
+  const itemsHeader = [
+    "No",
+    "Marks & Numbers",
+    "Description of Goods",
+    "HS Code",
+    "Packaging",
+    "Unit",
+    "Quantity",
+    `Unit Price (${data.currency})`,
+    `Total Amount (${data.currency})`,
+    "Net Weight (Kg)",
+    "Gross Weight (Kg)",
+    "Volume (CBM)",
+  ];
+
+  const itemsRows = hasItems
+    ? data.lineItems!.map((it, idx) => [
+        idx + 1,
+        it.marksAndNumbers,
+        it.description,
+        it.hsCode,
+        it.packagingType,
+        it.unit,
+        it.quantity,
+        it.unitPrice,
+        it.totalAmount,
+        it.netWeightKg,
+        it.grossWeightKg,
+        it.volumeCbm,
+      ])
+    : [
+        [
+          1,
+          `IEI / DUBAI / 2026 / 1-${data.bagsCount}`,
+          data.productName,
+          data.hsCode,
+          "3-ply Kraft Paper + PE inner",
+          "MT",
+          data.netWeightMT,
+          data.unitPricePerMT,
+          data.totalAmount,
+          data.netWeightMT * 1000,
+          data.netWeightMT * 1020,
+          28.5,
+        ],
+      ];
+
+  const sumQty = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.quantity, 0) : data.netWeightMT;
+  const sumAmount = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.totalAmount, 0) : data.totalAmount;
+  const sumNetKg = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.netWeightKg, 0) : data.netWeightMT * 1000;
+  const sumGrossKg = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.grossWeightKg, 0) : data.netWeightMT * 1020;
+  const sumCbm = hasItems ? data.lineItems!.reduce((acc, i) => acc + i.volumeCbm, 0) : 28.5;
+
   const itemsData = [
-    ["No", "Marks & Numbers", "Description of Goods", "HS Code", "Packaging", "Quantity (MT)", "Cartons / Bags", "Unit Price (USD/MT)", "Total Amount (USD)"],
-    [
-      1,
-      `IEI / DUBAI / 2026 / 1-${data.bagsCount}`,
-      data.productName,
-      data.hsCode,
-      "3-ply Kraft Paper + PE food-grade inner (20kg/bag)",
-      data.netWeightMT,
-      data.bagsCount,
-      data.unitPricePerMT,
-      data.totalAmount,
-    ],
+    itemsHeader,
+    ...itemsRows,
     [],
-    ["", "", "", "", "TOTAL NET WEIGHT", `${data.netWeightMT} MT`, "TOTAL BAGS", data.bagsCount, data.totalAmount],
+    ["", "GRAND TOTAL", "", "", "", "", sumQty, "", sumAmount, sumNetKg, sumGrossKg, sumCbm],
     ["TOTAL VALUE IN WORDS", data.amountInWords],
   ];
 
@@ -869,11 +936,21 @@ export function exportToTxt(
     `--------------------------------------------------------------------------------`,
     ``,
     `RINGKASAN KOMERSIAL & FINANSIAL:`,
-    `  Komoditas      : ${data.productName}`,
-    `  Kode HS        : ${data.hsCode}`,
-    `  Kuantitas      : ${data.netWeightMT} Metric Tons (${data.bagsCount} Bags @ 20 kg)`,
-    `  Harga Satuan   : ${data.currency} ${data.unitPricePerMT.toFixed(2)} / MT ${data.incoterm} Pelabuhan Makassar`,
-    `  Total Nilai    : ${data.currency} ${data.totalAmount.toFixed(2)}`,
+    ...(data.lineItems && data.lineItems.length > 0
+      ? [
+          ...data.lineItems.map(
+            (it, idx) =>
+              `  Item ${idx + 1}: ${it.description} | HS: ${it.hsCode} | Kemasan: ${it.packagingType} (${it.unit}) | Qty: ${it.quantity} | Harga: ${data.currency} ${it.unitPrice.toFixed(2)} | Subtotal: ${data.currency} ${it.totalAmount.toFixed(2)} | Berat: ${it.netWeightKg} Kg N.W. / ${it.grossWeightKg} Kg G.W. | CBM: ${it.volumeCbm}`
+          ),
+          `  Total Nilai    : ${data.currency} ${data.totalAmount.toFixed(2)}`,
+        ]
+      : [
+          `  Komoditas      : ${data.productName}`,
+          `  Kode HS        : ${data.hsCode}`,
+          `  Kuantitas      : ${data.netWeightMT} Metric Tons (${data.bagsCount} Bags @ 20 kg)`,
+          `  Harga Satuan   : ${data.currency} ${data.unitPricePerMT.toFixed(2)} / MT ${data.incoterm} Pelabuhan Makassar`,
+          `  Total Nilai    : ${data.currency} ${data.totalAmount.toFixed(2)}`,
+        ]),
     `  Terbilang      : ${data.amountInWords}`,
     `  Syarat Bayar   : ${data.paymentTerms || "50% Down Payment, 50% against Copy of B/L"}`,
     `  Rekening Bank  : ${data.bankName || "Bank Mandiri"}, Acc: ${data.bankAccountNo || "152-00-9876543-2"}, SWIFT: ${data.bankSwift || "BMRIIDJA"}`,

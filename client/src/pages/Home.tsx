@@ -393,6 +393,7 @@ export default function Home() {
       {screen === "documents" && (
         <DocumentsModule
           shipment={shipment}
+          activeShipmentId={activeShipmentId}
           update={update}
           pricing={pricing}
           container={container}
