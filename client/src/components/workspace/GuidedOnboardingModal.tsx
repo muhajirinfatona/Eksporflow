@@ -231,17 +231,17 @@ export function GuidedOnboardingModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs">
-      <div className="relative w-full max-w-3xl bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden text-slate-800">
+      <div className="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl border border-[#EAEFF5] overflow-hidden text-[#1B2533]">
         
-        {/* Header Bersih & Ringkas */}
-        <div className="px-6 py-4 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800">
+        {/* Header Bersih & Ringkas ala Space DS */}
+        <div className="px-6 py-4 bg-[#131B26] text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-md bg-blue-600/30 border border-blue-400/30 flex items-center justify-center text-blue-300">
+            <div className="w-7 h-7 rounded-lg bg-[#017EF3]/20 border border-[#017EF3]/40 flex items-center justify-center text-[#017EF3]">
               <Compass size={16} />
             </div>
             <div>
               <h2 className="text-sm font-bold tracking-tight text-white">Panduan Transaksi Ekspor</h2>
-              <span className="text-[11px] text-slate-400">Setup profil, komoditas, dan terbitkan draf dokumen</span>
+              <span className="text-[11px] text-[#8A94A6]">Setup profil, komoditas, dan terbitkan draf dokumen</span>
             </div>
           </div>
           <button
@@ -255,7 +255,7 @@ export function GuidedOnboardingModal({
         </div>
 
         {/* Stepper Minimalis */}
-        <div className="grid grid-cols-4 border-b border-slate-200 bg-slate-50/70 text-xs">
+        <div className="grid grid-cols-4 border-b border-[#EAEFF5] bg-[#F8FAFC] text-xs">
           {[
             { num: 1, label: "1. Profil Eksportir" },
             { num: 2, label: "2. Komoditas & HS" },
@@ -271,10 +271,10 @@ export function GuidedOnboardingModal({
                 onClick={() => setCurrentStep(s.num as any)}
                 className={`py-2.5 px-3 text-center border-b-2 font-medium transition-all ${
                   isCurrent
-                    ? "border-blue-700 text-blue-900 bg-white font-bold"
+                    ? "border-[#017EF3] text-[#017EF3] bg-white font-bold"
                     : isDone
-                      ? "border-emerald-600 text-emerald-800"
-                      : "border-transparent text-slate-500 hover:text-slate-800"
+                      ? "border-emerald-600 text-emerald-700"
+                      : "border-transparent text-[#697483] hover:text-[#1B2533]"
                 }`}
               >
                 <span className="truncate block">{s.label}</span>
@@ -364,10 +364,10 @@ export function GuidedOnboardingModal({
                     <div
                       key={sector.id}
                       onClick={() => handleApplyPreset(sector)}
-                      className={`p-3.5 rounded-lg border cursor-pointer transition-all ${
+                      className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-blue-700 bg-blue-50/50 shadow-xs ring-1 ring-blue-700"
-                          : "border-slate-200 bg-white hover:border-slate-300"
+                          ? "border-[#017EF3] bg-[#F2F9FE] shadow-xs ring-1 ring-[#017EF3]"
+                          : "border-[#EAEFF5] bg-white hover:border-[#D6DAE1]"
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
@@ -524,7 +524,7 @@ export function GuidedOnboardingModal({
               <button
                 type="button"
                 onClick={() => setCurrentStep((s) => (s + 1) as any)}
-                className="inline-flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
+                className="inline-flex items-center gap-1.5 bg-[#017EF3] hover:bg-[#0171DB] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
               >
                 <span>Lanjut</span>
                 <ChevronRight size={14} />
@@ -533,7 +533,7 @@ export function GuidedOnboardingModal({
               <button
                 type="button"
                 onClick={handleFinishOnboarding}
-                className="inline-flex items-center gap-1.5 bg-blue-700 hover:bg-blue-800 text-white text-xs font-semibold px-5 py-2 rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 bg-[#017EF3] hover:bg-[#0171DB] text-white text-xs font-semibold px-5 py-2 rounded-lg shadow-sm transition-all"
               >
                 <FileText size={14} />
                 <span>Buka Dokumen Ekspor</span>

@@ -61,21 +61,19 @@ export function ComplianceLartasModule({
 
   return (
     <div className="module-stack" style={{ gap: 16 }}>
-      {/* Hero Banner */}
+      {/* Space DS Module Header */}
       <section className="ef-module-hero">
         <div className="ef-module-hero-copy">
-          <span className="eyebrow" style={{ color: "#fbbf24" }}>
-            KEPATUHAN REGULASI, HS CODE &amp; LARTAS EKSPOR
+          <span className="eyebrow" style={{ color: "var(--brand-primary)" }}>
+            KEPATUHAN REGULASI &amp; LARTAS
           </span>
-          <h2>Verifikator HS Code, Tarif Negara Tujuan &amp; Masa Berlaku Izin</h2>
+          <h2>Verifikasi HS Code &amp; Status Izin Ekspor</h2>
           <p className="lead">
-            Validasi kecocokan uraian barang terhadap BTKI/HS Code, tinjau potensi efisiensi tarif legal
-            melalui skema FTA/CEPA, deteksi status Lartas sejak dini, dan pantau tanggal kedaluwarsa
-            Karantina, e-SKA/COO, serta SVLK agar kontainer tidak tertahan saat closing PEB.
+            Validasi uraian barang terhadap BTKI, simulasi tarif preferensi FTA/CEPA, dan pantau masa berlaku izin kementerian teknis sebelum closing PEB.
           </p>
           <div className="ef-hero-actions">
             <button type="button" className="ef-hero-btn-primary" onClick={() => navigate("risk")}>
-              Buka Timeline H-7 &amp; Risk Center <ArrowRight size={15} />
+              Buka Risk Center H-7 <ArrowRight size={15} />
             </button>
             <button type="button" className="ef-hero-btn-ghost" onClick={() => navigate("audit_vault")}>
               <FolderArchive size={15} /> Buka Audit Vault DJBC

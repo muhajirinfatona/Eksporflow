@@ -115,17 +115,15 @@ export function AuditVaultModule({
 
   return (
     <div className="module-stack" style={{ gap: 16 }}>
-      {/* Hero Banner */}
+      {/* Space DS Module Header */}
       <section className="ef-module-hero">
         <div className="ef-module-hero-copy">
-          <span className="eyebrow" style={{ color: "#fbbf24" }}>
-            BRANKAS ARSIP DIGITAL SIAP AUDIT (DJBC COMPLIANCE)
+          <span className="eyebrow" style={{ color: "var(--brand-primary)" }}>
+            ARSIP DIGITAL &amp; KEPATUHAN
           </span>
-          <h2>Digital Audit Vault — Pengelompokan Dokumen Ekspor Terstruktur</h2>
+          <h2>Digital Audit Vault</h2>
           <p className="lead">
-            Menggabungkan otomatis PO, riwayat revisi PI/SC/CI/PL, Sertifikat Karantina &amp; e-SKA,
-            nomor PEB/NPE Bea Cukai, Shipping Instruction, Draft/Final B/L, serta bukti pelunasan T/T
-            ke dalam 5 folder indeks siap audit kepabeanan dan pajak.
+            Arsip terpusat untuk dokumen kepabeanan, perizinan ekspor, dan bukti transaksi siap audit DJBC &amp; perbankan.
           </p>
           <div className="ef-hero-actions">
             <button type="button" className="ef-hero-btn-primary" onClick={handleDownloadManifest}>

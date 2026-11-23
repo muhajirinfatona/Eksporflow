@@ -354,7 +354,7 @@ export function DashboardView({
             style={{
               height: "100%",
               width: `${onboarding.progressPercent}%`,
-              background: onboarding.progressPercent === 100 ? "#10b981" : "#0f2942",
+              background: onboarding.progressPercent === 100 ? "#10b981" : "var(--brand-primary)",
               transition: "width 0.25s ease",
             }}
           />
@@ -394,7 +394,7 @@ export function DashboardView({
                         fontSize: 11,
                         fontWeight: 700,
                         background: "#eff6ff",
-                        color: "#0f2942",
+                        color: "var(--brand-primary)",
                         padding: "1px 6px",
                         borderRadius: 4,
                       }}
@@ -1198,7 +1198,7 @@ export function ApprovalsView({
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              background: activeTab === "approvals" ? "#0284c7" : "transparent",
+              background: activeTab === "approvals" ? "var(--brand-primary)" : "transparent",
               color: activeTab === "approvals" ? "#ffffff" : "#475569",
               boxShadow: activeTab === "approvals" ? "0 1px 2px rgba(2,132,199,0.2)" : "none",
               transition: "all 0.15s ease",
@@ -1219,7 +1219,7 @@ export function ApprovalsView({
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              background: activeTab === "team" ? "#0284c7" : "transparent",
+              background: activeTab === "team" ? "var(--brand-primary)" : "transparent",
               color: activeTab === "team" ? "#ffffff" : "#475569",
               boxShadow: activeTab === "team" ? "0 1px 2px rgba(2,132,199,0.2)" : "none",
               transition: "all 0.15s ease",
@@ -1240,7 +1240,7 @@ export function ApprovalsView({
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              background: activeTab === "matrix" ? "#0284c7" : "transparent",
+              background: activeTab === "matrix" ? "var(--brand-primary)" : "transparent",
               color: activeTab === "matrix" ? "#ffffff" : "#475569",
               boxShadow: activeTab === "matrix" ? "0 1px 2px rgba(2,132,199,0.2)" : "none",
               transition: "all 0.15s ease",
@@ -1281,7 +1281,7 @@ export function ApprovalsView({
               <div style={{ fontSize: 22, fontWeight: 700, color: "#0f172a", marginTop: 4 }}>
                 {pendingCount} Penawaran
               </div>
-              <div style={{ fontSize: 12, color: "#0284c7", marginTop: 2, fontWeight: 500 }}>
+              <div style={{ fontSize: 12, color: "var(--brand-primary)", marginTop: 2, fontWeight: 500 }}>
                 Nilai Akumulasi: {formatMoney(totalOfferValue, "USD")}
               </div>
             </div>
@@ -1318,7 +1318,7 @@ export function ApprovalsView({
               <div style={{ fontSize: 12, color: "#64748b", fontWeight: 600 }}>
                 Kepatuhan Sanksi Dagang
               </div>
-              <div style={{ fontSize: 22, fontWeight: 700, color: "#0284c7", marginTop: 4 }}>
+              <div style={{ fontSize: 22, fontWeight: 700, color: "var(--brand-primary)", marginTop: 4 }}>
                 100% Lolos Skrining
               </div>
               <div style={{ fontSize: 12, color: "#64748b", marginTop: 2 }}>
@@ -1352,9 +1352,9 @@ export function ApprovalsView({
                   fontSize: 12,
                   fontWeight: 600,
                   cursor: "pointer",
-                  border: statusFilter === "ALL" ? "1.5px solid #0284c7" : "1px solid #e2e8f0",
+                  border: statusFilter === "ALL" ? "1.5px solid var(--brand-primary)" : "1px solid #e2e8f0",
                   background: statusFilter === "ALL" ? "#f0f9ff" : "#ffffff",
-                  color: statusFilter === "ALL" ? "#0284c7" : "#64748b",
+                  color: statusFilter === "ALL" ? "var(--brand-primary)" : "#64748b",
                 }}
               >
                 Semua ({queueItems.length})
@@ -1486,7 +1486,7 @@ export function ApprovalsView({
                           </span>
                         </div>
                         {item.isCurrent && (
-                          <div style={{ fontSize: 11, color: "#0284c7", fontWeight: 600, marginTop: 2 }}>
+                          <div style={{ fontSize: 11, color: "var(--brand-primary)", fontWeight: 600, marginTop: 2 }}>
                             ● Sedang Dibuka di Workspace
                           </div>
                         )}
@@ -1518,7 +1518,7 @@ export function ApprovalsView({
                       </td>
 
                       <td style={{ padding: "14px 16px", whiteSpace: "nowrap" }}>
-                        <b style={{ fontSize: 13, color: "#0284c7" }}>
+                        <b style={{ fontSize: 13, color: "var(--brand-primary)" }}>
                           {formatMoney(item.offerValue, item.currency)}
                         </b>
                         <span style={{ fontSize: 11.5, color: "#64748b", marginLeft: 4 }}>
@@ -1546,7 +1546,7 @@ export function ApprovalsView({
                           type="button"
                           onClick={() => handleOpenReviewModal(item)}
                           style={{
-                            background: item.approvalStatus === "Tercatat direview" ? "#f8fafc" : "#0284c7",
+                            background: item.approvalStatus === "Tercatat direview" ? "#f8fafc" : "var(--brand-primary)",
                             border: item.approvalStatus === "Tercatat direview" ? "1px solid #cbd5e1" : "none",
                             color: item.approvalStatus === "Tercatat direview" ? "#475569" : "#ffffff",
                             padding: "6px 14px",
@@ -1596,7 +1596,7 @@ export function ApprovalsView({
               type="button"
               onClick={() => setIsInviteModalOpen(true)}
               style={{
-                background: "#0284c7",
+                background: "var(--brand-primary)",
                 color: "#ffffff",
                 border: "none",
                 fontWeight: 600,
@@ -1712,7 +1712,7 @@ export function ApprovalsView({
                               width: 32,
                               height: 32,
                               borderRadius: "50%",
-                              background: member.isOwner ? "#0284c7" : "#e2e8f0",
+                              background: member.isOwner ? "var(--brand-primary)" : "#e2e8f0",
                               color: member.isOwner ? "#ffffff" : "#475569",
                               display: "flex",
                               alignItems: "center",
@@ -1729,7 +1729,7 @@ export function ApprovalsView({
                               <span
                                 style={{
                                   fontSize: 10,
-                                  color: "#0284c7",
+                                  color: "var(--brand-primary)",
                                   background: "#e0f2fe",
                                   padding: "1px 5px",
                                   borderRadius: 4,
@@ -1807,7 +1807,7 @@ export function ApprovalsView({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-              <ShieldCheck size={20} style={{ color: "#0284c7" }} />
+              <ShieldCheck size={20} style={{ color: "var(--brand-primary)" }} />
               <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0f172a", margin: 0 }}>
                 Matriks Batas Wewenang &amp; Kebijakan Otorisasi (SoD)
               </h3>
@@ -1841,7 +1841,7 @@ export function ApprovalsView({
                       <b style={{ color: "#0f172a" }}>&gt; $25,000 USD</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
-                      <b style={{ color: "#0284c7" }}>Direktur Utama / Owner</b>
+                      <b style={{ color: "var(--brand-primary)" }}>Direktur Utama / Owner</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", background: "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
@@ -1859,7 +1859,7 @@ export function ApprovalsView({
                       <b style={{ color: "#b45309" }}>&lt; 20% Target Kuartal</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
-                      <b style={{ color: "#0284c7" }}>Direktur Operasional / Pimpinan</b>
+                      <b style={{ color: "var(--brand-primary)" }}>Direktur Operasional / Pimpinan</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: "#b45309", background: "#fef3c7", padding: "2px 6px", borderRadius: 4 }}>
@@ -1877,7 +1877,7 @@ export function ApprovalsView({
                       <b style={{ color: "#0f172a" }}>&gt; $1,000 USD</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
-                      <b style={{ color: "#0284c7" }}>Manajer Penjualan Ekspor</b>
+                      <b style={{ color: "var(--brand-primary)" }}>Manajer Penjualan Ekspor</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", background: "#dcfce7", padding: "2px 6px", borderRadius: 4 }}>
@@ -1895,7 +1895,7 @@ export function ApprovalsView({
                       <b style={{ color: "#dc2626" }}>DP 0% / D/A / D/P</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
-                      <b style={{ color: "#0284c7" }}>Direktur Keuangan (CFO)</b>
+                      <b style={{ color: "var(--brand-primary)" }}>Direktur Keuangan (CFO)</b>
                     </td>
                     <td style={{ padding: "12px 14px" }}>
                       <span style={{ fontSize: 11, fontWeight: 600, color: "#dc2626", background: "#fee2e2", padding: "2px 6px", borderRadius: 4 }}>
@@ -1949,7 +1949,7 @@ export function ApprovalsView({
               }}
             >
               <div>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#0284c7", textTransform: "uppercase" }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--brand-primary)", textTransform: "uppercase" }}>
                   LEMBAR OTORISASI PENAWARAN EKSEKUTIF
                 </span>
                 <h3 style={{ fontSize: 18, fontWeight: 700, color: "#0f172a", margin: "2px 0 0" }}>
@@ -2157,7 +2157,7 @@ export function ApprovalsView({
                   type="button"
                   onClick={() => handleDecision("Tercatat direview")}
                   style={{
-                    background: "#0284c7",
+                    background: "var(--brand-primary)",
                     border: "none",
                     color: "#ffffff",
                     fontWeight: 600,
@@ -2214,7 +2214,7 @@ export function ApprovalsView({
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <UserPlus size={18} style={{ color: "#0284c7" }} />
+                <UserPlus size={18} style={{ color: "var(--brand-primary)" }} />
                 <b style={{ fontSize: 16, color: "#0f172a" }}>Undang Anggota Tim Baru</b>
               </div>
               <button
@@ -2316,7 +2316,7 @@ export function ApprovalsView({
                 <button
                   type="submit"
                   style={{
-                    background: "#0284c7",
+                    background: "var(--brand-primary)",
                     border: "none",
                     color: "#ffffff",
                     fontWeight: 600,
@@ -3668,7 +3668,7 @@ export function SettingsView({
                     textAlign: "left",
                     padding: 12,
                     borderRadius: 10,
-                    border: active ? "2px solid #0f2942" : "1px solid #cbd5e1",
+                    border: active ? "2px solid var(--brand-primary)" : "1px solid #cbd5e1",
                     background: active ? "#eff6ff" : "#ffffff",
                     cursor: "pointer",
                   }}
@@ -3677,7 +3677,7 @@ export function SettingsView({
                     <b style={{ fontSize: 14, color: "#0f172a" }}>{plan.name}</b>
                     {active && <StatusPill tone="green">Dipilih</StatusPill>}
                   </div>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: "#0f2942", margin: "6px 0 2px" }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "var(--brand-primary)", margin: "6px 0 2px" }}>
                     Rp {est.effectiveMonthlyIdr.toLocaleString("id-ID")}
                     <small style={{ fontWeight: 500, fontSize: 11, color: "#64748b" }}>/bln</small>
                   </div>
@@ -3717,7 +3717,7 @@ export function SettingsView({
                     textAlign: "left",
                     padding: "9px 12px",
                     borderRadius: 8,
-                    border: active ? "2px solid #0f2942" : "1px solid #e2e8f0",
+                    border: active ? "2px solid var(--brand-primary)" : "1px solid #e2e8f0",
                     background: active ? "#eff6ff" : "#f8fafc",
                     cursor: "pointer",
                   }}

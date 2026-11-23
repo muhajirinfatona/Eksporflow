@@ -996,7 +996,7 @@ export function PricingModule({
                     </td>
                     <td style={{ textAlign: "right" }}>100%</td>
                     <td style={{ textAlign: "center" }}>
-                      <span style={{ fontSize: 11, color: "#0369a1", fontWeight: 700 }}>
+                      <span style={{ fontSize: 11, color: "var(--brand-primary)", fontWeight: 700 }}>
                         {formatCurrencyAmount(exportCalcResult.totalHppOrder, shipment.currency)}
                       </span>
                     </td>
@@ -1210,7 +1210,7 @@ export function PricingModule({
                       <tr key={row.term} className={isActive ? "active-term-row" : ""}>
                         <td>
                           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                            <strong style={{ fontSize: 13, color: isActive ? "#0284c7" : "#0f172a" }}>
+                            <strong style={{ fontSize: 13, color: isActive ? "var(--brand-primary)" : "var(--ink)" }}>
                               {row.term}
                             </strong>
                             {isActive && <span className="cell-active-tag">Dipilih</span>}
@@ -1223,7 +1223,7 @@ export function PricingModule({
                         <td style={{ textAlign: "right", fontWeight: 600 }}>
                           {formatCurrencyAmount(breakEvenVal, shipment.currency)}
                         </td>
-                        <td style={{ textAlign: "right", fontWeight: 800, color: "#0369a1" }}>
+                        <td style={{ textAlign: "right", fontWeight: 800, color: "var(--brand-primary)" }}>
                           {formatCurrencyAmount(targetPriceVal, shipment.currency)}
                         </td>
                         <td style={{ textAlign: "right", fontWeight: 700 }}>
@@ -1257,7 +1257,7 @@ export function PricingModule({
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: 4,
-                                color: "#0284c7",
+                                color: "var(--brand-primary)",
                                 fontSize: 11.5,
                                 fontWeight: 700,
                               }}
@@ -1298,8 +1298,8 @@ export function PricingModule({
               onClick={() => setShowGuide(!showGuide)}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <BookOpen size={15} color="#0284c7" />
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0f172a" }}>
+                <BookOpen size={15} color="var(--brand-primary)" />
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink)" }}>
                   Panduan Singkat Alur Harga Ekspor
                 </span>
               </div>
@@ -1311,7 +1311,7 @@ export function PricingModule({
             {showGuide && (
               <div className="calc-guide-grid">
                 <div style={{ background: "#ffffff", padding: 10, borderRadius: 6, border: "1px solid #e2e8f0" }}>
-                  <b style={{ color: "#0284c7", fontSize: 12 }}>Alur Penentuan Harga:</b>
+                  <b style={{ color: "var(--brand-primary)", fontSize: 12 }}>Alur Penentuan Harga:</b>
                   <p style={{ fontSize: 11.5, color: "#475569", margin: "4px 0 0" }}>
                     • <b>HPP</b>: Modal beli bahan mentah + susut olah + upah + kemasan + uji mutu.<br />
                     • <b>EXW</b>: Modal HPP + Target Keuntungan (Harga ambil di gudang Anda).<br />

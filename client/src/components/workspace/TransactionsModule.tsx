@@ -764,22 +764,22 @@ export function TransactionsModule({
           <div className="clean-grid-4" style={{ marginBottom: "16px" }}>
             <div className="panel panel-padding clean-stat-card">
               <span className="eyebrow">TOTAL PESANAN</span>
-              <strong style={{ fontSize: "24px", color: "var(--navy)" }}>{allTransactions.length}</strong>
+              <strong style={{ fontSize: "24px", color: "var(--ink)" }}>{allTransactions.length}</strong>
               <small>Semua pesanan tercatat</small>
             </div>
             <div className="panel panel-padding clean-stat-card">
               <span className="eyebrow">DRAFT / QUOTATION</span>
-              <strong style={{ fontSize: "24px", color: "#d97706" }}>{draftCount}</strong>
+              <strong style={{ fontSize: "24px", color: "var(--saffron)" }}>{draftCount}</strong>
               <small>Fase penawaran &amp; negosiasi</small>
             </div>
             <div className="panel panel-padding clean-stat-card">
               <span className="eyebrow">DALAM EKSEKUSI</span>
-              <strong style={{ fontSize: "24px", color: "#0284c7" }}>{activeExecutionCount}</strong>
+              <strong style={{ fontSize: "24px", color: "var(--brand-primary)" }}>{activeExecutionCount}</strong>
               <small>Confirmed, stuffing hingga kapal</small>
             </div>
             <div className="panel panel-padding clean-stat-card">
               <span className="eyebrow">SELESAI</span>
-              <strong style={{ fontSize: "24px", color: "#16a34a" }}>{completedTxCount}</strong>
+              <strong style={{ fontSize: "24px", color: "var(--mint)" }}>{completedTxCount}</strong>
               <small>Kargo tiba &amp; pembayaran lunas</small>
             </div>
           </div>
@@ -811,7 +811,7 @@ export function TransactionsModule({
               <div className="panel-head" style={{ marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
                 <div>
                   <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
-                  <h3 style={{ margin: "2px 0 0", fontSize: "17px", color: "var(--navy)" }}>
+                  <h3 style={{ margin: "2px 0 0", fontSize: "17px", color: "var(--ink)" }}>
                     Daftar Pesanan Ekspor ({allTransactions.length})
                   </h3>
                 </div>
@@ -916,34 +916,34 @@ export function TransactionsModule({
                             <tr key={row.id} className={isCurrent ? "active-row" : ""}>
                               <td>
                                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                  <b style={{ color: "var(--navy)" }}>{row.reference || "(Tanpa nomor)"}</b>
+                                  <b style={{ color: "var(--ink)" }}>{row.reference || "(Tanpa nomor)"}</b>
                                   {isCurrent && (
                                     <span className="current-tx-badge">● Aktif</span>
                                   )}
                                 </div>
                               </td>
                               <td>
-                                <div style={{ fontWeight: 600, color: "#1e293b" }}>{row.buyer}</div>
-                                <small style={{ color: "#64748b" }}>{row.buyerCountry}</small>
+                                <div style={{ fontWeight: 600, color: "var(--ink)" }}>{row.buyer}</div>
+                                <small style={{ color: "var(--muted)" }}>{row.buyerCountry}</small>
                               </td>
                               <td>
                                 <div>{row.product}</div>
-                                <small style={{ color: "#0284c7", fontWeight: 600 }}>
+                                <small style={{ color: "var(--brand-primary)", fontWeight: 600 }}>
                                   {row.incoterm} · {row.quantity} {row.unit}
                                 </small>
                               </td>
                               <td>
                                 <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                  <div style={{ width: "60px", height: "6px", background: "#e2e8f0", borderRadius: "3px", overflow: "hidden" }}>
+                                  <div style={{ width: "60px", height: "6px", background: "var(--line)", borderRadius: "3px", overflow: "hidden" }}>
                                     <div
                                       style={{
                                         width: isCurrent ? `${percentCompleted}%` : row.status === "Completed" ? "100%" : "25%",
                                         height: "100%",
-                                        background: row.status === "Completed" ? "#16a34a" : "#0284c7",
+                                        background: row.status === "Completed" ? "var(--mint)" : "var(--brand-primary)",
                                       }}
                                     />
                                   </div>
-                                  <small style={{ color: "#475569", fontWeight: 600, fontSize: "11px" }}>
+                                  <small style={{ color: "var(--ink-secondary)", fontWeight: 600, fontSize: "11px" }}>
                                     {isCurrent ? `${completedCount}/${totalCount}` : row.status === "Completed" ? "Selesai" : "Berjalan"}
                                   </small>
                                 </div>
@@ -958,19 +958,19 @@ export function TransactionsModule({
                                     style={{
                                       padding: "6px 12px",
                                       fontSize: "12px",
-                                      fontWeight: 600,
+                                      fontWeight: 500,
                                       borderRadius: "6px",
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: "5px",
-                                      background: "#f0f9ff",
-                                      color: "#0284c7",
-                                      border: "1.5px solid #7dd3fc",
+                                      background: "var(--brand-subtle)",
+                                      color: "var(--brand-primary)",
+                                      border: "1px solid #bfdbfe",
                                       cursor: "pointer",
                                       transition: "all 0.15s ease",
                                     }}
                                     onClick={() => void handleSwitchTransaction(row)}
-                                    title="Buka alur operasional 8 tahap transaksi ini"
+                                    title="Buka alur operasional transaksi ini"
                                   >
                                     <Activity size={13} /> Buka Alur
                                   </button>
@@ -984,9 +984,9 @@ export function TransactionsModule({
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: "4px",
-                                      background: "#fff1f2",
-                                      color: "#e11d48",
-                                      border: "1px solid #fecdd3",
+                                      background: "#ffffff",
+                                      color: "#dc2626",
+                                      border: "1px solid #fecaca",
                                       cursor: "pointer",
                                       transition: "all 0.15s ease",
                                     }}
@@ -1037,7 +1037,7 @@ export function TransactionsModule({
                     <span className="active-order-stat-label">Progress Alur Ekspor</span>
                     <span
                       className="active-order-stat-val"
-                      style={{ color: percentCompleted === 100 ? "#16a34a" : "#0284c7" }}
+                      style={{ color: percentCompleted === 100 ? "var(--mint)" : "var(--brand-primary)" }}
                     >
                       {completedCount}/{totalCount} Tahap ({percentCompleted}%)
                     </span>

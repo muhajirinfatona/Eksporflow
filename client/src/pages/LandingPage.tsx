@@ -58,38 +58,38 @@ export function LandingPage({
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0F172A] font-sans antialiased selection:bg-blue-900 selection:text-white">
-      {/* 1. Header Minimalis & Berwibawa */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200/80">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1B2533] font-sans antialiased selection:bg-[#017EF3] selection:text-white">
+      {/* 1. Header Minimalis & Berwibawa ala Space DS */}
+      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#EAEFF5]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#0A192F] flex items-center justify-center text-white font-bold text-sm tracking-tight border border-slate-800">
+            <div className="w-8 h-8 rounded-lg bg-[#131B26] flex items-center justify-center text-white font-bold text-sm tracking-tight border border-slate-800">
               EF
             </div>
             <div>
-              <span className="font-bold text-slate-900 text-base tracking-tight">EksporFlow</span>
-              <span className="text-[11px] text-slate-500 font-mono ml-2 hidden sm:inline">TRADE OS</span>
+              <span className="font-bold text-[#1B2533] text-base tracking-tight">EksporFlow</span>
+              <span className="text-[11px] text-[#697483] font-mono ml-2 hidden sm:inline">TRADE OS</span>
             </div>
           </div>
 
-          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-slate-600">
-            <a href="#kalkulator" className="hover:text-blue-900 transition-colors">Simulasi Biaya</a>
-            <a href="#fitur" className="hover:text-blue-900 transition-colors">Fitur Utama</a>
-            <a href="#harga" className="hover:text-blue-900 transition-colors">Harga & Paket</a>
+          <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-[#445164]">
+            <a href="#kalkulator" className="hover:text-[#017EF3] transition-colors">Simulasi Biaya</a>
+            <a href="#fitur" className="hover:text-[#017EF3] transition-colors">Fitur Utama</a>
+            <a href="#harga" className="hover:text-[#017EF3] transition-colors">Harga & Paket</a>
           </nav>
 
           <div className="flex items-center gap-3">
             <button
               type="button"
               onClick={() => onOpenAuth("login")}
-              className="text-xs font-semibold text-slate-700 hover:text-slate-900 px-3 py-1.5 rounded-md hover:bg-slate-100 transition-colors"
+              className="text-xs font-semibold text-[#445164] hover:text-[#1B2533] px-3 py-1.5 rounded-lg hover:bg-slate-100 transition-colors"
             >
               Masuk
             </button>
             <button
               type="button"
               onClick={onStartDemo}
-              className="inline-flex items-center gap-1.5 bg-[#0F2942] hover:bg-[#163a5c] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-[#017EF3] hover:bg-[#0171DB] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm"
             >
               <Play size={13} />
               <span>{demoRemainingLabel ? `Lanjutkan Demo (${demoRemainingLabel})` : "Coba Demo 3 Hari"}</span>
@@ -98,20 +98,20 @@ export function LandingPage({
         </div>
       </header>
 
-      {/* 2. Hero Section: Bersih, Tegas, Tanpa Hiasan AI yang Berlebihan */}
-      <section className="pt-16 pb-20 border-b border-slate-200 bg-white">
+      {/* 2. Hero Section: Bersih, Tegas, Space DS */}
+      <section className="pt-16 pb-20 border-b border-[#EAEFF5] bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-300 text-slate-700 text-xs font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-blue-600" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F2FE] border border-[#CCE5FD] text-[#0165C2] text-xs font-semibold mb-6">
+              <span className="w-2 h-2 rounded-full bg-[#017EF3]" />
               Sistem Operasional Ekspor Terstandarisasi
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-slate-950 tracking-tight leading-[1.15] mb-5">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1B2533] tracking-tight leading-[1.15] mb-5">
               Otomatisasi Dokumen Ekspor &amp; Pencegahan Denda Demurrage.
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-600 leading-relaxed mb-8 max-w-2xl">
+            <p className="text-base sm:text-lg text-[#445164] leading-relaxed mb-8 max-w-2xl">
               Platform terpadu untuk eksportir dan UMKM Indonesia. Dari simulasi kontainer dan kepatuhan HS Code hingga penerbitan dokumen resmi (COO, PI, SC, CI, PL, SI) dengan audit trail Bea Cukai.
             </p>
 
@@ -119,7 +119,7 @@ export function LandingPage({
               <button
                 type="button"
                 onClick={onStartDemo}
-                className="inline-flex items-center gap-2 bg-blue-700 hover:bg-blue-800 text-white font-semibold text-sm px-5 py-3 rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-2 bg-[#017EF3] hover:bg-[#0171DB] text-white font-medium text-sm px-5 py-2.5 rounded-lg shadow-sm transition-all"
               >
                 <span>Buka Sandbox Demo (Gratis)</span>
                 <ArrowRight size={16} />
@@ -128,13 +128,13 @@ export function LandingPage({
               <button
                 type="button"
                 onClick={() => onOpenAuth("register")}
-                className="inline-flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-sm px-5 py-3 rounded-lg transition-all border border-slate-300"
+                className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-[#1B2533] font-medium text-sm px-5 py-2.5 rounded-lg transition-all border border-[#D6DAE1]"
               >
                 <span>Daftar Akun Perusahaan</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-slate-100 text-xs text-slate-600 font-medium">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-6 border-t border-[#EAEFF5] text-xs text-[#445164] font-medium">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
                 <span>Dokumen Multi-Item</span>
@@ -157,7 +157,7 @@ export function LandingPage({
       </section>
 
       {/* 3. Interactive Demurrage Risk Instrument */}
-      <section id="kalkulator" className="py-16 bg-[#0B1523] text-white">
+      <section id="kalkulator" className="py-16 bg-[#131B26] text-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
@@ -184,7 +184,7 @@ export function LandingPage({
               </div>
             </div>
 
-            <div className="lg:col-span-7 bg-[#112237] rounded-xl border border-slate-700/80 p-6 space-y-6 shadow-xl">
+            <div className="lg:col-span-7 bg-[#1E293B] rounded-2xl border border-slate-700/80 p-6 space-y-6 shadow-xl">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
                   <div className="flex justify-between text-xs font-medium text-slate-300 mb-1.5">
@@ -197,7 +197,7 @@ export function LandingPage({
                     max={10}
                     value={containerCount}
                     onChange={(e) => setContainerCount(Number(e.target.value))}
-                    className="w-full accent-blue-500 cursor-pointer"
+                    className="w-full accent-[#017EF3] cursor-pointer"
                   />
                 </div>
 
@@ -212,7 +212,7 @@ export function LandingPage({
                     max={14}
                     value={delayedDays}
                     onChange={(e) => setDelayedDays(Number(e.target.value))}
-                    className="w-full accent-blue-500 cursor-pointer"
+                    className="w-full accent-[#017EF3] cursor-pointer"
                   />
                 </div>
               </div>
@@ -229,7 +229,7 @@ export function LandingPage({
                     step={10}
                     value={dailyRateUsd}
                     onChange={(e) => setDailyRateUsd(Math.max(10, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 bg-[#0B1523] border border-slate-700 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-blue-400"
+                    className="w-full px-3 py-2 bg-[#131B26] border border-slate-700 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-[#017EF3]"
                   />
                 </div>
 
@@ -240,7 +240,7 @@ export function LandingPage({
                   <select
                     value={selectedPlanId}
                     onChange={(e) => setSelectedPlanId(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#0B1523] border border-slate-700 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-blue-400"
+                    className="w-full px-3 py-2 bg-[#131B26] border border-slate-700 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-[#017EF3]"
                   >
                     {SUBSCRIPTION_PLANS.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -251,7 +251,7 @@ export function LandingPage({
                 </div>
               </div>
 
-              <div className="p-4 rounded-lg bg-[#070D16] border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="p-4 rounded-xl bg-[#131B26] border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-semibold block">
                     POTENSI DENDA DEMURRAGE
@@ -394,51 +394,51 @@ export function LandingPage({
               return (
                 <div
                   key={plan.id}
-                  className={`rounded-xl p-6 bg-white border transition-all flex flex-col justify-between ${
+                  className={`rounded-2xl p-6 bg-white border transition-all flex flex-col justify-between ${
                     isHighlight
-                      ? "border-blue-600 shadow-md ring-1 ring-blue-600"
-                      : "border-slate-200 shadow-sm"
+                      ? "border-[#017EF3] shadow-md ring-1 ring-[#017EF3]"
+                      : "border-[#EAEFF5] shadow-sm"
                   }`}
                 >
                   <div>
                     {isHighlight && (
-                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200 inline-block mb-3">
+                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#0165C2] bg-[#E6F2FE] px-2.5 py-0.5 rounded-full border border-[#CCE5FD] inline-block mb-3">
                         Paling Banyak Digunakan
                       </span>
                     )}
-                    <h3 className="text-base font-bold text-slate-950">{plan.name}</h3>
-                    <p className="text-xs text-slate-500 mt-0.5 mb-4">{plan.tagline}</p>
+                    <h3 className="text-base font-bold text-[#1B2533]">{plan.name}</h3>
+                    <p className="text-xs text-[#697483] mt-0.5 mb-4">{plan.tagline}</p>
 
-                    <div className="mb-5 pb-5 border-b border-slate-100">
+                    <div className="mb-5 pb-5 border-b border-[#EAEFF5]">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl sm:text-3xl font-extrabold text-slate-950 font-mono tracking-tight">
+                        <span className="text-2xl sm:text-3xl font-extrabold text-[#1B2533] font-mono tracking-tight">
                           {formatIdr(calc.effectiveMonthlyIdr)}
                         </span>
-                        <span className="text-xs text-slate-500 font-medium">/bln</span>
+                        <span className="text-xs text-[#697483] font-medium">/bln</span>
                       </div>
-                      <span className="text-[11px] text-slate-500 font-mono block mt-1">
+                      <span className="text-[11px] text-[#697483] font-mono block mt-1">
                         Kuota: {plan.monthlyDocQuota} dokumen / bulan
                       </span>
                     </div>
 
-                    <ul className="space-y-2.5 text-xs text-slate-700 mb-6">
+                    <ul className="space-y-2.5 text-xs text-[#445164] mb-6">
                       {plan.features.slice(0, 5).map((f) => (
                         <li key={f} className="flex items-start gap-2">
-                          <Check size={14} className="text-blue-700 shrink-0 mt-0.5" />
+                          <Check size={14} className="text-[#017EF3] shrink-0 mt-0.5" />
                           <span>{f}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="space-y-2 pt-4 border-t border-slate-100">
+                  <div className="space-y-2 pt-4 border-t border-[#EAEFF5]">
                     <button
                       type="button"
                       onClick={onStartDemo}
                       className={`w-full py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
                         isHighlight
-                          ? "bg-blue-700 hover:bg-blue-800 text-white shadow-sm"
-                          : "bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300"
+                          ? "bg-[#017EF3] hover:bg-[#0171DB] text-white shadow-sm"
+                          : "bg-white hover:bg-slate-50 text-[#1B2533] border border-[#D6DAE1]"
                       }`}
                     >
                       Coba Demo 3 Hari
@@ -446,7 +446,7 @@ export function LandingPage({
                     <button
                       type="button"
                       onClick={() => onOpenAuth("register")}
-                      className="w-full text-center text-xs font-semibold text-slate-600 hover:text-slate-900 py-1.5 transition-colors"
+                      className="w-full text-center text-xs font-semibold text-[#697483] hover:text-[#1B2533] py-1.5 transition-colors"
                     >
                       Daftar Langsung
                     </button>

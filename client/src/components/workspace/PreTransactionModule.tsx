@@ -230,17 +230,15 @@ export function PreTransactionModule({
 
   return (
     <div className="module-stack" style={{ gap: 16 }}>
-      {/* Hero Banner */}
+      {/* Space DS Module Header */}
       <section className="ef-module-hero">
         <div className="ef-module-hero-copy">
-          <span className="eyebrow" style={{ color: "#fbbf24" }}>
-            AKUSISI BUYER &amp; PRA-TRANSAKSI EKSPOR
+          <span className="eyebrow" style={{ color: "var(--brand-primary)" }}>
+            AKUISISI &amp; PRA-TRANSAKSI
           </span>
-          <h2>Generator Penawaran AI &amp; Validasi Calon Buyer</h2>
+          <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
           <p className="lead">
-            Susun surat perkenalan (Inquiry), Quotation harga {shipment.incoterm}, maupun draf negosiasi T/T
-            dalam 3 gaya bahasa (Formal, Semi-Formal, Casual) sambil memastikan legalitas calon importir
-            sebelum menerbitkan Proforma Invoice.
+            Susun penawaran harga {shipment.incoterm} dan lakukan verifikasi legalitas calon importir sebelum menerbitkan Proforma Invoice.
           </p>
           <div className="ef-hero-actions">
             <button type="button" className="ef-hero-btn-primary" onClick={handleCopyDraft}>
