@@ -610,6 +610,205 @@ export function getScreenAdvisorInsight(
  * Intelligent Customer Support & System Troubleshooting Engine
  * Melayani pertanyaan operasional ekspor dan kendala teknis sistem EksporFlow
  */
+/**
+ * Screen Guidance Engine: Memberikan penjelasan fungsi layar, langkah kerja, dan rekomendasi AI
+ */
+export function getScreenExplanation(
+  screen: ScreenId,
+  screenTitle: string,
+  shipment: Shipment,
+  pricing: Pricing,
+  container: ContainerCalc
+): string {
+  switch (screen) {
+    case "dashboard":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Dashboard adalah pusat komando operasional ekspor real-time untuk memantau indikator kunci (KPI), kepatuhan devisa negara (DHE SDA), pelacakan pengapalan kontainer samudera, sebaran pasar ekspor, dan kesiapan dokumen kepabeanan.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Periksa 4 Kartu KPI Utama di baris atas: Nilai Kontrak (${formatMoney(pricing.active.offer, shipment.currency)}), Realisasi Devisa DHE, Kepatuhan PP 36/2023, dan Muatan Kontainer.
+- **Langkah 2:** Pantau 6 Milestone Pelacakan Pengapalan Samudera (*Stuffing ➔ Karantina ➔ Bea Cukai ➔ Gate-in POL ➔ Pelayaran ➔ POD*).
+- **Langkah 3:** Gunakan Filter Rentang Waktu (di sebelah tombol 'Unduh Laporan') untuk menganalisis data periode tertentu layaknya Meta Ads Manager.
+- **Langkah 4:** Pastikan indikator Dokumen Wajib Ekspor berstatus **6/6 Valid** sebelum kargo masuk pelabuhan.
+
+**3. 💡 Rekomendasi AI Advisor untuk Transaksi (${shipment.reference || "EksporFlow"}):**
+- Komoditas **${shipment.product}** ke **${shipment.destination}** saat ini memiliki estimasi margin **${shipment.margin}%** (${shipment.incoterm || "FOB"}).
+- Pastikan jadwal closing kargo dengan shipping line terkonfirmasi minimal 3 hari sebelum ETD untuk menghindari biaya rollover kargo.`;
+
+    case "readiness":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Asesmen Kesiapan Ekspor digunakan untuk mengaudit kesiapan legalitas perusahaan (NIB, NPWP, Kepabeanan), sertifikasi mutu/karantina komoditas, serta kelayakan kemasan internasional sebelum menerima pesanan luar negeri.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Periksa kelengkapan izin dasar berusaha (NIB Berbasis Risiko & Akses Kepabeanan DJBC).
+- **Langkah 2:** Cek persyaratan teknis komoditas ${shipment.product} (Sertifikat Fitosanitari, Uji Lab Kontaminan, sertifikat Halal/Organik jika diminta buyer).
+- **Langkah 3:** Pastikan standar packaging ekspor (perlakuan panas kayu ISPM-15, palleting, dan marka label tahan air).
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Selesaikan seluruh uji mutu dan pengajuan perizinan karantina minimal 14 hari sebelum proses pemuatan (stuffing) agar tidak terjadi hambatan di jalur Bea Cukai.`;
+
+    case "pre_transaction":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Pra-Transaksi & Buyer adalah modul intelijen dagang untuk memverifikasi keabsahan profil calon buyer luar negeri, validasi identitas pajak/usaha (VAT/EORI), mitigasi sanksi negara tujuan, dan evaluasi keamanan metode pembayaran.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Masukkan profil calon pembeli (Nama Perusahaan, Negara Asal, Alamat Kantor, Website, dan PIC).
+- **Langkah 2:** Lakukan verifikasi nomor registrasi bisnis, VAT (Eropa/UK), atau EORI untuk memastikan entitas pembeli riil dan aktif.
+- **Langkah 3:** Tinjau skor risiko negara tujuan (${shipment.buyerCountry || "Tujuan"}) terhadap risiko politik, pembatasan devisa, atau embargo internasional.
+- **Langkah 4:** Tentukan syarat pembayaran yang aman sebelum menerbitkan Proforma Invoice resmi.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Untuk buyer baru (${shipment.buyer || "Calon Buyer"}), wajibkan minimal Down Payment (DP) 30% T/T di awal dan pelunasan 70% terhadap salinan Bill of Lading (Copy of B/L), atau gunakan Irrevocable Letter of Credit (L/C) At Sight yang diterbitkan bank tier-1 internasional.`;
+
+    case "transactions":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Pesanan Ekspor adalah ruang kerja untuk mengelola seluruh siklus pemenuhan kontrak dagang dari status Draft, Dikonfirmasi, Produksi/Pengadaan, Muat Kapal, hingga Selesai.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Buat kontrak baru via tombol '+ Transaksi Baru' atau pilih transaksi aktif (${shipment.reference || "EksporFlow"}).
+- **Langkah 2:** Perbarui status tahapan transaksi sesuai kemajuan di lapangan.
+- **Langkah 3:** Tautkan nomor referensi Sales Contract, PO Buyer, dan Commercial Invoice untuk menjaga jejak audit yang terintegrasi.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Kunci (lock) spesifikasi pesanan dan nilai penawaran begitu Sales Contract ditandatangani. Amandemen pesanan wajib dicatat tertulis melalui addendum resmi.`;
+
+    case "po_intake":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Input PO adalah gerbang digital untuk mengekstrak dan memvalidasi berkas Purchase Order (PO) atau Letter of Intent (LOI) dari buyer luar negeri secara cepat dan akurat.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Klik tombol 'Scan PO / OCR' untuk mengunggah dokumen PO buyer (PDF, PNG, atau JPG).
+- **Langkah 2:** AI akan membaca dan mengekstrak nomor PO, nama buyer, komoditas, volume, harga satuan, dan port tujuan.
+- **Langkah 3:** Tinjau hasil ekstraksi pada formulir pratinjau, lalu klik 'Simpan & Sinkronkan ke Transaksi'.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Waspadai inkonsistensi antara port tujuan pada PO buyer dengan penawaran awal Anda, karena perbedaan port akan berdampak langsung pada biaya ocean freight dan asuransi laut.`;
+
+    case "pricing":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Harga & Order adalah kalkulator matematis presisi tinggi untuk membedah struktur biaya ekspor (HPP, trucking, THC, freight, asuransi) dan menyimulasikan penawaran harga pada 7 skenario Incoterms® 2020 (EXW, FOB, CFR, CIF, CPT, CIP, DDP).
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Masukkan harga modal beli (HPP) komoditas ${shipment.product} (${formatNumber(shipment.quantity)} ${shipment.unit}).
+- **Langkah 2:** Masukkan estimasi biaya pengurusan lokal (trucking gudang ke pelabuhan, THC, sertifikasi karantina).
+- **Langkah 3:** Bandingkan penawaran pada matriks 7 Incoterms®. Klik 'Pilih' pada term yang diinginkan (term aktif saat ini: **${shipment.incoterm}** senilai **${formatMoney(pricing.active.offer, shipment.currency)}**).
+- **Langkah 4:** Pantau margin laba bersih (${shipment.margin}%) agar tetap memenuhi target profitabilitas perusahaan.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Sertakan buffer kontinjensi minimal 3-5% dari nilai penawaran untuk memproteksi margin dari fluktuasi tarif freight dan demurrage pelabuhan.`;
+
+    case "approvals":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Persetujuan adalah modul tata kelola internal (Segregation of Duties) di mana direksi atau manajer mengevaluasi kelayakan kontrak, kepatuhan margin harga, dan syarat pembayaran sebelum Sales Contract diterbitkan resmi ke buyer.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Tinjau ringkasan pesanan, profil buyer, skenario Incoterm, dan margin keuntungan.
+- **Langkah 2:** Cek catatan kepatuhan atau dispensasi harga jika margin di bawah target perusahaan.
+- **Langkah 3:** Berikan keputusan resmi: 'Setujui Kontrak' atau 'Minta Revisi' disertai catatan perbaikan.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Jangan menyetujui kontrak dengan syarat pembayaran Open Account (pembayaran setelah barang tiba) untuk buyer baru tanpa jaminan asuransi kredit ekspor (Askrindo/Indonesia Eximbank).`;
+
+    case "documents":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Dokumen Ekspor adalah pusat pembuatan, verifikasi 3-way match, pengunduhan, dan pencetakan dokumen ekspor internasional (Commercial Invoice, Packing List, Sales Contract, Shipping Instruction).
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Pilih tab dokumen yang ingin Anda proses (Commercial Invoice, Packing List, Sales Contract, SI).
+- **Langkah 2:** Pastikan nomor invoice, nomor kontainer, segel pelayaran, dan kode HS sama persis di seluruh lembar dokumen.
+- **Langkah 3:** Klik 'Download PDF' atau 'Cetak Dokumen' untuk menghasilkan dokumen berstandar kepabeanan siap tandatangan.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Periksa konsistensi 3-Way Match antara Invoice, Packing List, dan Bill of Lading. Perbedaan 1 huruf pada nama buyer atau 1 kg berat kotor dapat menyebabkan kontainer tertahan (*Customs Hold*) di negara tujuan.`;
+
+    case "cargo":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Rencana Muatan adalah simulator 3D kontainer (Stuffing Optimizer) untuk memaksimalkan kapasitas kubikasi (CBM), distribusi berat, dan stabilitas susunan kargo di dalam kontainer 20GP, 40GP, atau 40HC.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Tentukan kemasan (Karton, Karung Kopi ICO 60kg, Drum 200L, atau Palet Standar ISO/EPAL).
+- **Langkah 2:** Masukkan dimensi dan berat per koli muatan.
+- **Langkah 3:** Amati visualisasi sebaran muatan 3D dan cek tingkat utilisasi volume (${container.volumeUtilization}%) dan berat (${container.weightUtilization}%).
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Usahakan utilisasi kontainer mencapai minimal 75-85% untuk menekan beban biaya pengangkutan per satuan berat/unit komoditas.`;
+
+    case "shipment":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Pelacakan Kontainer digunakan untuk memantau pergerakan fisik kargo maritim secara real-time dari pelabuhan muat (POL Tanjung Priok/Tanjung Perak) hingga pelabuhan tujuan (POD).
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Masukkan nomor Bill of Lading (B/L) dan nomor kontainer.
+- **Langkah 2:** Pantau jadwal Estimated Time of Departure (ETD) dan Estimated Time of Arrival (ETA).
+- **Langkah 3:** Koordinasikan dengan freight forwarder untuk rilis dokumen Original B/L atau Telex Release segera setelah pembayaran buyer dilunasi.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Jangan melepaskan instruksi rilis kargo (Telex Release / Surrendered B/L) ke agen pelayaran sebelum konfirmasi dana pelunasan dari buyer masuk ke rekening devisa Anda.`;
+
+    case "compliance":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+HS Code & Lartas adalah modul kepatuhan kepabeanan untuk memverifikasi kode klasifikasi barang 8-digit BTKI 2022, aturan Larangan dan Pembatasan (Lartas) INSW, ketentuan Surat Keterangan Asal (e-SKA), dan kepatuhan devisa Bank Indonesia (PP 36/2023).
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Validasi kode HS ${shipment.hsCode || "komoditas Anda"} pada sistem INSW.
+- **Langkah 2:** Identifikasi perizinan ekspor khusus (misal: Laporan Surveyor, Eksportir Terdaftar, atau sertifikat fitosanitari karantina tumbuhan).
+- **Langkah 3:** Pastikan kepatuhan retensi 30% devisa DHE SDA selama minimal 90 hari di bank devisa Indonesia jika nilai PEB mencapai minimal USD 250,000.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Siapkan permohonan e-SKA (Form D / Form AK / Form ICO) segera setelah NPE diterbitkan oleh Bea Cukai untuk membantu buyer mendapatkan keringanan bea masuk di negara tujuan.`;
+
+    case "finance":
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Keuangan & Devisa adalah modul kontrol arus kas ekspor untuk memantau penerimaan devisa hasil ekspor (DHE), pembayaran vendor operasional (freight, karantina, trucking, broker), dan analisis laba bersih realisasi.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Catat penerimaan uang muka (DP) dan tanggal pelunasan dari buyer.
+- **Langkah 2:** Input realisasi biaya logistik riil untuk dibandingkan dengan estimasi penawaran awal.
+- **Langkah 3:** Cek kepatuhan pelaporan devisa DHE ke Sistem Informasi Devisa Hasil Ekspor (SiMoDIS) Bank Indonesia.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Gunakan rekening khusus DHE SDA pada bank devisa nasional agar terhindar dari sanksi administratif dan penangguhan layanan kepabeanan oleh DJBC.`;
+
+    default:
+      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+
+**1. Fungsi & Tujuan Layar:**
+Layar ini adalah bagian dari ekosistem operasional terpadu EksporFlow yang membantu mengelola parameter transaksi, kepatuhan, dan alur ekspor Anda secara terstruktur.
+
+**2. Langkah Kerja di Layar Ini:**
+- **Langkah 1:** Tinjau data dan tabel yang disajikan pada layar ini.
+- **Langkah 2:** Lakukan penyesuaian data atau input parameter yang dibutuhkan untuk transaksi ${shipment.reference || "ekspor"}.
+- **Langkah 3:** Data yang Anda masukkan otomatis tersinkronisasi dan aman di sistem.
+
+**3. 💡 Rekomendasi AI Advisor:**
+- Jika ada istilah ekspor atau alur sistem yang membingungkan, Anda dapat langsung mengetikkan pertanyaan pada kolom chat di bawah!`;
+  }
+}
+
 export function getCustomerSupportAnswer(
   question: string,
   context: {
@@ -623,6 +822,115 @@ export function getCustomerSupportAnswer(
 ): string {
   const q = question.toLowerCase();
   const { shipment, pricing, container, flow, screenTitle } = context;
+
+  // 0. Pertanyaan seputar fungsi layar, panduan langkah, atau kebingungan customer
+  if (
+    q.includes("fungsi layar") ||
+    q.includes("apa fungsi") ||
+    q.includes("bingung") ||
+    q.includes("langkah apa") ||
+    q.includes("cara kerja") ||
+    q.includes("harus saya lakukan") ||
+    q.includes("panduan layar") ||
+    q.includes("rekomendasi layar") ||
+    q.includes("jelaskan rekomendasi")
+  ) {
+    return getScreenExplanation(context.screen, screenTitle, shipment, pricing, container);
+  }
+
+  // 0.1 Devisa Hasil Ekspor (DHE SDA) & PP 36/2023
+  if (
+    q.includes("dhe") ||
+    q.includes("devisa") ||
+    q.includes("pp 36") ||
+    q.includes("rekening khusus") ||
+    q.includes("bi") ||
+    q.includes("bank indonesia")
+  ) {
+    return `### 🏦 Regulasi Devisa Hasil Ekspor (DHE SDA - PP 36/2023)
+
+1. **Kewajiban Penempatan DHE SDA:**
+   - Berdasarkan **PP No. 36 Tahun 2023**, eksportir barang Sumber Daya Alam (Pertambangan, Perkebunan, Kehutanan, Perikanan) dengan nilai ekspor pada PEB **minimal USD 250,000** (atau ekuivalennya) wajib menempatkan devisanya ke dalam Sistem Keuangan Indonesia.
+   - Penempatan dilakukan pada **Rekening Khusus DHE SDA** di Bank Devisa Nasional atau instrumen penempatan Bank Indonesia (Term Deposit Valas, Promissory Note, dll).
+
+2. **Ketentuan Jumlah & Jangka Waktu:**
+   - Besaran: Minimal **30% dari nilai DHE** wajib disimpan dalam rekening khusus.
+   - Tenor: Paling singkat **3 bulan (90 hari)** sejak dana masuk.
+
+3. **Sanksi Ketidakpatuhan:**
+   - Bea Cukai (DJBC) dapat mengenakan sanksi berupa **penangguhan pelayanan ekspor (blokir PEB)** jika tidak mematuhi ketentuan DHE SDA BI.`;
+  }
+
+  // 0.2 Surat Keterangan Asal (e-SKA / Certificate of Origin)
+  if (
+    q.includes("ska") ||
+    q.includes("coo") ||
+    q.includes("surat keterangan asal") ||
+    q.includes("form d") ||
+    q.includes("form e") ||
+    q.includes("form ak") ||
+    q.includes("form ico")
+  ) {
+    return `### 📜 Panduan Surat Keterangan Asal (e-SKA / Certificate of Origin)
+
+1. **Fungsi e-SKA:**
+   - Membuktikan bahwa barang berasal/diproduksi di Indonesia (Rules of Origin).
+   - Memberikan fasilitas **preferensi tarif / pembebasan bea masuk (0% duty)** bagi buyer di negara tujuan melalui perjanjian Free Trade Agreement (FTA).
+
+2. **Jenis Form SKA Populer:**
+   - **Form D:** Kawasan ASEAN (ATIGA)
+   - **Form E:** China (ACFTA)
+   - **Form AK:** Korea Selatan (AKFTA)
+   - **Form AJ / IJEPA:** Jepang
+   - **Form ICO:** Ekspor Kopi Internasional (International Coffee Organization)
+   - **Form B (Non-Preferensial):** Negara tanpa skema perjanjian FTA khusus.
+
+3. **Prosedur Pengajuan:**
+   - Diajukan secara online melalui portal **e-SKA Kemendag / INSW** sesaat setelah dokumen PEB dan NPE (Nota Pelayanan Ekspor) terbit.`;
+  }
+
+  // 0.3 Karantina, Fitosanitari & Sertifikasi Mutu
+  if (
+    q.includes("fitosanitari") ||
+    q.includes("phytosanitary") ||
+    q.includes("karantina") ||
+    q.includes("fumigasi") ||
+    q.includes("ispm")
+  ) {
+    return `### 🌱 Karantina Tumbuhan, Fitosanitari & Fumigasi ISPM-15
+
+1. **Phytosanitary Certificate (PC):**
+   - Diterbitkan oleh **Badan Karantina Indonesia (Barantin)** untuk membuktikan produk pertanian/tumbuhan (kopi, rempah, buah, kayu) bebas dari hama dan penyakit target karantina.
+   - Pemeriksaan dilakukan di gudang eksportir atau di laboratorium karantina pelabuhan muat.
+
+2. **Standar Fumigasi ISPM-15 (Kemasan Kayu):**
+   - Palet kayu atau krat kayu ekspor wajib melalui perlakuan panas (*Heat Treatment / HT*) atau fumigasi dan diberi stempel cap resmi **IPPC / ISPM-15**.
+   - Tanpa sertifikat fumigasi, kargo kayu berisiko dimusnahkan atau direekspor oleh otoritas karantina negara tujuan.`;
+  }
+
+  // 0.4 Letter of Credit (L/C) & Metode Pembayaran Aman
+  if (
+    q.includes("letter of credit") ||
+    q.includes("lc") ||
+    q.includes("l/c") ||
+    q.includes("payment") ||
+    q.includes("pembayaran") ||
+    q.includes("metode bayar")
+  ) {
+    return `### 💳 Metode Pembayaran Ekspor & Manajemen Risiko Finansial
+
+1. **Irrevocable L/C At Sight (Paling Aman):**
+   - Jaminan pembayaran dari bank pembeli (Issuing Bank) kepada bank eksportir (Advising/Confirming Bank) saat seluruh dokumen ekspor yang disyaratkan dinyatakan *complying presentation*.
+   - Direkomendasikan untuk transaksi bernilai besar atau buyer baru.
+
+2. **Telegraphic Transfer (T/T) Kombinasi:**
+   - **30% Advance Payment (DP)** saat kontrak ditandatangani untuk modal kerja.
+   - **70% Final Payment** dibayarkan buyer setelah eksportir mengirimkan salinan draft Bill of Lading (Copy of B/L).
+   - Dokumen Original B/L / Telex Release baru dilepaskan setelah dana 100% masuk ke rekening eksportir.
+
+3. **Hindari:**
+   - **Open Account (O/A)** tanpa asuransi kredit ekspor (Askrindo/Eximbank) untuk buyer yang belum memiliki rekam jejak kerja sama terpercaya.`;
+  }
 
   // 1. Simpan data / Sandbox / Cloud / Save / Data Hilang
   if (
@@ -1391,7 +1699,7 @@ export function ScreenAIFloatingWidget({
         setMessages([
           {
             role: "assistant",
-            content: `Halo! Saya **AI Advisor & Assistant EksporFlow**.\n\nSaya siap membantu analisis regulasi ekspor transaksi **${shipment.reference || "EksporFlow"}** maupun membantu saat Anda mengalami **kendala dalam sistem** (cara simpan data, scan PO, cetak dokumen, ganti Incoterm, dll).\n\nAda yang bisa saya bantu hari ini?`,
+            content: `Halo! Saya **EksporFlow AI Advisor**.\n\nSaya fokus membantu Anda menganalisis **regulasi & kepatuhan ekspor**, memandu Anda jika **bingung dengan alur kerja di Layar ${screenTitle}**, serta memberikan **rekomendasi terbaik** untuk transaksi **${shipment.reference || "EksporFlow"}**.\n\nSilakan pilih topik rekomendasi di atas atau tanyakan hal apapun seputar ekspor dan operasional layar ini!`,
           },
         ]);
       }
@@ -1529,11 +1837,11 @@ export function ScreenAIFloatingWidget({
           type="button"
           className="ai-float-trigger-btn"
           onClick={onToggle}
-          aria-label="Bantuan Sistem & AI Advisor Ekspor"
-          title="Bantuan Sistem & AI Advisor Ekspor"
+          aria-label="AI Advisor Ekspor"
+          title="AI Advisor Ekspor - Tanya Regulasi Ekspor & Rekomendasi Layar"
         >
           <Sparkles size={16} />
-          <span className="ai-float-trigger-label">Bantuan &amp; AI Advisor</span>
+          <span className="ai-float-trigger-label">AI Advisor</span>
           <span
             className={`ai-float-trigger-badge ${
               insight.riskLevel === "danger"
@@ -1580,9 +1888,9 @@ export function ScreenAIFloatingWidget({
             </div>
 
             <div style={{ marginTop: "6px" }}>
-              <h4>Konsultasi Regulasi &amp; Bantuan Sistem</h4>
+              <h4>EksporFlow AI Advisor</h4>
               <p>
-                <span className="ai-float-dot" /> Asisten real-time · {shipment.reference || "EksporFlow"}
+                <span className="ai-float-dot" /> Konsultan Ekspor &amp; Rekomendasi Layar {screenTitle}
               </p>
             </div>
           </div>
@@ -1599,35 +1907,46 @@ export function ScreenAIFloatingWidget({
 
           {/* Isi Pesan Konsultasi */}
           <div className="ai-float-body">
-            {/* Kartu Insight Temuan Risiko Menu Saat Ini */}
+            {/* 1. Kartu Rekomendasi Utama Layar Saat Ini */}
             <div className={`ai-float-insight ${insight.riskLevel}`}>
               <div className="ai-float-insight-head">
-                <span>{insight.badgeText}</span>
+                <span>REKOMENDASI LAYAR {screenTitle.toUpperCase()}</span>
               </div>
               <h5>{insight.title}</h5>
               <p>{insight.mitigationText}</p>
-            </div>
-
-            {/* Pilihan Tanya Cepat */}
-            <div className="ai-float-chips-wrap">
-              <span className="ai-float-chips-title">PILIHAN TANYA CEPAT:</span>
-              {insight.suggestedQuestions.map((q, idx) => (
+              <div style={{ marginTop: 8 }}>
                 <button
-                  key={idx}
                   type="button"
                   className="ai-float-chip"
-                  onClick={() => handleSend(q)}
+                  style={{ background: "#ffffff", borderColor: "#cbd5e1", fontWeight: 600, color: "#0f172a" }}
+                  onClick={() => handleSend(`Jelaskan rekomendasi dan langkah mitigasi untuk Layar ${screenTitle}: "${insight.title}"`)}
                   disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
-                  {q}
+                  💡 Pelajari / Bahas Rekomendasi Ini
                 </button>
-              ))}
+              </div>
             </div>
 
-            {/* Pilihan Bantuan Kendala Sistem */}
-            <div className="ai-float-chips-wrap" style={{ marginTop: "4px" }}>
-              <span className="ai-float-chips-title">BANTUAN SISTEM &amp; KENDALA:</span>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+            {/* 2. Pilihan: Bingung di Layar Ini? (Panduan Langkah & Alur) */}
+            <div className="ai-float-chips-wrap">
+              <span className="ai-float-chips-title">BINGUNG DI LAYAR INI?</span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                <button
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend(`Apa fungsi dan tujuan utama Layar ${screenTitle}?`)}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
+                >
+                  🧭 Apa fungsi layar ini?
+                </button>
+                <button
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend(`Langkah apa yang harus saya lakukan di Layar ${screenTitle}?`)}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
+                >
+                  🚀 Langkah apa yang harus saya lakukan?
+                </button>
                 <button
                   type="button"
                   className="ai-float-chip"
@@ -1644,22 +1963,24 @@ export function ScreenAIFloatingWidget({
                 >
                   📄 Cetak Dokumen
                 </button>
-                <button
-                  type="button"
-                  className="ai-float-chip"
-                  onClick={() => handleSend("Bagaimana cara mengubah Incoterm dan cek harga penawaran?")}
-                  disabled={assistantMutation.isPending || isAnsweringLocal}
-                >
-                  🚢 Ganti Incoterm
-                </button>
-                <button
-                  type="button"
-                  className="ai-float-chip"
-                  onClick={() => handleSend("Bagaimana cara menghubungi customer support jika ada kendala sistem?")}
-                  disabled={assistantMutation.isPending || isAnsweringLocal}
-                >
-                  📞 Kontak CS Support
-                </button>
+              </div>
+            </div>
+
+            {/* 3. Pilihan: Tanya Regulasi & Praktik Ekspor */}
+            <div className="ai-float-chips-wrap" style={{ marginTop: "4px" }}>
+              <span className="ai-float-chips-title">TANYA REGULASI &amp; PRAKTIK EKSPOR:</span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {insight.suggestedQuestions.map((q, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="ai-float-chip"
+                    onClick={() => handleSend(q)}
+                    disabled={assistantMutation.isPending || isAnsweringLocal}
+                  >
+                    {q}
+                  </button>
+                ))}
               </div>
             </div>
 
@@ -1748,7 +2069,7 @@ export function ScreenAIFloatingWidget({
                 type="text"
                 value={inputQuestion}
                 onChange={(e) => setInputQuestion(e.target.value)}
-                placeholder="Tulis pesan atau pilih pertanyaan di atas..."
+                placeholder="Tanya seputar ekspor atau kendala di layar ini..."
                 disabled={assistantMutation.isPending || isAnsweringLocal}
               />
               <button
