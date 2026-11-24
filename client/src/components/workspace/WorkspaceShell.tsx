@@ -1,4 +1,3 @@
-import { DatePickerPopover } from "./DatePickerPopover";
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
 import { toast } from "sonner";
 import {
@@ -7,10 +6,15 @@ import {
   type UserSession,
 } from "@/lib/supabaseAuth";
 import type { ScreenId } from "@shared/risk";
+import { DateRangePickerPopover, type DateRange } from "./DateRangePickerPopover";
+import { SupportModal } from "./SupportModal";
+import { LanguageDropdown, type SupportedLocale } from "./LanguageDropdown";
+import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
 import {
   AlertTriangle,
   BarChart3,
   Bell,
+  BellOff,
   HelpCircle,
   BookOpen,
   Bot,
@@ -503,9 +507,15 @@ export function WorkspaceShell({
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [activeLocale, setActiveLocale] = useState<"ID" | "EN">("ID");
-  const [activeDate, setActiveDate] = useState<Date>(new Date(2026, 10, 24));
-  const [showCalendarInfo, setShowCalendarInfo] = useState(false);
+  const [activeLocale, setActiveLocale] = useState<SupportedLocale>("ID");
+  const [dateRange, setDateRange] = useState<DateRange>({
+    startDate: new Date(2026, 10, 1),
+    endDate: new Date(2026, 10, 24),
+    label: "Bulan Ini",
+    presetKey: "this_month",
+  });
+  const [showSupportModal, setShowSupportModal] = useState<boolean>(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   const [consultationPrompt, setConsultationPrompt] = useState("");
@@ -691,7 +701,8 @@ export function WorkspaceShell({
 
       <main className="main-content">
         <header className="topbar">
-          <div className="topbar-left" style={{ gap: 16 }}>
+          {/* Topbar Left: Navigation Toggle + Minimal Context Breadcrumb */}
+          <div className="topbar-left" style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button
               type="button"
               className="topbar-menu-btn"
@@ -701,17 +712,26 @@ export function WorkspaceShell({
             >
               {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
             </button>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#64748B" }}>
+              <span style={{ fontWeight: 600, color: "#0F172A" }}>EksporFlow</span>
+              <span>/</span>
+              <span>{activeMeta.title}</span>
+            </div>
+          </div>
 
-            {/* Space DS Embedded Omni Search */}
-            <div className="space-topbar-omni">
-              <Search size={15} />
+          {/* Topbar Right Actions: Search + Bantuan + Notifikasi + Bahasa (Grouped Closely Together on Right) */}
+          <div className="topbar-actions" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* 1. Global Search Box (Right Aligned next to tools) */}
+            <div className="space-topbar-omni" style={{ width: 230, position: "relative" }}>
+              <Search size={14} style={{ color: "#64748B" }} />
               <input
                 value={searchTerm}
                 onChange={(event) => {
                   setSearchTerm(event.target.value);
                   setSearchOpen(Boolean(event.target.value.trim()));
                 }}
-                placeholder="Search your transaction ..."
+                placeholder="Cari transaksi, B/L..."
+                style={{ fontSize: 12.5 }}
                 onKeyDown={(event) => {
                   if (event.key === "Escape") {
                     setSearchOpen(false);
@@ -738,7 +758,7 @@ export function WorkspaceShell({
             </div>
 
             {searchOpen && matchingScreens.length > 0 && (
-              <div className="top-search-dropdown" style={{ position: "absolute", top: 52, left: 60, zIndex: 100 }}>
+              <div className="top-search-dropdown" style={{ position: "absolute", top: 52, right: 280, zIndex: 100 }}>
                 {matchingScreens.map((m) => (
                   <button
                     type="button"
@@ -755,32 +775,20 @@ export function WorkspaceShell({
                 ))}
               </div>
             )}
-          </div>
 
-          <div className="topbar-actions" style={{ gap: 10 }}>
-            {/* Real Interactive Date Picker Popover */}
-            <DatePickerPopover
-              selectedDate={activeDate}
-              onSelectDate={(d) => {
-                setActiveDate(d);
-                toast.success("Tanggal operasional diperbarui");
-              }}
-              locale={activeLocale}
-            />
-
-            {/* AI Advisor Action (Single Primary Entry Point) */}
+            {/* 2. Bantuan / Support Button (Replaces top AI Advisor) */}
             <button
               type="button"
               className="space-btn-secondary"
-              onClick={() => navigate("advisor")}
-              title="Konsultasi Regulasi Ekspor & AI Advisor"
+              onClick={() => setShowSupportModal(true)}
+              title="Pusat Bantuan & Hubungi Tim Dukungan"
               style={{ padding: "6px 12px", fontSize: 12.5 }}
             >
-              <Sparkles size={13} style={{ color: "#2563EB" }} />
-              <span>AI Advisor</span>
+              <HelpCircle size={14} style={{ color: "#2563EB" }} />
+              <span>Bantuan</span>
             </button>
 
-            {/* Functional Notification Bell */}
+            {/* 3. Notification Bell with Empty State & Mark Read */}
             <div style={{ position: "relative" }}>
               <button
                 type="button"
@@ -791,69 +799,114 @@ export function WorkspaceShell({
                 style={{ position: "relative" }}
               >
                 <Bell size={16} />
-                <span
-                  style={{
-                    position: "absolute",
-                    top: 4,
-                    right: 4,
-                    width: 7,
-                    height: 7,
-                    borderRadius: "50%",
-                    background: "#EF4444",
-                  }}
-                />
+                {hasUnreadNotifications && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: 4,
+                      right: 4,
+                      width: 7,
+                      height: 7,
+                      borderRadius: "50%",
+                      background: "#EF4444",
+                    }}
+                  />
+                )}
               </button>
               {showNotifications && (
-                <div style={{ position: "absolute", top: 42, right: 0, width: 330, background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: 16, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.12)", zIndex: 120 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #F1F5F9" }}>
-                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Notifikasi Operasional (3)</strong>
-                    <button type="button" style={{ background: "none", border: "none", fontSize: 11.5, color: "#0066FF", cursor: "pointer", fontWeight: 600 }} onClick={() => setShowNotifications(false)}>Tutup</button>
+                <div
+                  style={{
+                    position: "absolute",
+                    top: 42,
+                    right: 0,
+                    width: 320,
+                    background: "#FFFFFF",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 12,
+                    padding: 16,
+                    boxShadow: "0 10px 25px -5px rgba(0,0,0,0.12)",
+                    zIndex: 220,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 12,
+                      paddingBottom: 8,
+                      borderBottom: "1px solid #F1F5F9",
+                    }}
+                  >
+                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Notifikasi</strong>
+                    <button
+                      type="button"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        fontSize: 11.5,
+                        color: "#2563EB",
+                        cursor: "pointer",
+                        fontWeight: 500,
+                      }}
+                      onClick={() => {
+                        setHasUnreadNotifications(false);
+                        toast.success("Semua notifikasi ditandai sudah dibaca");
+                      }}
+                    >
+                      Tandai sudah dibaca
+                    </button>
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12 }}>
-                    <div style={{ padding: "8px 10px", background: "#F8FAFC", borderRadius: 8, color: "#334155" }}>
-                      🚢 <b>MV CMA CGM Dignity:</b> Kontainer FCL 20ft on board menuju Los Angeles (ETA 18 Des).
+                  {/* Clean Empty State as requested by user */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "24px 12px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 40,
+                        height: 40,
+                        borderRadius: "50%",
+                        background: "#F8FAFC",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        color: "#94A3B8",
+                        marginBottom: 10,
+                      }}
+                    >
+                      <BellOff size={18} />
                     </div>
-                    <div style={{ padding: "8px 10px", background: "#F0FDF4", borderRadius: 8, color: "#166534" }}>
-                      🛃 <b>PEB No. 084920:</b> Jalur Hijau NPE terbit dari Bea Cukai Tanjung Priok.
-                    </div>
-                    <div style={{ padding: "8px 10px", background: "#EFF6FF", borderRadius: 8, color: "#1E40AF" }}>
-                      🏦 <b>Bank Mandiri:</b> Devisa Masuk $24,590.00 masuk rekening DHE SDA.
-                    </div>
+                    <strong style={{ fontSize: 12.5, color: "#0F172A", marginBottom: 4 }}>
+                      Belum ada notifikasi baru
+                    </strong>
+                    <p style={{ margin: 0, fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>
+                      Semua pembaruan sistem, dokumen kepabeanan, dan jadwal kapal akan muncul di sini.
+                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Language / Region Selector Toggle */}
-            <button
-              type="button"
-              className="space-topbar-pill"
-              onClick={() => {
-                const next = activeLocale === "ID" ? "EN" : "ID";
-                setActiveLocale(next);
-                toast.success(next === "ID" ? "Bahasa diubah ke Bahasa Indonesia" : "Language switched to English");
+            {/* 4. Language Selector Dropdown (ID 🇮🇩 / EN 🇺🇸 / AR 🇸🇦) */}
+            <LanguageDropdown
+              currentLocale={activeLocale}
+              onSelectLocale={(loc) => {
+                setActiveLocale(loc);
+                const labels: Record<string, string> = {
+                  ID: "Bahasa Indonesia",
+                  EN: "English (US)",
+                  AR: "العربية (Arabic)",
+                };
+                toast.success(`Bahasa sistem diubah ke: ${labels[loc]}`);
               }}
-              title="Ganti Bahasa (ID / EN)"
-            >
-              <span style={{ fontSize: 13 }}>{activeLocale === "ID" ? "🇮🇩" : "🇺🇸"}</span>
-              <span>{activeLocale === "ID" ? "ID" : "ENG"}</span>
-              <ChevronDown size={12} />
-            </button>
-
-            {/* Cloud Supabase Persistence Badge */}
-            <button
-              type="button"
-              className="sync-status-badge sync-saved tabular-nums"
-              style={{ cursor: "pointer", background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", color: "#065F46" }}
-              title="Terhubung ke PostgreSQL / Supabase Cloud"
-              onClick={() => {
-                if (onSave) onSave();
-                toast.success("Database Supabase Terhubung", { description: "Semua perubahan transaksi tersinkronisasi otomatis ke Cloud." });
-              }}
-            >
-              <Cloud size={13} style={{ color: "#10B981" }} />
-              <span>Cloud Supabase Aktif</span>
-            </button>
+            />
           </div>
         </header>
 
@@ -898,9 +951,18 @@ export function WorkspaceShell({
               </span>
               <h1>{activeMeta.title}</h1>
             </div>
-            <div className="heading-actions" style={{ display: "flex", gap: 8 }}>
+            <div className="heading-actions" style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {screen === "dashboard" ? (
                 <>
+                  {/* Meta Ads style Date Range Picker Popover (left of Unduh Laporan) */}
+                  <DateRangePickerPopover
+                    selectedRange={dateRange}
+                    onSelectRange={(range) => {
+                      setDateRange(range);
+                      toast.success(`Filter rentang waktu: ${range.label} diterapkan`);
+                    }}
+                    locale={activeLocale}
+                  />
                   <button
                     type="button"
                     className="space-btn-secondary"
@@ -940,7 +1002,31 @@ export function WorkspaceShell({
         </div>
       </main>
 
+      {/* Support Center Modal */}
+      <SupportModal
+        isOpen={showSupportModal}
+        onClose={() => setShowSupportModal(false)}
+        userCompany={user?.companyName || "PT Nusantara Ekspor Mandiri"}
+      />
 
+      {/* Restored AI Advisor Floating Widget at Bottom Right */}
+      {screen !== "advisor" && shipment && (
+        <ScreenAIFloatingWidget
+          isOpen={isConsultationOpen}
+          onToggle={() => setIsConsultationOpen((prev) => !prev)}
+          onClose={() => setIsConsultationOpen(false)}
+          initialPrompt={consultationPrompt}
+          screen={screen}
+          screenTitle={activeMeta.title}
+          shipment={shipment}
+          pricing={pricing || calculatePricing(shipment)}
+          container={container || calculateContainer(shipment)}
+          flow={flow!}
+          isAuthenticated={Boolean(user && !user.isDemo)}
+          onLogin={() => void onLogin()}
+          onNavigateFullAdvisor={() => navigate("advisor")}
+        />
+      )}
     </div>
   );
 }
