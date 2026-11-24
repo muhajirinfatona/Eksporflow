@@ -26,6 +26,8 @@ import {
   Briefcase,
   Building2,
   Calculator,
+  Compass,
+  FileText,
   Calendar,
   Filter,
   Check,
@@ -314,9 +316,10 @@ export function DashboardView({
             </h3>
             <button
               type="button"
-              className="space-pill-action primary"
+              className="space-btn-secondary"
               onClick={() => navigate("tracking")}
               title="Buka Pelacakan Kontainer Lengkap"
+              style={{ padding: "6px 12px", fontSize: 12 }}
             >
               <Ship size={13} />
               <span>Detail Kapal</span>
@@ -440,11 +443,13 @@ export function DashboardView({
             </div>
             <button
               type="button"
-              className="space-pill-action"
+              className="space-btn-secondary"
               onClick={() => navigate("documents")}
               title="Buka Dokumen Bill of Lading"
+              style={{ padding: "5px 12px", fontSize: 12 }}
             >
-              <span>Lihat B/L Dokumen →</span>
+              <FileText size={12} />
+              <span>Lihat B/L Dokumen</span>
             </button>
           </div>
         </div>
@@ -557,10 +562,10 @@ export function DashboardView({
             </h3>
           </div>
           <div className="space-invoices-v2-actions">
-            {/* Functional Port Filter Pills */}
-            <div style={{ display: "flex", gap: 6 }}>
+            {/* Clean Segmented Port Control (Non-Button Confusion) */}
+            <div className="filter-segmented-group">
               {[
-                { id: "all", label: "Semua" },
+                { id: "all", label: "Semua Pelabuhan" },
                 { id: "IDTPP", label: "Tanjung Priok" },
                 { id: "IDPNJ", label: "Panjang" },
                 { id: "IDSUB", label: "Tanjung Perak" },
@@ -568,9 +573,8 @@ export function DashboardView({
                 <button
                   key={p.id}
                   type="button"
-                  className={`space-pill-action ${selectedPort === p.id ? "primary" : ""}`}
+                  className={`filter-segment-btn ${selectedPort === p.id ? "active" : ""}`}
                   onClick={() => setSelectedPort(p.id)}
-                  style={{ fontSize: 12, padding: "5px 12px" }}
                 >
                   {p.label}
                 </button>
@@ -579,10 +583,12 @@ export function DashboardView({
 
             <button
               type="button"
-              className="space-pill-action primary"
+              className="space-btn-secondary"
               onClick={() => navigate("transactions")}
+              style={{ padding: "6px 12px", fontSize: 12 }}
             >
-              Semua Transaksi
+              <span>Semua Transaksi</span>
+              <ChevronRight size={13} />
             </button>
           </div>
         </div>
@@ -652,30 +658,31 @@ export function DashboardView({
                     <div style={{ display: "inline-flex", gap: 6 }}>
                       <button
                         type="button"
-                        className="space-pill-action"
-                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        className="space-btn-ghost-sm"
                         onClick={() => navigate("documents")}
-                        title="Buka Dokumen"
+                        title="Lihat Dokumen Ekspor"
                       >
-                        Dokumen
+                        <FileText size={12} />
+                        <span>Dokumen</span>
                       </button>
                       <button
                         type="button"
-                        className="space-pill-action"
-                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        className="space-btn-ghost-sm"
                         onClick={() => navigate("cargo")}
-                        title="Buka Kontainer"
+                        title="Rencana Muatan Kontainer"
                       >
-                        Muatan
+                        <Package size={12} />
+                        <span>Muatan</span>
                       </button>
                       <button
                         type="button"
-                        className="space-pill-action"
-                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        className="space-btn-secondary"
+                        style={{ padding: "3px 9px", fontSize: 11.5 }}
                         onClick={() => navigate("tracking")}
-                        title="Lacak Kontainer"
+                        title="Lacak Posisi Kapal"
                       >
-                        Lacak
+                        <Compass size={12} />
+                        <span>Lacak</span>
                       </button>
                     </div>
                   </td>

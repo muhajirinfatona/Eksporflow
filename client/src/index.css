@@ -21054,11 +21054,11 @@ table.unlk-items-table th.active-cell {
 .space-topbar-pill {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 999px;
-  padding: 6px 14px;
+  gap: 7px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 6px 12px;
   font-size: 12.5px;
   font-weight: 500;
   color: #334155;
@@ -21067,8 +21067,8 @@ table.unlk-items-table th.active-cell {
   white-space: nowrap;
 }
 .space-topbar-pill:hover {
-  background: #F1F5F9;
-  border-color: #CBD5E1;
+  background: #F8FAFC;
+  border-color: #94A3B8;
   color: #0F172A;
 }
 .space-topbar-pill.support {
@@ -21202,21 +21202,22 @@ table.unlk-items-table th.active-cell {
   }
 }
 
+/* Pure Informational Stat Card (NON-CLICKABLE, ZERO BUTTON CONFUSION) */
 .space-stat-card-v2 {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: 20px;
-  padding: 22px 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(0, 0, 0, 0.03);
+  border-radius: 12px;
+  padding: 18px 20px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   position: relative;
-  transition: all 0.2s ease;
+  cursor: default;
 }
 .space-stat-card-v2:hover {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 15px 30px -5px rgba(0, 0, 0, 0.06);
-  border-color: #CBD5E1;
+  border-color: #E2E8F0;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
 }
 .space-stat-v2-header {
   display: flex;
@@ -21224,39 +21225,47 @@ table.unlk-items-table th.active-cell {
   justify-content: space-between;
 }
 .space-stat-v2-title {
-  font-size: 13.5px;
+  font-size: 13px;
   font-weight: 500;
   color: #64748B;
+  letter-spacing: -0.01em;
 }
+/* Muted, tasteful icon container (strictly decorative, NOT a clickable circle button) */
 .space-stat-v2-icon {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
   flex-shrink: 0;
 }
 .space-stat-v2-icon.blue {
-  background: #0066FF;
-  box-shadow: 0 4px 12px rgba(0, 102, 255, 0.3);
+  background: #F0F7FF;
+  border-color: #DBEAFE;
+  color: #1D4ED8;
 }
 .space-stat-v2-icon.purple {
-  background: #8B5CF6;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+  background: #FAF5FF;
+  border-color: #F3E8FF;
+  color: #7E22CE;
 }
 .space-stat-v2-icon.mint {
-  background: #10B981;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  background: #F0FDF4;
+  border-color: #DCFCE7;
+  color: #15803D;
 }
 
+/* Stable 22px Metric Scale */
 .space-stat-v2-value {
-  font-size: 30px;
+  font-size: 22px;
   font-weight: 700;
   color: #0F172A;
   font-variant-numeric: tabular-nums;
-  line-height: 1.15;
+  line-height: 1.2;
   letter-spacing: -0.02em;
 }
 
@@ -21914,4 +21923,148 @@ table.unlk-items-table th.active-cell {
 .space-check-status.blue {
   background: #DBEAFE;
   color: #1E40AF;
+}
+
+/* ========================================================
+   ENTERPRISE BUTTON & ACTION SYSTEM (DESIGN TOKENS)
+   ======================================================== */
+
+/* Primary Action: Solid Dark Navy / Slate 900 - High emphasis, strictly 1 main CTA */
+.btn-primary,
+.space-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: #0F172A;
+  color: #FFFFFF;
+  border: 1px solid #0F172A;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+  white-space: nowrap;
+}
+.btn-primary:hover,
+.space-btn-primary:hover {
+  background: #1E293B;
+  border-color: #1E293B;
+  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.12);
+}
+.btn-primary:active,
+.space-btn-primary:active {
+  transform: translateY(1px);
+}
+
+/* Secondary Button: Clean white background with crisp border - standard actions */
+.btn-secondary,
+.space-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #FFFFFF;
+  color: #334155;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  white-space: nowrap;
+}
+.btn-secondary:hover,
+.space-btn-secondary:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+/* Tertiary / Ghost Action: For compact table actions */
+.btn-ghost-sm,
+.space-btn-ghost-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #F8FAFC;
+  color: #475569;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 4px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  white-space: nowrap;
+}
+.btn-ghost-sm:hover,
+.space-btn-ghost-sm:hover {
+  background: #FFFFFF;
+  border-color: #CBD5E1;
+  color: #0F172A;
+}
+
+/* Filter Segment Tabs: Distinct Segmented Control - NEVER mistaken for buttons */
+.filter-segmented-group {
+  display: inline-flex;
+  align-items: center;
+  background: #F1F5F9;
+  padding: 3px;
+  border-radius: 8px;
+  gap: 2px;
+}
+.filter-segment-btn {
+  border: none;
+  background: transparent;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #64748B;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.filter-segment-btn:hover {
+  color: #1E293B;
+}
+.filter-segment-btn.active {
+  background: #FFFFFF;
+  color: #0F172A;
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+/* Status Badges: Non-clickable indicators (ZERO button confusion) */
+.space-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 7px;
+  font-size: 11.5px;
+  font-weight: 500;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  cursor: default;
+  user-select: none;
+}
+.space-status-badge.green {
+  background: #F0FDF4;
+  border-color: #DCFCE7;
+  color: #166534;
+}
+.space-status-dot-green {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #16A34A;
 }

@@ -1,3 +1,4 @@
+import { DatePickerPopover } from "./DatePickerPopover";
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
 import { toast } from "sonner";
 import {
@@ -18,6 +19,8 @@ import {
   Calculator,
   Calendar,
   ChevronDown,
+  Download,
+  Plus,
   PhoneCall,
   CheckCircle2,
   ChevronRight,
@@ -65,7 +68,7 @@ import { calculateContainer } from "@shared/container";
 import { initialShipment, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { IconButton, StatusPill, SpaceAvatar, SpaceBadge } from "./Primitives";
-import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
+
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -501,6 +504,7 @@ export function WorkspaceShell({
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeLocale, setActiveLocale] = useState<"ID" | "EN">("ID");
+  const [activeDate, setActiveDate] = useState<Date>(new Date(2026, 10, 24));
   const [showCalendarInfo, setShowCalendarInfo] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
@@ -754,39 +758,26 @@ export function WorkspaceShell({
           </div>
 
           <div className="topbar-actions" style={{ gap: 10 }}>
-            {/* Live Interactive Date & Voyage Calendar Pill */}
-            <div style={{ position: "relative" }}>
-              <button
-                type="button"
-                className="space-topbar-pill"
-                onClick={() => setShowCalendarInfo((prev) => !prev)}
-                title="Kalender Operasional & Jadwal Pelayaran"
-              >
-                <Calendar size={13} />
-                <span>{new Intl.DateTimeFormat(activeLocale === "ID" ? "id-ID" : "en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date())}</span>
-                <ChevronDown size={12} />
-              </button>
-              {showCalendarInfo && (
-                <div style={{ position: "absolute", top: 42, right: 0, width: 280, background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: 16, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.12)", zIndex: 120 }}>
-                  <strong style={{ fontSize: 13, color: "#0F172A", display: "block", marginBottom: 8 }}>Jadwal Operasional Ekspor</strong>
-                  <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
-                    <div>🚢 <b>Pelayaran:</b> MV CMA CGM Dignity (28 Nov)</div>
-                    <div>📦 <b>Closing Cargo:</b> Jumat, 27 Nov '26</div>
-                    <div>🏦 <b>Retensi DHE BI:</b> Aktif PP 36/2023</div>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Real Interactive Date Picker Popover */}
+            <DatePickerPopover
+              selectedDate={activeDate}
+              onSelectDate={(d) => {
+                setActiveDate(d);
+                toast.success("Tanggal operasional diperbarui");
+              }}
+              locale={activeLocale}
+            />
 
-            {/* AI Advisor Pill */}
+            {/* AI Advisor Action (Single Primary Entry Point) */}
             <button
               type="button"
-              className="space-topbar-pill support"
+              className="space-btn-secondary"
               onClick={() => navigate("advisor")}
               title="Konsultasi Regulasi Ekspor & AI Advisor"
+              style={{ padding: "6px 12px", fontSize: 12.5 }}
             >
-              <Sparkles size={13} />
-              <span>AI Advisor & Regulasi</span>
+              <Sparkles size={13} style={{ color: "#2563EB" }} />
+              <span>AI Advisor</span>
             </button>
 
             {/* Functional Notification Bell */}
@@ -907,18 +898,41 @@ export function WorkspaceShell({
               </span>
               <h1>{activeMeta.title}</h1>
             </div>
-            <div className="heading-actions">
-              <button
-                type="button"
-                className="space-pill-action primary"
-                onClick={() => {
-                  if (onSave) onSave();
-                  toast.success("Data Tersimpan di Supabase Cloud");
-                }}
-              >
-                <FileCheck2 size={13} />
-                <span>Simpan Transaksi</span>
-              </button>
+            <div className="heading-actions" style={{ display: "flex", gap: 8 }}>
+              {screen === "dashboard" ? (
+                <>
+                  <button
+                    type="button"
+                    className="space-btn-secondary"
+                    onClick={() => toast.success("Ringkasan operasional berhasil diunduh (PDF/CSV)")}
+                    title="Unduh Ringkasan Operasional"
+                  >
+                    <Download size={13} />
+                    <span>Unduh Laporan</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="space-btn-primary"
+                    onClick={() => navigate("transactions")}
+                    title="Buat Transaksi Ekspor Baru"
+                  >
+                    <Plus size={14} />
+                    <span>+ Transaksi Baru</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="space-btn-primary"
+                  onClick={() => {
+                    if (onSave) onSave();
+                    toast.success("Data Tersimpan di Supabase Cloud");
+                  }}
+                >
+                  <FileCheck2 size={13} />
+                  <span>Simpan Transaksi</span>
+                </button>
+              )}
             </div>
           </section>
 
@@ -926,23 +940,7 @@ export function WorkspaceShell({
         </div>
       </main>
 
-      {screen !== "advisor" && shipment && (
-        <ScreenAIFloatingWidget
-          isOpen={isConsultationOpen}
-          onToggle={() => setIsConsultationOpen((prev) => !prev)}
-          onClose={() => setIsConsultationOpen(false)}
-          initialPrompt={consultationPrompt}
-          screen={screen}
-          screenTitle={activeMeta.title}
-          shipment={shipment}
-          pricing={pricing || calculatePricing(shipment)}
-          container={container || calculateContainer(shipment)}
-          flow={flow!}
-          isAuthenticated={Boolean(user && !user.isDemo)}
-          onLogin={() => void onLogin()}
-          onNavigateFullAdvisor={() => navigate("advisor")}
-        />
-      )}
+
     </div>
   );
 }
