@@ -634,75 +634,89 @@ export function DashboardView({
           </div>
         </div>
 
-        <div style={{ overflowX: "auto" }}>
+        <div className="space-invoices-scroll-wrap">
           <table className="space-invoices-table-v2">
             <thead>
               <tr>
-                <th>No. B/L &amp; Kontrak</th>
-                <th>Buyer &amp; Destinasi</th>
-                <th>Komoditas &amp; Kontainer</th>
-                <th>Rute &amp; Jadwal Pelayaran</th>
-                <th>Status Kepabeanan</th>
-                <th style={{ textAlign: "right" }}>Nilai Ekspor</th>
-                <th style={{ textAlign: "right" }}>Aksi Cepat</th>
+                <th style={{ minWidth: 140 }}>No. B/L &amp; Kontrak</th>
+                <th style={{ minWidth: 175 }}>Buyer &amp; Destinasi</th>
+                <th style={{ minWidth: 175 }}>Komoditas &amp; Kontainer</th>
+                <th style={{ minWidth: 150 }}>Rute Pelayaran</th>
+                <th style={{ minWidth: 135 }}>Jadwal Kapal</th>
+                <th style={{ minWidth: 160 }}>Status Kepabeanan</th>
+                <th style={{ minWidth: 115, textAlign: "right" }}>Nilai Ekspor</th>
+                <th style={{ minWidth: 250, textAlign: "right" }}>Aksi Cepat</th>
               </tr>
             </thead>
             <tbody>
               {filteredShipments.map((s) => (
                 <tr key={s.blNumber}>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                       <span className="space-invoice-code" onClick={() => navigate("documents")} title="Lihat Dokumen B/L">
                         {s.blNumber}
                       </span>
-                      <span style={{ color: "#64748B", fontSize: 11 }}>
+                      <span style={{ color: "#64748B", fontSize: 11.5 }}>
                         {s.invNumber}
                       </span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                      <span style={{ fontWeight: 600, color: "#0F172A", fontSize: 12.5, whiteSpace: "nowrap" }} title={s.buyer}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontWeight: 600, color: "#0F172A", fontSize: 13, whiteSpace: "nowrap" }} title={s.buyer}>
                         {s.buyer}
                       </span>
-                      <span style={{ color: "#64748B", fontSize: 11, whiteSpace: "nowrap" }} title={s.buyerLoc}>
+                      <span style={{ color: "#64748B", fontSize: 11.5, whiteSpace: "nowrap" }} title={s.buyerLoc}>
                         {s.buyerLoc}
                       </span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                      <strong style={{ fontSize: 12.5, color: "#0F172A", fontWeight: 600, whiteSpace: "nowrap" }} title={s.commodity}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <strong style={{ fontSize: 13, color: "#0F172A", fontWeight: 600, whiteSpace: "nowrap" }} title={s.commodity}>
                         {s.commodity}
                       </strong>
-                      <span style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }} title={s.stowage}>
+                      <span style={{ fontSize: 11.5, color: "#64748B", whiteSpace: "nowrap" }} title={s.stowage}>
                         {s.stowage}
                       </span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
-                      <span style={{ fontSize: 12, fontWeight: 600, color: "#0F172A", whiteSpace: "nowrap" }}>
-                        {s.polName} → {s.podName}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: "#0F172A", whiteSpace: "nowrap" }}>
+                        {s.polCode} → {s.podCode}
                       </span>
-                      <span style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }}>
-                        ETD {s.etd.replace(" 2026", "")} · ETA {s.eta.replace(" 2026", "")}
+                      <span style={{ fontSize: 11.5, color: "#64748B", whiteSpace: "nowrap" }}>
+                        {s.polName} → {s.podName}
                       </span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 600, color: "#0F172A", whiteSpace: "nowrap" }}>
+                        ETD: {s.etd} '26
+                      </span>
+                      <span style={{ fontSize: 11.5, color: "#64748B", whiteSpace: "nowrap" }}>
+                        ETA: {s.eta.replace(" 2026", " '26")}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                       <span className={`space-status-badge ${s.statusPill}`}>
                         <span className="space-status-dot" />
                         {s.statusLabel}
                       </span>
-                      <span style={{ fontSize: 10.5, color: "#64748B", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }}>
                         {s.paymentLabel}
                       </span>
                     </div>
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <span className="space-table-amount">{s.amount}</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
+                      <span className="space-table-amount">{s.amount}</span>
+                      <span style={{ fontSize: 11, color: "#64748B" }}>FOB Pelabuhan</span>
+                    </div>
                   </td>
                   <td style={{ textAlign: "right" }}>
                     <div style={{ display: "inline-flex", gap: 5, alignItems: "center", justifyContent: "flex-end" }}>
@@ -710,10 +724,19 @@ export function DashboardView({
                         type="button"
                         className="space-btn-table-ghost"
                         onClick={() => navigate("documents")}
-                        title="Lihat Dokumen Ekspor (PEB & B/L)"
+                        title="Lihat Dokumen Ekspor (PEB, B/L, COO)"
                       >
-                        <FileText size={11} />
+                        <FileText size={11.5} />
                         <span>Dokumen</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="space-btn-table-ghost"
+                        onClick={() => navigate("container")}
+                        title="Rencana Muatan & Kontainer"
+                      >
+                        <Package size={11.5} />
+                        <span>Muatan</span>
                       </button>
                       <button
                         type="button"
@@ -721,7 +744,7 @@ export function DashboardView({
                         onClick={() => navigate("tracking")}
                         title="Lacak Posisi Kapal di Laut"
                       >
-                        <Compass size={11} />
+                        <Compass size={11.5} />
                         <span>Lacak</span>
                       </button>
                     </div>
