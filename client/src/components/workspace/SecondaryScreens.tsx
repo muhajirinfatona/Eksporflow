@@ -32,6 +32,7 @@ import {
   Filter,
   Check,
   CheckCircle2,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
@@ -61,7 +62,7 @@ import {
   Wallet,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Field,
@@ -121,7 +122,32 @@ export function DashboardView({
   flow: WorkspaceFlow;
 }) {
   const [selectedPort, setSelectedPort] = useState<string>("all");
+  const [portMenuOpen, setPortMenuOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const portDropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (portDropdownRef.current && !portDropdownRef.current.contains(event.target as Node)) {
+        setPortMenuOpen(false);
+      }
+    };
+    if (portMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [portMenuOpen]);
+
+  const portOptions = useMemo(() => [
+    { id: "all", label: "Semua Pelabuhan", code: "Semua" },
+    { id: "IDTPP", label: "Tanjung Priok", code: "IDTPP" },
+    { id: "IDPNJ", label: "Panjang", code: "IDPNJ" },
+    { id: "IDSUB", label: "Tanjung Perak", code: "IDSUB" },
+  ], []);
+
+  const activePortLabel = portOptions.find((p) => p.id === selectedPort)?.label || "Semua Pelabuhan";
 
   const totalContract = pricing.active.offer > 0 ? pricing.active.offer : 24590.43;
   const totalReceived = flow.paidAmount > 0 ? flow.paidAmount : 24590.43;
@@ -603,23 +629,57 @@ export function DashboardView({
             </p>
           </div>
           <div className="space-invoices-v2-actions">
-            {/* Clean Segmented Port Control */}
-            <div className="filter-segmented-group">
-              {[
-                { id: "all", label: "Semua Pelabuhan" },
-                { id: "IDTPP", label: "Tanjung Priok" },
-                { id: "IDPNJ", label: "Panjang" },
-                { id: "IDSUB", label: "Tanjung Perak" },
-              ].map((p) => (
-                <button
-                  key={p.id}
-                  type="button"
-                  className={`filter-segment-btn ${selectedPort === p.id ? "active" : ""}`}
-                  onClick={() => setSelectedPort(p.id)}
-                >
-                  {p.label}
-                </button>
-              ))}
+            {/* Single Compact Port Filter Dropdown */}
+            <div ref={portDropdownRef} style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="space-port-filter-btn"
+                onClick={() => setPortMenuOpen((prev) => !prev)}
+                title="Filter Pelabuhan Muat"
+              >
+                <Filter size={13} style={{ color: selectedPort !== "all" ? "#2563EB" : "#64748B" }} />
+                <span>{activePortLabel}</span>
+                <ChevronDown
+                  size={13}
+                  style={{
+                    color: "#64748B",
+                    transform: portMenuOpen ? "rotate(180deg)" : "none",
+                    transition: "transform 0.15s ease",
+                  }}
+                />
+              </button>
+
+              {portMenuOpen && (
+                <div className="space-port-dropdown-menu">
+                  <div style={{ padding: "6px 8px 4px 8px", fontSize: 11, fontWeight: 600, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                    Filter Pelabuhan Muat
+                  </div>
+                  {portOptions.map((p) => {
+                    const isSelected = selectedPort === p.id;
+                    return (
+                      <button
+                        key={p.id}
+                        type="button"
+                        className={`space-port-dropdown-item ${isSelected ? "active" : ""}`}
+                        onClick={() => {
+                          setSelectedPort(p.id);
+                          setPortMenuOpen(false);
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <span>{p.label}</span>
+                          {p.id !== "all" && (
+                            <span className="space-port-code-tag">
+                              {p.code}
+                            </span>
+                          )}
+                        </div>
+                        {isSelected && <Check size={13} style={{ color: "#2563EB", flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <button

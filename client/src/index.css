@@ -21396,6 +21396,79 @@ table.unlk-items-table th.active-cell {
   gap: 10px;
 }
 
+/* Single Port Filter Dropdown */
+.space-port-filter-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #FFFFFF;
+  border: 1px solid #CBD5E1;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #1E293B;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.space-port-filter-btn:hover {
+  background: #F8FAFC;
+  border-color: #94A3B8;
+  color: #0F172A;
+}
+
+.space-port-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  right: 0;
+  z-index: 60;
+  min-width: 200px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.space-port-dropdown-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #334155;
+  font-size: 12px;
+  font-weight: 400;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.1s ease;
+}
+.space-port-dropdown-item:hover {
+  background: #F8FAFC;
+  color: #0F172A;
+}
+.space-port-dropdown-item.active {
+  background: #F1F5F9;
+  color: #0F172A;
+  font-weight: 600;
+}
+
+.space-port-code-tag {
+  font-size: 10.5px;
+  color: #64748B;
+  font-family: var(--font-mono, monospace);
+  background: #F1F5F9;
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
 .space-invoices-scroll-wrap {
   overflow-x: auto;
   border-radius: 8px;
