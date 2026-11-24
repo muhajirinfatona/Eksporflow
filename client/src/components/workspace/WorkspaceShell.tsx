@@ -642,13 +642,15 @@ export function WorkspaceShell({
 
         <div className="sidebar-bottom clean-sidebar-footer">
           <div className="user-row">
-            <div className="user-avatar">{userInitials || "MF"}</div>
+            <div className="user-avatar">{userInitials || "PD"}</div>
             <div>
-              <b>{user?.name || "Muhajirin Fatona"}</b>
+              <b>{user?.name || exporterName || "PT Nusantara Ekspor Mandiri"}</b>
               <small>
                 {isDemoUser
                   ? `Mode Demo · Sisa ${demoRemainingLabel}`
-                  : "Cloud Supabase Aktif"}
+                  : user
+                    ? "Cloud Supabase Aktif"
+                    : "Draft Lokal"}
               </small>
             </div>
             {user ? (
@@ -826,56 +828,23 @@ export function WorkspaceShell({
               <HelpCircle size={16} />
             </button>
 
-            {/* Space DS Profile Pill */}
-            <div
-              className="space-profile-pill"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "3px 10px 3px 4px",
-                background: "#ffffff",
-                border: "1px solid var(--space-gray-200)",
-                borderRadius: "var(--space-radius-full)",
-                cursor: "pointer",
-                transition: "all 0.15s ease",
-              }}
-              onClick={() => {
-                if (!user) {
-                  void onLogin();
-                } else {
-                  toast.info(`Akun: ${user.name || exporterName} (${user.email || "Eksportir"})`);
-                }
-              }}
-              title={user ? `Akun: ${user.name || exporterName}` : "Masuk Akun"}
-            >
-              <SpaceAvatar
-                name={user?.name || exporterName || "PT Nusantara Ekspor Mandiri"}
-                size="xs"
-                status="online"
-              />
-              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
-                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--space-gray-900)", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {user?.name || exporterName?.replace(/\s*\(Demo\)/gi, "") || "PT Nusantara"}
-                </span>
-                <span style={{ fontSize: 9.5, color: "var(--space-gray-500)", fontWeight: 500 }}>
-                  {user ? "Eksportir Resmi" : "Demo Sandbox"}
-                </span>
-              </div>
-              {user && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    void onLogout();
-                  }}
-                  title="Keluar"
-                  style={{ border: 0, background: "transparent", color: "var(--space-gray-400)", padding: 2, cursor: "pointer", display: "inline-flex" }}
-                >
-                  <LogOut size={13} />
-                </button>
-              )}
-            </div>
+            {/* Avatar ringkas di topbar hanya saat sidebar ditutup / pada layar mobile */}
+            {!sidebarOpen && (
+              <button
+                type="button"
+                className="icon-button"
+                style={{ padding: 2, borderRadius: "50%", cursor: "pointer" }}
+                onClick={() => setSidebarOpen(true)}
+                title={user ? `Buka Menu & Akun: ${user.name || exporterName}` : "Masuk Akun"}
+                aria-label="Buka navigasi & akun pengguna"
+              >
+                <SpaceAvatar
+                  name={user?.name || exporterName || "PT Nusantara Ekspor Mandiri"}
+                  size="xs"
+                  status="online"
+                />
+              </button>
+            )}
           </div>
         </header>
 
