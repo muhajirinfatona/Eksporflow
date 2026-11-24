@@ -301,15 +301,20 @@ export function DashboardView({
         {/* Left Card: Ocean Freight Tracking */}
         <div className="space-vessel-tracker-card">
           <div className="space-chart-v2-head">
-            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-              Pelacakan Pengapalan Samudera
-            </h3>
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+                Pelacakan Pengapalan Samudera
+              </h3>
+              <p style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#64748B" }}>
+                Pemantauan rute kargo maritim aktif &amp; status izin kepabeanan
+              </p>
+            </div>
             <button
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("tracking")}
               title="Buka Pelacakan Kontainer Lengkap"
-              style={{ padding: "6px 12px", fontSize: 12 }}
+              style={{ padding: "6px 14px", fontSize: 12 }}
             >
               <Ship size={13} />
               <span>Detail Kapal</span>
@@ -320,18 +325,18 @@ export function DashboardView({
           <div className="space-vessel-top-banner">
             <div className="space-vessel-info-left">
               <div className="space-vessel-badge-icon">
-                <Ship size={24} />
+                <Ship size={22} />
               </div>
               <div>
                 <div className="space-vessel-name-title">
-                  MV CMA CGM Dignity
-                  <span style={{ fontSize: 11, background: "rgba(0,102,255,0.4)", padding: "2px 8px", borderRadius: 6, fontWeight: 500 }}>
+                  <span>MV CMA CGM Dignity</span>
+                  <span style={{ fontSize: 11, background: "rgba(37,99,235,0.4)", border: "1px solid rgba(59,130,246,0.5)", padding: "2px 8px", borderRadius: 6, fontWeight: 500 }}>
                     Voyage 024W
                   </span>
                 </div>
                 <div className="space-vessel-route">
                   <span>Tanjung Priok (IDTPP)</span>
-                  <span style={{ color: "#60A5FA" }}>→</span>
+                  <span style={{ color: "#60A5FA", fontWeight: 600 }}>→</span>
                   <span>Port of Los Angeles (USLAX)</span>
                 </div>
               </div>
@@ -339,12 +344,12 @@ export function DashboardView({
 
             <div className="space-vessel-etd-eta">
               <div className="space-vessel-etd-item">
-                <span>ETD (Priok)</span>
+                <span>ETD (PRIOK)</span>
                 <strong>28 Nov 2026</strong>
               </div>
               <div style={{ color: "rgba(255,255,255,0.3)" }}>|</div>
               <div className="space-vessel-etd-item">
-                <span>ETA (Los Angeles)</span>
+                <span>ETA (LOS ANGELES)</span>
                 <strong style={{ color: "#38BDF8" }}>18 Des 2026</strong>
               </div>
             </div>
@@ -354,91 +359,94 @@ export function DashboardView({
           <div className="space-export-stepper">
             <div className="space-export-step-item">
               <div className="space-step-head">
-                <div className="space-step-dot done">✓</div>
+                <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
                 <div className="space-step-line done" />
               </div>
-              <span className="space-step-label">1. Stuffing</span>
+              <span className="space-step-label">Stuffing</span>
               <span className="space-step-sub">Karawang</span>
             </div>
 
             <div className="space-export-step-item">
               <div className="space-step-head">
-                <div className="space-step-dot done">✓</div>
+                <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
                 <div className="space-step-line done" />
               </div>
-              <span className="space-step-label">2. Karantina</span>
+              <span className="space-step-label">Karantina</span>
               <span className="space-step-sub">Phyto OK</span>
             </div>
 
             <div className="space-export-step-item">
               <div className="space-step-head">
-                <div className="space-step-dot done">✓</div>
+                <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
                 <div className="space-step-line done" />
               </div>
-              <span className="space-step-label">3. Bea Cukai</span>
+              <span className="space-step-label">Bea Cukai</span>
               <span className="space-step-sub">Jalur Hijau</span>
             </div>
 
             <div className="space-export-step-item">
               <div className="space-step-head">
-                <div className="space-step-dot done">✓</div>
+                <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
                 <div className="space-step-line done" />
               </div>
-              <span className="space-step-label">4. Gate-in POL</span>
+              <span className="space-step-label">Gate-in POL</span>
               <span className="space-step-sub">JICT Priok</span>
             </div>
 
             <div className="space-export-step-item">
               <div className="space-step-head">
-                <div className="space-step-dot active">🚢</div>
+                <div className="space-step-dot active"><Ship size={12} strokeWidth={2.2} /></div>
                 <div className="space-step-line" />
               </div>
-              <span className="space-step-label" style={{ color: "#0066FF" }}>5. Pelayaran</span>
-              <span className="space-step-sub">In Transit</span>
+              <span className="space-step-label active">Pelayaran</span>
+              <span className="space-step-sub active">In Transit</span>
             </div>
 
             <div className="space-export-step-item">
               <div className="space-step-head">
                 <div className="space-step-dot pending">6</div>
               </div>
-              <span className="space-step-label" style={{ color: "#94A3B8" }}>6. POD</span>
-              <span className="space-step-sub">Los Angeles</span>
+              <span className="space-step-label pending">POD (Tujuan)</span>
+              <span className="space-step-sub pending">Los Angeles</span>
             </div>
           </div>
 
-          {/* Active Contract & B/L Summary Strip with Working Action */}
+          {/* Active Contract & B/L Summary Strip */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "12px 16px",
+              padding: "12px 18px",
               background: "#F8FAFC",
               borderRadius: 12,
               border: "1px solid #E2E8F0",
               fontSize: 12.5,
               flexWrap: "wrap",
-              gap: 10,
+              gap: 12,
             }}
           >
-            <div>
-              <span style={{ color: "#64748B" }}>Bill of Lading: </span>
-              <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)" }}>
-                EKL-US2026-0881
-              </strong>
-            </div>
-            <div>
-              <span style={{ color: "#64748B" }}>Muatan: </span>
-              <strong style={{ color: "#0F172A" }}>Kopi Arabika Gayo (19.2 MT)</strong>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <span style={{ color: "#64748B", fontSize: 12 }}>Bill of Lading: </span>
+                <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)", fontSize: 13 }}>
+                  EKL-US2026-0881
+                </strong>
+              </div>
+              <span style={{ color: "#CBD5E1" }}>•</span>
+              <div>
+                <span style={{ color: "#64748B", fontSize: 12 }}>Komoditas: </span>
+                <strong style={{ color: "#0F172A", fontSize: 13 }}>Kopi Arabika Gayo (19.2 MT · 1x20' FCL)</strong>
+              </div>
             </div>
             <button
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("documents")}
               title="Buka Dokumen Bill of Lading"
-              style={{ padding: "5px 12px", fontSize: 12 }}
+              style={{ padding: "6px 14px", fontSize: 12 }}
             >
-              <FileText size={12} />
+              <FileText size={13} />
               <span>Lihat B/L Dokumen</span>
             </button>
           </div>
@@ -446,53 +454,101 @@ export function DashboardView({
 
         {/* Right Column: Market Share & Compliance */}
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Card 1: Pangsa Pasar Ekspor */}
+          {/* Card 1: Pangsa Pasar Ekspor (Professional Donut Pie Chart) */}
           <div className="space-traffic-card-v2">
-            <div className="space-payment-v2-head">
-              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
-                Pangsa Pasar Ekspor
-              </h3>
-              <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>FOB & CIF</span>
+            <div className="space-payment-v2-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                  Pangsa Pasar Ekspor
+                </h3>
+                <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>Distribusi Pengapalan (FOB &amp; CIF)</span>
+              </div>
+              <span className="space-kpi-badge neutral">18 TEUs</span>
             </div>
 
-            <div className="space-traffic-donut-box" style={{ height: 110 }}>
-              <svg viewBox="0 0 200 120" style={{ width: 180, height: 100 }}>
-                <path
-                  d="M 20 110 A 80 80 0 0 1 110 32"
-                  fill="none"
-                  stroke="#0066FF"
-                  strokeWidth="24"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 122 36 A 80 80 0 0 1 172 85"
-                  fill="none"
-                  stroke="#8B5CF6"
-                  strokeWidth="24"
-                  strokeLinecap="round"
-                />
-                <path
-                  d="M 175 95 A 80 80 0 0 1 180 110"
-                  fill="none"
-                  stroke="#10B981"
-                  strokeWidth="24"
-                  strokeLinecap="round"
-                />
+            {/* Circular Donut Pie Chart with Center Metric */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "10px 0 4px 0" }}>
+              <svg viewBox="0 0 170 170" width="150" height="150">
+                <g transform="rotate(-90 85 85)">
+                  {/* Base Track */}
+                  <circle cx="85" cy="85" r="58" fill="none" stroke="#F1F5F9" strokeWidth="18" />
+                  {/* USA 45% (163.99 of 364.42, 2px gap) */}
+                  <circle
+                    cx="85"
+                    cy="85"
+                    r="58"
+                    fill="none"
+                    stroke="#2563EB"
+                    strokeWidth="18"
+                    strokeDasharray="161.99 364.42"
+                    strokeDashoffset="0"
+                  />
+                  {/* Eropa 35% (127.55 of 364.42, 2px gap) */}
+                  <circle
+                    cx="85"
+                    cy="85"
+                    r="58"
+                    fill="none"
+                    stroke="#8B5CF6"
+                    strokeWidth="18"
+                    strokeDasharray="125.55 364.42"
+                    strokeDashoffset="-163.99"
+                  />
+                  {/* Jepang 20% (72.88 of 364.42, 2px gap) */}
+                  <circle
+                    cx="85"
+                    cy="85"
+                    r="58"
+                    fill="none"
+                    stroke="#10B981"
+                    strokeWidth="18"
+                    strokeDasharray="70.88 364.42"
+                    strokeDashoffset="-291.54"
+                  />
+                </g>
+                {/* Center Stat */}
+                <text x="85" y="81" textAnchor="middle" style={{ fontSize: "18px", fontWeight: 700, fill: "#0F172A", fontFamily: "inherit" }}>
+                  18 TEUs
+                </text>
+                <text x="85" y="99" textAnchor="middle" style={{ fontSize: "11px", fontWeight: 500, fill: "#64748B", fontFamily: "inherit" }}>
+                  Total Ekspor
+                </text>
               </svg>
             </div>
 
-            <div className="space-traffic-legend" style={{ flexDirection: "column", gap: 8, alignItems: "stretch", padding: "0 4px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
-                <span><span className="space-legend-dot blue" /> USA</span>
-                <strong style={{ color: "#0F172A" }}>45% (8 TEUs)</strong>
+            {/* Structured Market Distribution List */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 9, padding: "0 4px" }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#2563EB" }} />
+                  <span style={{ color: "#334155", fontWeight: 500 }}>USA (Los Angeles)</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ color: "#64748B", fontSize: 11.5 }}>8 TEUs</span>
+                  <strong style={{ color: "#2563EB", fontWeight: 700 }}>45%</strong>
+                </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
-                <span><span className="space-legend-dot purple" /> Eropa</span>
-                <strong style={{ color: "#0F172A" }}>35% (6 TEUs)</strong>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#8B5CF6" }} />
+                  <span style={{ color: "#334155", fontWeight: 500 }}>Eropa (Rotterdam)</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ color: "#64748B", fontSize: 11.5 }}>6 TEUs</span>
+                  <strong style={{ color: "#8B5CF6", fontWeight: 700 }}>35%</strong>
+                </div>
               </div>
-              <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
-                <span><span className="space-legend-dot mint" /> Jepang</span>
-                <strong style={{ color: "#0F172A" }}>20% (4 TEUs)</strong>
+
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                  <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#10B981" }} />
+                  <span style={{ color: "#334155", fontWeight: 500 }}>Jepang (Kobe / Tokyo)</span>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ color: "#64748B", fontSize: 11.5 }}>4 TEUs</span>
+                  <strong style={{ color: "#10B981", fontWeight: 700 }}>20%</strong>
+                </div>
               </div>
             </div>
           </div>

@@ -21832,8 +21832,8 @@ table.unlk-items-table th.active-cell {
   gap: 8px;
 }
 .space-step-dot {
-  width: 22px;
-  height: 22px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -21841,19 +21841,22 @@ table.unlk-items-table th.active-cell {
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
+  transition: all 0.2s ease;
 }
 .space-step-dot.done {
   background: #10B981;
   color: #FFFFFF;
 }
 .space-step-dot.active {
-  background: #0066FF;
+  background: #2563EB;
   color: #FFFFFF;
-  box-shadow: 0 0 0 4px rgba(0, 102, 255, 0.2);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.2);
 }
 .space-step-dot.pending {
-  background: #E2E8F0;
-  color: #64748B;
+  background: #F1F5F9;
+  border: 1.5px solid #CBD5E1;
+  color: #94A3B8;
+  font-size: 10px;
 }
 .space-step-line {
   flex: 1;
@@ -21870,10 +21873,25 @@ table.unlk-items-table th.active-cell {
   color: #0F172A;
   line-height: 1.3;
 }
+.space-step-label.active {
+  color: #2563EB;
+  font-weight: 700;
+}
+.space-step-label.pending {
+  color: #94A3B8;
+}
+
 .space-step-sub {
   font-size: 11px;
   color: #64748B;
   line-height: 1.3;
+}
+.space-step-sub.active {
+  color: #2563EB;
+  font-weight: 600;
+}
+.space-step-sub.pending {
+  color: #94A3B8;
 }
 
 /* Compliance Checklist & Cargo Matrix in Right Column */
