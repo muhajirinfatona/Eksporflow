@@ -21207,12 +21207,12 @@ table.unlk-items-table th.active-cell {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
   border-radius: 12px;
-  padding: 18px 20px;
+  padding: 16px 16px;
   box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 122px;
+  min-height: 120px;
   position: relative;
   cursor: default;
   transition: all 0.2s ease;
@@ -21262,22 +21262,22 @@ table.unlk-items-table th.active-cell {
   color: #15803D;
 }
 
-/* Stable 24px Metric Scale */
+/* Refined Metric Scale (Clean 20px, Semibold 600) */
 .space-stat-v2-value {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 600;
   color: #0F172A;
   font-variant-numeric: tabular-nums;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  margin: 8px 0 10px 0;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 6px 0 8px 0;
 }
 
 .space-stat-v2-foot {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 12px;
+  gap: 6px;
+  font-size: 11.5px;
   color: #64748B;
   overflow: hidden;
 }
@@ -21310,7 +21310,7 @@ table.unlk-items-table th.active-cell {
 }
 
 .space-kpi-meta {
-  font-size: 12px;
+  font-size: 11.5px;
   color: #64748B;
   font-weight: 500;
   white-space: nowrap;
