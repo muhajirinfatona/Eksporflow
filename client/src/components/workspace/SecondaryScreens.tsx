@@ -321,11 +321,11 @@ export function DashboardView({
             </button>
           </div>
 
-          {/* Premium Orange Vessel Banner (Requested: Pengganti Hitam dengan Orange Elegan) */}
+          {/* Premium Maritime Navy Ocean Banner (Elegan & Profesional B2B) */}
           <div className="space-vessel-top-banner">
             <div className="space-vessel-info-left">
               <div className="space-vessel-badge-icon">
-                <Ship size={24} />
+                <Ship size={20} />
               </div>
               <div>
                 <div className="space-vessel-name-title">
@@ -337,7 +337,7 @@ export function DashboardView({
                 <div className="space-vessel-route">
                   <span>Tanjung Priok (IDTPP)</span>
                   <span style={{ color: "#FFFFFF", fontWeight: 700 }}>→</span>
-                  <span>Port of Los Angeles (USLAX)</span>
+                  <span>Los Angeles (USLAX)</span>
                 </div>
               </div>
             </div>
@@ -411,31 +411,33 @@ export function DashboardView({
             </div>
           </div>
 
-          {/* Active Contract & B/L Summary Strip */}
+          {/* Active Contract & B/L Summary Strip (Compact Single-Line Enterprise Strip) */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              padding: "12px 18px",
+              padding: "8px 14px",
               background: "#F8FAFC",
-              borderRadius: 12,
+              borderRadius: 10,
               border: "1px solid #E2E8F0",
-              fontSize: 12.5,
-              gap: 16,
+              fontSize: 12,
+              gap: 12,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 16, color: "#475569", flexWrap: "wrap" }}>
-              <div>
-                <span style={{ color: "#64748B", fontSize: 12 }}>Bill of Lading: </span>
-                <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)", fontSize: 13 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#475569", flexWrap: "nowrap", minWidth: 0 }}>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+                <span style={{ color: "#64748B", fontSize: 11.5, fontWeight: 500 }}>B/L:</span>
+                <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)", fontSize: 12, fontWeight: 700 }}>
                   EKL-US2026-0881
                 </strong>
               </div>
-              <span style={{ color: "#CBD5E1" }}>•</span>
-              <div>
-                <span style={{ color: "#64748B", fontSize: 12 }}>Muatan: </span>
-                <strong style={{ color: "#0F172A", fontSize: 13 }}>Kopi Arabika Gayo (19.2 MT · 1x20' FCL)</strong>
+              <span style={{ color: "#CBD5E1", flexShrink: 0 }}>•</span>
+              <div style={{ display: "inline-flex", alignItems: "center", gap: 5, minWidth: 0 }}>
+                <span style={{ color: "#64748B", fontSize: 11.5, fontWeight: 500, flexShrink: 0 }}>Muatan:</span>
+                <strong style={{ color: "#0F172A", fontSize: 12, fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  Kopi Arabika Gayo (19.2 MT · 1x20' FCL)
+                </strong>
               </div>
             </div>
             <button
@@ -443,10 +445,10 @@ export function DashboardView({
               className="space-btn-secondary"
               onClick={() => navigate("documents")}
               title="Buka Dokumen Bill of Lading"
-              style={{ padding: "6px 14px", fontSize: 12, flexShrink: 0 }}
+              style={{ padding: "5px 12px", fontSize: 11.5, flexShrink: 0, whiteSpace: "nowrap", gap: 5 }}
             >
-              <FileText size={13} />
-              <span>Lihat B/L Dokumen</span>
+              <FileText size={12} />
+              <span>Dokumen B/L</span>
             </button>
           </div>
         </div>

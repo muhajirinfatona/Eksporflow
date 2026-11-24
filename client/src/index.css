@@ -21722,37 +21722,39 @@ table.unlk-items-table th.active-cell {
 .space-vessel-tracker-card {
   background: #FFFFFF;
   border: 1px solid #E2E8F0;
-  border-radius: 20px;
-  padding: 24px;
+  border-radius: 18px;
+  padding: 20px 22px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(0, 0, 0, 0.03);
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 14px;
 }
 
 .space-vessel-top-banner {
-  background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%);
-  border-radius: 14px;
-  padding: 16px 20px;
+  background: linear-gradient(135deg, #1E3A8A 0%, #1D4ED8 50%, #2563EB 100%);
+  border-radius: 12px;
+  padding: 10px 16px;
   color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.22);
+  gap: 12px;
+  box-shadow: 0 4px 16px -2px rgba(30, 58, 138, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 .space-vessel-info-left {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 .space-vessel-badge-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -21760,60 +21762,66 @@ table.unlk-items-table th.active-cell {
   flex-shrink: 0;
 }
 .space-vessel-name-title {
-  font-size: 15.5px;
+  font-size: 14.5px;
   font-weight: 700;
   color: #FFFFFF;
   display: flex;
   align-items: center;
   gap: 8px;
+  white-space: nowrap;
 }
 .space-vessel-voyage-badge {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.25);
+  font-size: 10.5px;
+  background: rgba(255, 255, 255, 0.22);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.4);
-  padding: 2px 8px;
-  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  padding: 1.5px 6.5px;
+  border-radius: 5px;
   font-weight: 600;
+  white-space: nowrap;
 }
 .space-vessel-route {
-  font-size: 12.5px;
-  color: rgba(255, 255, 255, 0.92);
-  margin-top: 3px;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.88);
+  margin-top: 1.5px;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .space-vessel-etd-eta {
   display: flex;
   align-items: center;
-  gap: 16px;
-  background: rgba(0, 0, 0, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 10px;
-  padding: 9px 16px;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  padding: 5px 12px;
+  flex-shrink: 0;
 }
 .space-vessel-etd-item {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 .space-vessel-etd-item span {
-  font-size: 10.5px;
+  font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.82);
+  letter-spacing: 0.04em;
+  color: rgba(255, 255, 255, 0.78);
   font-weight: 600;
+  white-space: nowrap;
 }
 .space-vessel-etd-item strong {
-  font-size: 13.5px;
+  font-size: 12px;
   color: #FFFFFF;
   font-weight: 700;
+  white-space: nowrap;
 }
 .space-vessel-etd-item.eta strong {
-  color: #FEF08A; /* warm golden glow for ETA */
+  color: #93C5FD; /* soft ice-blue highlight */
 }
 
 /* 6-Stage Export Milestone Stepper (Rata Tengah / Center-Aligned) */
@@ -21822,7 +21830,7 @@ table.unlk-items-table th.active-cell {
   grid-template-columns: repeat(6, 1fr);
   position: relative;
   gap: 0;
-  margin: 14px 0 6px 0;
+  margin: 4px 0 2px 0;
 }
 @media (max-width: 900px) {
   .space-export-stepper {
@@ -21850,7 +21858,7 @@ table.unlk-items-table th.active-cell {
   align-items: center;
   justify-content: center;
   position: relative;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 .space-step-dot {
   width: 24px;
