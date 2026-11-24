@@ -574,11 +574,12 @@ export function WorkspaceShell({
           </div>
           <button
             type="button"
-            className="sidebar-mobile-close"
+            className="sidebar-toggle-btn"
             onClick={() => setSidebarOpen(false)}
             aria-label="Tutup menu navigasi"
+            title="Tutup navigasi"
           >
-            <X size={18} />
+            <PanelLeftClose size={16} />
           </button>
         </div>
 
@@ -674,8 +675,9 @@ export function WorkspaceShell({
               className="topbar-menu-btn"
               onClick={() => setSidebarOpen((open) => !open)}
               aria-label={sidebarOpen ? "Tutup menu navigasi" : "Buka menu navigasi"}
+              title={sidebarOpen ? "Tutup navigasi" : "Buka navigasi"}
             >
-              <Menu size={20} />
+              {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
             </button>
             <div className="breadcrumbs">
               <span className="breadcrumb-group">{activeMeta.group}</span>
@@ -924,26 +926,7 @@ export function WorkspaceShell({
 
 
 
-      {!isCompactViewport && !sidebarOpen && (
-        <button
-          type="button"
-          className="sidebar-reopen"
-          onClick={() => setSidebarOpen(true)}
-          aria-label="Buka navigasi"
-        >
-          <PanelLeftOpen size={18} />
-        </button>
-      )}
-      {!isCompactViewport && sidebarOpen && (
-        <button
-          type="button"
-          className="sidebar-collapse"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="Tutup navigasi"
-        >
-          <PanelLeftClose size={16} />
-        </button>
-      )}
+
     </div>
   );
 }
