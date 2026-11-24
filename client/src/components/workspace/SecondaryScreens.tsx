@@ -152,7 +152,10 @@ export function DashboardView({
   const totalContract = pricing.active.offer > 0 ? pricing.active.offer : 24590.43;
   const totalReceived = flow.paidAmount > 0 ? flow.paidAmount : 24590.43;
 
+  const PAGE_SIZE = 4;
+
   const allShipments = useMemo(() => [
+    // Halaman 1: Pengapalan 1–4
     {
       blNumber: "EKL-US2026-0881",
       invNumber: "INV-2026-0881",
@@ -225,12 +228,169 @@ export function DashboardView({
       paymentLabel: "CAD (Cash Against Docs)",
       amount: "$14,800.00",
     },
+    // Halaman 2: Pengapalan 5–8
+    {
+      blNumber: "EKL-AU2026-0551",
+      invNumber: "INV-2026-0551",
+      buyer: "Melbourne Bean Merchants",
+      buyerLoc: "Melbourne, Australia",
+      commodity: "Kopi Toraja Sapan",
+      stowage: "1×20' FCL · 19.2 MT",
+      polCode: "IDSUB",
+      podCode: "AUMEL",
+      polName: "Perak",
+      podName: "Melbourne",
+      etd: "12 Des",
+      eta: "28 Des 2026",
+      statusPill: "blue",
+      statusLabel: "In Transit Kapal",
+      paymentLabel: "L/C at Sight (Confirmed)",
+      amount: "$28,900.00",
+    },
+    {
+      blNumber: "EKL-NL2026-0318",
+      invNumber: "INV-2026-0318",
+      buyer: "Rotterdam Cacao Trading",
+      buyerLoc: "Rotterdam, Belanda",
+      commodity: "Biji Kakao Fermentasi",
+      stowage: "1×40' FCL · 25.0 MT",
+      polCode: "IDTPP",
+      podCode: "NLRTM",
+      polName: "Priok",
+      podName: "Rotterdam",
+      etd: "15 Des",
+      eta: "08 Jan 2027",
+      statusPill: "green",
+      statusLabel: "Jalur Hijau (NPE)",
+      paymentLabel: "T/T 50% DP / 50% B/L",
+      amount: "$36,400.00",
+    },
+    {
+      blNumber: "EKL-US2026-0773",
+      invNumber: "INV-2026-0773",
+      buyer: "Pacific Spices & Herbs",
+      buyerLoc: "San Francisco, USA",
+      commodity: "Pala Siau & Fuli Organik",
+      stowage: "1×20' FCL · 12.5 MT",
+      polCode: "IDSUB",
+      podCode: "USOAK",
+      polName: "Perak",
+      podName: "Oakland",
+      etd: "18 Des",
+      eta: "06 Jan 2027",
+      statusPill: "amber",
+      statusLabel: "Siap Muat Depo",
+      paymentLabel: "L/C at Sight (Paid)",
+      amount: "$22,750.00",
+    },
+    {
+      blNumber: "EKL-SG2026-0640",
+      invNumber: "INV-2026-0640",
+      buyer: "Singa Agro Commodities",
+      buyerLoc: "Singapore, SG",
+      commodity: "Minyak Atsiri Nilam",
+      stowage: "1×20' FCL · 16.0 MT",
+      polCode: "IDPNJ",
+      podCode: "SGSIN",
+      polName: "Panjang",
+      podName: "Singapore",
+      etd: "20 Des",
+      eta: "24 Des 2026",
+      statusPill: "green",
+      statusLabel: "Jalur Hijau (NPE)",
+      paymentLabel: "T/T 100% Advance",
+      amount: "$41,200.00",
+    },
+    // Halaman 3: Pengapalan 9–12
+    {
+      blNumber: "EKL-EU2026-0805",
+      invNumber: "INV-2026-0805",
+      buyer: "Antwerp Spice Importers",
+      buyerLoc: "Antwerp, Belgia",
+      commodity: "Lada Putih Muntok",
+      stowage: "1×20' FCL · 15.0 MT",
+      polCode: "IDPNJ",
+      podCode: "BEANR",
+      polName: "Panjang",
+      podName: "Antwerp",
+      etd: "22 Des",
+      eta: "16 Jan 2027",
+      statusPill: "amber",
+      statusLabel: "Siap Muat Depo",
+      paymentLabel: "L/C at Sight (Draft)",
+      amount: "$27,300.00",
+    },
+    {
+      blNumber: "EKL-US2026-0914",
+      invNumber: "INV-2026-0914",
+      buyer: "Seattle Artisan Roasters",
+      buyerLoc: "Seattle, USA",
+      commodity: "Kopi Mandheling Lintong",
+      stowage: "1×20' FCL · 19.2 MT",
+      polCode: "IDTPP",
+      podCode: "USSEA",
+      polName: "Priok",
+      podName: "Seattle",
+      etd: "24 Des",
+      eta: "14 Jan 2027",
+      statusPill: "green",
+      statusLabel: "Jalur Hijau (NPE)",
+      paymentLabel: "CAD (Cash Against Docs)",
+      amount: "$26,100.00",
+    },
+    {
+      blNumber: "EKL-KR2026-0233",
+      invNumber: "INV-2026-0233",
+      buyer: "Busan Bio Energy Corp",
+      buyerLoc: "Busan, Korea Selatan",
+      commodity: "Cangkang Sawit (PKS)",
+      stowage: "1×40' HC · 26.0 MT",
+      polCode: "IDPNJ",
+      podCode: "KRPUS",
+      polName: "Panjang",
+      podName: "Busan",
+      etd: "27 Des",
+      eta: "09 Jan 2027",
+      statusPill: "amber",
+      statusLabel: "Siap Muat Depo",
+      paymentLabel: "T/T 30% DP / 70% B/L",
+      amount: "$19,650.00",
+    },
+    {
+      blNumber: "EKL-JP2026-0487",
+      invNumber: "INV-2026-0487",
+      buyer: "Kobe Gourmet Spices Co",
+      buyerLoc: "Kobe, Jepang",
+      commodity: "Cengkeh Zanzibar Super",
+      stowage: "1×20' FCL · 11.0 MT",
+      polCode: "IDSUB",
+      podCode: "JPUKB",
+      polName: "Perak",
+      podName: "Kobe",
+      etd: "30 Des",
+      eta: "15 Jan 2027",
+      statusPill: "green",
+      statusLabel: "Jalur Hijau (NPE)",
+      paymentLabel: "L/C at Sight (Paid)",
+      amount: "$31,500.00",
+    },
   ], []);
 
   const filteredShipments = useMemo(() => {
     if (selectedPort === "all") return allShipments;
     return allShipments.filter((s) => s.polCode === selectedPort);
   }, [allShipments, selectedPort]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredShipments.length / PAGE_SIZE));
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+
+  const paginatedShipments = useMemo(() => {
+    const start = (safeCurrentPage - 1) * PAGE_SIZE;
+    return filteredShipments.slice(start, start + PAGE_SIZE);
+  }, [filteredShipments, safeCurrentPage]);
+
+  const startRecord = filteredShipments.length === 0 ? 0 : (safeCurrentPage - 1) * PAGE_SIZE + 1;
+  const endRecord = Math.min(safeCurrentPage * PAGE_SIZE, filteredShipments.length);
 
   return (
     <div className="space-home-container">
@@ -663,6 +823,7 @@ export function DashboardView({
                         className={`space-port-dropdown-item ${isSelected ? "active" : ""}`}
                         onClick={() => {
                           setSelectedPort(p.id);
+                          setCurrentPage(1);
                           setPortMenuOpen(false);
                         }}
                       >
@@ -709,7 +870,7 @@ export function DashboardView({
               </tr>
             </thead>
             <tbody>
-              {filteredShipments.map((s) => (
+              {paginatedShipments.map((s) => (
                 <tr key={s.blNumber}>
                   <td>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
@@ -818,48 +979,35 @@ export function DashboardView({
         {/* Functional Clean Pagination Bar */}
         <div className="space-invoices-pagination">
           <div style={{ fontSize: 12.5, color: "#64748B" }}>
-            Menampilkan <strong style={{ color: "#0F172A" }}>1–4</strong> dari <strong style={{ color: "#0F172A" }}>12</strong> pengapalan aktif
+            Menampilkan <strong style={{ color: "#0F172A" }}>{startRecord}–{endRecord}</strong> dari <strong style={{ color: "#0F172A" }}>{filteredShipments.length}</strong> pengapalan aktif
           </div>
           <div className="space-page-controls">
             <button
               type="button"
               className="space-page-nav-btn"
-              disabled={currentPage === 1}
-              onClick={() => {
-                setCurrentPage(1);
-                toast.info("Menampilkan halaman 1");
-              }}
+              disabled={safeCurrentPage === 1}
+              onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             >
               <ChevronLeft size={13} />
               <span>Sebelumnya</span>
             </button>
             <div className="space-page-numbers">
-              <button
-                type="button"
-                className={`space-page-num ${currentPage === 1 ? "active" : ""}`}
-                onClick={() => setCurrentPage(1)}
-              >
-                1
-              </button>
-              <button
-                type="button"
-                className={`space-page-num ${currentPage === 2 ? "active" : ""}`}
-                onClick={() => {
-                  setCurrentPage(2);
-                  toast.info("Semua transaksi aktif ditampilkan pada daftar utama.");
-                }}
-              >
-                2
-              </button>
+              {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                <button
+                  key={pageNum}
+                  type="button"
+                  className={`space-page-num ${safeCurrentPage === pageNum ? "active" : ""}`}
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum}
+                </button>
+              ))}
             </div>
             <button
               type="button"
               className="space-page-nav-btn"
-              disabled={currentPage === 2}
-              onClick={() => {
-                setCurrentPage(2);
-                toast.info("Menampilkan halaman 2");
-              }}
+              disabled={safeCurrentPage >= totalPages}
+              onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
             >
               <span>Berikutnya</span>
               <ChevronRight size={13} />
