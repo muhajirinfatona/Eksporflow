@@ -32,6 +32,7 @@ import {
   Filter,
   Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
   ClipboardCheck,
   Download,
@@ -131,30 +132,32 @@ export function DashboardView({
       invNumber: "INV-2026-0881",
       buyer: "Atlantic Roast Corp",
       buyerLoc: "Boston, USA",
+      countryCode: "US",
       avatar: "AR",
       avClass: "av1",
       commodity: "Kopi Arabika Gayo Grade 1",
-      stowage: "1x20' FCL · 320 Karung ICO 60kg (19.2 MT)",
+      stowage: "1×20' FCL · 19.2 MT (320 krg)",
       polCode: "IDTPP",
       podCode: "USLAX",
-      polName: "Tanjung Priok",
+      polName: "Priok",
       podName: "Los Angeles",
       etd: "28 Nov '26",
       eta: "18 Des '26",
       statusPill: "green",
       statusLabel: "Jalur Hijau (NPE)",
       paymentLabel: "L/C at Sight (Paid)",
-      amount: "$24,590.00",
+      amount: "$24,590",
     },
     {
       blNumber: "EKL-EU2026-0412",
       invNumber: "INV-2026-0412",
       buyer: "Hamburg Specialty Coffee GmbH",
       buyerLoc: "Hamburg, Jerman",
+      countryCode: "DE",
       avatar: "HC",
       avClass: "av2",
       commodity: "Kopi Robusta Lampung Fine",
-      stowage: "1x20' FCL · 300 Karung 60kg (18.0 MT)",
+      stowage: "1×20' FCL · 18.0 MT (300 krg)",
       polCode: "IDPNJ",
       podCode: "DEHAM",
       polName: "Panjang",
@@ -164,47 +167,49 @@ export function DashboardView({
       statusPill: "blue",
       statusLabel: "In Transit Kapal",
       paymentLabel: "T/T 30% DP / 70% B/L",
-      amount: "$18,400.00",
+      amount: "$18,400",
     },
     {
       blNumber: "EKL-JP2026-0199",
       invNumber: "INV-2026-0199",
       buyer: "Tokyo Agro & Spices Co., Ltd",
       buyerLoc: "Tokyo, Jepang",
+      countryCode: "JP",
       avatar: "TA",
       avClass: "av3",
       commodity: "Kayu Manis Korintje Cassia A",
-      stowage: "1x40' HC · 520 Karton ISPM-15 (15.6 MT)",
+      stowage: "1×40' HC · 15.6 MT (520 ktn)",
       polCode: "IDSUB",
       podCode: "JPYOK",
-      polName: "Tanjung Perak",
+      polName: "Perak",
       podName: "Yokohama",
       etd: "05 Des '26",
       eta: "19 Des '26",
       statusPill: "amber",
       statusLabel: "Siap Muat di Depo",
       paymentLabel: "DP 30% Masuk (Mandiri)",
-      amount: "$32,150.00",
+      amount: "$32,150",
     },
     {
       blNumber: "EKL-AE2026-0920",
       invNumber: "INV-2026-0920",
       buyer: "Emirates Foodstuff Trading LLC",
       buyerLoc: "Dubai, UAE",
+      countryCode: "AE",
       avatar: "EF",
       avClass: "av4",
       commodity: "Briket Arang Kelapa Premium",
-      stowage: "1x20' FCL · 1,400 Master Box (14.0 MT)",
+      stowage: "1×20' FCL · 14.0 MT (1.4k box)",
       polCode: "IDTPP",
       podCode: "AEJEA",
-      polName: "Tanjung Priok",
+      polName: "Priok",
       podName: "Jebel Ali",
       etd: "10 Des '26",
       eta: "27 Des '26",
       statusPill: "green",
       statusLabel: "Jalur Hijau (NPE)",
       paymentLabel: "CAD (Cash Against Docs)",
-      amount: "$14,800.00",
+      amount: "$14,800",
     },
   ], []);
 
@@ -605,9 +610,12 @@ export function DashboardView({
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
               Pengapalan Ekspor Aktif
             </h3>
+            <p style={{ margin: "2px 0 0 0", fontSize: 12, color: "#64748B" }}>
+              Manifest pengapalan maritim aktif &amp; status kepabeanan kontainer
+            </p>
           </div>
           <div className="space-invoices-v2-actions">
-            {/* Clean Segmented Port Control (Non-Button Confusion) */}
+            {/* Clean Segmented Port Control */}
             <div className="filter-segmented-group">
               {[
                 { id: "all", label: "Semua Pelabuhan" },
@@ -630,7 +638,7 @@ export function DashboardView({
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("transactions")}
-              style={{ padding: "6px 12px", fontSize: 12 }}
+              style={{ padding: "6px 14px", fontSize: 12 }}
             >
               <span>Semua Transaksi</span>
               <ChevronRight size={13} />
@@ -642,91 +650,126 @@ export function DashboardView({
           <table className="space-invoices-table-v2">
             <thead>
               <tr>
-                <th>No. B/L & Kontrak</th>
-                <th>Buyer & Destinasi</th>
-                <th>Komoditas & Kontainer</th>
-                <th>Rute Pelayaran</th>
-                <th>Jadwal Kapal</th>
-                <th>Status Kepabeanan</th>
-                <th>Nilai Ekspor</th>
-                <th style={{ textAlign: "right" }}>Aksi Cepat</th>
+                <th style={{ width: "13%" }}>No. B/L &amp; Kontrak</th>
+                <th style={{ width: "17%" }}>Buyer &amp; Destinasi</th>
+                <th style={{ width: "19%" }}>Komoditas &amp; Kontainer</th>
+                <th style={{ width: "13%" }}>Rute Pelayaran</th>
+                <th style={{ width: "10%" }}>Jadwal Kapal</th>
+                <th style={{ width: "13%" }}>Status Kepabeanan</th>
+                <th style={{ width: "7%", textAlign: "right" }}>Nilai Ekspor</th>
+                <th style={{ width: "8%", textAlign: "right" }}>Aksi Cepat</th>
               </tr>
             </thead>
             <tbody>
               {filteredShipments.map((s) => (
                 <tr key={s.blNumber}>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column" }}>
-                      <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <span className="space-invoice-code" onClick={() => navigate("documents")} title="Lihat Dokumen B/L">
                         {s.blNumber}
                       </span>
-                      <small style={{ color: "#64748B", fontSize: 11 }}>{s.invNumber}</small>
+                      <small style={{ color: "#64748B", fontSize: 11, fontFamily: "var(--font-mono, monospace)" }}>
+                        {s.invNumber}
+                      </small>
                     </div>
                   </td>
                   <td>
                     <div className="space-table-user-cell">
-                      <div className={`space-table-avatar ${s.avClass}`}>{s.avatar}</div>
+                      <div className="space-table-avatar">{s.avatar}</div>
                       <div className="space-table-name-wrap">
                         <span className="space-table-buyer-name">{s.buyer}</span>
-                        <span className="space-table-buyer-email">{s.buyerLoc}</span>
+                        <span className="space-table-buyer-email">
+                          <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0", fontFamily: "var(--font-mono, monospace)" }}>
+                            {s.countryCode}
+                          </span>
+                          <span>{s.buyerLoc}</span>
+                        </span>
                       </div>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <strong style={{ fontSize: 13, color: "#0F172A" }}>{s.commodity}</strong>
-                      <span style={{ fontSize: 11.5, color: "#64748B" }}>{s.stowage}</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <strong style={{ fontSize: 12.5, color: "#0F172A", fontWeight: 600 }}>{s.commodity}</strong>
+                      <span style={{ fontSize: 11, color: "#64748B" }}>{s.stowage}</span>
                     </div>
                   </td>
                   <td>
                     <div className="space-table-tracking">
-                      <span className="space-tracking-code">{s.polCode} → {s.podCode}</span>
-                      <span className="space-tracking-dest">{s.polName} ke {s.podName}</span>
+                      <span className="space-tracking-code">
+                        {s.polCode} <span style={{ color: "#94A3B8", fontWeight: 400 }}>→</span> {s.podCode}
+                      </span>
+                      <span className="space-tracking-dest">{s.polName} → {s.podName}</span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", fontSize: 12 }}>
-                      <span style={{ color: "#0F172A" }}>ETD: {s.etd}</span>
-                      <span style={{ color: "#0066FF", fontWeight: 600 }}>ETA: {s.eta}</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                      <span style={{ color: "#64748B", fontSize: 11, whiteSpace: "nowrap" }}>ETD: {s.etd}</span>
+                      <span style={{ color: "#0F172A", fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap" }}>
+                        ETA: {s.eta}
+                      </span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                      <span className={`status-pill ${s.statusPill}`}>{s.statusLabel}</span>
-                      <span style={{ fontSize: 11, color: "#166534" }}>{s.paymentLabel}</span>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <span
+                        style={{
+                          fontSize: 10.5,
+                          fontWeight: 600,
+                          padding: "1.5px 6px",
+                          borderRadius: 5,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 4,
+                          width: "fit-content",
+                          whiteSpace: "nowrap",
+                          background: s.statusPill === "green" ? "#F0FDF4" : s.statusPill === "blue" ? "#EFF6FF" : "#FFFBEB",
+                          border: s.statusPill === "green" ? "1px solid #BBF7D0" : s.statusPill === "blue" ? "1px solid #BFDBFE" : "1px solid #FDE68A",
+                          color: s.statusPill === "green" ? "#166534" : s.statusPill === "blue" ? "#1D4ED8" : "#B45309",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 5,
+                            height: 5,
+                            borderRadius: "50%",
+                            background: s.statusPill === "green" ? "#22C55E" : s.statusPill === "blue" ? "#3B82F6" : "#F59E0B",
+                          }}
+                        />
+                        {s.statusLabel}
+                      </span>
+                      <span style={{ fontSize: 10.5, color: "#64748B", whiteSpace: "nowrap" }}>{s.paymentLabel}</span>
                     </div>
                   </td>
-                  <td>
+                  <td style={{ textAlign: "right" }}>
                     <span className="space-table-amount">{s.amount}</span>
                   </td>
                   <td style={{ textAlign: "right" }}>
-                    <div style={{ display: "inline-flex", gap: 6 }}>
+                    <div style={{ display: "inline-flex", gap: 5, alignItems: "center", justifyContent: "flex-end" }}>
                       <button
                         type="button"
-                        className="space-btn-ghost-sm"
+                        className="space-btn-table-icon"
                         onClick={() => navigate("documents")}
-                        title="Lihat Dokumen Ekspor"
+                        title="Lihat Dokumen Ekspor (PEB & B/L)"
+                        aria-label="Dokumen Ekspor"
                       >
                         <FileText size={12} />
-                        <span>Dokumen</span>
                       </button>
                       <button
                         type="button"
-                        className="space-btn-ghost-sm"
+                        className="space-btn-table-icon"
                         onClick={() => navigate("cargo")}
-                        title="Rencana Muatan Kontainer"
+                        title="Detail Muatan & Kontainer"
+                        aria-label="Muatan Kontainer"
                       >
                         <Package size={12} />
-                        <span>Muatan</span>
                       </button>
                       <button
                         type="button"
-                        className="space-btn-secondary"
-                        style={{ padding: "3px 9px", fontSize: 11.5 }}
+                        className="space-btn-table-primary"
                         onClick={() => navigate("tracking")}
-                        title="Lacak Posisi Kapal"
+                        title="Lacak Posisi Kapal di Laut"
                       >
-                        <Compass size={12} />
+                        <Compass size={11} />
                         <span>Lacak</span>
                       </button>
                     </div>
@@ -737,44 +780,56 @@ export function DashboardView({
           </table>
         </div>
 
-        {/* Functional Pagination Bar */}
+        {/* Functional Clean Pagination Bar */}
         <div className="space-invoices-pagination">
-          <button
-            type="button"
-            className="space-page-btn"
-            onClick={() => {
-              setCurrentPage(1);
-              toast.info("Menampilkan halaman 1");
-            }}
-          >
-            ← Sebelumnya
-          </button>
-          <div className="space-page-numbers">
+          <div style={{ fontSize: 12.5, color: "#64748B" }}>
+            Menampilkan <strong style={{ color: "#0F172A" }}>1–4</strong> dari <strong style={{ color: "#0F172A" }}>12</strong> pengapalan aktif
+          </div>
+          <div className="space-page-controls">
             <button
               type="button"
-              className={`space-page-num ${currentPage === 1 ? "active" : ""}`}
-              onClick={() => setCurrentPage(1)}
-            >
-              01
-            </button>
-            <button
-              type="button"
-              className={`space-page-num ${currentPage === 2 ? "active" : ""}`}
+              className="space-page-nav-btn"
+              disabled={currentPage === 1}
               onClick={() => {
-                setCurrentPage(2);
-                toast.info("Semua transaksi aktif ditampilkan pada daftar utama.");
+                setCurrentPage(1);
+                toast.info("Menampilkan halaman 1");
               }}
             >
-              02
+              <ChevronLeft size={13} />
+              <span>Sebelumnya</span>
+            </button>
+            <div className="space-page-numbers">
+              <button
+                type="button"
+                className={`space-page-num ${currentPage === 1 ? "active" : ""}`}
+                onClick={() => setCurrentPage(1)}
+              >
+                1
+              </button>
+              <button
+                type="button"
+                className={`space-page-num ${currentPage === 2 ? "active" : ""}`}
+                onClick={() => {
+                  setCurrentPage(2);
+                  toast.info("Semua transaksi aktif ditampilkan pada daftar utama.");
+                }}
+              >
+                2
+              </button>
+            </div>
+            <button
+              type="button"
+              className="space-page-nav-btn"
+              disabled={currentPage === 2}
+              onClick={() => {
+                setCurrentPage(2);
+                toast.info("Menampilkan halaman 2");
+              }}
+            >
+              <span>Berikutnya</span>
+              <ChevronRight size={13} />
             </button>
           </div>
-          <button
-            type="button"
-            className="space-page-btn"
-            onClick={() => navigate("transactions")}
-          >
-            Lihat Semua Transaksi →
-          </button>
         </div>
       </div>
     </div>
