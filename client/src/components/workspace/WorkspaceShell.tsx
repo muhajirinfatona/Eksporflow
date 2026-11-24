@@ -577,7 +577,7 @@ export function WorkspaceShell({
             <strong>
               Ekspor<span>Flow</span>
             </strong>
-            <small>EXPORT OPERATIONS</small>
+            <small>Export Operations</small>
           </div>
           <button
             type="button"
@@ -769,7 +769,7 @@ export function WorkspaceShell({
                   background: "#fef3c7",
                   borderColor: "#fcd34d",
                   color: "#92400e",
-                  fontWeight: 700,
+                  fontWeight: 600,
                 }}
               >
                 <Clock size={14} />{" "}
@@ -855,7 +855,7 @@ export function WorkspaceShell({
                 status="online"
               />
               <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
-                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--space-gray-900)", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: 12, fontWeight: 600, color: "var(--space-gray-900)", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {user?.name || exporterName?.replace(/\s*\(Demo\)/gi, "") || "PT Nusantara"}
                 </span>
                 <span style={{ fontSize: 9.5, color: "var(--space-gray-500)", fontWeight: 500 }}>

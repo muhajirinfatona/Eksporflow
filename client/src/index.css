@@ -277,11 +277,12 @@ textarea:focus-visible {
 
 .brand-lockup small {
   display: block;
-  color: #64748b;
-  font-size: 9.5px;
-  letter-spacing: 0.12em;
-  font-weight: 600;
+  color: #94a3b8;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  font-weight: 500;
   margin-top: 3px;
+  text-transform: none;
 }
 
 .brand-mark,
@@ -410,12 +411,12 @@ textarea:focus-visible {
 }
 
 .clean-nav-group-title {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #64748b;
-  padding: 6px 12px 3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
+  color: #94a3b8;
+  padding: 8px 12px 3px;
 }
 
 .clean-nav-item {
@@ -980,11 +981,11 @@ textarea:focus-visible {
 .eyebrow {
   display: block;
   color: var(--muted);
-  font-size: 10.5px;
-  line-height: 1.2;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.3;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 500;
 }
 
 .eyebrow.light {
@@ -994,9 +995,9 @@ textarea:focus-visible {
 .page-heading h1 {
   color: var(--ink);
   font-family: var(--font-sans);
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.2;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
   font-size: 22px;
   margin: 5px 0 4px;
 }
@@ -1591,6 +1592,12 @@ textarea:focus-visible {
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
 }
 
+@media (max-width: 1180px) {
+  .content-grid.two-thirds {
+    grid-template-columns: 1fr;
+  }
+}
+
 .checklist {
   display: flex;
   flex-direction: column;
@@ -1856,11 +1863,11 @@ textarea:focus-visible {
 }
 
 .screen-ai-banner-eyebrow .eyebrow-text {
-  font-size: 10px;
-  letter-spacing: 0.05em;
-  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: normal;
+  font-weight: 500;
   color: var(--muted);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .screen-ai-risk-tag {
@@ -2075,10 +2082,10 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
   color: var(--muted);
   margin-bottom: 4px;
 }
@@ -2827,11 +2834,11 @@ textarea:focus-visible {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 2px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: none;
   color: #64748b;
-  letter-spacing: 0.3px;
+  letter-spacing: normal;
 }
 
 .ai-float-insight h5 {
@@ -2850,11 +2857,11 @@ textarea:focus-visible {
 }
 
 .ai-float-chips-title {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 10.5px;
+  font-weight: 500;
   color: #64748b;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .ai-float-chips-wrap {
@@ -4036,12 +4043,12 @@ textarea:focus-visible {
 .tx-mode-badge-hint {
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 10.5px;
   background: #f1f5f9;
   color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .tx-mode-tab.active .tx-mode-badge-hint {
@@ -4142,15 +4149,16 @@ textarea:focus-visible {
 }
 
 .active-order-stat-label {
-  font-size: 11px;
+  font-size: 11.5px;
   color: var(--muted);
-  text-transform: uppercase;
-  font-weight: 600;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .active-order-stat-val {
   font-size: 13.5px;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
@@ -5131,9 +5139,9 @@ textarea:focus-visible {
 }
 
 .doc-active-eyebrow {
-  font-size: 9.5px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: normal;
   color: #475569;
   background: #f1f5f9;
   padding: 2px 7px;
@@ -5143,7 +5151,7 @@ textarea:focus-visible {
 
 .doc-active-title {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   color: #0f2942;
   letter-spacing: -0.01em;
   margin: 0;
@@ -5335,10 +5343,10 @@ textarea:focus-visible {
 }
 
 .doc-review-menu-title {
-  font-size: 9.5px;
-  font-weight: 800;
+  font-size: 10px;
+  font-weight: 600;
   color: #64748b;
-  letter-spacing: 0.06em;
+  letter-spacing: normal;
 }
 
 .doc-review-menu-subtitle {
@@ -5614,11 +5622,11 @@ textarea:focus-visible {
 }
 
 .doc-download-menu-title {
-  font-size: 10px;
-  font-weight: 800;
+  font-size: 10.5px;
+  font-weight: 600;
   color: #64748b;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  letter-spacing: normal;
+  text-transform: none;
 }
 
 .doc-download-menu-subtitle {
@@ -6273,11 +6281,11 @@ textarea:focus-visible {
 }
 
 .workflow-sub {
-  font-size: 10px;
+  font-size: 10.5px;
   font-weight: 500;
   color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .workflow-link-btn.primary .workflow-sub {
@@ -9264,16 +9272,17 @@ textarea:focus-visible {
 }
 
 .risk-score strong {
-  font-size: 34px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 600;
   line-height: 1;
 }
 
 .risk-score span {
   color: rgba(255, 255, 255, 0.78);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 11.5px;
+  letter-spacing: normal;
+  text-transform: none;
+  font-weight: 500;
   margin-top: 5px;
 }
 
@@ -9387,10 +9396,10 @@ textarea:focus-visible {
 .audit-grid span,
 .context-list span {
   color: var(--muted);
-  font-size: 10.5px;
-  letter-spacing: 0.06em;
-  font-weight: 700;
-  text-transform: uppercase;
+  font-size: 11.5px;
+  letter-spacing: normal;
+  font-weight: 500;
+  text-transform: none;
 }
 
 .audit-grid b,
@@ -9996,10 +10005,10 @@ textarea:focus-visible {
 
 .clean-table th {
   text-align: left;
-  font-size: 11.5px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--space-gray-700);
   background: #f8fafc;
   padding: 12px 16px;
   border-bottom: 1px solid var(--line);
@@ -10302,10 +10311,10 @@ textarea:focus-visible {
   }
   .line-mobile-label {
     display: block;
-    font-size: 10.5px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: normal;
     color: var(--muted);
     margin-bottom: 4px;
   }
@@ -13065,24 +13074,24 @@ textarea:focus-visible {
 }
 
 .cell-label {
-  font-size: 11px;
+  font-size: 11.5px;
   color: #64748b;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .cell-active-tag {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 10.5px;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: normal;
   background: #0284c7;
   color: #ffffff;
-  padding: 1px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   white-space: nowrap;
 }
@@ -13483,14 +13492,14 @@ textarea:focus-visible {
 .fx-label {
   font-size: 12px;
   color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 500;
 }
 
 .fx-rate-display strong {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f172a;
   letter-spacing: -0.02em;
 }
@@ -13690,11 +13699,11 @@ textarea:focus-visible {
 }
 
 .quote-dual-title {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 500;
   color: #93c5fd;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  text-transform: none;
+  letter-spacing: normal;
   white-space: nowrap;
   flex-shrink: 0;
 }
@@ -13946,10 +13955,10 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
   color: #93c5fd;
 }
 
@@ -14094,11 +14103,11 @@ textarea:focus-visible {
 
 .trans-compliance-table th {
   padding: 8px 12px;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 600;
   color: #475569;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .trans-compliance-table td {
@@ -14417,7 +14426,7 @@ textarea:focus-visible {
 
 .exw-summary-value {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   color: #0f172a;
 }
 
@@ -14878,15 +14887,16 @@ textarea:focus-visible {
 }
 
 .indicator-total-label {
-  font-size: 10.5px;
+  font-size: 11px;
   color: #64748b;
-  text-transform: uppercase;
-  font-weight: 600;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .indicator-total-val {
   font-size: 17px;
-  font-weight: 800;
+  font-weight: 600;
   color: #0f172a;
   font-variant-numeric: tabular-nums;
 }
@@ -15012,9 +15022,9 @@ textarea:focus-visible {
   background: #f8fafc;
   color: #334155;
   font-size: 11.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
   padding: 10px 14px;
   border-bottom: 1.5px solid #cbd5e1;
   border-right: 1px solid #e2e8f0;
@@ -15315,8 +15325,8 @@ textarea:focus-visible {
   padding: 4px 12px;
   border-radius: 6px;
   font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.03em;
+  font-weight: 600;
+  letter-spacing: normal;
   background: #e2e8f0;
   color: #334155;
 }
@@ -15357,13 +15367,14 @@ textarea:focus-visible {
 .ladder-offer-label {
   font-size: 11px;
   color: #64748b;
-  text-transform: uppercase;
-  font-weight: 600;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .ladder-offer-amount {
   font-size: 16px;
-  font-weight: 800;
+  font-weight: 600;
   color: #0f172a;
   font-variant-numeric: tabular-nums;
 }
@@ -15381,8 +15392,9 @@ textarea:focus-visible {
 .ladder-unit-label {
   font-size: 11px;
   color: #64748b;
-  text-transform: uppercase;
-  font-weight: 600;
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
 }
 
 .ladder-unit-amount {
@@ -16166,12 +16178,12 @@ table.unlk-items-table th.active-cell {
 }
 
 .doc-ribbon-group-label {
-  font-size: 9.5px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 500;
   color: #64748b;
   text-align: center;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
   margin-top: 3px;
 }
 
@@ -16814,9 +16826,9 @@ table.unlk-items-table th.active-cell {
 }
 
 .doc-party-badge {
-  font-size: 9.5px;
-  font-weight: 800;
-  text-transform: uppercase;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: none;
   background: #0284c7;
   color: #ffffff;
   padding: 2px 6px;
@@ -17136,11 +17148,11 @@ table.unlk-items-table th.active-cell {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 8.5px;
-  font-weight: 600;
+  font-size: 9px;
+  font-weight: 500;
   color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 /* Upload Dropzone */
@@ -18025,8 +18037,8 @@ table.unlk-items-table th.active-cell {
 }
 
 .score-number {
-  font-size: 26px;
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 600;
   color: #0f2942;
 }
 
@@ -18045,10 +18057,10 @@ table.unlk-items-table th.active-cell {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: none;
+  letter-spacing: normal;
   margin-bottom: 4px;
 }
 
@@ -18089,14 +18101,15 @@ table.unlk-items-table th.active-cell {
 
 .stat-pill .stat-val {
   font-size: 14px;
-  font-weight: 800;
+  font-weight: 600;
 }
 
 .stat-pill .stat-lbl {
-  font-size: 9.5px;
-  font-weight: 600;
+  font-size: 10px;
+  font-weight: 500;
   color: #64748b;
-  text-transform: uppercase;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .stat-pill.error .stat-val {
@@ -18123,10 +18136,11 @@ table.unlk-items-table th.active-cell {
 }
 
 .filter-label {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 600;
   color: #64748b;
-  text-transform: uppercase;
+  text-transform: none;
+  letter-spacing: normal;
   margin-right: 4px;
 }
 
@@ -18234,11 +18248,12 @@ table.unlk-items-table th.active-cell {
 }
 
 .finding-severity-tag {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 10.5px;
+  font-weight: 600;
   padding: 2px 7px;
   border-radius: 4px;
-  text-transform: uppercase;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .finding-severity-tag.severity-error {
@@ -18282,10 +18297,11 @@ table.unlk-items-table th.active-cell {
 }
 
 .rec-label {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 10.5px;
+  font-weight: 600;
   color: #0284c7;
-  text-transform: uppercase;
+  text-transform: none;
+  letter-spacing: normal;
   display: block;
   margin-bottom: 2px;
 }
@@ -18368,10 +18384,11 @@ table.unlk-items-table th.active-cell {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  font-size: 10.5px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 500;
   color: #93c5fd;
-  text-transform: uppercase;
+  text-transform: none;
+  letter-spacing: normal;
   margin-bottom: 2px;
 }
 
@@ -18438,10 +18455,10 @@ table.unlk-items-table th.active-cell {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   color: #0f2942;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 .ocr-dropzone {
@@ -19197,16 +19214,16 @@ table.unlk-items-table th.active-cell {
 
 .ef-result-danger span {
   display: block;
-  font-size: 11.5px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 500;
   color: #991b1b;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .ef-result-danger strong {
   display: block;
-  font-size: 24px;
-  font-weight: 900;
+  font-size: 22px;
+  font-weight: 600;
   color: #dc2626;
   margin: 2px 0;
 }
@@ -19717,18 +19734,18 @@ table.unlk-items-table th.active-cell {
 }
 
 .ef-hero-kpi-card span {
-  font-size: 10.5px;
-  font-weight: 600;
-  letter-spacing: 0.05em;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: normal;
   color: var(--muted);
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .ef-hero-kpi-card strong {
-  font-size: 19px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 600;
   color: var(--ink);
-  line-height: 1.2;
+  line-height: 1.25;
   font-variant-numeric: tabular-nums;
 }
 
@@ -19863,7 +19880,7 @@ table.unlk-items-table th.active-cell {
   justify-content: center;
   gap: 8px;
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 500;
   line-height: 1;
   white-space: nowrap;
   border-radius: var(--space-radius-md);
@@ -20444,7 +20461,7 @@ table.unlk-items-table th.active-cell {
   gap: 6px;
   padding: 6px 14px;
   font-size: 12.5px;
-  font-weight: 600;
+  font-weight: 500;
   color: var(--space-gray-600);
   background: transparent;
   border: none;
@@ -20459,6 +20476,7 @@ table.unlk-items-table th.active-cell {
 .space-tab-pill.active {
   background: var(--space-white);
   color: var(--space-navy-800);
+  font-weight: 600;
   box-shadow: var(--space-shadow-xs);
 }
 
@@ -20582,11 +20600,11 @@ table.unlk-items-table th.active-cell {
 .space-crm-stat-card.purple::before { background: var(--space-purple-500); }
 
 .space-crm-stat-label {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  color: var(--space-gray-500);
-  text-transform: uppercase;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: normal;
+  color: var(--space-gray-600);
+  text-transform: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -20599,11 +20617,11 @@ table.unlk-items-table th.active-cell {
   white-space: nowrap;
 }
 .space-crm-stat-value {
-  font-size: 22px;
-  font-weight: 800;
+  font-size: 21px;
+  font-weight: 600;
   color: var(--space-gray-900);
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.25;
   min-width: 0;
 }
 .space-crm-stat-foot {
@@ -20694,11 +20712,11 @@ table.unlk-items-table th.active-cell {
 }
 .space-table th {
   background: var(--space-gray-50);
-  color: var(--space-gray-600);
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  color: var(--space-gray-700);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: normal;
+  text-transform: none;
   padding: 12px 16px;
   border-bottom: 1px solid var(--space-gray-200);
   white-space: nowrap;
@@ -20858,12 +20876,12 @@ table.unlk-items-table th.active-cell {
   width: 100%;
 }
 .space-calendar-day-header {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--space-gray-500);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--space-gray-600);
   text-align: center;
   padding: 6px 0;
-  text-transform: uppercase;
+  text-transform: none;
 }
 .space-calendar-cell {
   min-height: 85px;

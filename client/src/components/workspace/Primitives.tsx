@@ -244,12 +244,12 @@ export function TransactionStrip({
   return (
     <div className="transaction-strip">
       <div className="transaction-cell">
-        <span>REFERENCE</span>
-        <b>{shipment.reference}</b>
+        <span>Referensi</span>
+        <b style={{ fontWeight: 600 }}>{shipment.reference}</b>
       </div>
       <div className="transaction-cell">
-        <span>BUYER</span>
-        <b>{shipment.buyer}</b>
+        <span>Buyer</span>
+        <b style={{ fontWeight: 600 }}>{shipment.buyer}</b>
         <small>{shipment.buyerCountry}</small>
       </div>
       <div className="route-cell">
@@ -259,17 +259,17 @@ export function TransactionStrip({
           <span className="route-dot filled" />
         </div>
         <div>
-          <small>ORIGIN</small>
-          <b>Indonesia</b>
+          <small>Asal</small>
+          <b style={{ fontWeight: 600 }}>Indonesia</b>
         </div>
         <ArrowDownRight size={18} className="route-arrow" />
         <div>
-          <small>DESTINATION</small>
-          <b>{shipment.destination}</b>
+          <small>Tujuan</small>
+          <b style={{ fontWeight: 600 }}>{shipment.destination}</b>
         </div>
       </div>
       <div className="transaction-cell incoterm-cell">
-        <span>INCOTERM</span>
+        <span>Incoterm</span>
         <select
           value={shipment.incoterm}
           onChange={(event) => update("incoterm", event.target.value as Incoterm)}
@@ -301,7 +301,7 @@ export function TransactionProfile({
     <section className="panel panel-padding connected-profile">
       <div className="panel-head">
         <div>
-          <span className="eyebrow">DATA UTAMA TRANSAKSI</span>
+          <span className="eyebrow">Data utama transaksi</span>
           <h3>Parameter Transaksi Terhubung</h3>
         </div>
         <div className="row-actions">

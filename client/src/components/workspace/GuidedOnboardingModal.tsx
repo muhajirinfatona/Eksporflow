@@ -240,7 +240,7 @@ export function GuidedOnboardingModal({
               <Compass size={16} />
             </div>
             <div>
-              <h2 className="text-sm font-bold tracking-tight text-white">Panduan Transaksi Ekspor</h2>
+              <h2 className="text-sm font-semibold tracking-normal text-white">Panduan Transaksi Ekspor</h2>
               <span className="text-[11px] text-[#8A94A6]">Setup profil, komoditas, dan terbitkan draf dokumen</span>
             </div>
           </div>
@@ -271,9 +271,9 @@ export function GuidedOnboardingModal({
                 onClick={() => setCurrentStep(s.num as any)}
                 className={`py-2.5 px-3 text-center border-b-2 font-medium transition-all ${
                   isCurrent
-                    ? "border-[#0F2942] text-[#0F2942] bg-white font-bold"
+                    ? "border-[#0F2942] text-[#0F2942] bg-white font-semibold"
                     : isDone
-                      ? "border-emerald-600 text-emerald-700"
+                      ? "border-emerald-600 text-emerald-700 font-medium"
                       : "border-transparent text-[#697483] hover:text-[#1B2533]"
                 }`}
               >
@@ -291,7 +291,7 @@ export function GuidedOnboardingModal({
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     Nama Badan Usaha
                   </label>
                   <input
@@ -304,7 +304,7 @@ export function GuidedOnboardingModal({
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     NIB (Nomor Induk Berusaha)
                   </label>
                   <input
@@ -312,12 +312,12 @@ export function GuidedOnboardingModal({
                     value={nibNumber}
                     onChange={(e) => setNibNumber(e.target.value)}
                     placeholder="13 Digit NIB"
-                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 font-medium tabular-nums"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     NPWP Perusahaan
                   </label>
                   <input
@@ -325,18 +325,18 @@ export function GuidedOnboardingModal({
                     value={npwpNumber}
                     onChange={(e) => setNpwpNumber(e.target.value)}
                     placeholder="00.000.000.0-000.000"
-                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 font-medium tabular-nums"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     Pelabuhan Muat Asal (POL)
                   </label>
                   <select
                     value={selectedPort}
                     onChange={(e) => setSelectedPort(e.target.value)}
-                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 bg-white font-medium"
                   >
                     <option value="Pelabuhan Tanjung Priok, Jakarta (IDTPP)">Pelabuhan Tanjung Priok, Jakarta (IDTPP)</option>
                     <option value="Pelabuhan Tanjung Perak, Surabaya (IDSUB)">Pelabuhan Tanjung Perak, Surabaya (IDSUB)</option>
@@ -371,13 +371,13 @@ export function GuidedOnboardingModal({
                       }`}
                     >
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-bold text-xs text-slate-900">{sector.name}</span>
-                        <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">
+                        <span className="font-semibold text-xs text-slate-900">{sector.name}</span>
+                        <span className="text-[10.5px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-medium tabular-nums">
                           HS {sector.hsCode}
                         </span>
                       </div>
-                      <div className="text-[11px] text-slate-600 truncate mb-2">{sector.productName}</div>
-                      <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500">
+                      <div className="text-[11.5px] text-slate-600 truncate mb-2">{sector.productName}</div>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 font-medium">
                         <span>{sector.containerType}</span>
                         <span>•</span>
                         <span>{sector.incoterm}</span>
@@ -400,7 +400,7 @@ export function GuidedOnboardingModal({
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     Kuantitas Pesanan ({selectedSector.unit})
                   </label>
                   <input
@@ -408,12 +408,12 @@ export function GuidedOnboardingModal({
                     min={1}
                     value={targetQuantity}
                     onChange={(e) => setTargetQuantity(Math.max(1, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 font-medium tabular-nums"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  <label className="block text-xs font-medium text-slate-700 mb-1">
                     Harga Satuan ({selectedSector.defaultCurrency} / {selectedSector.unit})
                   </label>
                   <input
@@ -422,7 +422,7 @@ export function GuidedOnboardingModal({
                     min={0.01}
                     value={targetUnitPrice}
                     onChange={(e) => setTargetUnitPrice(Math.max(0.01, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 text-xs font-mono border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600"
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg focus:outline-none focus:border-blue-600 font-medium tabular-nums"
                   />
                 </div>
               </div>
@@ -430,8 +430,8 @@ export function GuidedOnboardingModal({
               {/* Status Muatan Kontainer */}
               <div className="p-4 bg-slate-50 rounded-lg border border-slate-200 space-y-3">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-slate-700">Tipe Kontainer: {selectedSector.containerType}</span>
-                  <span className="font-mono text-slate-900 font-bold">
+                  <span className="font-medium text-slate-700">Tipe Kontainer: {selectedSector.containerType}</span>
+                  <span className="text-slate-900 font-semibold tabular-nums">
                     Est. Nilai: ${totalContractUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD
                   </span>
                 </div>
@@ -440,7 +440,7 @@ export function GuidedOnboardingModal({
                   <div>
                     <div className="flex justify-between text-[11px] text-slate-600 mb-1">
                       <span>Kapasitas Volume ({totalVolumeCbm.toFixed(2)} / {spec.volume} CBM)</span>
-                      <span className="font-mono font-bold">{volumeUtilization.toFixed(1)}%</span>
+                      <span className="font-semibold text-slate-800 tabular-nums">{volumeUtilization.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-blue-600 h-full rounded-full" style={{ width: `${volumeUtilization}%` }} />
@@ -450,7 +450,7 @@ export function GuidedOnboardingModal({
                   <div>
                     <div className="flex justify-between text-[11px] text-slate-600 mb-1">
                       <span>Kapasitas Berat ({(totalWeightKgs / 1000).toFixed(2)} / {(spec.weight / 1000).toFixed(1)} Ton)</span>
-                      <span className="font-mono font-bold">{weightUtilization.toFixed(1)}%</span>
+                      <span className="font-semibold text-slate-800 tabular-nums">{weightUtilization.toFixed(1)}%</span>
                     </div>
                     <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
                       <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${weightUtilization}%` }} />
@@ -465,7 +465,7 @@ export function GuidedOnboardingModal({
           {currentStep === 4 && (
             <div className="space-y-4">
               <div className="p-4 rounded-lg border border-slate-200 bg-slate-50 space-y-3">
-                <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wider font-mono">
+                <h4 className="text-xs font-semibold text-slate-900 tracking-normal">
                   Ringkasan Setup Transaksi
                 </h4>
                 <div className="grid grid-cols-2 gap-2 text-xs">

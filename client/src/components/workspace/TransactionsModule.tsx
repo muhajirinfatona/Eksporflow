@@ -974,7 +974,7 @@ export function TransactionsModule({
           {/* Space DS Executive KPI Stat Cards */}
           <div className="space-crm-stats-grid" style={{ marginBottom: "20px" }}>
             <SpaceStatCard
-              label="TOTAL PIPELINE EKSPOR"
+              label="Total pipeline ekspor"
               value={`$${allTransactions.reduce((acc, t) => acc + (t.quantity * 2800 || 45000), 184500).toLocaleString("en-US")}`}
               subtext={`${allTransactions.length} Kontrak Aktif`}
               trend={{ value: "14.8% MoM", isUp: true }}
@@ -982,14 +982,14 @@ export function TransactionsModule({
               icon={<Layers size={16} />}
             />
             <SpaceStatCard
-              label="FASE PENAWARAN & QUOTATION"
+              label="Penawaran & quotation"
               value={`$${(draftCount * 38000 || 72400).toLocaleString("en-US")}`}
               subtext={`${draftCount} Prospek Buyer`}
               tone="gold"
               icon={<FileText size={16} />}
             />
             <SpaceStatCard
-              label="DALAM PRODUKSI & STUFFING"
+              label="Produksi & stuffing"
               value={`${activeExecutionCount} Kontrak`}
               subtext="4 Kontainer Siap Muat"
               trend={{ value: "On-Track", isUp: true }}
@@ -997,7 +997,7 @@ export function TransactionsModule({
               icon={<Package size={16} />}
             />
             <SpaceStatCard
-              label="PENGAPALAN SELESAI & LUNAS"
+              label="Pengapalan & pelunasan"
               value={`$${(completedTxCount * 55000 || 165000).toLocaleString("en-US")}`}
               subtext={`${completedTxCount} Transaksi Selesai`}
               trend={{ value: "100% Lunas", isUp: true }}

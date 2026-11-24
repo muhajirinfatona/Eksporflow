@@ -143,7 +143,7 @@ export function SpaceDesignSystemShowcase({
       {/* 2. Top Summary KPI Stats Grid (SpaceStatCard) */}
       <div className="space-crm-stats-grid">
         <SpaceStatCard
-          label="TOTAL KOMPONEN SPACE DS"
+          label="Komponen sistem"
           value="28+"
           badgeText="Lengkap"
           badgeTone="success"
@@ -151,7 +151,7 @@ export function SpaceDesignSystemShowcase({
           icon={<Box size={18} />}
         />
         <SpaceStatCard
-          label="STATUS BADGES & PILLS"
+          label="Status badges & pills"
           value="6 Varian"
           badgeText="Accessible"
           badgeTone="primary"
@@ -159,7 +159,7 @@ export function SpaceDesignSystemShowcase({
           icon={<ShieldCheck size={18} />}
         />
         <SpaceStatCard
-          label="CRM APPS & PIPELINE"
+          label="Aplikasi CRM & alur"
           value="4 Modul"
           badgeText="Active"
           badgeTone="warning"
@@ -167,7 +167,7 @@ export function SpaceDesignSystemShowcase({
           icon={<Activity size={18} />}
         />
         <SpaceStatCard
-          label="ELEVATION & SHADOWS"
+          label="Elevasi & bayangan"
           value="5 Tingkat"
           badgeText="Tokens"
           badgeTone="purple"
@@ -180,8 +180,8 @@ export function SpaceDesignSystemShowcase({
       <section className="panel panel-padding">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">TOMBOL &amp; VARIAN KLIK</span>
-            <h3 style={{ margin: "2px 0 0", fontSize: 17, fontWeight: 700 }}>
+            <span className="eyebrow">Tombol &amp; varian aksi</span>
+            <h3 style={{ margin: "2px 0 0", fontSize: 17, fontWeight: 600 }}>
               Tombol Space DS (Variants, Sizes &amp; States)
             </h3>
           </div>
@@ -189,8 +189,8 @@ export function SpaceDesignSystemShowcase({
 
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <small style={{ color: "var(--space-gray-500)", display: "block", marginBottom: 8, fontWeight: 600 }}>
-              VARIAN GAYA:
+            <small style={{ color: "var(--space-gray-500)", display: "block", marginBottom: 8, fontWeight: 500 }}>
+              Varian gaya tombol:
             </small>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10, alignItems: "center" }}>
               <SpaceButton variant="primary" icon={<Plus size={14} />}>

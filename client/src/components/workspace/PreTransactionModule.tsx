@@ -199,7 +199,7 @@ export function PreTransactionModule({
       <section className="ef-module-hero">
         <div className="ef-module-hero-copy">
           <span className="eyebrow" style={{ color: "var(--navy)" }}>
-            PRA-TRANSAKSI &amp; BUYER
+            Pra-transaksi &amp; buyer
           </span>
           <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
           <p className="lead">
@@ -224,14 +224,14 @@ export function PreTransactionModule({
 
         <div className="ef-hero-kpis">
           <div className="ef-hero-kpi-card">
-            <span>PENAWARAN AKTIF</span>
+            <span>Penawaran aktif</span>
             <strong>{formatMoney(pricing.active.offer, shipment.currency)}</strong>
             <small>
               {shipment.incoterm} · {shipment.quantity.toLocaleString("en-US")} {shipment.unit}
             </small>
           </div>
           <div className="ef-hero-kpi-card">
-            <span>VALIDASI BUYER</span>
+            <span>Validasi buyer</span>
             <strong>
               {verifiedCount} / {BUYER_VALIDATION_CHECKS.length} Kriteria
             </strong>
@@ -246,7 +246,7 @@ export function PreTransactionModule({
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">KORESPONDENSI EKSPOR</span>
+              <span className="eyebrow">Korespondensi ekspor</span>
               <h3>Draf Surat Penawaran</h3>
             </div>
             <button
@@ -301,7 +301,7 @@ export function PreTransactionModule({
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 14 }}>
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
-                JENIS SURAT
+                Jenis surat
               </span>
               <div className="clean-tabs" style={{ flexWrap: "wrap" }}>
                 {(
@@ -325,7 +325,7 @@ export function PreTransactionModule({
 
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
-                FORMAT BAHASA
+                Format bahasa
               </span>
               <div className="clean-tabs" style={{ flexWrap: "wrap" }}>
                 {(
@@ -407,7 +407,7 @@ export function PreTransactionModule({
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">VERIFIKASI BUYER</span>
+              <span className="eyebrow">Verifikasi buyer</span>
               <h3>Checklist Legalitas Importir</h3>
             </div>
             <StatusPill tone={verifiedCount >= 4 ? "green" : verifiedCount >= 2 ? "amber" : "red"}>
@@ -439,12 +439,12 @@ export function PreTransactionModule({
                     boxSizing: "border-box",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: "1 1 auto" }}>
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleChecklist(item.id)}
-                      style={{ flexShrink: 0 }}
+                      style={{ flexShrink: 0, width: 16, height: 16, accentColor: "var(--navy)", cursor: "pointer" }}
                     />
                     <span
                       style={{
@@ -459,17 +459,18 @@ export function PreTransactionModule({
                     </span>
                   </div>
                   <span
-                    className="mono-code"
                     style={{
-                      fontSize: 10,
-                      fontWeight: 600,
-                      padding: "2px 6px",
+                      fontSize: 10.5,
+                      fontWeight: 500,
+                      padding: "2px 7px",
                       borderRadius: 4,
                       background: checked ? "#ecfdf5" : "var(--surface-app)",
                       color: checked ? "#059669" : "var(--muted)",
                       border: "1px solid",
                       borderColor: checked ? "#a7f3d0" : "var(--line)",
                       flexShrink: 0,
+                      marginLeft: 8,
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {item.tag}

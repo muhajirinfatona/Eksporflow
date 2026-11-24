@@ -147,11 +147,11 @@ export function DashboardView({
         >
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px" }}>
             <div>
-              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>TRANSAKSI AKTIF</span>
+              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>Transaksi aktif</span>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <strong style={{ fontSize: "15px", color: "var(--ink)" }}>{shipment.reference}</strong>
+                <strong style={{ fontSize: "15px", fontWeight: 600, color: "var(--ink)" }}>{shipment.reference}</strong>
                 <span style={{ color: "var(--line-strong)" }}>·</span>
-                <span style={{ fontSize: "14px", fontWeight: 600, color: "var(--ink-soft)" }}>
+                <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink-soft)" }}>
                   {shipment.buyer || "Buyer Internasional"}
                 </span>
               </div>
@@ -160,8 +160,8 @@ export function DashboardView({
             <div style={{ height: "28px", width: "1px", background: "var(--line)" }} />
 
             <div>
-              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>RUTE & TUJUAN</span>
-              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>
+              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>Rute &amp; tujuan</span>
+              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--ink)" }}>
                 Indonesia → {shipment.destination || "Pelabuhan Tujuan"}{" "}
                 {shipment.buyerCountry ? `(${shipment.buyerCountry})` : ""}
               </div>
@@ -170,8 +170,8 @@ export function DashboardView({
             <div style={{ height: "28px", width: "1px", background: "var(--line)" }} />
 
             <div>
-              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>KOMODITAS & VOLUME</span>
-              <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--ink)" }}>
+              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>Komoditas &amp; volume</span>
+              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--ink)" }}>
                 {formatNumber(shipment.quantity)} {shipment.unit} · {shipment.product || "Komoditas Ekspor"}
               </div>
             </div>
@@ -194,8 +194,8 @@ export function DashboardView({
       <div className="overview-grid">
         <section className="hero-card">
           <div className="hero-card-copy">
-            <span className="eyebrow light">NILAI KONTRAK · {shipment.incoterm}</span>
-            <h2>{formatMoney(pricing.active.offer, shipment.currency)}</h2>
+            <span className="eyebrow light">Nilai kontrak · {shipment.incoterm}</span>
+            <h2 style={{ fontWeight: 600 }}>{formatMoney(pricing.active.offer, shipment.currency)}</h2>
             <div className="hero-meta" style={{ marginTop: "10px" }}>
               <span>
                 <i className="tiny-dot mint" /> Margin {shipment.margin}%
@@ -206,10 +206,10 @@ export function DashboardView({
             </div>
           </div>
           <div style={{ textAlign: "right", alignSelf: "center", zIndex: 1 }}>
-            <span style={{ fontSize: "11px", letterSpacing: "0.06em", color: "#94a3b8", display: "block", fontFamily: "var(--font-mono)" }}>
-              HARGA SATUAN
+            <span style={{ fontSize: "11px", letterSpacing: "normal", color: "#94a3b8", display: "block" }}>
+              Harga satuan
             </span>
-            <strong style={{ fontSize: "20px", fontWeight: 700, color: "#ffffff", display: "block", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
+            <strong style={{ fontSize: "18px", fontWeight: 600, color: "#ffffff", display: "block", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
               {formatMoney(pricing.active.unit, shipment.currency)}
             </strong>
             <span style={{ fontSize: "11px", color: "#94a3b8" }}>
@@ -219,21 +219,21 @@ export function DashboardView({
         </section>
 
         <MetricCard
-          label="TOTAL BIAYA"
+          label="Total biaya"
           value={formatMoney(pricing.active.cost, shipment.currency)}
           detail={`${formatNumber((pricing.active.cost / Math.max(1, pricing.goods)) * 100, 1)}% dari nilai barang`}
           tone="cream"
           icon={<BarChart3 size={16} />}
         />
         <MetricCard
-          label="ESTIMASI PROFIT"
+          label="Estimasi profit"
           value={formatMoney(pricing.active.profit, shipment.currency)}
           detail={`Target margin ${shipment.margin}%`}
           tone="mint"
           icon={<ArrowUpRight size={16} />}
         />
         <MetricCard
-          label="MUATAN KONTAINER"
+          label="Muatan kontainer"
           value={`${container.volumeUtilization.toFixed(0)}%`}
           detail={`${container.containers}× ${shipment.containerType} · ${formatNumber(container.totalVolume, 1)} m³`}
           tone="sand"
@@ -273,7 +273,7 @@ export function DashboardView({
       <section className="panel panel-padding scenario-panel">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">MATRIKS HARGA</span>
+            <span className="eyebrow">Matriks harga</span>
             <h3>Perbandingan Skenario Incoterms® 2020</h3>
           </div>
           <button className="text-button" type="button" onClick={() => navigate("pricing")}>
@@ -282,18 +282,18 @@ export function DashboardView({
         </div>
         <div className="scenario-table">
           <div className="scenario-row scenario-header">
-            <span>TERM</span>
-            <span>CAKUPAN</span>
-            <span>PENAWARAN</span>
-            <span>SELISIH EXW</span>
-            <span>STATUS</span>
+            <span>Incoterm</span>
+            <span>Cakupan Tanggung Jawab</span>
+            <span>Penawaran</span>
+            <span>Selisih vs EXW</span>
+            <span>Status</span>
           </div>
           {pricing.scenarios.slice(0, 5).map((scenario, index) => (
             <div
               className={`scenario-row ${scenario.term === shipment.incoterm ? "selected" : ""}`}
               key={scenario.term}
             >
-              <strong>{scenario.term}</strong>
+              <strong style={{ fontWeight: 600 }}>{scenario.term}</strong>
               <span>
                 {scenario.term === "EXW"
                   ? "Gudang Eksportir"
@@ -305,7 +305,7 @@ export function DashboardView({
                         ? "Termasuk Ocean Freight"
                         : "Freight + Asuransi"}
               </span>
-              <b>{formatMoney(scenario.offer, shipment.currency)}</b>
+              <span style={{ fontWeight: 600, color: "var(--ink)" }}>{formatMoney(scenario.offer, shipment.currency)}</span>
               <span className={index === 0 ? "muted-delta" : "positive-delta"}>
                 {index === 0
                   ? "Basis"
@@ -333,8 +333,8 @@ export function DashboardView({
       <section className="panel panel-padding">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">PANDUAN IMPLEMENTASI 30 HARI (ONBOARDING EKSPOR)</span>
-            <h3>Tahapan Menuju Pengapalan Perdana</h3>
+            <span className="eyebrow">Tahapan onboarding ekspor</span>
+            <h3>Panduan Menuju Pengapalan Perdana</h3>
           </div>
           <StatusPill tone={onboarding.progressPercent === 100 ? "green" : "amber"}>
             {onboarding.completedCount}/{onboarding.totalCount} Tahap · {onboarding.progressPercent}%
