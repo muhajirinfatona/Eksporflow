@@ -298,7 +298,7 @@ export function PreTransactionModule({
             </label>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 14 }}>
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
                 JENIS SURAT
@@ -426,26 +426,33 @@ export function PreTransactionModule({
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "space-between",
-                    padding: "10px 14px",
+                    gap: 8,
+                    padding: "9px 12px",
                     borderRadius: 8,
                     border: "1px solid",
                     borderColor: checked ? "#cbd5e1" : "var(--line)",
                     background: checked ? "#f8fafc" : "#ffffff",
                     cursor: "pointer",
                     transition: "all 0.15s ease",
+                    minWidth: 0,
+                    width: "100%",
+                    boxSizing: "border-box",
                   }}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
                     <input
                       type="checkbox"
                       checked={checked}
                       onChange={() => toggleChecklist(item.id)}
+                      style={{ flexShrink: 0 }}
                     />
                     <span
                       style={{
-                        fontSize: 13,
+                        fontSize: 12.5,
+                        lineHeight: 1.35,
                         fontWeight: checked ? 600 : 500,
                         color: checked ? "var(--ink)" : "var(--ink-secondary)",
+                        wordBreak: "break-word",
                       }}
                     >
                       {item.label}
@@ -454,14 +461,15 @@ export function PreTransactionModule({
                   <span
                     className="mono-code"
                     style={{
-                      fontSize: 10.5,
+                      fontSize: 10,
                       fontWeight: 600,
-                      padding: "2px 7px",
+                      padding: "2px 6px",
                       borderRadius: 4,
                       background: checked ? "#ecfdf5" : "var(--surface-app)",
                       color: checked ? "#059669" : "var(--muted)",
                       border: "1px solid",
                       borderColor: checked ? "#a7f3d0" : "var(--line)",
+                      flexShrink: 0,
                     }}
                   >
                     {item.tag}

@@ -152,7 +152,7 @@ textarea:focus-visible {
   min-height: 100vh;
   width: 100%;
   max-width: 100%;
-  overflow-x: clip;
+  overflow-x: hidden;
   background: var(--surface-app);
 }
 
@@ -187,7 +187,7 @@ textarea:focus-visible {
   min-width: 0;
   max-width: 100%;
   flex: 1;
-  overflow-x: clip;
+  overflow-x: auto;
 }
 
 .brand-lockup.clean-brand-lockup {
@@ -1443,7 +1443,7 @@ textarea:focus-visible {
 }
 
 .content-grid.two-thirds {
-  grid-template-columns: 1.4fr 0.95fr;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
 }
 
 .checklist {
@@ -9998,14 +9998,29 @@ textarea:focus-visible {
     padding: 0 20px;
   }
   .page-wrap {
-    padding: 20px 20px 44px;
+    padding: 18px 16px 44px;
   }
   .module-layout,
-  .copilot-layout {
-    grid-template-columns: 1fr;
+  .copilot-layout,
+  .content-grid.two-thirds {
+    grid-template-columns: 1fr !important;
   }
   .pricing-aside {
     position: static;
+  }
+  .ef-module-hero {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 18px 20px !important;
+  }
+  .ef-hero-kpis {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
+  }
+  .ef-hero-kpi-card {
+    min-width: 0 !important;
   }
 }
 
@@ -19535,7 +19550,8 @@ table.unlk-items-table th.active-cell {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 .ef-hero-kpi-card {
@@ -19609,17 +19625,19 @@ table.unlk-items-table th.active-cell {
   box-shadow: 0 0 0 3px rgba(15, 41, 66, 0.1);
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1200px) {
   .ef-module-hero {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 18px;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    padding: 18px !important;
+    gap: 16px !important;
   }
   .ef-hero-kpis {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    width: 100% !important;
   }
   .ef-hero-kpi-card {
-    min-width: 0;
+    min-width: 0 !important;
   }
 }
