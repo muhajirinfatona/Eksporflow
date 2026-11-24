@@ -577,8 +577,8 @@ export function WorkspaceShell({
         <div className="space-sidebar-top-profile">
           <div className="space-sidebar-avatar">{userInitials || "OF"}</div>
           <div className="space-sidebar-user-info">
-            <span className="space-sidebar-user-name">{exporterName || "Ofspace LLC"}</span>
-            <span className="space-sidebar-user-sub">{user?.email || "design@ofspace.co"}</span>
+            <span className="space-sidebar-user-name">{exporterName || "PT Nusantara Ekspor Mandiri"}</span>
+            <span className="space-sidebar-user-sub">{user?.email || "operasional@nusantaraekspor.com"}</span>
           </div>
         </div>
         <div className="brand-lockup clean-brand-lockup">
@@ -761,7 +761,7 @@ export function WorkspaceShell({
             {/* Live Date Pill */}
             <div className="space-topbar-pill">
               <Calendar size={13} />
-              <span>Sunday, March 25</span>
+              <span>{new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date())}</span>
               <ChevronDown size={12} />
             </div>
 
@@ -770,10 +770,10 @@ export function WorkspaceShell({
               type="button"
               className="space-topbar-pill support"
               onClick={() => navigate("advisor")}
-              title="Call 24/7 Support"
+              title="Konsultasi Regulasi Ekspor & AI Advisor"
             >
               <PhoneCall size={13} />
-              <span>Call 24/7 Support</span>
+              <span>AI Advisor & Regulasi</span>
             </button>
 
             {/* Notification Bell with Red Badge */}
