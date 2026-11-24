@@ -58,24 +58,27 @@ export function LandingPage({
   );
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1B2533] font-sans antialiased selection:bg-[#017EF3] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-[#1B2533] font-sans antialiased selection:bg-[#0F2942] selection:text-white">
       {/* 1. Header Minimalis & Berwibawa ala Space DS */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#EAEFF5]">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#131B26] flex items-center justify-center text-white font-bold text-sm tracking-tight border border-slate-800">
-              EF
+            <div className="w-8 h-8 rounded-lg bg-[#0F2942] flex items-center justify-center text-white font-bold text-sm tracking-tight border border-slate-700">
+              <div className="w-4 h-3.5 flex flex-col justify-center gap-1">
+                <span className="block h-1 bg-[#F59E0B] rounded-xs transform -skew-x-12" />
+                <span className="block h-1 w-3 bg-[#10B981] rounded-xs transform -skew-x-12 ml-1" />
+              </div>
             </div>
             <div>
-              <span className="font-bold text-[#1B2533] text-base tracking-tight">EksporFlow</span>
-              <span className="text-[11px] text-[#697483] font-mono ml-2 hidden sm:inline">TRADE OS</span>
+              <span className="font-bold text-[#0F2942] text-base tracking-tight">Ekspor<span className="text-[#F59E0B]">Flow</span></span>
+              <span className="text-[11px] text-[#64748B] font-mono ml-2 hidden sm:inline">TRADE OS</span>
             </div>
           </div>
 
           <nav className="hidden md:flex items-center gap-7 text-xs font-semibold text-[#445164]">
-            <a href="#kalkulator" className="hover:text-[#017EF3] transition-colors">Simulasi Biaya</a>
-            <a href="#fitur" className="hover:text-[#017EF3] transition-colors">Fitur Utama</a>
-            <a href="#harga" className="hover:text-[#017EF3] transition-colors">Harga & Paket</a>
+            <a href="#kalkulator" className="hover:text-[#0F2942] transition-colors">Simulasi Biaya</a>
+            <a href="#fitur" className="hover:text-[#0F2942] transition-colors">Fitur Utama</a>
+            <a href="#harga" className="hover:text-[#0F2942] transition-colors">Harga & Paket</a>
           </nav>
 
           <div className="flex items-center gap-3">
@@ -89,9 +92,9 @@ export function LandingPage({
             <button
               type="button"
               onClick={onStartDemo}
-              className="inline-flex items-center gap-1.5 bg-[#017EF3] hover:bg-[#0171DB] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm"
+              className="inline-flex items-center gap-1.5 bg-[#0F2942] hover:bg-[#163A5C] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all shadow-sm border border-[#0B192C]"
             >
-              <Play size={13} />
+              <Play size={13} className="text-[#F59E0B]" />
               <span>{demoRemainingLabel ? `Lanjutkan Demo (${demoRemainingLabel})` : "Coba Demo 3 Hari"}</span>
             </button>
           </div>
@@ -102,8 +105,8 @@ export function LandingPage({
       <section className="pt-16 pb-20 border-b border-[#EAEFF5] bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E6F2FE] border border-[#CCE5FD] text-[#0165C2] text-xs font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#017EF3]" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0F6FC] border border-[#CBD5E1] text-[#0F2942] text-xs font-semibold mb-6">
+              <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
               Sistem Operasional Ekspor Terstandarisasi
             </div>
 
@@ -119,7 +122,7 @@ export function LandingPage({
               <button
                 type="button"
                 onClick={onStartDemo}
-                className="inline-flex items-center gap-2 bg-[#017EF3] hover:bg-[#0171DB] text-white font-medium text-sm px-5 py-2.5 rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-2 bg-[#F59E0B] hover:bg-[#D97706] text-[#0B192C] font-semibold text-sm px-5 py-2.5 rounded-lg shadow-sm transition-all border border-[#D97706]/30"
               >
                 <span>Buka Sandbox Demo (Gratis)</span>
                 <ArrowRight size={16} />
@@ -128,7 +131,7 @@ export function LandingPage({
               <button
                 type="button"
                 onClick={() => onOpenAuth("register")}
-                className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-[#1B2533] font-medium text-sm px-5 py-2.5 rounded-lg transition-all border border-[#D6DAE1]"
+                className="inline-flex items-center gap-2 bg-white hover:bg-slate-50 text-[#0F2942] font-semibold text-sm px-5 py-2.5 rounded-lg transition-all border border-[#CBD5E1]"
               >
                 <span>Daftar Akun Perusahaan</span>
               </button>
@@ -197,7 +200,7 @@ export function LandingPage({
                     max={10}
                     value={containerCount}
                     onChange={(e) => setContainerCount(Number(e.target.value))}
-                    className="w-full accent-[#017EF3] cursor-pointer"
+                    className="w-full accent-[#F59E0B] cursor-pointer"
                   />
                 </div>
 
@@ -212,7 +215,7 @@ export function LandingPage({
                     max={14}
                     value={delayedDays}
                     onChange={(e) => setDelayedDays(Number(e.target.value))}
-                    className="w-full accent-[#017EF3] cursor-pointer"
+                    className="w-full accent-[#F59E0B] cursor-pointer"
                   />
                 </div>
               </div>
@@ -229,7 +232,7 @@ export function LandingPage({
                     step={10}
                     value={dailyRateUsd}
                     onChange={(e) => setDailyRateUsd(Math.max(10, Number(e.target.value) || 0))}
-                    className="w-full px-3 py-2 bg-[#131B26] border border-slate-700 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-[#017EF3]"
+                    className="w-full px-3 py-2 bg-[#131B26] border border-slate-700 rounded-lg text-xs font-mono text-white focus:outline-none focus:border-[#F59E0B]"
                   />
                 </div>
 
@@ -240,7 +243,7 @@ export function LandingPage({
                   <select
                     value={selectedPlanId}
                     onChange={(e) => setSelectedPlanId(e.target.value as any)}
-                    className="w-full px-3 py-2 bg-[#131B26] border border-slate-700 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-[#017EF3]"
+                    className="w-full px-3 py-2 bg-[#131B26] border border-slate-700 rounded-lg text-xs font-medium text-white focus:outline-none focus:border-[#F59E0B]"
                   >
                     {SUBSCRIPTION_PLANS.map((p) => (
                       <option key={p.id} value={p.id}>
@@ -284,7 +287,7 @@ export function LandingPage({
       <section id="fitur" className="py-20 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-xl mb-12">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-700">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F2942]">
               ARSITEKTUR PLATFORM
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-3">
@@ -297,7 +300,7 @@ export function LandingPage({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="p-6 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 border border-blue-200 text-blue-800 flex items-center justify-center font-bold mb-4">
+              <div className="w-10 h-10 rounded-lg bg-sky-50 border border-sky-200 text-[#0F2942] flex items-center justify-center font-bold mb-4">
                 <FileText size={20} />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1.5">
@@ -355,7 +358,7 @@ export function LandingPage({
       <section id="harga" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-xl mx-auto mb-12">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-blue-700">
+            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F2942]">
               TRANSPARANSI BIAYA
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-2">
@@ -396,13 +399,13 @@ export function LandingPage({
                   key={plan.id}
                   className={`rounded-2xl p-6 bg-white border transition-all flex flex-col justify-between ${
                     isHighlight
-                      ? "border-[#017EF3] shadow-md ring-1 ring-[#017EF3]"
+                      ? "border-[#0F2942] shadow-md ring-2 ring-[#0F2942]/15"
                       : "border-[#EAEFF5] shadow-sm"
                   }`}
                 >
                   <div>
                     {isHighlight && (
-                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#0165C2] bg-[#E6F2FE] px-2.5 py-0.5 rounded-full border border-[#CCE5FD] inline-block mb-3">
+                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#92400E] bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-[#FDE68A] inline-block mb-3">
                         Paling Banyak Digunakan
                       </span>
                     )}
@@ -424,7 +427,7 @@ export function LandingPage({
                     <ul className="space-y-2.5 text-xs text-[#445164] mb-6">
                       {plan.features.slice(0, 5).map((f) => (
                         <li key={f} className="flex items-start gap-2">
-                          <Check size={14} className="text-[#017EF3] shrink-0 mt-0.5" />
+                          <Check size={14} className="text-emerald-600 shrink-0 mt-0.5" />
                           <span>{f}</span>
                         </li>
                       ))}
@@ -437,7 +440,7 @@ export function LandingPage({
                       onClick={onStartDemo}
                       className={`w-full py-2.5 px-3 rounded-lg text-xs font-semibold transition-all ${
                         isHighlight
-                          ? "bg-[#017EF3] hover:bg-[#0171DB] text-white shadow-sm"
+                          ? "bg-[#0F2942] hover:bg-[#163A5C] text-white shadow-sm"
                           : "bg-white hover:bg-slate-50 text-[#1B2533] border border-[#D6DAE1]"
                       }`}
                     >

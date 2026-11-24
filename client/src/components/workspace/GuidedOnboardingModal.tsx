@@ -236,7 +236,7 @@ export function GuidedOnboardingModal({
         {/* Header Bersih & Ringkas ala Space DS */}
         <div className="px-6 py-4 bg-[#131B26] text-white flex items-center justify-between border-b border-slate-800">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-[#017EF3]/20 border border-[#017EF3]/40 flex items-center justify-center text-[#017EF3]">
+            <div className="w-7 h-7 rounded-lg bg-[#F59E0B]/20 border border-[#F59E0B]/40 flex items-center justify-center text-[#F59E0B]">
               <Compass size={16} />
             </div>
             <div>
@@ -271,7 +271,7 @@ export function GuidedOnboardingModal({
                 onClick={() => setCurrentStep(s.num as any)}
                 className={`py-2.5 px-3 text-center border-b-2 font-medium transition-all ${
                   isCurrent
-                    ? "border-[#017EF3] text-[#017EF3] bg-white font-bold"
+                    ? "border-[#0F2942] text-[#0F2942] bg-white font-bold"
                     : isDone
                       ? "border-emerald-600 text-emerald-700"
                       : "border-transparent text-[#697483] hover:text-[#1B2533]"
@@ -366,7 +366,7 @@ export function GuidedOnboardingModal({
                       onClick={() => handleApplyPreset(sector)}
                       className={`p-3.5 rounded-xl border cursor-pointer transition-all ${
                         isSelected
-                          ? "border-[#017EF3] bg-[#F2F9FE] shadow-xs ring-1 ring-[#017EF3]"
+                          ? "border-[#0F2942] bg-[#F0F6FC] shadow-xs ring-1 ring-[#0F2942]"
                           : "border-[#EAEFF5] bg-white hover:border-[#D6DAE1]"
                       }`}
                     >
@@ -524,7 +524,7 @@ export function GuidedOnboardingModal({
               <button
                 type="button"
                 onClick={() => setCurrentStep((s) => (s + 1) as any)}
-                className="inline-flex items-center gap-1.5 bg-[#017EF3] hover:bg-[#0171DB] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
+                className="inline-flex items-center gap-1.5 bg-[#0F2942] hover:bg-[#163A5C] text-white text-xs font-semibold px-4 py-2 rounded-lg transition-all"
               >
                 <span>Lanjut</span>
                 <ChevronRight size={14} />
@@ -533,7 +533,7 @@ export function GuidedOnboardingModal({
               <button
                 type="button"
                 onClick={handleFinishOnboarding}
-                className="inline-flex items-center gap-1.5 bg-[#017EF3] hover:bg-[#0171DB] text-white text-xs font-semibold px-5 py-2 rounded-lg shadow-sm transition-all"
+                className="inline-flex items-center gap-1.5 bg-[#F59E0B] hover:bg-[#D97706] text-[#0B192C] text-xs font-semibold px-5 py-2 rounded-lg shadow-sm transition-all"
               >
                 <FileText size={14} />
                 <span>Buka Dokumen Ekspor</span>
