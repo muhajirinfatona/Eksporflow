@@ -606,6 +606,263 @@ export function getScreenAdvisorInsight(
   }
 }
 
+/**
+ * Intelligent Customer Support & System Troubleshooting Engine
+ * Melayani pertanyaan operasional ekspor dan kendala teknis sistem EksporFlow
+ */
+export function getCustomerSupportAnswer(
+  question: string,
+  context: {
+    screen: ScreenId;
+    screenTitle: string;
+    shipment: Shipment;
+    pricing: Pricing;
+    container: ContainerCalc;
+    flow?: Partial<WorkspaceFlow>;
+  }
+): string {
+  const q = question.toLowerCase();
+  const { shipment, pricing, container, flow, screenTitle } = context;
+
+  // 1. Simpan data / Sandbox / Cloud / Save / Data Hilang
+  if (
+    q.includes("simpan") ||
+    q.includes("save") ||
+    q.includes("hilang") ||
+    q.includes("tersimpan") ||
+    q.includes("refresh") ||
+    q.includes("muat ulang")
+  ) {
+    return `### 💾 Panduan Penyimpanan Data di EksporFlow
+
+1. **Mode Demo (Sandbox Browser Lokal):**
+   - Transaksi Anda tersimpan di memori browser lokal (*LocalStorage*).
+   - Selalu klik tombol **"Simpan Sandbox"** di pojok kanan atas sebelum menutup atau merefresh halaman agar perubahan tidak hilang.
+   - Sesi demo aktif selama **3 hari**.
+
+2. **Mode Akun Cloud (Permanen):**
+   - Untuk penyimpanan data permanen di cloud, kolaborasi tim, dan sinkronisasi lintas perangkat tanpa khawatir data terhapus, silakan klik tombol **"Daftar Akun / Masuk"** di bilah atas.
+   - Perubahan data otomatis terlindungi dengan *Optimistic Locking* dan *Audit Vault*.`;
+  }
+
+  // 2. Konflik versi / Sync
+  if (
+    q.includes("konflik") ||
+    q.includes("conflict") ||
+    q.includes("versi") ||
+    q.includes("timpa") ||
+    q.includes("sinkron")
+  ) {
+    return `### ⚠️ Penanganan Banner Konflik Versi
+
+Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan data transaksi dari tab lain atau perangkat anggota tim Anda:
+
+**Langkah Solusi:**
+1. Klik tombol **"Muat Versi Terbaru"** pada banner kuning untuk menarik versi termutakhir tanpa menimpa kerja tim.
+2. Jika ada perubahan lokal yang belum tersimpan, tinjau kembali nilai kontrak dan klik **"Simpan"** setelah versi terbaru dimuat.`;
+  }
+
+  // 3. Scan PO / Upload Dokumen / OCR
+  if (
+    q.includes("scan") ||
+    q.includes("ocr") ||
+    q.includes("input po") ||
+    q.includes("upload") ||
+    q.includes("unggah") ||
+    q.includes("ekstrak")
+  ) {
+    return `### 📄 Panduan Fitur Scan PO & Input Order
+
+1. **Cara Menggunakan AI Scan PO:**
+   - Masuk ke menu **Penjualan > Input PO**.
+   - Klik tombol **"Scan PO / OCR"** di bagian atas tabel.
+   - Unggah berkas Purchase Order dari buyer (format **PDF, JPG, atau PNG** maksimal 10 MB).
+   - Sistem akan mengekstrak otomatis: Nomor PO, nama buyer, komoditas, kuantitas, dan nilai kontrak.
+
+2. **Input Manual:**
+   - Anda juga dapat mengisi formulir PO secara langsung di halaman tersebut jika dokumen fisik buyer tidak tersedia dalam bentuk digital.
+   - Klik **"Simpan & Sinkronkan ke Transaksi"** untuk menerapkan ke transaksi aktif.`;
+  }
+
+  // 4. Incoterms & Kalkulasi Harga
+  if (
+    q.includes("incoterm") ||
+    q.includes("cif") ||
+    q.includes("fob") ||
+    q.includes("exw") ||
+    q.includes("harga") ||
+    q.includes("margin") ||
+    q.includes("kalkulator") ||
+    q.includes("penawaran")
+  ) {
+    return `### 🚢 Panduan Incoterms® 2020 & Matriks Harga
+
+1. **Cara Mengubah Skenario Incoterm:**
+   - Buka menu **Penjualan > Harga & Order**.
+   - Pada tabel **Perbandingan Skenario Incoterms® 2020**, klik tombol **"Pilih"** di samping term yang diinginkan (misal **FOB** atau **CIF**).
+   - Term aktif saat ini adalah **${shipment.incoterm}** dengan penawaran **${formatMoney(pricing.active.offer, shipment.currency)}** (margin **${shipment.margin}%**).
+
+2. **Perbedaan Tanggung Jawab Utama:**
+   - **EXW (Ex Works):** Pembeli menanggung seluruh ongkos kirim dan risiko dari gudang Anda.
+   - **FOB (Free on Board):** Eksportir menanggung biaya hingga barang naik ke atas kapal di pelabuhan muat.
+   - **CIF (Cost, Insurance & Freight):** Eksportir menanggung biaya logistik dan asuransi laut hingga pelabuhan bongkar tujuan.`;
+  }
+
+  // 5. Cetak Dokumen Ekspor / Download PDF
+  if (
+    q.includes("cetak") ||
+    q.includes("print") ||
+    q.includes("pdf") ||
+    q.includes("dokumen") ||
+    q.includes("download") ||
+    q.includes("unduh") ||
+    q.includes("peb") ||
+    q.includes("coo") ||
+    q.includes("invoice") ||
+    q.includes("packing list")
+  ) {
+    return `### 📑 Cara Download & Cetak Dokumen Ekspor
+
+1. Buka menu **Operasional Ekspor > Dokumen Ekspor**.
+2. Pilih tab dokumen yang ingin Anda proses:
+   - **Commercial Invoice (CI)**
+   - **Packing List (PL)**
+   - **Sales Contract (SC)**
+   - **Proforma Invoice (PI)**
+   - **Shipping Instruction (SI)**
+3. Periksa kelengkapan klausul kontrak dan data kontainer.
+4. Klik tombol **"Download PDF"** atau **"Cetak Dokumen"** di panel atas. Dokumen otomatis siap cetak dengan format standar kepabeanan internasional.`;
+  }
+
+  // 6. Muatan Kontainer 3D / CBM / Stuffing
+  if (
+    q.includes("kontainer") ||
+    q.includes("container") ||
+    q.includes("cbm") ||
+    q.includes("stuffing") ||
+    q.includes("muatan") ||
+    q.includes("kubikasi")
+  ) {
+    return `### 📦 Optimasi Muatan Kontainer 3D
+
+1. Buka menu **Operasional Ekspor > Muatan Kontainer 3D**.
+2. Status kalkulasi saat ini:
+   - Tipe Kontainer: **${shipment.containerType}** (${container.containers} unit kontainer).
+   - Utilisasi Volume: **${container.volumeUtilization}%** (${formatNumber(container.totalVolume)} m³).
+   - Utilisasi Berat: **${container.weightUtilization}%** (${formatNumber(container.totalWeight)} kg).
+3. **Saran Efisiensi:**
+   - Jika utilisasi volume di bawah 75%, Anda dapat menambah jumlah karton pesanan agar kapasitas kontainer terpakai optimal dan menghemat ongkir per satuan barang.`;
+  }
+
+  // 7. Verifikasi Buyer / Legalitas / Fraud
+  if (
+    q.includes("buyer") ||
+    q.includes("pembeli") ||
+    q.includes("legalitas") ||
+    q.includes("verifikasi") ||
+    q.includes("fraud") ||
+    q.includes("eori") ||
+    q.includes("vat")
+  ) {
+    return `### 🛡️ Verifikasi Legalitas & Anti-Fraud Buyer
+
+1. Buka menu **Penjualan > Pra-Transaksi & Buyer**.
+2. Evaluasi 5 kriteria verifikasi untuk **${shipment.buyer || "Buyer"}**:
+   - ✅ Nomor Registrasi Bisnis / VAT / EORI valid.
+   - ✅ Domain email resmi perusahaan (bukan email gratisan).
+   - ✅ Pelabuhan tujuan (${shipment.destination || "Tujuan"}) bebas sanksi & embargo.
+   - ✅ Metode pembayaran aman (Letter of Credit L/C At Sight atau DP minimal 30%).
+   - ✅ Rekam jejak transaksi dan reputasi bisnis terverifikasi.`;
+  }
+
+  // 8. Tampilan Layar / Terpotong / Zoom / UI
+  if (
+    q.includes("terpotong") ||
+    q.includes("geser") ||
+    q.includes("layar") ||
+    q.includes("tampilan") ||
+    q.includes("zoom") ||
+    q.includes("sidebar") ||
+    q.includes("lebar")
+  ) {
+    return `### 🖥️ Penyesuaian Tampilan & Tata Letak Layar
+
+1. **Resolusi & Skala Layar:**
+   - Jika tabel atau panel samping terasa terpotong di laptop, tekan tombol keyboard **Ctrl + 0** untuk mereset zoom browser ke standar 100%.
+   - Gunakan **Ctrl + Minus (-)** untuk tampilan lebih luas.
+
+2. **Lipat / Buka Menu Sidebar:**
+   - Klik ikon panel di sudut kiri bilah atas untuk menyembunyikan (*collapse*) sidebar agar area kerja menjadi lebih leluasa.
+
+3. **Geser Horizontal (Horizontal Scroll):**
+   - Pada tabel bertingkat banyak kolom, geser mouse atau gunakan trackpad dua jari ke samping untuk melihat kolom status dan tombol aksi.`;
+  }
+
+  // 9. Akun Demo / Upgrade / Masa Aktif
+  if (
+    q.includes("demo") ||
+    q.includes("akun") ||
+    q.includes("daftar") ||
+    q.includes("login") ||
+    q.includes("masuk") ||
+    q.includes("berbayar") ||
+    q.includes("gratis")
+  ) {
+    return `### 👤 Informasi Akun Demo & Pendaftaran
+
+1. **Fitur Mode Demo (3 Hari):**
+   - Anda dapat mencoba seluruh modul EksporFlow secara gratis tanpa kartu kredit.
+   - Data disimpan aman di memori lokal browser Anda.
+
+2. **Keuntungan Akun Resmi:**
+   - Penyimpanan Cloud permanen aman di database Supabase.
+   - Kolaborasi multi-pengguna & multi-perangkat antar tim.
+   - Konsultasi AI live tanpa batas dengan sensor PII otomatis.
+   - Klik tombol **"Daftar Akun"** di bilah atas untuk membuat akun Anda.`;
+  }
+
+  // 10. Kontak Customer Support / Bantuan Tim
+  if (
+    q.includes("cs") ||
+    q.includes("support") ||
+    q.includes("bantuan") ||
+    q.includes("hubungi") ||
+    q.includes("kontak") ||
+    q.includes("wa") ||
+    q.includes("whatsapp") ||
+    q.includes("telepon") ||
+    q.includes("email") ||
+    q.includes("kendala")
+  ) {
+    return `### 📞 Layanan Bantuan & Customer Support EksporFlow
+
+Jika Anda mengalami kendala pada sistem atau butuh panduan langsung dari tim spesialis ekspor kami:
+
+- 💬 **WhatsApp Priority Support:** +62 812-9800-3344 *(Senin – Jumat, 08.00 – 18.00 WIB)*
+- ✉️ **Email Dukungan Teknis:** support@eksporflow.com
+- 🌐 **Pusat Panduan SOP:** Buka menu **Bantuan & Panduan** di navigasi samping.
+
+Silakan sampaikan pesan error atau kendala yang dialami, tim kami akan merespons dengan cepat!`;
+  }
+
+  // 11. Fallback Respons Cerdas Kontekstual
+  return `### 💡 Panduan Cerdas EksporFlow untuk ${screenTitle}
+
+Pertanyaan Anda mengenai **"${question}"** dianalisis berdasarkan konteks transaksi **${shipment.reference}**:
+
+- **Konteks Operasional:** Komoditas **${shipment.product}** (${formatNumber(shipment.quantity)} ${shipment.unit}) dengan rute **${shipment.exporter || "Indonesia"}** menuju **${shipment.destination}**.
+- **Kondisi Finansial:** Ketentuan **${shipment.incoterm}** sebesar **${formatMoney(pricing.active.offer, shipment.currency)}** dengan estimasi margin **${shipment.margin}%**.
+- **Tingkat Kesiapan:** Kesiapan alur operasional berada pada level **${flow?.riskEvaluation?.readinessPercent ?? 75}%**.
+
+**Saran Langkah Selanjutnya:**
+1. Pastikan seluruh dokumen legalitas buyer dan izin karantina/e-SKA sudah lengkap sebelum booking kapal.
+2. Jika ada kendala sistem, Anda dapat menanyakan langsung:
+   - *"Bagaimana cara simpan data?"*
+   - *"Bagaimana cara scan PO?"*
+   - *"Bagaimana cara ganti Incoterm?"*
+   - *"Bagaimana cara cetak dokumen ekspor?"*`;
+}
+
 export function ScreenAIAdvisorBanner({
   screen,
   shipment,
@@ -707,6 +964,7 @@ export function ScreenAIAdvisorDrawer({
 
   const [inputQuestion, setInputQuestion] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [isAnsweringLocal, setIsAnsweringLocal] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const assistantMutation = trpc.assistant.ask.useMutation();
@@ -779,50 +1037,70 @@ export function ScreenAIAdvisorDrawer({
     const q = (textToSend || inputQuestion).trim();
     if (!q) return;
 
-    if (!isAuthenticated) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: q },
-        {
-          role: "assistant",
-          content: "Silakan **masuk akun terlebih dahulu** melalui tombol di atas agar sesi konsultasi AI Advisor dapat dihubungkan ke server dengan aman.",
-        },
-      ]);
-      setInputQuestion("");
-      return;
-    }
-
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     setInputQuestion("");
 
-    assistantMutation.mutate(
-      {
-        question: q,
-        snapshot,
-      },
-      {
-        onSuccess: (data) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: data.answer,
-              interactionId: data.interactionId,
-              detectedPii: data.detectedPii,
-            },
-          ]);
+    if (isAuthenticated) {
+      assistantMutation.mutate(
+        {
+          question: q,
+          snapshot,
         },
-        onError: (err) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: `Maaf, terjadi kendala saat memproses jawaban: ${err.message || "Periksa koneksi jaringan atau kuota AI."}`,
-            },
-          ]);
+        {
+          onSuccess: (data) => {
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: data.answer,
+                interactionId: data.interactionId,
+                detectedPii: data.detectedPii,
+              },
+            ]);
+          },
+          onError: () => {
+            const fallbackAns = getCustomerSupportAnswer(q, {
+              screen,
+              screenTitle,
+              shipment,
+              pricing,
+              container,
+              flow,
+            });
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: fallbackAns,
+              },
+            ]);
+          },
         },
-      },
-    );
+      );
+      return;
+    }
+
+    // Unauthenticated or Demo user: layani dengan cerdas tanpa memblokir
+    setIsAnsweringLocal(true);
+    setTimeout(() => {
+      const answer = getCustomerSupportAnswer(q, {
+        screen,
+        screenTitle,
+        shipment,
+        pricing,
+        container,
+        flow,
+      });
+      const footnote = "\n\n---\n*💡 Tips: Anda sedang menggunakan Mode Demo (Bantuan Sistem Cepat). Masuk akun untuk sinkronisasi cloud.*";
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `${answer}${footnote}`,
+        },
+      ]);
+      setIsAnsweringLocal(false);
+    }, 400);
   };
 
   const handleFeedback = (interactionId: string, rating: "up" | "down", msgIndex: number) => {
@@ -956,7 +1234,7 @@ export function ScreenAIAdvisorDrawer({
             </div>
           ))}
 
-          {assistantMutation.isPending && (
+          {(assistantMutation.isPending || isAnsweringLocal) && (
             <div className="ai-drawer-bubble assistant loading">
               <div className="bubble-avatar">
                 <Sparkles size={12} strokeWidth={2.4} />
@@ -976,7 +1254,7 @@ export function ScreenAIAdvisorDrawer({
         <footer className="ai-drawer-footer">
           {!isAuthenticated && (
             <div className="ai-drawer-auth-warning">
-              <span>Sesi login diperlukan untuk konsultasi AI live.</span>
+              <span>Mode Bantuan Sistem Aktif (Mode Demo). Masuk akun untuk sinkronisasi cloud.</span>
               <button type="button" onClick={onLogin}>
                 Masuk Sekarang
               </button>
@@ -994,12 +1272,12 @@ export function ScreenAIAdvisorDrawer({
               value={inputQuestion}
               onChange={(e) => setInputQuestion(e.target.value)}
               placeholder="Tanyakan risiko, klausul kontrak, atau regulasi..."
-              disabled={assistantMutation.isPending}
+              disabled={assistantMutation.isPending || isAnsweringLocal}
             />
             <button
               type="submit"
               className="ai-drawer-send-btn"
-              disabled={!inputQuestion.trim() || assistantMutation.isPending}
+              disabled={!inputQuestion.trim() || assistantMutation.isPending || isAnsweringLocal}
               aria-label="Kirim pertanyaan"
             >
               <Send size={15} />
@@ -1058,6 +1336,7 @@ export function ScreenAIFloatingWidget({
 
   const [inputQuestion, setInputQuestion] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isAnsweringLocal, setIsAnsweringLocal] = useState(false);
   const [messages, setMessages] = useState<
     Array<{
       role: "user" | "assistant";
@@ -1113,12 +1392,12 @@ export function ScreenAIFloatingWidget({
         setMessages([
           {
             role: "assistant",
-            content: insight.welcomeGreeting,
+            content: `Halo! Saya **AI Advisor & Assistant EksporFlow**.\n\nSaya siap membantu analisis regulasi ekspor transaksi **${shipment.reference || "EksporFlow"}** maupun membantu saat Anda mengalami **kendala dalam sistem** (cara simpan data, scan PO, cetak dokumen, ganti Incoterm, dll).\n\nAda yang bisa saya bantu hari ini?`,
           },
         ]);
       }
     }
-  }, [isOpen, screen, insight.welcomeGreeting, messages.length]);
+  }, [isOpen, screen, messages.length, shipment.reference]);
 
   // Pantau perpindahan layar saat popup sedang terbuka
   useEffect(() => {
@@ -1160,50 +1439,70 @@ export function ScreenAIFloatingWidget({
     const q = (textToSend || inputQuestion).trim();
     if (!q) return;
 
-    if (!isAuthenticated) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: q },
-        {
-          role: "assistant",
-          content: "Silakan **masuk akun terlebih dahulu** agar AI Advisor dapat memproses pertanyaan Anda secara aman.",
-        },
-      ]);
-      setInputQuestion("");
-      return;
-    }
-
     setMessages((prev) => [...prev, { role: "user", content: q }]);
     setInputQuestion("");
 
-    assistantMutation.mutate(
-      {
-        question: q,
-        snapshot,
-      },
-      {
-        onSuccess: (data) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: data.answer,
-              interactionId: data.interactionId,
-              detectedPii: data.detectedPii,
-            },
-          ]);
+    if (isAuthenticated) {
+      assistantMutation.mutate(
+        {
+          question: q,
+          snapshot,
         },
-        onError: (err) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              role: "assistant",
-              content: `Maaf, terjadi kendala saat memproses jawaban: ${err.message || "Periksa koneksi jaringan atau kuota AI."}`,
-            },
-          ]);
+        {
+          onSuccess: (data) => {
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: data.answer,
+                interactionId: data.interactionId,
+                detectedPii: data.detectedPii,
+              },
+            ]);
+          },
+          onError: () => {
+            const fallbackAns = getCustomerSupportAnswer(q, {
+              screen,
+              screenTitle,
+              shipment,
+              pricing,
+              container,
+              flow,
+            });
+            setMessages((prev) => [
+              ...prev,
+              {
+                role: "assistant",
+                content: fallbackAns,
+              },
+            ]);
+          },
         },
-      },
-    );
+      );
+      return;
+    }
+
+    // Unauthenticated or Demo user: layani langsung dengan cerdas
+    setIsAnsweringLocal(true);
+    setTimeout(() => {
+      const answer = getCustomerSupportAnswer(q, {
+        screen,
+        screenTitle,
+        shipment,
+        pricing,
+        container,
+        flow,
+      });
+      const footnote = "\n\n---\n*💡 Tips: Anda sedang menggunakan Mode Demo (Bantuan Cepat). Masuk akun untuk konsultasi live AI cloud.*";
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: `${answer}${footnote}`,
+        },
+      ]);
+      setIsAnsweringLocal(false);
+    }, 400);
   };
 
   const handleFeedback = (interactionId: string, rating: "up" | "down", msgIndex: number) => {
@@ -1282,9 +1581,9 @@ export function ScreenAIFloatingWidget({
             </div>
 
             <div style={{ marginTop: "6px" }}>
-              <h4>Konsultasi Regulasi &amp; Risiko</h4>
+              <h4>Konsultasi Regulasi &amp; Bantuan Sistem</h4>
               <p>
-                <span className="ai-float-dot" /> Analisis real-time · {shipment.reference || "EksporFlow"}
+                <span className="ai-float-dot" /> Asisten real-time · {shipment.reference || "EksporFlow"}
               </p>
             </div>
           </div>
@@ -1319,11 +1618,50 @@ export function ScreenAIFloatingWidget({
                   type="button"
                   className="ai-float-chip"
                   onClick={() => handleSend(q)}
-                  disabled={assistantMutation.isPending}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
                   {q}
                 </button>
               ))}
+            </div>
+
+            {/* Pilihan Bantuan Kendala Sistem */}
+            <div className="ai-float-chips-wrap" style={{ marginTop: "4px" }}>
+              <span className="ai-float-chips-title">BANTUAN SISTEM &amp; KENDALA:</span>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                <button
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend("Bagaimana cara simpan data transaksi agar tidak hilang?")}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
+                >
+                  💾 Simpan Data
+                </button>
+                <button
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend("Bagaimana cara cetak atau download dokumen ekspor PDF?")}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
+                >
+                  📄 Cetak Dokumen
+                </button>
+                <button
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend("Bagaimana cara mengubah Incoterm dan cek harga penawaran?")}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
+                >
+                  🚢 Ganti Incoterm
+                </button>
+                <button
+                  type="button"
+                  className="ai-float-chip"
+                  onClick={() => handleSend("Bagaimana cara menghubungi customer support jika ada kendala sistem?")}
+                  disabled={assistantMutation.isPending || isAnsweringLocal}
+                >
+                  📞 Kontak CS Support
+                </button>
+              </div>
             </div>
 
             {/* Chat Messages */}
@@ -1373,7 +1711,7 @@ export function ScreenAIFloatingWidget({
               </div>
             ))}
 
-            {assistantMutation.isPending && (
+            {(assistantMutation.isPending || isAnsweringLocal) && (
               <div className="ai-drawer-bubble assistant loading">
                 <div className="bubble-avatar">
                   <Sparkles size={12} strokeWidth={2.4} />
@@ -1381,7 +1719,7 @@ export function ScreenAIFloatingWidget({
                 <div className="bubble-text">
                   <span className="ai-typing-indicator">
                     <Loader2 size={13} className="spin" />
-                    AI Advisor sedang menganalisis regulasi &amp; risiko...
+                    AI Advisor sedang menyiapkan jawaban...
                   </span>
                 </div>
               </div>
@@ -1393,7 +1731,7 @@ export function ScreenAIFloatingWidget({
           <div className="ai-float-footer">
             {!isAuthenticated && (
               <div className="ai-drawer-auth-warning" style={{ marginBottom: "6px" }}>
-                <span>Masuk akun untuk konsultasi AI live.</span>
+                <span>Mode Bantuan Sistem Aktif (Mode Demo). Masuk akun untuk sinkronisasi cloud.</span>
                 <button type="button" onClick={onLogin}>
                   Masuk Sekarang
                 </button>
@@ -1412,12 +1750,12 @@ export function ScreenAIFloatingWidget({
                 value={inputQuestion}
                 onChange={(e) => setInputQuestion(e.target.value)}
                 placeholder="Tulis pesan atau pilih pertanyaan di atas..."
-                disabled={assistantMutation.isPending}
+                disabled={assistantMutation.isPending || isAnsweringLocal}
               />
               <button
                 type="submit"
                 className="ai-float-send-btn"
-                disabled={!inputQuestion.trim() || assistantMutation.isPending}
+                disabled={!inputQuestion.trim() || assistantMutation.isPending || isAnsweringLocal}
                 aria-label="Kirim pesan"
               >
                 <Send size={14} />

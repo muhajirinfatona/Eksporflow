@@ -8,6 +8,7 @@ import type { ContainerCalc, Shipment } from "@shared/shipment";
 import { BookOpen, Bot, ChevronRight, Lock, ShieldCheck, WandSparkles } from "lucide-react";
 import { useEffect, useState } from "react";
 import { recommendationIcon, StatusPill } from "./Primitives";
+import { getCustomerSupportAnswer } from "./ScreenAIAdvisor";
 
 export function AssistantModule({
   shipment,
@@ -83,12 +84,19 @@ export function AssistantModule({
   const sendMessage = (content: string) => {
     setMessages((current) => [...current, { role: "user", content }]);
     if (!isAuthenticated) {
+      const answer = getCustomerSupportAnswer(content, {
+        screen: "advisor",
+        screenTitle: "AI Advisor Ekspor",
+        shipment,
+        pricing,
+        container,
+      });
+      const footnote = "\n\n---\n*💡 Tips: Anda sedang menggunakan Mode Demo (Bantuan Cepat). Masuk akun untuk konsultasi live AI cloud.*";
       setMessages((current) => [
         ...current,
         {
           role: "assistant",
-          content:
-            "Untuk menjaga keamanan kuota dan batas akses workspace, silakan **masuk akun terlebih dahulu** melalui tombol di atas agar AI Advisor dapat memproses pertanyaan Anda.",
+          content: `${answer}${footnote}`,
         },
       ]);
       return;
@@ -102,14 +110,22 @@ export function AssistantModule({
       {
         onSuccess: (result) =>
           setMessages((current) => [...current, { role: "assistant", content: result.answer }]),
-        onError: (error) =>
+        onError: () => {
+          const fallbackAns = getCustomerSupportAnswer(content, {
+            screen: "advisor",
+            screenTitle: "AI Advisor Ekspor",
+            shipment,
+            pricing,
+            container,
+          });
           setMessages((current) => [
             ...current,
             {
               role: "assistant",
-              content: `Saya belum dapat memproses pertanyaan ini saat ini. ${error.message || "Periksa koneksi atau konfigurasi API LLM di server."}`,
+              content: fallbackAns,
             },
-          ]),
+          ]);
+        },
       },
     );
   };

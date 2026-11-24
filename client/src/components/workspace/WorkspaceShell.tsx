@@ -60,6 +60,7 @@ import type { Pricing } from "@shared/pricing";
 import type { ContainerCalc, LineItem, Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { IconButton, StatusPill, SpaceAvatar, SpaceBadge } from "./Primitives";
+import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -898,11 +899,23 @@ export function WorkspaceShell({
         </div>
       </main>
 
-
-
-
-
-
+      {shipment && pricing && container && flow && screen !== "advisor" && (
+        <ScreenAIFloatingWidget
+          isOpen={isConsultationOpen}
+          onToggle={() => setIsConsultationOpen((prev) => !prev)}
+          onClose={() => setIsConsultationOpen(false)}
+          initialPrompt={consultationPrompt}
+          screen={screen}
+          screenTitle={activeMeta.title}
+          shipment={shipment}
+          pricing={pricing}
+          container={container}
+          flow={flow}
+          isAuthenticated={Boolean(user && !user.isDemo)}
+          onLogin={() => void onLogin()}
+          onNavigateFullAdvisor={() => navigate("advisor")}
+        />
+      )}
     </div>
   );
 }

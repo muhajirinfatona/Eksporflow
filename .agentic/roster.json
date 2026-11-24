@@ -1,0 +1,92 @@
+{
+  "system": "Eksporflow Agentic AI Engineering Operating System",
+  "version": "2.0.0",
+  "leadOrchestrator": {
+    "role": "Chief Systems Architect & Lead Orchestrator",
+    "name": "Antigravity Coordinator",
+    "responsibilities": [
+      "User request breakdown and feature RFC specification",
+      "Task assignment, cross-agent dependency management, and arbitration",
+      "Code review against architectural guidelines and regression boundaries",
+      "Final verification sign-off and direct atomic commit to main branch"
+    ]
+  },
+  "agents": [
+    {
+      "id": "architect",
+      "name": "Lead Solution Architect",
+      "skills": ["solution-architect", "backend-developer"],
+      "owns": [
+        "shared/",
+        "docs/adr/",
+        "server/routers.ts"
+      ],
+      "mission": "Define rock-solid TypeScript contracts, Zod validation schemas, and system boundaries across client and server."
+    },
+    {
+      "id": "compliance-ai",
+      "name": "Trade & Regulatory Specialist",
+      "skills": ["ai-engineer", "cybersecurity-analyst"],
+      "owns": [
+        "server/aiAdvisor.ts",
+        "server/aiGuardrails.ts",
+        "server/aiSanitizer.ts",
+        "server/aiAdvisorTools.ts",
+        "shared/poScreening.ts",
+        "shared/exportCompliance.ts"
+      ],
+      "mission": "Enforce zero-hallucination export trade regulations (INSW, BTKI 2022, Incoterms® 2020) and strict PII data redaction."
+    },
+    {
+      "id": "doc-specialist",
+      "name": "Institutional Document Engineer",
+      "skills": ["institutional-docs", "backend-developer"],
+      "owns": [
+        "shared/documentEngine.ts",
+        "client/src/lib/documents/",
+        "client/src/components/workspace/DocumentsModule.tsx",
+        "client/src/components/workspace/SnapshotModals.tsx",
+        "server/shipmentSnapshotDb.ts"
+      ],
+      "mission": "Build formal international trade document generators (UN/CEFACT, A4 layout, multi-item tables, immutable SHA-256 audit snapshots)."
+    },
+    {
+      "id": "ui-ux-engineer",
+      "name": "Frontend & UX Craftsman",
+      "skills": ["ui-ux-pro-max", "frontend-design", "frontend-developer", "ux-researcher"],
+      "owns": [
+        "client/src/components/workspace/",
+        "client/src/pages/",
+        "client/src/index.css"
+      ],
+      "mission": "Craft bespoke maritime trade UI/UX with high visual authority, WCAG AAA accessible contrast, zero CLS, and frictionless UMKM onboarding."
+    },
+    {
+      "id": "backend-dba",
+      "name": "Backend & Database Administrator",
+      "skills": ["backend-developer", "database-administrator"],
+      "owns": [
+        "server/db.ts",
+        "server/schema.ts",
+        "server/masterDataDb.ts",
+        "server/authService.ts",
+        "drizzle.config.ts",
+        "migrations/"
+      ],
+      "mission": "Deliver ultra-fast tRPC API procedures, resilient PostgreSQL migrations, connection pool tuning, and complete audit trail persistence."
+    },
+    {
+      "id": "qa-auditor",
+      "name": "Verification & Security SRE",
+      "skills": ["Verification & Quality Assurance", "devops-deployment", "site-reliability-engineer"],
+      "owns": [
+        "shared/*.test.ts",
+        "server/*.test.ts",
+        "vite.config.ts",
+        "tsconfig.json",
+        "package.json"
+      ],
+      "mission": "Guarantee 100% test suite pass rate, zero TypeScript type errors, clean Vite production bundling, and OWASP security hygiene."
+    }
+  ]
+}
