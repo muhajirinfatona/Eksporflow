@@ -104,86 +104,131 @@ function FinanceSubNav({
 
 export function DashboardView({
   shipment,
-  update,
   pricing,
   container,
+  update,
   navigate,
   flow,
 }: {
   shipment: Shipment;
-  update: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   pricing: Pricing;
   container: ContainerCalc;
+  update?: <K extends keyof Shipment>(key: K, value: Shipment[K]) => void;
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
-  const [paymentAmount, setPaymentAmount] = useState<string>("24,590.43");
-  const [paymentCurrency, setPaymentCurrency] = useState<string>("USD");
-
   const totalContract = pricing.active.offer > 0 ? pricing.active.offer : 24590.43;
   const totalReceived = flow.paidAmount > 0 ? flow.paidAmount : 24590.43;
 
   return (
-    <div className="space-home-grid">
-      {/* LEFT COLUMN: Main Financial & Trade Analytics (68%) */}
-      <div className="space-home-main">
-        {/* ROW 1: 2 Main Stat Cards matching Space DS */}
-        <div className="space-home-stats-row">
-          {/* Card 1: Total Deposit / Kontrak Ekspor */}
-          <div className="space-stat-card-v2">
-            <div className="space-stat-v2-header">
-              <span className="space-stat-v2-title">Total deposit</span>
-              <div className="space-stat-v2-icon blue">
-                <Wallet size={18} />
-              </div>
-            </div>
-            <div className="space-stat-v2-value">
-              {formatMoney(totalContract, shipment.currency || "USD")}
-            </div>
-            <div className="space-stat-v2-progress">
-              <div className="space-stat-v2-progress-fill mint" style={{ width: "74%" }} />
-            </div>
-            <div className="space-stat-v2-foot">
-              <span className="space-stat-v2-trend up">
-                <ArrowUpRight size={14} /> + 2.9%
-              </span>
-              <span>Less then last week</span>
+    <div className="space-home-container">
+      {/* ROW 1: 4 Executive KPI Cards */}
+      <div className="space-home-stats-grid-4">
+        {/* Card 1: Total Kontrak Ekspor */}
+        <div className="space-stat-card-v2">
+          <div className="space-stat-v2-header">
+            <span className="space-stat-v2-title">Total Nilai Kontrak Ekspor</span>
+            <div className="space-stat-v2-icon blue">
+              <Briefcase size={18} />
             </div>
           </div>
-
-          {/* Card 2: Total Investment / Realisasi Kas */}
-          <div className="space-stat-card-v2">
-            <div className="space-stat-v2-header">
-              <span className="space-stat-v2-title">Total investment</span>
-              <div className="space-stat-v2-icon purple">
-                <BarChart3 size={18} />
-              </div>
-            </div>
-            <div className="space-stat-v2-value">
-              {formatMoney(totalReceived, shipment.currency || "USD")}
-            </div>
-            <div className="space-stat-v2-progress">
-              <div className="space-stat-v2-progress-fill orange" style={{ width: "62%" }} />
-            </div>
-            <div className="space-stat-v2-foot">
-              <span className="space-stat-v2-trend up">
-                <ArrowUpRight size={14} /> + 2.9%
-              </span>
-              <span>Less then last week</span>
-            </div>
+          <div className="space-stat-v2-value">
+            {formatMoney(totalContract, shipment.currency || "USD")}
+          </div>
+          <div className="space-stat-v2-progress">
+            <div className="space-stat-v2-progress-fill mint" style={{ width: "74%" }} />
+          </div>
+          <div className="space-stat-v2-foot">
+            <span className="space-stat-v2-trend up">
+              <ArrowUpRight size={14} /> + 2.9%
+            </span>
+            <span>vs bulan sebelumnya</span>
           </div>
         </div>
 
-        {/* ROW 2: Total Financial Earnings (Spline Chart Card matching Space DS) */}
+        {/* Card 2: Realisasi Devisa Masuk (DHE) */}
+        <div className="space-stat-card-v2">
+          <div className="space-stat-v2-header">
+            <span className="space-stat-v2-title">Realisasi Devisa Masuk (DHE)</span>
+            <div className="space-stat-v2-icon purple">
+              <Landmark size={18} />
+            </div>
+          </div>
+          <div className="space-stat-v2-value">
+            {formatMoney(totalReceived, shipment.currency || "USD")}
+          </div>
+          <div className="space-stat-v2-progress">
+            <div className="space-stat-v2-progress-fill orange" style={{ width: "62%" }} />
+          </div>
+          <div className="space-stat-v2-foot">
+            <span className="space-stat-v2-trend up">
+              <ArrowUpRight size={14} /> Bank Mandiri
+            </span>
+            <span>Rekening Khusus Valas DHE</span>
+          </div>
+        </div>
+
+        {/* Card 3: Kepatuhan DHE SDA PP 36/2023 */}
+        <div className="space-stat-card-v2">
+          <div className="space-stat-v2-header">
+            <span className="space-stat-v2-title">Kepatuhan DHE SDA</span>
+            <div className="space-stat-v2-icon mint">
+              <ShieldCheck size={18} />
+            </div>
+          </div>
+          <div className="space-stat-v2-value">
+            100% Patuh
+          </div>
+          <div className="space-stat-v2-progress">
+            <div className="space-stat-v2-progress-fill mint" style={{ width: "100%" }} />
+          </div>
+          <div className="space-stat-v2-foot">
+            <span className="space-stat-v2-trend up">
+              <CheckCircle2 size={14} /> PP 36/2023
+            </span>
+            <span>Retensi 30% tenor 90 hari aman</span>
+          </div>
+        </div>
+
+        {/* Card 4: Kepabeanan & Logistik */}
+        <div className="space-stat-card-v2">
+          <div className="space-stat-v2-header">
+            <span className="space-stat-v2-title">Status Kepabeanan (NPE)</span>
+            <div className="space-stat-v2-icon blue">
+              <Ship size={18} />
+            </div>
+          </div>
+          <div className="space-stat-v2-value">
+            Jalur Hijau
+          </div>
+          <div className="space-stat-v2-progress">
+            <div className="space-stat-v2-progress-fill mint" style={{ width: "90%" }} />
+          </div>
+          <div className="space-stat-v2-foot">
+            <span className="space-stat-v2-trend up">
+              <Check size={14} /> NPE Terbit
+            </span>
+            <span>Kontainer siap muat di Priok</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ROW 2: 2-Column Middle Grid (Spline Chart 62% + Export Destinations 38%) */}
+      <div className="space-home-middle-grid">
+        {/* Spline Chart Card */}
         <div className="space-chart-card-v2">
           <div className="space-chart-v2-head">
-            <h3>Total Financial Earnings</h3>
+            <div>
+              <h3>Tren Realisasi Kontrak & Penerimaan Devisa</h3>
+              <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#64748B" }}>
+                Perbandingan komitmen kontrak ekspor (biru) terhadap kas devisa masuk (ungu)
+              </p>
+            </div>
             <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
               <MoreVertical size={18} />
             </button>
           </div>
 
-          {/* Interactive SVG Spline Chart */}
           <div className="space-spline-container">
             <svg
               className="space-spline-svg"
@@ -222,7 +267,7 @@ export function DashboardView({
                 strokeLinecap="round"
               />
 
-              {/* Peak Point Tooltip ($45K badge exactly like in space_ds_financial_home.png) */}
+              {/* Peak Point Tooltip ($45K badge) */}
               <circle cx="380" cy="65" r="5" fill="#0066FF" stroke="#FFFFFF" strokeWidth="2" />
               <g transform="translate(355, 24)">
                 <rect x="0" y="0" width="50" height="26" rx="6" fill="#0F172A" />
@@ -239,285 +284,15 @@ export function DashboardView({
           </div>
         </div>
 
-        {/* ROW 3: Recent Invoices (Space Table Card matching Space DS) */}
-        <div className="space-invoices-card-v2">
-          <div className="space-invoices-v2-head">
-            <h3>Recent Invoices</h3>
-            <div className="space-invoices-v2-actions">
-              <button type="button" className="space-pill-action" onClick={() => navigate("transactions")}>
-                <Filter size={13} />
-                <span>Filter</span>
-              </button>
-              <div className="space-pill-action">
-                <Calendar size={13} />
-                <span>17, Nov 2022</span>
-              </div>
-              <button type="button" className="space-pill-action primary" onClick={() => navigate("transactions")}>
-                All Transaction
-              </button>
-            </div>
-          </div>
-
-          <div style={{ overflowX: "auto" }}>
-            <table className="space-invoices-table-v2">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Invoice</th>
-                  <th>Amount</th>
-                  <th>Pickup Address</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div className="space-table-user-cell">
-                      <div className="space-table-avatar av1">MR</div>
-                      <div className="space-table-name-wrap">
-                        <span className="space-table-buyer-name">Marilyn Ramirez</span>
-                        <span className="space-table-buyer-email">ckctm12@gmail.com</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      INV45233520
-                    </span>
-                  </td>
-                  <td>
-                    <span className="space-table-amount">$2,787.54</span>
-                  </td>
-                  <td>
-                    <div className="space-table-tracking">
-                      <span className="space-tracking-code">LM580405575CN</span>
-                      <span className="space-tracking-dest">Main Road, Sunderland</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="status-pill green">Paid</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="space-table-user-cell">
-                      <div className="space-table-avatar av2">DC</div>
-                      <div className="space-table-name-wrap">
-                        <span className="space-table-buyer-name">Douglas Cobb</span>
-                        <span className="space-table-buyer-email">danigh87@gmail.com</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      INV29836490
-                    </span>
-                  </td>
-                  <td>
-                    <span className="space-table-amount">$1,289.97</span>
-                  </td>
-                  <td>
-                    <div className="space-table-tracking">
-                      <span className="space-tracking-code">AZ938540353US</span>
-                      <span className="space-tracking-dest">Grange Road, Peterborough</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="status-pill blue">In Transit</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="space-table-user-cell">
-                      <div className="space-table-avatar av3">RW</div>
-                      <div className="space-table-name-wrap">
-                        <span className="space-table-buyer-name">Randy Warren</span>
-                        <span className="space-table-buyer-email">nvt.it.nute@gmail.com</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      INV34859305
-                    </span>
-                  </td>
-                  <td>
-                    <span className="space-table-amount">$2,781.89</span>
-                  </td>
-                  <td>
-                    <div className="space-table-tracking">
-                      <span className="space-tracking-code">RA200904868US</span>
-                      <span className="space-tracking-dest">Flat 4, 79 Chester Road</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="status-pill amber">DP 30%</span>
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <div className="space-table-user-cell">
-                      <div className="space-table-avatar av4">VS</div>
-                      <div className="space-table-name-wrap">
-                        <span className="space-table-buyer-name">Virginia Stewart</span>
-                        <span className="space-table-buyer-email">trungklep@gmail.com</span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      INV84782903
-                    </span>
-                  </td>
-                  <td>
-                    <span className="space-table-amount">$2,782.78</span>
-                  </td>
-                  <td>
-                    <div className="space-table-tracking">
-                      <span className="space-tracking-code">LM931223665CN</span>
-                      <span className="space-tracking-dest">Church Street, Wolverhampton</span>
-                    </div>
-                  </td>
-                  <td>
-                    <span className="status-pill green">Ready</span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination */}
-          <div className="space-invoices-pagination">
-            <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
-              ← Previous
-            </button>
-            <div className="space-page-numbers">
-              <button type="button" className="space-page-num active">01</button>
-              <button type="button" className="space-page-num">02</button>
-              <button type="button" className="space-page-num">03</button>
-              <span style={{ color: "#94A3B8" }}>...</span>
-              <button type="button" className="space-page-num">04</button>
-              <button type="button" className="space-page-num">05</button>
-              <button type="button" className="space-page-num">06</button>
-            </div>
-            <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
-              Next →
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* RIGHT COLUMN: Payment / Virtual Card & Traffic Source (32%) */}
-      <div className="space-home-side">
-        {/* Card 1: Payment & Virtual Trade L/C Card */}
-        <div className="space-payment-card-v2">
-          <div className="space-payment-v2-head">
-            <h3>Payment</h3>
-            <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
-              <MoreVertical size={18} />
-            </button>
-          </div>
-
-          {/* Virtual Credit / Trade Card */}
-          <div className="space-virtual-credit-card">
-            <div className="space-card-top-row">
-              <div className="space-card-circles">
-                <div className="space-card-circle-red" />
-                <div className="space-card-circle-yellow" />
-              </div>
-              <span style={{ fontSize: 18, color: "#FFFFFF", opacity: 0.85 }}>)))</span>
-            </div>
-
-            <div className="space-card-number">
-              63758 45698 2567 7546
-            </div>
-
-            <div className="space-card-bottom-row">
-              <div>
-                <span style={{ fontSize: 10, opacity: 0.75, display: "block" }}>Name</span>
-                <span className="space-card-holder-name">
-                  ghsjk
-                </span>
-              </div>
-              <div>
-                <span style={{ fontSize: 10, opacity: 0.75, display: "block" }}>Exp Date</span>
-                <span style={{ fontWeight: 600 }}>08/28</span>
-              </div>
-              <div className="space-card-chip" />
-            </div>
-          </div>
-
-          {/* Payment Form Fields */}
-          <div className="space-payment-form">
-            <div className="space-payment-input-group">
-              <div style={{ position: "relative" }}>
-                <input
-                  type="text"
-                  className="space-payment-input"
-                  defaultValue="1234 2345 6789"
-                  style={{ width: "100%", paddingLeft: 42 }}
-                />
-                <div style={{ position: "absolute", left: 14, top: 12, display: "flex", gap: 2 }}>
-                  <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#EF4444" }} />
-                  <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#F59E0B", marginLeft: -5 }} />
-                </div>
-              </div>
-              <small style={{ color: "#F59E0B", fontSize: 11, display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
-                ⚠ Visa or master card of any USA Bank
-              </small>
-            </div>
-
-            <div className="space-payment-input-group">
-              <label>Name</label>
-              <input
-                type="text"
-                className="space-payment-input"
-                placeholder="Type your name"
-                defaultValue=""
-              />
-            </div>
-
-            <div className="space-payment-input-group">
-              <label>Payment</label>
-              <div className="space-payment-dual-input">
-                <select
-                  className="space-payment-currency-select"
-                  value={paymentCurrency}
-                  onChange={(e) => setPaymentCurrency(e.target.value)}
-                >
-                  <option value="USD">USD</option>
-                  <option value="IDR">IDR</option>
-                  <option value="EUR">EUR</option>
-                </select>
-                <input
-                  type="text"
-                  className="space-payment-input"
-                  value={paymentAmount}
-                  onChange={(e) => setPaymentAmount(e.target.value)}
-                  placeholder="$00.00"
-                />
-              </div>
-            </div>
-
-            <button
-              type="button"
-              className="space-send-money-btn"
-              onClick={() => {
-                toast.success("Pembayaran Transaksi Berhasil Dicatat!", {
-                  description: "Tercatat di Rekonsiliasi Bank dan Jurnal Keuangan EksporFlow.",
-                });
-                navigate("bank");
-              }}
-            >
-              Send Money
-            </button>
-          </div>
-        </div>
-
-        {/* Card 2: Traffic Source / Distribusi Pasar Ekspor */}
+        {/* Destinasi Ekspor Utama Donut Card */}
         <div className="space-traffic-card-v2">
           <div className="space-payment-v2-head">
-            <h3>Traffic Source</h3>
+            <div>
+              <h3>Destinasi Pasar Ekspor</h3>
+              <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#64748B" }}>
+                Sebaran volume pengiriman ekspor
+              </p>
+            </div>
             <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
               <MoreVertical size={18} />
             </button>
@@ -525,34 +300,216 @@ export function DashboardView({
 
           <div className="space-traffic-donut-box">
             <svg viewBox="0 0 200 120" style={{ width: 180, height: 110 }}>
-              {/* Semi Donut Arc (Blue 60%, Purple 40%) */}
+              {/* Semi Donut Arc (Blue 45%, Purple 35%, Mint 20%) */}
               <path
-                d="M 20 110 A 80 80 0 0 1 125 35"
+                d="M 20 110 A 80 80 0 0 1 110 32"
                 fill="none"
                 stroke="#0066FF"
                 strokeWidth="24"
                 strokeLinecap="round"
               />
               <path
-                d="M 135 41 A 80 80 0 0 1 180 110"
+                d="M 122 36 A 80 80 0 0 1 172 85"
                 fill="none"
                 stroke="#8B5CF6"
+                strokeWidth="24"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 175 95 A 80 80 0 0 1 180 110"
+                fill="none"
+                stroke="#10B981"
                 strokeWidth="24"
                 strokeLinecap="round"
               />
             </svg>
           </div>
 
-          <div className="space-traffic-legend">
-            <span>
-              <span className="space-legend-dot blue" />
-              Facebook
-            </span>
-            <span>
-              <span className="space-legend-dot purple" />
-              Other
-            </span>
+          <div className="space-traffic-legend" style={{ flexDirection: "column", gap: 10, alignItems: "stretch", padding: "0 8px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
+              <span><span className="space-legend-dot blue" /> Amerika Serikat (USA)</span>
+              <strong style={{ color: "#0F172A" }}>45% ($110.6k)</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
+              <span><span className="space-legend-dot purple" /> Uni Eropa (Rotterdam)</span>
+              <strong style={{ color: "#0F172A" }}>35% ($86.1k)</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
+              <span><span className="space-legend-dot mint" /> Asia Timur (Jepang)</span>
+              <strong style={{ color: "#0F172A" }}>20% ($49.2k)</strong>
+            </div>
           </div>
+        </div>
+      </div>
+
+      {/* ROW 3: Recent Invoices & Kontrak Ekspor Table (Full Width) */}
+      <div className="space-invoices-card-v2">
+        <div className="space-invoices-v2-head">
+          <div>
+            <h3>Kontrak & Pengiriman Ekspor Terbaru</h3>
+            <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#64748B" }}>
+              Daftar transaksi B2B internasional aktif, nomor Bill of Lading, dan status pembayaran
+            </p>
+          </div>
+          <div className="space-invoices-v2-actions">
+            <button type="button" className="space-pill-action" onClick={() => navigate("transactions")}>
+              <Filter size={13} />
+              <span>Filter Komoditas</span>
+            </button>
+            <div className="space-pill-action">
+              <Calendar size={13} />
+              <span>24 Nov 2026</span>
+            </div>
+            <button type="button" className="space-pill-action primary" onClick={() => navigate("transactions")}>
+              Semua Transaksi
+            </button>
+          </div>
+        </div>
+
+        <div style={{ overflowX: "auto" }}>
+          <table className="space-invoices-table-v2">
+            <thead>
+              <tr>
+                <th>Buyer & Perusahaan</th>
+                <th>Invoice & Kontrak</th>
+                <th>Nilai Ekspor</th>
+                <th>Pelabuhan Bongkar (POD)</th>
+                <th>Status Pembayaran & Dokumen</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div className="space-table-user-cell">
+                    <div className="space-table-avatar av1">AR</div>
+                    <div className="space-table-name-wrap">
+                      <span className="space-table-buyer-name">Atlantic Roast Corp</span>
+                      <span className="space-table-buyer-email">imports@atlanticroast.com · USA 🇺🇸</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                    INV-2026-0881
+                  </span>
+                </td>
+                <td>
+                  <span className="space-table-amount">$24,590.00</span>
+                </td>
+                <td>
+                  <div className="space-table-tracking">
+                    <span className="space-tracking-code">B/L: EKL-US2026-0881</span>
+                    <span className="space-tracking-dest">Port of Los Angeles (USLAX)</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="status-pill green">L/C at Sight (Paid)</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="space-table-user-cell">
+                    <div className="space-table-avatar av2">HC</div>
+                    <div className="space-table-name-wrap">
+                      <span className="space-table-buyer-name">Hamburg Specialty Coffee GmbH</span>
+                      <span className="space-table-buyer-email">trade@hamburgcoffee.de · Jerman 🇩🇪</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                    INV-2026-0412
+                  </span>
+                </td>
+                <td>
+                  <span className="space-table-amount">$18,400.00</span>
+                </td>
+                <td>
+                  <div className="space-table-tracking">
+                    <span className="space-tracking-code">B/L: EKL-EU2026-0412</span>
+                    <span className="space-tracking-dest">Port of Hamburg (DEHAM)</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="status-pill blue">In Transit (T/T 30/70)</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="space-table-user-cell">
+                    <div className="space-table-avatar av3">TA</div>
+                    <div className="space-table-name-wrap">
+                      <span className="space-table-buyer-name">Tokyo Agro & Spices Co., Ltd</span>
+                      <span className="space-table-buyer-email">procurement@tokyoagro.co.jp · Jepang 🇯🇵</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                    INV-2026-0199
+                  </span>
+                </td>
+                <td>
+                  <span className="space-table-amount">$32,150.00</span>
+                </td>
+                <td>
+                  <div className="space-table-tracking">
+                    <span className="space-tracking-code">B/L: EKL-JP2026-0199</span>
+                    <span className="space-tracking-dest">Port of Yokohama (JPYOK)</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="status-pill amber">DP 30% Diterima</span>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div className="space-table-user-cell">
+                    <div className="space-table-avatar av4">EF</div>
+                    <div className="space-table-name-wrap">
+                      <span className="space-table-buyer-name">Emirates Foodstuff Trading LLC</span>
+                      <span className="space-table-buyer-email">operations@emiratesfood.ae · UAE 🇦🇪</span>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                    INV-2026-0920
+                  </span>
+                </td>
+                <td>
+                  <span className="space-table-amount">$14,800.00</span>
+                </td>
+                <td>
+                  <div className="space-table-tracking">
+                    <span className="space-tracking-code">B/L: EKL-AE2026-0920</span>
+                    <span className="space-tracking-dest">Port of Jebel Ali (AEJEA)</span>
+                  </div>
+                </td>
+                <td>
+                  <span className="status-pill green">Jalur Hijau (NPE)</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="space-invoices-pagination">
+          <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
+            ← Sebelumnya
+          </button>
+          <div className="space-page-numbers">
+            <button type="button" className="space-page-num active">01</button>
+            <button type="button" className="space-page-num">02</button>
+            <button type="button" className="space-page-num">03</button>
+            <span style={{ color: "#94A3B8" }}>...</span>
+            <button type="button" className="space-page-num">04</button>
+            <button type="button" className="space-page-num">05</button>
+          </div>
+          <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
+            Selanjutnya →
+          </button>
         </div>
       </div>
     </div>

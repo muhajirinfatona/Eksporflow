@@ -21153,32 +21153,41 @@ table.unlk-items-table th.active-cell {
 }
 
 
-/* 2-Column Space Financial Home Layout */
-.space-home-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 350px;
+/* Space Design System Executive Export Dashboard Layout */
+.space-home-container {
+  display: flex;
+  flex-direction: column;
   gap: 24px;
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
 }
-@media (max-width: 1160px) {
-  .space-home-grid {
+
+.space-home-stats-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+@media (max-width: 1200px) {
+  .space-home-stats-grid-4 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .space-home-stats-grid-4 {
     grid-template-columns: 1fr;
   }
 }
 
-.space-home-main {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  min-width: 0;
+.space-home-middle-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 24px;
 }
-.space-home-side {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  min-width: 0;
+@media (max-width: 1060px) {
+  .space-home-middle-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Stat Cards (Row 1) */
@@ -21540,168 +21549,7 @@ table.unlk-items-table th.active-cell {
   border: 1px solid #CBD5E1;
 }
 
-/* Side Column: Payment / Trade Card */
-.space-payment-card-v2 {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 20px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 10px 25px -5px rgba(0, 0, 0, 0.03);
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-.space-payment-v2-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.space-payment-v2-head h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #0F172A;
-}
-
-.space-virtual-credit-card {
-  background: linear-gradient(135deg, #7C3AED 0%, #A855F7 50%, #EC4899 100%);
-  border-radius: 16px;
-  padding: 20px;
-  color: #FFFFFF;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 10px 25px -5px rgba(124, 58, 237, 0.45);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.space-virtual-credit-card::before {
-  content: "";
-  position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.12);
-  filter: blur(10px);
-}
-.space-card-top-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.space-card-circles {
-  display: flex;
-  align-items: center;
-}
-.space-card-circle-red {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #EF4444;
-  opacity: 0.9;
-}
-.space-card-circle-yellow {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: #F59E0B;
-  opacity: 0.9;
-  margin-left: -8px;
-}
-.space-card-number {
-  font-size: 16px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  font-family: var(--font-mono, monospace);
-  color: #FFFFFF;
-  margin: 4px 0;
-}
-.space-card-bottom-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  font-size: 11px;
-}
-.space-card-holder-name {
-  font-weight: 600;
-  font-size: 12px;
-  color: #FFFFFF;
-}
-.space-card-chip {
-  width: 32px;
-  height: 24px;
-  background: #FDE047;
-  border-radius: 4px;
-  position: relative;
-  opacity: 0.85;
-}
-
-.space-payment-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-.space-payment-input-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.space-payment-input-group label {
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748B;
-}
-.space-payment-input {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 13.5px;
-  color: #0F172A;
-  outline: none;
-  transition: all 0.2s ease;
-}
-.space-payment-input:focus {
-  border-color: #0066FF;
-  box-shadow: 0 0 0 3px rgba(0, 102, 255, 0.1);
-}
-
-.space-payment-dual-input {
-  display: grid;
-  grid-template-columns: 80px 1fr;
-  gap: 8px;
-}
-.space-payment-currency-select {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 10px;
-  padding: 10px 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0F172A;
-  outline: none;
-}
-
-.space-send-money-btn {
-  background: #0066FF;
-  color: #FFFFFF;
-  border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(0, 102, 255, 0.3);
-  text-align: center;
-  margin-top: 4px;
-}
-.space-send-money-btn:hover {
-  background: #0052CC;
-  box-shadow: 0 6px 18px rgba(0, 102, 255, 0.4);
-}
+/* Payment card removed per user request */
 
 /* Side Column: Traffic Source / Market Distribution */
 .space-traffic-card-v2 {
