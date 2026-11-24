@@ -132,84 +132,72 @@ export function DashboardView({
       invNumber: "INV-2026-0881",
       buyer: "Atlantic Roast Corp",
       buyerLoc: "Boston, USA",
-      countryCode: "US",
-      avatar: "AR",
-      avClass: "av1",
-      commodity: "Kopi Arabika Gayo Grade 1",
-      stowage: "1×20' FCL · 19.2 MT (320 krg)",
+      commodity: "Kopi Arabika Gayo",
+      stowage: "1×20' FCL · 19.2 MT",
       polCode: "IDTPP",
       podCode: "USLAX",
       polName: "Priok",
       podName: "Los Angeles",
-      etd: "28 Nov '26",
-      eta: "18 Des '26",
+      etd: "28 Nov",
+      eta: "18 Des 2026",
       statusPill: "green",
       statusLabel: "Jalur Hijau (NPE)",
       paymentLabel: "L/C at Sight (Paid)",
-      amount: "$24,590",
+      amount: "$24,590.00",
     },
     {
       blNumber: "EKL-EU2026-0412",
       invNumber: "INV-2026-0412",
-      buyer: "Hamburg Specialty Coffee GmbH",
+      buyer: "Hamburg Coffee GmbH",
       buyerLoc: "Hamburg, Jerman",
-      countryCode: "DE",
-      avatar: "HC",
-      avClass: "av2",
-      commodity: "Kopi Robusta Lampung Fine",
-      stowage: "1×20' FCL · 18.0 MT (300 krg)",
+      commodity: "Kopi Robusta Lampung",
+      stowage: "1×20' FCL · 18.0 MT",
       polCode: "IDPNJ",
       podCode: "DEHAM",
       polName: "Panjang",
       podName: "Hamburg",
-      etd: "02 Des '26",
-      eta: "24 Des '26",
+      etd: "02 Des",
+      eta: "24 Des 2026",
       statusPill: "blue",
       statusLabel: "In Transit Kapal",
       paymentLabel: "T/T 30% DP / 70% B/L",
-      amount: "$18,400",
+      amount: "$18,400.00",
     },
     {
       blNumber: "EKL-JP2026-0199",
       invNumber: "INV-2026-0199",
-      buyer: "Tokyo Agro & Spices Co., Ltd",
+      buyer: "Tokyo Agro & Spices",
       buyerLoc: "Tokyo, Jepang",
-      countryCode: "JP",
-      avatar: "TA",
-      avClass: "av3",
-      commodity: "Kayu Manis Korintje Cassia A",
-      stowage: "1×40' HC · 15.6 MT (520 ktn)",
+      commodity: "Kayu Manis Korintje",
+      stowage: "1×40' HC · 15.6 MT",
       polCode: "IDSUB",
       podCode: "JPYOK",
       polName: "Perak",
       podName: "Yokohama",
-      etd: "05 Des '26",
-      eta: "19 Des '26",
+      etd: "05 Des",
+      eta: "19 Des 2026",
       statusPill: "amber",
-      statusLabel: "Siap Muat di Depo",
+      statusLabel: "Siap Muat Depo",
       paymentLabel: "DP 30% Masuk (Mandiri)",
-      amount: "$32,150",
+      amount: "$32,150.00",
     },
     {
       blNumber: "EKL-AE2026-0920",
       invNumber: "INV-2026-0920",
-      buyer: "Emirates Foodstuff Trading LLC",
+      buyer: "Emirates Foodstuff",
       buyerLoc: "Dubai, UAE",
-      countryCode: "AE",
-      avatar: "EF",
-      avClass: "av4",
-      commodity: "Briket Arang Kelapa Premium",
-      stowage: "1×20' FCL · 14.0 MT (1.4k box)",
+      commodity: "Briket Arang Kelapa",
+      stowage: "1×20' FCL · 14.0 MT",
       polCode: "IDTPP",
       podCode: "AEJEA",
       polName: "Priok",
       podName: "Jebel Ali",
-      etd: "10 Des '26",
-      eta: "27 Des '26",
+      etd: "10 Des",
+      eta: "27 Des 2026",
       statusPill: "green",
       statusLabel: "Jalur Hijau (NPE)",
       paymentLabel: "CAD (Cash Against Docs)",
-      amount: "$14,800",
+      amount: "$14,800.00",
     },
   ], []);
 
@@ -650,94 +638,67 @@ export function DashboardView({
           <table className="space-invoices-table-v2">
             <thead>
               <tr>
-                <th style={{ width: "13%" }}>No. B/L &amp; Kontrak</th>
-                <th style={{ width: "17%" }}>Buyer &amp; Destinasi</th>
-                <th style={{ width: "19%" }}>Komoditas &amp; Kontainer</th>
-                <th style={{ width: "13%" }}>Rute Pelayaran</th>
-                <th style={{ width: "10%" }}>Jadwal Kapal</th>
-                <th style={{ width: "13%" }}>Status Kepabeanan</th>
-                <th style={{ width: "7%", textAlign: "right" }}>Nilai Ekspor</th>
-                <th style={{ width: "8%", textAlign: "right" }}>Aksi Cepat</th>
+                <th>No. B/L &amp; Kontrak</th>
+                <th>Buyer &amp; Destinasi</th>
+                <th>Komoditas &amp; Kontainer</th>
+                <th>Rute &amp; Jadwal Pelayaran</th>
+                <th>Status Kepabeanan</th>
+                <th style={{ textAlign: "right" }}>Nilai Ekspor</th>
+                <th style={{ textAlign: "right" }}>Aksi Cepat</th>
               </tr>
             </thead>
             <tbody>
               {filteredShipments.map((s) => (
                 <tr key={s.blNumber}>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                       <span className="space-invoice-code" onClick={() => navigate("documents")} title="Lihat Dokumen B/L">
                         {s.blNumber}
                       </span>
-                      <small style={{ color: "#64748B", fontSize: 11, fontFamily: "var(--font-mono, monospace)" }}>
+                      <span style={{ color: "#64748B", fontSize: 11 }}>
                         {s.invNumber}
-                      </small>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="space-table-user-cell">
-                      <div className="space-table-avatar">{s.avatar}</div>
-                      <div className="space-table-name-wrap">
-                        <span className="space-table-buyer-name">{s.buyer}</span>
-                        <span className="space-table-buyer-email">
-                          <span style={{ fontSize: 9.5, fontWeight: 700, padding: "1px 4px", borderRadius: 3, background: "#F1F5F9", color: "#475569", border: "1px solid #E2E8F0", fontFamily: "var(--font-mono, monospace)" }}>
-                            {s.countryCode}
-                          </span>
-                          <span>{s.buyerLoc}</span>
-                        </span>
-                      </div>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <strong style={{ fontSize: 12.5, color: "#0F172A", fontWeight: 600 }}>{s.commodity}</strong>
-                      <span style={{ fontSize: 11, color: "#64748B" }}>{s.stowage}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div className="space-table-tracking">
-                      <span className="space-tracking-code">
-                        {s.polCode} <span style={{ color: "#94A3B8", fontWeight: 400 }}>→</span> {s.podCode}
-                      </span>
-                      <span className="space-tracking-dest">{s.polName} → {s.podName}</span>
-                    </div>
-                  </td>
-                  <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-                      <span style={{ color: "#64748B", fontSize: 11, whiteSpace: "nowrap" }}>ETD: {s.etd}</span>
-                      <span style={{ color: "#0F172A", fontSize: 11.5, fontWeight: 600, whiteSpace: "nowrap" }}>
-                        ETA: {s.eta}
                       </span>
                     </div>
                   </td>
                   <td>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <span
-                        style={{
-                          fontSize: 10.5,
-                          fontWeight: 600,
-                          padding: "1.5px 6px",
-                          borderRadius: 5,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                          width: "fit-content",
-                          whiteSpace: "nowrap",
-                          background: s.statusPill === "green" ? "#F0FDF4" : s.statusPill === "blue" ? "#EFF6FF" : "#FFFBEB",
-                          border: s.statusPill === "green" ? "1px solid #BBF7D0" : s.statusPill === "blue" ? "1px solid #BFDBFE" : "1px solid #FDE68A",
-                          color: s.statusPill === "green" ? "#166534" : s.statusPill === "blue" ? "#1D4ED8" : "#B45309",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 5,
-                            height: 5,
-                            borderRadius: "50%",
-                            background: s.statusPill === "green" ? "#22C55E" : s.statusPill === "blue" ? "#3B82F6" : "#F59E0B",
-                          }}
-                        />
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                      <span style={{ fontWeight: 600, color: "#0F172A", fontSize: 12.5, whiteSpace: "nowrap" }} title={s.buyer}>
+                        {s.buyer}
+                      </span>
+                      <span style={{ color: "#64748B", fontSize: 11, whiteSpace: "nowrap" }} title={s.buyerLoc}>
+                        {s.buyerLoc}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                      <strong style={{ fontSize: 12.5, color: "#0F172A", fontWeight: 600, whiteSpace: "nowrap" }} title={s.commodity}>
+                        {s.commodity}
+                      </strong>
+                      <span style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }} title={s.stowage}>
+                        {s.stowage}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#0F172A", whiteSpace: "nowrap" }}>
+                        {s.polName} → {s.podName}
+                      </span>
+                      <span style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }}>
+                        ETD {s.etd.replace(" 2026", "")} · ETA {s.eta.replace(" 2026", "")}
+                      </span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+                      <span className={`space-status-badge ${s.statusPill}`}>
+                        <span className="space-status-dot" />
                         {s.statusLabel}
                       </span>
-                      <span style={{ fontSize: 10.5, color: "#64748B", whiteSpace: "nowrap" }}>{s.paymentLabel}</span>
+                      <span style={{ fontSize: 10.5, color: "#64748B", whiteSpace: "nowrap" }}>
+                        {s.paymentLabel}
+                      </span>
                     </div>
                   </td>
                   <td style={{ textAlign: "right" }}>
@@ -747,21 +708,12 @@ export function DashboardView({
                     <div style={{ display: "inline-flex", gap: 5, alignItems: "center", justifyContent: "flex-end" }}>
                       <button
                         type="button"
-                        className="space-btn-table-icon"
+                        className="space-btn-table-ghost"
                         onClick={() => navigate("documents")}
                         title="Lihat Dokumen Ekspor (PEB & B/L)"
-                        aria-label="Dokumen Ekspor"
                       >
-                        <FileText size={12} />
-                      </button>
-                      <button
-                        type="button"
-                        className="space-btn-table-icon"
-                        onClick={() => navigate("cargo")}
-                        title="Detail Muatan & Kontainer"
-                        aria-label="Muatan Kontainer"
-                      >
-                        <Package size={12} />
+                        <FileText size={11} />
+                        <span>Dokumen</span>
                       </button>
                       <button
                         type="button"
