@@ -487,10 +487,10 @@ export function WorkspaceShell({
     : "";
 
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
-    typeof window !== "undefined" ? window.innerWidth > 1024 : true,
+    typeof window !== "undefined" ? window.innerWidth > 768 : true,
   );
   const [isCompactViewport, setIsCompactViewport] = useState<boolean>(() =>
-    typeof window !== "undefined" ? window.innerWidth <= 1024 : false,
+    typeof window !== "undefined" ? window.innerWidth <= 768 : false,
   );
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -503,7 +503,7 @@ export function WorkspaceShell({
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const media = window.matchMedia("(max-width: 1024px)");
+    const media = window.matchMedia("(max-width: 768px)");
     const syncViewport = (matches: boolean) => {
       setIsCompactViewport(matches);
       setSidebarOpen(!matches);
@@ -589,7 +589,7 @@ export function WorkspaceShell({
           title="Kelola atau ganti transaksi aktif"
           onClick={() => {
             navigate("transactions");
-            if (window.innerWidth <= 1024) setSidebarOpen(false);
+            if (window.innerWidth <= 768) setSidebarOpen(false);
           }}
         >
           <div className="workspace-avatar">
@@ -622,7 +622,7 @@ export function WorkspaceShell({
                   className={`clean-nav-item ${screen === item.id ? "active" : ""}`}
                   onClick={() => {
                     navigate(item.id);
-                    if (window.innerWidth <= 1024) setSidebarOpen(false);
+                    if (window.innerWidth <= 768) setSidebarOpen(false);
                   }}
                 >
                   <span className="nav-icon">{item.icon}</span>
