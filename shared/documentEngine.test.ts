@@ -75,6 +75,7 @@ describe("Document Engine - Institutional Multi-Item & Snapshot Integrity", () =
     expect(item1.itemNo).toBe(1);
     expect(item1.description).toBe("Organic Coconut Sugar Grade A");
     expect(item1.hsCode).toBe("1702.90.11");
+    expect(item1.uncefactPackageCode).toBe("CT");
     expect(item1.quantity).toBe(1200);
     expect(item1.totalAmount).toBe(27000); // 1200 * 22.5
     expect(item1.netWeightKg).toBe(12000); // 1200 * 10
@@ -89,6 +90,7 @@ describe("Document Engine - Institutional Multi-Item & Snapshot Integrity", () =
     const item2 = items[1];
     expect(item2.itemNo).toBe(2);
     expect(item2.description).toBe("Robusta Fine Coffee Green Beans");
+    expect(item2.uncefactPackageCode).toBe("SA");
     expect(item2.totalAmount).toBe(54000); // 300 * 180
     expect(item2.netWeightKg).toBe(18000); // 300 * 60
     // Volume: (80 * 50 * 30 * 300) / 1,000,000 = 36.0 CBM
@@ -141,6 +143,8 @@ describe("Document Engine - Institutional Multi-Item & Snapshot Integrity", () =
     expect(payload.documentType).toBe("Commercial Invoice");
     expect(payload.lineItems).toHaveLength(2);
     expect(payload.totals.totalAmount).toBe(81000);
+    expect(payload.compliance?.packagingSummary).toContain("Total 1500 pkgs");
+    expect(payload.compliance?.insuranceStatement).toContain("MARINE INSURANCE");
 
     const hash = computePayloadHash(payload);
     expect(verifyPayloadHash(payload, hash)).toBe(true);

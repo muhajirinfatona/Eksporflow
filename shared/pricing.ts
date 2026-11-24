@@ -128,3 +128,66 @@ export function calculatePricing(input: PricingInput) {
     scenarios: (Object.keys(included) as Incoterm[]).map((term) => ({ term, ...calculate(term) })),
   };
 }
+
+/**
+ * Evaluasi kepatuhan DHE SDA (Devisa Hasil Ekspor Sumber Daya Alam) PP No. 36/2023:
+ * Nilai ekspor pada PEB >= USD 250,000 wajib ditempatkan minimal 30% dalam Rekening Khusus DHE SDA
+ * di Lembaga Pembiayaan Ekspor Indonesia (LPEI) atau Bank Devisa domestik selama minimal 3 bulan.
+ */
+export function evaluateDheSdaCompliance(totalOfferUsd: number): {
+  isEligible: boolean;
+  minRetentionUsd: number;
+  retentionMonths: number;
+  thresholdUsd: number;
+  retentionPercent: number;
+  regulatoryReference: string;
+  notes: string;
+} {
+  const thresholdUsd = 250_000;
+  const isEligible = totalOfferUsd >= thresholdUsd;
+  const retentionPercent = 30;
+  const minRetentionUsd = isEligible ? Math.round(totalOfferUsd * 0.3) : 0;
+  const retentionMonths = 3;
+
+  return {
+    isEligible,
+    minRetentionUsd,
+    retentionMonths,
+    thresholdUsd,
+    retentionPercent,
+    regulatoryReference: "PP No. 36 Tahun 2023 & PBI No. 7 Tahun 2023",
+    notes: isEligible
+      ? `Transaksi >= USD ${thresholdUsd.toLocaleString()}: Wajib menempatkan minimal 30% (USD ${minRetentionUsd.toLocaleString()}) di Rekening Khusus DHE SDA selama minimal 3 bulan.`
+      : `Transaksi di bawah threshold USD ${thresholdUsd.toLocaleString()}: Dikecualikan dari kewajiban retensi DHE SDA 30%.`,
+  };
+}
+
+/**
+ * Kalkulasi Premi Asuransi Maritim Berdasarkan Klausul Incoterms® 2020:
+ * - CIF: Penjual wajib memperoleh asuransi minimal Institute Cargo Clauses (C) sebesar 110% dari nilai CIF.
+ * - CIP: Penjual wajib memperoleh asuransi komprehensif Institute Cargo Clauses (A) sebesar 110% dari nilai CIP.
+ */
+export function calculateMaritimeInsurance(
+  goodsPlusFreight: number,
+  clause: "ICC_A" | "ICC_C" | "CUSTOM" = "ICC_C",
+  ratePercent?: number
+): {
+  insuredValue: number;
+  ratePercent: number;
+  premiumAmount: number;
+  clause: string;
+  notes: string;
+} {
+  const insuredValue = Math.round(goodsPlusFreight * 1.1);
+  const defaultRate = clause === "ICC_A" ? 0.5 : 0.2;
+  const finalRate = ratePercent !== undefined ? ratePercent : defaultRate;
+  const premiumAmount = Math.round((insuredValue * finalRate) / 100);
+
+  return {
+    insuredValue,
+    ratePercent: finalRate,
+    premiumAmount,
+    clause: clause === "ICC_A" ? "Institute Cargo Clauses (A) - All Risks" : "Institute Cargo Clauses (C) - Minimum Cover",
+    notes: `Nilai pertanggungan 110%: $${insuredValue.toLocaleString()} dengan tarif ${finalRate}% (${clause}).`,
+  };
+}

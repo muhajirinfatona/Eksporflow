@@ -1,3 +1,4 @@
+import { PACKAGING_PRESETS, PALLET_PRESETS, resolveUncefactCode } from "@shared/container";
 import { formatNumber } from "@shared/format";
 import type { ScreenId } from "@shared/risk";
 import { emptyLineItem, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
@@ -40,6 +41,33 @@ export function ContainerModule({
             title="Detail kemasan & rencana muatan"
             description="Ukuran, jenis kemasan, susut, dan pallet kayu setiap produk bisa diatur langsung di halaman ini tanpa mencampur layar dokumen."
           />
+          <div className="packaging-presets-strip" style={{ marginBottom: "14px" }}>
+            <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--muted)", display: "block", marginBottom: "6px" }}>
+              Pilihan preset kemasan standar (1-klik isi dimensi):
+            </span>
+            <div style={{ display: "flex", gap: "6px", flexWrap: "wrap" }}>
+              {PACKAGING_PRESETS.filter((p) => p.category !== "custom").map((preset) => (
+                <button
+                  key={preset.id}
+                  type="button"
+                  className="ghost-button"
+                  style={{ fontSize: "11px", padding: "4px 8px", height: "auto" }}
+                  onClick={() => {
+                    update("packageType", preset.name);
+                    updateNumber("cartonLength", String(preset.length));
+                    updateNumber("cartonWidth", String(preset.width));
+                    updateNumber("cartonHeight", String(preset.height));
+                    if (preset.recommendedMaxPayloadKg) {
+                      updateNumber("cartonWeight", String(preset.recommendedMaxPayloadKg));
+                    }
+                  }}
+                  title={preset.description}
+                >
+                  <span style={{ fontWeight: 700, color: "var(--teal)" }}>[{preset.uncefactCode}]</span> {preset.name.split(" (")[0]}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="form-grid two">
             <Field
               label="Jenis kemasan default"
@@ -56,28 +84,28 @@ export function ContainerModule({
               <option value="40HC">40&apos; High Cube</option>
             </SelectField>
             <Field
-              label="Panjang karton"
+              label="Panjang kemasan"
               value={shipment.cartonLength}
               type="number"
               suffix="cm"
               onChange={(value) => updateNumber("cartonLength", value)}
             />
             <Field
-              label="Lebar karton"
+              label="Lebar kemasan"
               value={shipment.cartonWidth}
               type="number"
               suffix="cm"
               onChange={(value) => updateNumber("cartonWidth", value)}
             />
             <Field
-              label="Tinggi karton"
+              label="Tinggi kemasan"
               value={shipment.cartonHeight}
               type="number"
               suffix="cm"
               onChange={(value) => updateNumber("cartonHeight", value)}
             />
             <Field
-              label="Berat per karton"
+              label="Berat per kemasan"
               value={shipment.cartonWeight}
               type="number"
               suffix="kg"
@@ -85,10 +113,10 @@ export function ContainerModule({
               onChange={(value) => updateNumber("cartonWeight", value)}
             />
             <Field
-              label="Jumlah karton"
+              label="Jumlah kemasan"
               value={shipment.cartonQty}
               type="number"
-              suffix="ctns"
+              suffix="pkgs"
               onChange={(value) => updateNumber("cartonQty", value)}
             />
           </div>
@@ -289,6 +317,7 @@ function Container3DSimulator({
     Drum: 0x5ca6bd,
     Sack: 0x8fbd8d,
     "Crate kayu": 0xb87548,
+    "IBC Tank": 0x3b82f6,
     "Kemasan custom": 0x9d7bd9,
   };
   const items = useMemo(
@@ -403,7 +432,17 @@ function Container3DSimulator({
             Math.max(5, item.width - 2),
           ),
           new THREE.MeshLambertMaterial({
-            color: palette[item.packagingType] || 0xf2b84b,
+            color:
+              palette[item.packagingType] ||
+              (item.packagingType.toLowerCase().includes("drum")
+                ? palette.Drum
+                : item.packagingType.toLowerCase().includes("karung")
+                  ? palette["Karung goni"]
+                  : item.packagingType.toLowerCase().includes("ibc")
+                    ? palette["IBC Tank"]
+                    : item.packagingType.toLowerCase().includes("crate")
+                      ? palette["Crate kayu"]
+                      : palette["Karton box"]),
             transparent: true,
             opacity: 0.86,
           }),
@@ -515,6 +554,10 @@ function Container3DSimulator({
           <span>
             <i className="legend-swatch wood" />
             Pallet kayu
+          </span>
+          <span>
+            <i className="legend-swatch ibc" style={{ background: "#3b82f6" }} />
+            IBC Tank
           </span>
           <span>
             <i className="legend-swatch custom" />

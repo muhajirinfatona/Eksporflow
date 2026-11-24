@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculatePricing, incotermCostKeys } from "./pricing";
+import { calculatePricing, calculateMaritimeInsurance, evaluateDheSdaCompliance, incotermCostKeys } from "./pricing";
 import { initialShipment } from "./shipment";
 
 describe("calculatePricing (formula v1.8)", () => {
@@ -54,5 +54,37 @@ describe("calculatePricing (formula v1.8)", () => {
     const { active } = calculatePricing({ ...initialShipment, margin: 0 });
     expect(active.offer).toBeCloseTo(active.cost, 6);
     expect(active.profit).toBe(0);
+  });
+
+  describe("evaluateDheSdaCompliance (PP No. 36/2023)", () => {
+    it("menandai transaksi < USD 250k sebagai dikecualikan dari DHE SDA", () => {
+      const res = evaluateDheSdaCompliance(58024);
+      expect(res.isEligible).toBe(false);
+      expect(res.minRetentionUsd).toBe(0);
+      expect(res.thresholdUsd).toBe(250000);
+    });
+
+    it("menghitung kewajiban retensi 30% untuk transaksi >= USD 250k", () => {
+      const res = evaluateDheSdaCompliance(300000);
+      expect(res.isEligible).toBe(true);
+      expect(res.minRetentionUsd).toBe(90000);
+      expect(res.retentionMonths).toBe(3);
+    });
+  });
+
+  describe("calculateMaritimeInsurance (Incoterms 2020 & ICC)", () => {
+    it("menghitung premi ICC (C) standar CIF sebesar 110% nilai barang & freight", () => {
+      const res = calculateMaritimeInsurance(50000, "ICC_C", 0.2);
+      expect(res.insuredValue).toBe(55000); // 110% of 50000
+      expect(res.premiumAmount).toBe(110);   // 0.2% of 55000
+      expect(res.clause).toContain("Institute Cargo Clauses (C)");
+    });
+
+    it("menghitung premi ICC (A) all-risks standar CIP", () => {
+      const res = calculateMaritimeInsurance(50000, "ICC_A", 0.5);
+      expect(res.insuredValue).toBe(55000);
+      expect(res.premiumAmount).toBe(275); // 0.5% of 55000
+      expect(res.clause).toContain("Institute Cargo Clauses (A)");
+    });
   });
 });

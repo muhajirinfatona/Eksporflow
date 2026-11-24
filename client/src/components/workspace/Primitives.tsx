@@ -386,7 +386,7 @@ export function LineItemsEditor({
   currency: string;
   onOpenCatalog?: () => void;
 }) {
-  const packagingOptions = ["Karton box", "Karung goni", "Drum", "Sack", "Crate kayu"];
+  const packagingOptions = ["Karton box", "Karung goni", "Drum", "Sack", "Crate kayu", "IBC Tank 1000L"];
   const numericFields = [
     "quantity",
     "unitPrice",

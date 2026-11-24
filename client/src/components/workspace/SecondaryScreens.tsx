@@ -26,6 +26,8 @@ import {
   Briefcase,
   Building2,
   Calculator,
+  Calendar,
+  Filter,
   Check,
   CheckCircle2,
   ChevronRight,
@@ -36,15 +38,19 @@ import {
   History,
   Landmark,
   Mail,
+  MoreVertical,
   Package,
   Plus,
   RotateCcw,
   Search,
+  Send,
   ShieldAlert,
   ShieldCheck,
   Ship,
   Sparkles,
   Trash2,
+  TrendingDown,
+  TrendingUp,
   UserCheck,
   UserPlus,
   UserRound,
@@ -111,321 +117,444 @@ export function DashboardView({
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
-  const onboarding = useMemo(
-    () =>
-      buildOnboarding30Days(
-        shipment,
-        {
-          productsCount: flow.products.length,
-          partnersCount: flow.partners.length,
-        },
-        shipment.onboardingCompletedIds || [],
-      ),
-    [shipment, flow.products.length, flow.partners.length],
-  );
+  const [paymentAmount, setPaymentAmount] = useState<string>("24,590.43");
+  const [paymentCurrency, setPaymentCurrency] = useState<string>("USD");
 
-  const toggleOnboardingStep = (stepId: string) => {
-    const existing = shipment.onboardingCompletedIds || [];
-    const next = existing.includes(stepId)
-      ? existing.filter((id) => id !== stepId)
-      : [...existing, stepId];
-    update("onboardingCompletedIds", next);
-  };
+  const totalContract = pricing.active.offer > 0 ? pricing.active.offer : 24590.43;
+  const totalReceived = flow.paidAmount > 0 ? flow.paidAmount : 24590.43;
 
   return (
-    <div className="module-stack">
-      {/* 1. Compact Executive Deal Summary Bar */}
-      <section className="panel" style={{ padding: "14px 18px" }}>
-        <div
-          style={{
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "16px",
-          }}
-        >
-          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px" }}>
-            <div>
-              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>Transaksi aktif</span>
-              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <strong style={{ fontSize: "15px", fontWeight: 600, color: "var(--ink)" }}>{shipment.reference}</strong>
-                <span style={{ color: "var(--line-strong)" }}>·</span>
-                <span style={{ fontSize: "14px", fontWeight: 500, color: "var(--ink-soft)" }}>
-                  {shipment.buyer || "Buyer Internasional"}
-                </span>
+    <div className="space-home-grid">
+      {/* LEFT COLUMN: Main Financial & Trade Analytics (68%) */}
+      <div className="space-home-main">
+        {/* ROW 1: 2 Main Stat Cards matching Space DS */}
+        <div className="space-home-stats-row">
+          {/* Card 1: Total Deposit / Kontrak Ekspor */}
+          <div className="space-stat-card-v2">
+            <div className="space-stat-v2-header">
+              <span className="space-stat-v2-title">Total deposit</span>
+              <div className="space-stat-v2-icon blue">
+                <Wallet size={18} />
               </div>
             </div>
-
-            <div style={{ height: "28px", width: "1px", background: "var(--line)" }} />
-
-            <div>
-              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>Rute &amp; tujuan</span>
-              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--ink)" }}>
-                Indonesia → {shipment.destination || "Pelabuhan Tujuan"}{" "}
-                {shipment.buyerCountry ? `(${shipment.buyerCountry})` : ""}
-              </div>
+            <div className="space-stat-v2-value">
+              {formatMoney(totalContract, shipment.currency || "USD")}
             </div>
-
-            <div style={{ height: "28px", width: "1px", background: "var(--line)" }} />
-
-            <div>
-              <span className="eyebrow" style={{ marginBottom: "2px", display: "block" }}>Komoditas &amp; volume</span>
-              <div style={{ fontSize: "13px", fontWeight: 500, color: "var(--ink)" }}>
-                {formatNumber(shipment.quantity)} {shipment.unit} · {shipment.product || "Komoditas Ekspor"}
-              </div>
+            <div className="space-stat-v2-progress">
+              <div className="space-stat-v2-progress-fill mint" style={{ width: "74%" }} />
+            </div>
+            <div className="space-stat-v2-foot">
+              <span className="space-stat-v2-trend up">
+                <ArrowUpRight size={14} /> + 2.9%
+              </span>
+              <span>Less then last week</span>
             </div>
           </div>
 
-          <div className="row-actions" style={{ marginLeft: "auto" }}>
-            <StatusPill tone="blue">{shipment.shipmentStatus}</StatusPill>
-            <button
-              type="button"
-              className="ghost-button"
-              onClick={() => navigate("transactions")}
+          {/* Card 2: Total Investment / Realisasi Kas */}
+          <div className="space-stat-card-v2">
+            <div className="space-stat-v2-header">
+              <span className="space-stat-v2-title">Total investment</span>
+              <div className="space-stat-v2-icon purple">
+                <BarChart3 size={18} />
+              </div>
+            </div>
+            <div className="space-stat-v2-value">
+              {formatMoney(totalReceived, shipment.currency || "USD")}
+            </div>
+            <div className="space-stat-v2-progress">
+              <div className="space-stat-v2-progress-fill orange" style={{ width: "62%" }} />
+            </div>
+            <div className="space-stat-v2-foot">
+              <span className="space-stat-v2-trend up">
+                <ArrowUpRight size={14} /> + 2.9%
+              </span>
+              <span>Less then last week</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ROW 2: Total Financial Earnings (Spline Chart Card matching Space DS) */}
+        <div className="space-chart-card-v2">
+          <div className="space-chart-v2-head">
+            <h3>Total Financial Earnings</h3>
+            <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
+              <MoreVertical size={18} />
+            </button>
+          </div>
+
+          {/* Interactive SVG Spline Chart */}
+          <div className="space-spline-container">
+            <svg
+              className="space-spline-svg"
+              viewBox="0 0 760 200"
+              preserveAspectRatio="none"
             >
-              Kelola Pesanan →
+              {/* Y Grid lines */}
+              <line x1="40" y1="20" x2="740" y2="20" stroke="#F1F5F9" strokeDasharray="3 3" />
+              <line x1="40" y1="60" x2="740" y2="60" stroke="#F1F5F9" strokeDasharray="3 3" />
+              <line x1="40" y1="100" x2="740" y2="100" stroke="#F1F5F9" strokeDasharray="3 3" />
+              <line x1="40" y1="140" x2="740" y2="140" stroke="#F1F5F9" strokeDasharray="3 3" />
+              <line x1="40" y1="180" x2="740" y2="180" stroke="#E2E8F0" />
+
+              {/* Y Axis Labels */}
+              <text x="10" y="24" fontSize="11" fill="#94A3B8">90k</text>
+              <text x="10" y="64" fontSize="11" fill="#94A3B8">80k</text>
+              <text x="10" y="104" fontSize="11" fill="#94A3B8">60k</text>
+              <text x="10" y="144" fontSize="11" fill="#94A3B8">40k</text>
+              <text x="10" y="184" fontSize="11" fill="#94A3B8">00k</text>
+
+              {/* Blue Spline (Kontrak & Penjualan) */}
+              <path
+                d="M 50 140 C 90 145, 120 70, 160 65 C 200 60, 230 115, 270 120 C 310 125, 340 75, 380 65 C 420 55, 450 130, 490 125 C 530 120, 560 50, 600 60 C 640 70, 680 120, 720 115"
+                fill="none"
+                stroke="#0066FF"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              {/* Purple Spline (Kas Masuk Devisa) */}
+              <path
+                d="M 50 120 C 90 125, 120 170, 160 175 C 200 180, 230 100, 270 95 C 310 90, 340 135, 380 130 C 420 125, 450 85, 490 90 C 530 95, 560 125, 600 120 C 640 115, 680 150, 720 140"
+                fill="none"
+                stroke="#8B5CF6"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+              />
+
+              {/* Peak Point Tooltip ($45K badge exactly like in space_ds_financial_home.png) */}
+              <circle cx="380" cy="65" r="5" fill="#0066FF" stroke="#FFFFFF" strokeWidth="2" />
+              <g transform="translate(355, 24)">
+                <rect x="0" y="0" width="50" height="26" rx="6" fill="#0F172A" />
+                <text x="25" y="17" fontSize="12" fontWeight="700" fill="#FFFFFF" textAnchor="middle">$45K</text>
+                <polygon points="25,30 21,26 29,26" fill="#0F172A" />
+              </g>
+            </svg>
+          </div>
+
+          {/* X Axis Months */}
+          <div style={{ display: "flex", justifyContent: "space-between", paddingLeft: 40, paddingRight: 20, fontSize: 11.5, color: "#94A3B8" }}>
+            <span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span>
+            <span>Jul</span><span>Aug</span><span>Sep</span><span>Oct</span><span>Nov</span><span>Dec</span>
+          </div>
+        </div>
+
+        {/* ROW 3: Recent Invoices (Space Table Card matching Space DS) */}
+        <div className="space-invoices-card-v2">
+          <div className="space-invoices-v2-head">
+            <h3>Recent Invoices</h3>
+            <div className="space-invoices-v2-actions">
+              <button type="button" className="space-pill-action" onClick={() => navigate("transactions")}>
+                <Filter size={13} />
+                <span>Filter</span>
+              </button>
+              <div className="space-pill-action">
+                <Calendar size={13} />
+                <span>17, Nov 2022</span>
+              </div>
+              <button type="button" className="space-pill-action primary" onClick={() => navigate("transactions")}>
+                All Transaction
+              </button>
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table className="space-invoices-table-v2">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Invoice</th>
+                  <th>Amount</th>
+                  <th>Pickup Address</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div className="space-table-user-cell">
+                      <div className="space-table-avatar av1">MR</div>
+                      <div className="space-table-name-wrap">
+                        <span className="space-table-buyer-name">Marilyn Ramirez</span>
+                        <span className="space-table-buyer-email">ckctm12@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                      INV45233520
+                    </span>
+                  </td>
+                  <td>
+                    <span className="space-table-amount">$2,787.54</span>
+                  </td>
+                  <td>
+                    <div className="space-table-tracking">
+                      <span className="space-tracking-code">LM580405575CN</span>
+                      <span className="space-tracking-dest">Main Road, Sunderland</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="status-pill green">Paid</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="space-table-user-cell">
+                      <div className="space-table-avatar av2">DC</div>
+                      <div className="space-table-name-wrap">
+                        <span className="space-table-buyer-name">Douglas Cobb</span>
+                        <span className="space-table-buyer-email">danigh87@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                      INV29836490
+                    </span>
+                  </td>
+                  <td>
+                    <span className="space-table-amount">$1,289.97</span>
+                  </td>
+                  <td>
+                    <div className="space-table-tracking">
+                      <span className="space-tracking-code">AZ938540353US</span>
+                      <span className="space-tracking-dest">Grange Road, Peterborough</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="status-pill blue">In Transit</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="space-table-user-cell">
+                      <div className="space-table-avatar av3">RW</div>
+                      <div className="space-table-name-wrap">
+                        <span className="space-table-buyer-name">Randy Warren</span>
+                        <span className="space-table-buyer-email">nvt.it.nute@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                      INV34859305
+                    </span>
+                  </td>
+                  <td>
+                    <span className="space-table-amount">$2,781.89</span>
+                  </td>
+                  <td>
+                    <div className="space-table-tracking">
+                      <span className="space-tracking-code">RA200904868US</span>
+                      <span className="space-tracking-dest">Flat 4, 79 Chester Road</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="status-pill amber">DP 30%</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div className="space-table-user-cell">
+                      <div className="space-table-avatar av4">VS</div>
+                      <div className="space-table-name-wrap">
+                        <span className="space-table-buyer-name">Virginia Stewart</span>
+                        <span className="space-table-buyer-email">trungklep@gmail.com</span>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                      INV84782903
+                    </span>
+                  </td>
+                  <td>
+                    <span className="space-table-amount">$2,782.78</span>
+                  </td>
+                  <td>
+                    <div className="space-table-tracking">
+                      <span className="space-tracking-code">LM931223665CN</span>
+                      <span className="space-tracking-dest">Church Street, Wolverhampton</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="status-pill green">Ready</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Pagination */}
+          <div className="space-invoices-pagination">
+            <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
+              ← Previous
+            </button>
+            <div className="space-page-numbers">
+              <button type="button" className="space-page-num active">01</button>
+              <button type="button" className="space-page-num">02</button>
+              <button type="button" className="space-page-num">03</button>
+              <span style={{ color: "#94A3B8" }}>...</span>
+              <button type="button" className="space-page-num">04</button>
+              <button type="button" className="space-page-num">05</button>
+              <button type="button" className="space-page-num">06</button>
+            </div>
+            <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
+              Next →
             </button>
           </div>
         </div>
-      </section>
-
-      {/* 2. Executive KPI Cards */}
-      <div className="overview-grid">
-        <section className="hero-card">
-          <div className="hero-card-copy">
-            <span className="eyebrow light">Nilai kontrak · {shipment.incoterm}</span>
-            <h2 style={{ fontWeight: 600 }}>{formatMoney(pricing.active.offer, shipment.currency)}</h2>
-            <div className="hero-meta" style={{ marginTop: "10px" }}>
-              <span>
-                <i className="tiny-dot mint" /> Margin {shipment.margin}%
-              </span>
-              <span>
-                <i className="tiny-dot saffron" /> {flow.effectiveApprovalStatus}
-              </span>
-            </div>
-          </div>
-          <div style={{ textAlign: "right", alignSelf: "center", zIndex: 1 }}>
-            <span style={{ fontSize: "11px", letterSpacing: "normal", color: "#94a3b8", display: "block" }}>
-              Harga satuan
-            </span>
-            <strong style={{ fontSize: "18px", fontWeight: 600, color: "#ffffff", display: "block", marginTop: "2px", fontFamily: "var(--font-mono)" }}>
-              {formatMoney(pricing.active.unit, shipment.currency)}
-            </strong>
-            <span style={{ fontSize: "11px", color: "#94a3b8" }}>
-              per {shipment.unit} · {shipment.incoterm}
-            </span>
-          </div>
-        </section>
-
-        <MetricCard
-          label="Total biaya"
-          value={formatMoney(pricing.active.cost, shipment.currency)}
-          detail={`${formatNumber((pricing.active.cost / Math.max(1, pricing.goods)) * 100, 1)}% dari nilai barang`}
-          tone="cream"
-          icon={<BarChart3 size={16} />}
-        />
-        <MetricCard
-          label="Estimasi profit"
-          value={formatMoney(pricing.active.profit, shipment.currency)}
-          detail={`Target margin ${shipment.margin}%`}
-          tone="mint"
-          icon={<ArrowUpRight size={16} />}
-        />
-        <MetricCard
-          label="Muatan kontainer"
-          value={`${container.volumeUtilization.toFixed(0)}%`}
-          detail={`${container.containers}× ${shipment.containerType} · ${formatNumber(container.totalVolume, 1)} m³`}
-          tone="sand"
-          icon={<Box size={16} />}
-        />
       </div>
 
-      {/* 3. Streamlined Module Shortcuts */}
-      <div className="quick-links-grid">
-        <QuickLink
-          icon={<Calculator size={16} />}
-          title="Harga & Order"
-          caption="Kalkulasi 7 Incoterms"
-          onClick={() => navigate("pricing")}
-        />
-        <QuickLink
-          icon={<FileCheck2 size={16} />}
-          title="Dokumen Ekspor"
-          caption="PI, SC, CI, PL & SI"
-          onClick={() => navigate("documents")}
-        />
-        <QuickLink
-          icon={<Ship size={16} />}
-          title="Muatan 3D"
-          caption={`${container.containers}× ${shipment.containerType}`}
-          onClick={() => navigate("cargo")}
-        />
-        <QuickLink
-          icon={<Wallet size={16} />}
-          title="Keuangan"
-          caption={`Piutang ${formatMoney(flow.remainingReceivable, shipment.currency)}`}
-          onClick={() => navigate("finance")}
-        />
-      </div>
+      {/* RIGHT COLUMN: Payment / Virtual Card & Traffic Source (32%) */}
+      <div className="space-home-side">
+        {/* Card 1: Payment & Virtual Trade L/C Card */}
+        <div className="space-payment-card-v2">
+          <div className="space-payment-v2-head">
+            <h3>Payment</h3>
+            <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
+              <MoreVertical size={18} />
+            </button>
+          </div>
 
-      {/* 4. Incoterms Matrix Table */}
-      <section className="panel panel-padding scenario-panel">
-        <div className="panel-head">
-          <div>
-            <span className="eyebrow">Matriks harga</span>
-            <h3>Perbandingan Skenario Incoterms® 2020</h3>
-          </div>
-          <button className="text-button" type="button" onClick={() => navigate("pricing")}>
-            Kalkulator Harga <ChevronRight size={15} />
-          </button>
-        </div>
-        <div className="scenario-table">
-          <div className="scenario-row scenario-header">
-            <span>Incoterm</span>
-            <span>Cakupan Tanggung Jawab</span>
-            <span>Penawaran</span>
-            <span>Selisih vs EXW</span>
-            <span>Status</span>
-          </div>
-          {pricing.scenarios.slice(0, 5).map((scenario, index) => (
-            <div
-              className={`scenario-row ${scenario.term === shipment.incoterm ? "selected" : ""}`}
-              key={scenario.term}
-            >
-              <strong style={{ fontWeight: 600 }}>{scenario.term}</strong>
-              <span>
-                {scenario.term === "EXW"
-                  ? "Gudang Eksportir"
-                  : scenario.term === "FCA"
-                    ? "Pengangkut Pertama"
-                    : scenario.term === "FOB"
-                      ? "On Board Pelabuhan Muat"
-                      : scenario.term === "CFR"
-                        ? "Termasuk Ocean Freight"
-                        : "Freight + Asuransi"}
-              </span>
-              <span style={{ fontWeight: 600, color: "var(--ink)" }}>{formatMoney(scenario.offer, shipment.currency)}</span>
-              <span className={index === 0 ? "muted-delta" : "positive-delta"}>
-                {index === 0
-                  ? "Basis"
-                  : `+${formatMoney(scenario.offer - pricing.scenarios[0].offer, shipment.currency)}`}
-              </span>
-              <span>
-                {scenario.term === shipment.incoterm ? (
-                  <StatusPill tone="amber">Aktif</StatusPill>
-                ) : (
-                  <button
-                    type="button"
-                    className="table-inline-btn"
-                    onClick={() => update("incoterm", scenario.term)}
-                  >
-                    Pilih
-                  </button>
-                )}
-              </span>
+          {/* Virtual Credit / Trade Card */}
+          <div className="space-virtual-credit-card">
+            <div className="space-card-top-row">
+              <div className="space-card-circles">
+                <div className="space-card-circle-red" />
+                <div className="space-card-circle-yellow" />
+              </div>
+              <span style={{ fontSize: 18, color: "#FFFFFF", opacity: 0.85 }}>)))</span>
             </div>
-          ))}
-        </div>
-      </section>
 
-      {/* 5. Panduan Implementasi 30 Hari (Onboarding Terstruktur UMKM) */}
-      <section className="panel panel-padding">
-        <div className="panel-head">
-          <div>
-            <span className="eyebrow">Tahapan onboarding ekspor</span>
-            <h3>Panduan Menuju Pengapalan Perdana</h3>
+            <div className="space-card-number">
+              63758 45698 2567 7546
+            </div>
+
+            <div className="space-card-bottom-row">
+              <div>
+                <span style={{ fontSize: 10, opacity: 0.75, display: "block" }}>Name</span>
+                <span className="space-card-holder-name">
+                  ghsjk
+                </span>
+              </div>
+              <div>
+                <span style={{ fontSize: 10, opacity: 0.75, display: "block" }}>Exp Date</span>
+                <span style={{ fontWeight: 600 }}>08/28</span>
+              </div>
+              <div className="space-card-chip" />
+            </div>
           </div>
-          <StatusPill tone={onboarding.progressPercent === 100 ? "green" : "amber"}>
-            {onboarding.completedCount}/{onboarding.totalCount} Tahap · {onboarding.progressPercent}%
-          </StatusPill>
-        </div>
 
-        <div
-          style={{
-            height: 8,
-            borderRadius: 999,
-            background: "#e2e8f0",
-            overflow: "hidden",
-            marginBottom: 14,
-          }}
-        >
-          <div
-            style={{
-              height: "100%",
-              width: `${onboarding.progressPercent}%`,
-              background: onboarding.progressPercent === 100 ? "#10b981" : "var(--brand-primary)",
-              transition: "width 0.25s ease",
-            }}
-          />
-        </div>
+          {/* Payment Form Fields */}
+          <div className="space-payment-form">
+            <div className="space-payment-input-group">
+              <div style={{ position: "relative" }}>
+                <input
+                  type="text"
+                  className="space-payment-input"
+                  defaultValue="1234 2345 6789"
+                  style={{ width: "100%", paddingLeft: 42 }}
+                />
+                <div style={{ position: "absolute", left: 14, top: 12, display: "flex", gap: 2 }}>
+                  <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#EF4444" }} />
+                  <div style={{ width: 13, height: 13, borderRadius: "50%", background: "#F59E0B", marginLeft: -5 }} />
+                </div>
+              </div>
+              <small style={{ color: "#F59E0B", fontSize: 11, display: "flex", alignItems: "center", gap: 4, marginTop: 4 }}>
+                ⚠ Visa or master card of any USA Bank
+              </small>
+            </div>
 
-        <div className="module-stack" style={{ gap: 8 }}>
-          {onboarding.steps.map((step) => (
-            <div
-              key={step.id}
-              className={`legal-check-row ${step.autoCompleted ? "done" : ""}`}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
+            <div className="space-payment-input-group">
+              <label>Name</label>
+              <input
+                type="text"
+                className="space-payment-input"
+                placeholder="Type your name"
+                defaultValue=""
+              />
+            </div>
+
+            <div className="space-payment-input-group">
+              <label>Payment</label>
+              <div className="space-payment-dual-input">
+                <select
+                  className="space-payment-currency-select"
+                  value={paymentCurrency}
+                  onChange={(e) => setPaymentCurrency(e.target.value)}
+                >
+                  <option value="USD">USD</option>
+                  <option value="IDR">IDR</option>
+                  <option value="EUR">EUR</option>
+                </select>
+                <input
+                  type="text"
+                  className="space-payment-input"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(e.target.value)}
+                  placeholder="$00.00"
+                />
+              </div>
+            </div>
+
+            <button
+              type="button"
+              className="space-send-money-btn"
+              onClick={() => {
+                toast.success("Pembayaran Transaksi Berhasil Dicatat!", {
+                  description: "Tercatat di Rekonsiliasi Bank dan Jurnal Keuangan EksporFlow.",
+                });
+                navigate("bank");
               }}
             >
-              <label
-                style={{
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 10,
-                  cursor: "pointer",
-                  flex: 1,
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={step.autoCompleted}
-                  onChange={() => toggleOnboardingStep(step.id)}
-                />
-                <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                    <span
-                      className="mono-code"
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 700,
-                        background: "#eff6ff",
-                        color: "var(--brand-primary)",
-                        padding: "1px 6px",
-                        borderRadius: 4,
-                      }}
-                    >
-                      {step.daysWindow}
-                    </span>
-                    <b>{step.title}</b>
-                    <small style={{ color: "#64748b" }}>{step.phase}</small>
-                  </div>
-                  <small style={{ display: "block", marginTop: 2 }}>{step.detail}</small>
-                </div>
-              </label>
-
-              <button
-                type="button"
-                className="table-inline-btn"
-                onClick={() => navigate(step.targetScreen)}
-              >
-                Buka <ChevronRight size={13} />
-              </button>
-            </div>
-          ))}
+              Send Money
+            </button>
+          </div>
         </div>
-      </section>
 
-      <RecommendationsPanel
-        shipment={shipment}
-        pricing={pricing}
-        container={container}
-        navigate={navigate}
-      />
+        {/* Card 2: Traffic Source / Distribusi Pasar Ekspor */}
+        <div className="space-traffic-card-v2">
+          <div className="space-payment-v2-head">
+            <h3>Traffic Source</h3>
+            <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
+              <MoreVertical size={18} />
+            </button>
+          </div>
+
+          <div className="space-traffic-donut-box">
+            <svg viewBox="0 0 200 120" style={{ width: 180, height: 110 }}>
+              {/* Semi Donut Arc (Blue 60%, Purple 40%) */}
+              <path
+                d="M 20 110 A 80 80 0 0 1 125 35"
+                fill="none"
+                stroke="#0066FF"
+                strokeWidth="24"
+                strokeLinecap="round"
+              />
+              <path
+                d="M 135 41 A 80 80 0 0 1 180 110"
+                fill="none"
+                stroke="#8B5CF6"
+                strokeWidth="24"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+
+          <div className="space-traffic-legend">
+            <span>
+              <span className="space-legend-dot blue" />
+              Facebook
+            </span>
+            <span>
+              <span className="space-legend-dot purple" />
+              Other
+            </span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

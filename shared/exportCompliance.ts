@@ -11,6 +11,21 @@ export type ExportPermitRecord = {
   lartasExpiry?: string;
   halalOrBpomNumber?: string;
   halalOrBpomExpiry?: string;
+  dheEscrowNumber?: string;
+  dheBankName?: string;
+  dheRetentionStatus?: "valid" | "pending" | "exempt" | "overdue";
+};
+
+export type DheSdaRecord = {
+  ppePebValueUsd: number;
+  isMandatoryDhe: boolean;
+  minRetentionUsd: number;
+  retentionMonths: number;
+  escrowBankName?: string;
+  escrowAccountNumber?: string;
+  depositDate?: string;
+  complianceStatus: "valid" | "pending" | "exempt" | "overdue";
+  regulatoryBasis: string;
 };
 
 export type PreShipmentSchedule = {

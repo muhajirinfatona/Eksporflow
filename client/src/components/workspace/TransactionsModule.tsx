@@ -936,6 +936,64 @@ export function TransactionsModule({
       }
     }
 
+    // Jika belum ada data transaksi, sediakan sampel transaksi riil komersial
+    if (list.length === 0) {
+      list.push(
+        {
+          id: "tx-sample-1",
+          reference: "PO-2026/US/089",
+          buyer: "Marilyn Ramirez (Global Coffee LLC)",
+          buyerCountry: "Amerika Serikat",
+          product: "Kopi Arabika Gayo Grade 1",
+          incoterm: "FOB",
+          quantity: 20,
+          unit: "MT",
+          status: "Confirmed",
+          updatedAt: new Date(Date.now() - 2 * 86400000),
+          isCloud: false,
+        },
+        {
+          id: "tx-sample-2",
+          reference: "PO-2026/DEU/12",
+          buyer: "Douglas Cobb (Hamburg Roasters)",
+          buyerCountry: "Belanda",
+          product: "Biji Kakao Fermentasi Sulawesi",
+          incoterm: "CIF",
+          quantity: 25,
+          unit: "MT",
+          status: "In Transit",
+          updatedAt: new Date(Date.now() - 5 * 86400000),
+          isCloud: false,
+        },
+        {
+          id: "tx-sample-3",
+          reference: "PO-2026/TYO/04",
+          buyer: "Marubeni Specialty Foods",
+          buyerCountry: "Jepang",
+          product: "Kopi Arabika Mandheling G1",
+          incoterm: "CFR",
+          quantity: 40,
+          unit: "MT",
+          status: "Confirmed",
+          updatedAt: new Date(Date.now() - 7 * 86400000),
+          isCloud: false,
+        },
+        {
+          id: "tx-sample-4",
+          reference: "PO-2026/KOR/02",
+          buyer: "Busan Marine Corp",
+          buyerCountry: "Korea Selatan",
+          product: "Udang Windu Beku (Head-On)",
+          incoterm: "CIF",
+          quantity: 18,
+          unit: "MT",
+          status: "Completed",
+          updatedAt: new Date(Date.now() - 12 * 86400000),
+          isCloud: false,
+        }
+      );
+    }
+
     return list;
   }, [genuineShipments, localList, shipment, displayReference, activeShipmentId]);
 
@@ -1042,7 +1100,7 @@ export function TransactionsModule({
                       iconLeft={<Search size={15} />}
                     />
                   </div>
-                  <div style={{ width: 150, minWidth: 130 }}>
+                  <div style={{ width: 140, minWidth: 120 }}>
                     <SpaceSelect
                       value={countryFilter}
                       onChange={(e) => {
@@ -1059,9 +1117,6 @@ export function TransactionsModule({
                       ]}
                     />
                   </div>
-                </div>
-
-                <div className="space-toolbar-right">
                   <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
                     {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
                       <button
@@ -1078,24 +1133,25 @@ export function TransactionsModule({
                       </button>
                     ))}
                   </div>
-                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
-                    <SpaceButton
-                      variant="primary"
-                      size="sm"
-                      icon={<Plus size={14} />}
-                      onClick={handleNewTransactionClick}
-                    >
-                      Input PO Baru
-                    </SpaceButton>
-                    <SpaceButton
-                      variant="secondary"
-                      size="sm"
-                      icon={<FileText size={14} />}
-                      onClick={() => setPoModalOpen(true)}
-                    >
-                      Scan PO / OCR
-                    </SpaceButton>
-                  </div>
+                </div>
+
+                <div className="space-toolbar-right" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                  <SpaceButton
+                    variant="primary"
+                    size="sm"
+                    icon={<Plus size={14} />}
+                    onClick={handleNewTransactionClick}
+                  >
+                    Input PO Baru
+                  </SpaceButton>
+                  <SpaceButton
+                    variant="secondary"
+                    size="sm"
+                    icon={<FileText size={14} />}
+                    onClick={() => setPoModalOpen(true)}
+                  >
+                    Scan PO / OCR
+                  </SpaceButton>
                 </div>
               </div>
 

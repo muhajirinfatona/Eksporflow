@@ -1530,11 +1530,11 @@ export function ScreenAIFloatingWidget({
           type="button"
           className="ai-float-trigger-btn"
           onClick={onToggle}
-          aria-label="Buka AI Advisor"
-          title="Buka AI Export Advisor"
+          aria-label="Bantuan Sistem & AI Advisor Ekspor"
+          title="Bantuan Sistem & AI Advisor Ekspor"
         >
           <Sparkles size={16} />
-          <span className="ai-float-trigger-label">AI Advisor</span>
+          <span className="ai-float-trigger-label">Bantuan &amp; AI Advisor</span>
           <span
             className={`ai-float-trigger-badge ${
               insight.riskLevel === "danger"

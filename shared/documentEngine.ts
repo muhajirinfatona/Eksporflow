@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { resolveUncefactCode } from "./container";
 import { formatMoney, formatNumber, numberToWords } from "./format";
 import type { LineItem, Shipment } from "./shipment";
 
@@ -7,6 +8,7 @@ export interface DocumentLineItem {
   description: string;
   hsCode: string;
   packagingType: string;
+  uncefactPackageCode?: string;
   unit: string;
   quantity: number;
   unitPrice: number;
@@ -56,6 +58,8 @@ export interface DocumentSnapshotPayload {
     picRole?: string;
     phone?: string;
     email?: string;
+    vatOrEori?: string;
+    registrationNo?: string;
   };
   consignee: {
     name: string;
@@ -92,6 +96,20 @@ export interface DocumentSnapshotPayload {
     bankAddress?: string;
     bankAccountNo?: string;
     bankSwift?: string;
+    bankBeneficiaryName?: string;
+    bankBranch?: string;
+    bankIban?: string;
+  };
+  compliance?: {
+    dheEligible?: boolean;
+    dheRetentionUsd?: number;
+    dheRetentionStatus?: string;
+    dheBankEscrowName?: string;
+    dheAccountNo?: string;
+    dheComplianceStatement?: string;
+    insuranceClause?: string;
+    insuranceStatement?: string;
+    packagingSummary?: string;
   };
   signatures: {
     sellerSignatureImage?: string;
@@ -177,12 +195,15 @@ export function calculateDocumentItems(shipment: Partial<Shipment>): DocumentLin
     const endPkg = cumulativePackages + quantity;
     cumulativePackages = endPkg;
     const marksAndNumbers = `${buyerInitials}/${destCode}/${String(startPkg).padStart(3, "0")}-${String(endPkg).padStart(3, "0")}`;
+    const pkgType = item.packagingType || shipment.packageType || "Karton box";
+    const uncefactPackageCode = resolveUncefactCode(pkgType);
 
     return {
       itemNo,
       description: item.description || "Commodity Item",
       hsCode: (item.hsCode || "0000.00.00").trim(),
-      packagingType: item.packagingType || "Karton box",
+      packagingType: pkgType,
+      uncefactPackageCode,
       unit: item.unit || "carton",
       quantity,
       unitPrice,
@@ -350,6 +371,8 @@ export function buildDocumentSnapshotPayload(
       picRole: shipment.buyerPicRole || undefined,
       phone: shipment.buyerPhone || undefined,
       email: shipment.buyerEmail || undefined,
+      vatOrEori: shipment.buyerVatOrEori || undefined,
+      registrationNo: shipment.buyerRegistrationNo || undefined,
     },
     consignee: {
       name: shipment.buyer || "Consignee International Ltd",
@@ -386,6 +409,26 @@ export function buildDocumentSnapshotPayload(
       bankAddress: shipment.bankAddress || "Jl. Boulevard, Panakkukang, Makassar, Indonesia",
       bankAccountNo: shipment.bankAccountNo || "152-00-9876543-2",
       bankSwift: shipment.bankSwift || "BMRIIDJA",
+      bankBeneficiaryName: shipment.bankBeneficiaryName || shipment.exporter || undefined,
+      bankBranch: shipment.bankBranch || undefined,
+      bankIban: shipment.bankIban || undefined,
+    },
+    compliance: {
+      dheEligible: shipment.dheEligible ?? (totals.totalAmount >= 250_000),
+      dheRetentionUsd: shipment.dheMinimumRetentionAmount ?? (totals.totalAmount >= 250_000 ? Math.round(totals.totalAmount * 0.3) : 0),
+      dheRetentionStatus: shipment.dheStatus || (totals.totalAmount >= 250_000 ? "pending" : "exempt"),
+      dheBankEscrowName: shipment.dheBankEscrowName || (totals.totalAmount >= 250_000 ? "Bank Mandiri Escrow DHE" : undefined),
+      dheAccountNo: shipment.dheAccountNo || (totals.totalAmount >= 250_000 ? "152-00-DHE-SDA" : undefined),
+      dheComplianceStatement:
+        totals.totalAmount >= 250_000 || shipment.dheEligible
+          ? `COMPLIANCE NOTICE (PP No. 36/2023 & PBI No. 7/2023): Export Proceeds of SDA exceeding USD 250,000 are subject to minimum 30% retention in Special DHE SDA Escrow Account (${shipment.dheBankEscrowName || "Special DHE SDA Escrow Bank"} / A/C: ${shipment.dheAccountNo || "152-00-DHE-SDA"}) for at least 3 months.`
+          : undefined,
+      insuranceClause: shipment.insuranceClauseType || (shipment.incoterm === "DDP" ? "ICC_A" : "ICC_C"),
+      insuranceStatement:
+        shipment.incoterm === "CIF" || shipment.incoterm === "DDP"
+          ? `MARINE INSURANCE: Cargo covered under Institute Cargo Clauses (${shipment.insuranceClauseType || (shipment.incoterm === "DDP" ? "ICC_A" : "ICC_C")}) for 110% of CIF value.`
+          : undefined,
+      packagingSummary: `Total ${totals.totalPackages} pkgs / Net Wt: ${totals.totalNetWeightKg} kg / Gross Wt: ${totals.totalGrossWeightKg} kg / Vol: ${totals.totalVolumeCbm} CBM`,
     },
     signatures: {
       sellerSignatureImage: shipment.sellerSignatureImage || undefined,

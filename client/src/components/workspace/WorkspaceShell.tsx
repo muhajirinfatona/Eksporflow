@@ -16,6 +16,9 @@ import {
   Box,
   Building2,
   Calculator,
+  Calendar,
+  ChevronDown,
+  PhoneCall,
   CheckCircle2,
   ChevronRight,
   ClipboardCheck,
@@ -56,8 +59,9 @@ import {
 } from "lucide-react";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
-import type { Pricing } from "@shared/pricing";
-import type { ContainerCalc, LineItem, Shipment } from "@shared/shipment";
+import { calculatePricing, type Pricing } from "@shared/pricing";
+import { calculateContainer } from "@shared/container";
+import { initialShipment, type ContainerCalc, type LineItem, type Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { IconButton, StatusPill, SpaceAvatar, SpaceBadge } from "./Primitives";
 import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
@@ -569,6 +573,14 @@ export function WorkspaceShell({
       )}
 
       <aside className="sidebar clean-sidebar">
+        {/* Space DS Top Profile Header */}
+        <div className="space-sidebar-top-profile">
+          <div className="space-sidebar-avatar">{userInitials || "OF"}</div>
+          <div className="space-sidebar-user-info">
+            <span className="space-sidebar-user-name">{exporterName || "Ofspace LLC"}</span>
+            <span className="space-sidebar-user-sub">{user?.email || "design@ofspace.co"}</span>
+          </div>
+        </div>
         <div className="brand-lockup clean-brand-lockup">
           <div className="brand-mark">
             <span />
@@ -641,6 +653,50 @@ export function WorkspaceShell({
           ))}
         </nav>
 
+        {/* Space DS Upgrade Card */}
+        <div className="space-sidebar-upgrade-card">
+          <div className="space-upgrade-donut-ring">
+            <svg viewBox="0 0 44 44" width="44" height="44">
+              <circle cx="22" cy="22" r="16" fill="none" stroke="#334155" strokeWidth="5" />
+              <circle
+                cx="22"
+                cy="22"
+                r="16"
+                fill="none"
+                stroke="#0066FF"
+                strokeWidth="5"
+                strokeDasharray="75 100"
+                strokeLinecap="round"
+                transform="rotate(-90 22 22)"
+              />
+              <circle
+                cx="22"
+                cy="22"
+                r="16"
+                fill="none"
+                stroke="#8B5CF6"
+                strokeWidth="5"
+                strokeDasharray="25 100"
+                strokeDashoffset="-75"
+                strokeLinecap="round"
+                transform="rotate(-90 22 22)"
+              />
+            </svg>
+          </div>
+          <h4>Upgrade Space</h4>
+          <p>We published our new updates, checkout video.</p>
+          <div style={{ display: "flex", gap: 12 }}>
+            <span style={{ fontSize: 11, color: "#94A3B8", cursor: "pointer" }}>Cancel</span>
+            <button
+              type="button"
+              className="space-upgrade-link"
+              onClick={() => navigate("settings")}
+            >
+              Upgrade plan
+            </button>
+          </div>
+        </div>
+
         <div className="sidebar-bottom clean-sidebar-footer">
           <div className="user-row">
             <div className="user-avatar">{userInitials || "PD"}</div>
@@ -679,7 +735,7 @@ export function WorkspaceShell({
 
       <main className="main-content">
         <header className="topbar">
-          <div className="topbar-left">
+          <div className="topbar-left" style={{ gap: 16 }}>
             <button
               type="button"
               className="topbar-menu-btn"
@@ -689,163 +745,112 @@ export function WorkspaceShell({
             >
               {sidebarOpen ? <PanelLeftClose size={18} /> : <PanelLeftOpen size={18} />}
             </button>
-            <div className="breadcrumbs">
-              <span className="breadcrumb-group">{activeMeta.group}</span>
-              <ChevronRight size={14} className="breadcrumb-sep" />
-              <b>{activeMeta.label}</b>
-            </div>
-          </div>
 
-          <div className="topbar-actions">
-            {searchOpen && (
-              <div className="top-search-wrap">
-                <div className="top-search">
-                  <Search size={15} />
-                  <input
-                    autoFocus
-                    value={searchTerm}
-                    onChange={(event) => setSearchTerm(event.target.value)}
-                    placeholder="Loncat ke menu..."
-                    onKeyDown={(event) => {
-                      if (event.key === "Escape") {
-                        setSearchOpen(false);
-                        setSearchTerm("");
-                      } else if (event.key === "Enter" && matchingScreens[0]) {
-                        navigate(matchingScreens[0].id);
-                        setSearchOpen(false);
-                        setSearchTerm("");
-                      }
-                    }}
-                  />
+            {/* Space DS Embedded Omni Search */}
+            <div className="space-topbar-omni">
+              <Search size={15} />
+              <input
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setSearchOpen(Boolean(event.target.value.trim()));
+                }}
+                placeholder="Search your transaction ..."
+                onKeyDown={(event) => {
+                  if (event.key === "Escape") {
+                    setSearchOpen(false);
+                    setSearchTerm("");
+                  } else if (event.key === "Enter" && matchingScreens[0]) {
+                    navigate(matchingScreens[0].id);
+                    setSearchOpen(false);
+                    setSearchTerm("");
+                  }
+                }}
+              />
+              {searchTerm && (
+                <button
+                  type="button"
+                  style={{ background: "transparent", border: "none", cursor: "pointer", padding: 0 }}
+                  onClick={() => {
+                    setSearchOpen(false);
+                    setSearchTerm("");
+                  }}
+                >
+                  <X size={13} />
+                </button>
+              )}
+            </div>
+
+            {searchOpen && matchingScreens.length > 0 && (
+              <div className="top-search-dropdown" style={{ position: "absolute", top: 52, left: 60, zIndex: 100 }}>
+                {matchingScreens.map((m) => (
                   <button
                     type="button"
-                    className="top-search-close"
-                    aria-label="Tutup pencarian"
+                    key={m.id}
                     onClick={() => {
+                      navigate(m.id);
                       setSearchOpen(false);
                       setSearchTerm("");
                     }}
                   >
-                    <X size={14} />
+                    <b>{m.label}</b>
+                    <small>{m.group}</small>
                   </button>
-                </div>
-                {matchingScreens.length > 0 && (
-                  <div className="top-search-dropdown">
-                    {matchingScreens.map((m) => (
-                      <button
-                        type="button"
-                        key={m.id}
-                        onClick={() => {
-                          navigate(m.id);
-                          setSearchOpen(false);
-                          setSearchTerm("");
-                        }}
-                      >
-                        <b>{m.label}</b>
-                        <small>{m.group}</small>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                ))}
               </div>
             )}
+          </div>
 
-            <IconButton
-              label="Cari halaman"
-              onClick={() => setSearchOpen((open) => !open)}
-            >
-              <Search size={17} />
-            </IconButton>
+          <div className="topbar-actions" style={{ gap: 10 }}>
+            {/* Live Date Pill */}
+            <div className="space-topbar-pill">
+              <Calendar size={13} />
+              <span>Sunday, March 25</span>
+              <ChevronDown size={12} />
+            </div>
 
-            <IconButton label="Pengaturan Workspace" onClick={() => navigate("settings")}>
-              <Settings2 size={17} />
-            </IconButton>
-
-
-
-            {isDemoUser && (
-              <button
-                type="button"
-                className="ghost-button topbar-login-btn"
-                onClick={onUpgradeFromDemo}
-                style={{
-                  background: "#fef3c7",
-                  borderColor: "#fcd34d",
-                  color: "#92400e",
-                  fontWeight: 600,
-                }}
-              >
-                <Clock size={14} />{" "}
-                <span className="btn-label-desktop">
-                  Demo 3 Hari ({demoRemainingLabel}) · Daftar Akun
-                </span>
-                <span className="btn-label-mobile">Demo · Daftar</span>
-              </button>
-            )}
-
-            {!user ? (
-              <button type="button" className="ghost-button topbar-login-btn" onClick={() => void onLogin()}>
-                <Cloud size={14} /> <span className="btn-label-desktop">Masuk Cloud</span><span className="btn-label-mobile">Masuk</span>
-              </button>
-            ) : null}
-
+            {/* 24/7 Support Pill */}
             <button
               type="button"
-              className="save-button topbar-save-btn"
-              disabled={saveState === "saving"}
-              onClick={() => void onSave()}
+              className="space-topbar-pill support"
+              onClick={() => navigate("advisor")}
+              title="Call 24/7 Support"
             >
-              <Save size={14} />
-              <span className="btn-label-desktop">
-                {isDemoUser
-                  ? "Simpan Sandbox"
-                  : saveState === "saving"
-                    ? "Menyimpan..."
-                    : "Simpan ke Cloud"}
-              </span>
-              <span className="btn-label-mobile">
-                {saveState === "saving" ? "..." : "Simpan"}
-              </span>
+              <PhoneCall size={13} />
+              <span>Call 24/7 Support</span>
             </button>
 
-            {/* Space DS Action Icons */}
+            {/* Notification Bell with Red Badge */}
             <button
               type="button"
               className="icon-button"
+              aria-label="Notifikasi"
+              title="Notifikasi Operasional Ekspor"
               style={{ position: "relative" }}
-              onClick={() => toast.info("Notifikasi: 1 jadwal kapal diperbarui, 1 dokumen e-SKA terverifikasi.")}
-              title="Notifikasi Operasional"
             >
               <Bell size={16} />
-              <span style={{ position: "absolute", top: 8, right: 8, width: 7, height: 7, borderRadius: "50%", background: "var(--space-gold-500)", border: "1.5px solid #ffffff" }} />
+              <span
+                style={{
+                  position: "absolute",
+                  top: 4,
+                  right: 4,
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: "#EF4444",
+                }}
+              />
             </button>
 
-            <button
-              type="button"
-              className="icon-button"
-              onClick={() => navigate("advisor")}
-              title="Bantuan & AI Advisor"
-            >
-              <HelpCircle size={16} />
-            </button>
+            {/* Language / Region Selector */}
+            <div className="space-topbar-pill">
+              <span style={{ fontSize: 13 }}>🇺🇸</span>
+              <span>ENG</span>
+              <ChevronDown size={12} />
+            </div>
 
-            {/* Avatar ringkas di topbar hanya saat sidebar ditutup / pada layar mobile */}
-            {!sidebarOpen && (
-              <button
-                type="button"
-                className="icon-button"
-                style={{ padding: 2, borderRadius: "50%", cursor: "pointer" }}
-                onClick={() => setSidebarOpen(true)}
-                title={user ? `Buka Menu & Akun: ${user.name || exporterName}` : "Masuk Akun"}
-                aria-label="Buka navigasi & akun pengguna"
-              >
-                <SpaceAvatar
-                  name={user?.name || exporterName || "PT Nusantara Ekspor Mandiri"}
-                  size="xs"
-                  status="online"
-                />
-              </button>
-            )}
+            {/* Cloud Persistence Badge */}
+            {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
           </div>
         </header>
 
@@ -899,7 +904,7 @@ export function WorkspaceShell({
         </div>
       </main>
 
-      {shipment && pricing && container && flow && screen !== "advisor" && (
+      {screen !== "advisor" && shipment && (
         <ScreenAIFloatingWidget
           isOpen={isConsultationOpen}
           onToggle={() => setIsConsultationOpen((prev) => !prev)}
@@ -908,9 +913,9 @@ export function WorkspaceShell({
           screen={screen}
           screenTitle={activeMeta.title}
           shipment={shipment}
-          pricing={pricing}
-          container={container}
-          flow={flow}
+          pricing={pricing || calculatePricing(shipment)}
+          container={container || calculateContainer(shipment)}
+          flow={flow!}
           isAuthenticated={Boolean(user && !user.isDemo)}
           onLogin={() => void onLogin()}
           onNavigateFullAdvisor={() => navigate("advisor")}

@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { calculateContainer } from "./container";
+import {
+  PACKAGING_PRESETS,
+  PALLET_PRESETS,
+  calculateContainer,
+  calculateStuffingOptimizationMatrix,
+  getPackagingPreset,
+  getPalletPreset,
+  resolveUncefactCode,
+} from "./container";
 import { initialShipment } from "./shipment";
 
 describe("calculateContainer", () => {
@@ -62,4 +70,59 @@ describe("calculateContainer", () => {
     const b = calculateContainer({ ...initialShipment, containerType: "40HC" });
     expect(a.containers).toBeGreaterThan(b.containers);
   });
+
+  it("menetapkan kode UN/CEFACT dan preset kemasan secara akurat", () => {
+    const calc = calculateContainer(initialShipment);
+    expect(calc.primaryPackagingType).toBe("Karton box");
+    expect(calc.primaryUncefactCode).toBe("CT");
+    expect(calc.isPayloadOverweight).toBe(false);
+    expect(calc.maxPayloadRemainingKg).toBeGreaterThan(0);
+  });
 });
+
+describe("resolveUncefactCode & Packaging Presets", () => {
+  it("memetakan berbagai tipe kemasan komersial ke kode UN/CEFACT Rec 21", () => {
+    expect(resolveUncefactCode("Karton box")).toBe("CT");
+    expect(resolveUncefactCode("Corrugated Master Carton")).toBe("CT");
+    expect(resolveUncefactCode("Drum Baja 200L")).toBe("DR");
+    expect(resolveUncefactCode("Steel Drum")).toBe("DR");
+    expect(resolveUncefactCode("Karung goni 50kg")).toBe("SA");
+    expect(resolveUncefactCode("Woven Sack PP")).toBe("SA");
+    expect(resolveUncefactCode("IBC Tank 1000L")).toBe("11A");
+    expect(resolveUncefactCode("Crate Kayu ISPM-15")).toBe("CR");
+    expect(resolveUncefactCode("Wooden Pallet")).toBe("PX");
+    expect(resolveUncefactCode("Jerrycan 20L")).toBe("JY");
+    expect(resolveUncefactCode("Unknown Custom")).toBe("PK");
+  });
+
+  it("memiliki preset standar industri yang valid", () => {
+    expect(PACKAGING_PRESETS.length).toBeGreaterThanOrEqual(7);
+    expect(PALLET_PRESETS.length).toBeGreaterThanOrEqual(3);
+
+    const drum = getPackagingPreset("drum-steel-200l");
+    expect(drum).toBeDefined();
+    expect(drum?.uncefactCode).toBe("DR");
+    expect(drum?.length).toBe(58.5);
+
+    const pallet = getPalletPreset("pallet-iso-120x100");
+    expect(pallet).toBeDefined();
+    expect(pallet?.standard).toBe("ISO");
+    expect(pallet?.tareWeight).toBe(22);
+  });
+
+  it("menghitung matriks stuffing optimization dengan benar", () => {
+    // Drum 200L di 20GP: 589x235x239 cm
+    const matrix = calculateStuffingOptimizationMatrix("20GP", {
+      length: 58.5,
+      width: 58.5,
+      height: 88,
+      weight: 220,
+    });
+    expect(matrix.piecesPerCol).toBe(10); // 589 / 58.5 = 10
+    expect(matrix.piecesPerRow).toBe(4);  // 235 / 58.5 = 4
+    expect(matrix.layersCount).toBe(2);   // 239 / 88 = 2
+    expect(matrix.recommendedPieces).toBeLessThanOrEqual(80);
+    expect(matrix.limitingFactor).toBeDefined();
+  });
+});
+

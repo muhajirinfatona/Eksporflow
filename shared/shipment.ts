@@ -246,7 +246,36 @@ export type DocumentOrientation = "Portrait" | "Landscape";
 export type DocumentTemplate = "Classic Trade" | "Corporate Clean" | "Minimal";
 export type PreviewLanguage = "English" | "Bahasa Indonesia";
 export type ShipmentStatus = "Draft" | "Quotation" | "Confirmed" | "Ready to Ship" | "Booked" | "Stuffing" | "Departed" | "In Transit" | "Completed";
-export type LineItem = { id: string; description: string; hsCode: string; quantity: number; unit: string; unitPrice: number; weight: number; length: number; width: number; height: number; packagingType: string; shrinkageRate: number; palletEnabled: boolean; palletCount: number; palletLength: number; palletWidth: number; palletHeight: number; palletWeight: number };
+export type LineItem = {
+  id: string;
+  description: string;
+  hsCode: string;
+  quantity: number;
+  unit: string;
+  unitPrice: number;
+  weight: number;
+  length: number;
+  width: number;
+  height: number;
+  packagingType: string;
+  shrinkageRate: number;
+  palletEnabled: boolean;
+  palletCount: number;
+  palletLength: number;
+  palletWidth: number;
+  palletHeight: number;
+  palletWeight: number;
+  // --- Ekstensi UN/CEFACT & Multi-Item Kontrak Komersial ---
+  netWeightKg?: number;
+  grossWeightKg?: number;
+  packagesCount?: number;
+  marksAndNumbers?: string;
+  originCountry?: string;
+  packagingPresetId?: string;
+  packagingUncefactCode?: string;
+  palletPresetId?: string;
+  tareWeightKg?: number;
+};
 
 export type AdditionalCostFactor = {
   id: string;
@@ -279,6 +308,12 @@ export type ContainerCalc = {
   packagingVolume: number;
   palletCount: number;
   shrinkageLoss: number;
+  // --- Ekstensi Komersial Kontainer & Kepatuhan Maritim ---
+  primaryPackagingType?: string;
+  primaryUncefactCode?: string;
+  palletStandard?: string;
+  isPayloadOverweight?: boolean;
+  maxPayloadRemainingKg?: number;
 };
 
 export interface DocumentShape {
@@ -425,6 +460,24 @@ export type Shipment = {
   bankAddress?: string;
   bankAccountNo?: string;
   bankSwift?: string;
+  bankBeneficiaryName?: string;
+  bankBranch?: string;
+  bankIban?: string;
+  // --- Kepatuhan Regulasi Devisa Hasil Ekspor (DHE SDA) BI PP No. 36/2023 ---
+  dheEligible?: boolean;
+  dheMinimumRetentionAmount?: number;
+  dheRetentionPeriodMonths?: number;
+  dheBankEscrowName?: string;
+  dheAccountNo?: string;
+  dheStatus?: "exempt" | "pending" | "compliant" | "overdue";
+  // --- Kepatuhan Asuransi Maritim & BAF Incoterms® 2020 ---
+  insuranceClauseType?: "ICC_A" | "ICC_C" | "CUSTOM";
+  insuranceInsuredValuePercent?: number;
+  bafAmount?: number;
+  // --- Legalitas & Identifikasi Buyer Resmi ---
+  buyerVatOrEori?: string;
+  buyerRegistrationNo?: string;
+  buyerPortOfDischarge?: string;
   shipmentStatus: ShipmentStatus;
   attachments: string[];
   docShapes?: DocumentShape[];
@@ -640,6 +693,19 @@ export const initialShipment: Shipment = {
   bankAddress: "Jl. Boulevard, Panakkukang, Makassar, South Sulawesi, Indonesia",
   bankAccountNo: "152-00-9876543-2",
   bankSwift: "BMRIIDJA",
+  bankBeneficiaryName: "Indico Export Indonesia PT",
+  bankBranch: "Makassar Panakkukang",
+  bankIban: "",
+  dheEligible: false,
+  dheMinimumRetentionAmount: 0,
+  dheRetentionPeriodMonths: 3,
+  dheStatus: "exempt",
+  insuranceClauseType: "ICC_C",
+  insuranceInsuredValuePercent: 110,
+  bafAmount: 0,
+  buyerVatOrEori: "SE556123456701",
+  buyerRegistrationNo: "REG-SWE-88912",
+  buyerPortOfDischarge: "Gothenburg, Sweden",
   shipmentStatus: "Quotation",
   attachments: ["Buyer_PO_NPI-2026-118.pdf"],
   additionalCostFactors: [],
