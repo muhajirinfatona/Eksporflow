@@ -222,20 +222,17 @@ export function DashboardView({
           <div className="space-stat-v2-header">
             <span className="space-stat-v2-title">Nilai Kontrak Ekspor</span>
             <div className="space-stat-v2-icon blue">
-              <Briefcase size={18} />
+              <Briefcase size={16} />
             </div>
           </div>
           <div className="space-stat-v2-value">
             {formatMoney(totalContract, shipment.currency || "USD")}
           </div>
-          <div className="space-stat-v2-progress">
-            <div className="space-stat-v2-progress-fill mint" style={{ width: "74%" }} />
-          </div>
           <div className="space-stat-v2-foot">
-            <span className="space-stat-v2-trend up">
-              <ArrowUpRight size={14} /> +2.9%
+            <span className="space-kpi-badge positive">
+              <ArrowUpRight size={13} /> +2.9%
             </span>
-            <span>FOB Tanjung Priok</span>
+            <span className="space-kpi-meta">FOB Tanjung Priok</span>
           </div>
         </div>
 
@@ -244,20 +241,19 @@ export function DashboardView({
           <div className="space-stat-v2-header">
             <span className="space-stat-v2-title">Realisasi Devisa (DHE)</span>
             <div className="space-stat-v2-icon purple">
-              <Landmark size={18} />
+              <Landmark size={16} />
             </div>
           </div>
           <div className="space-stat-v2-value">
             {formatMoney(totalReceived, shipment.currency || "USD")}
           </div>
-          <div className="space-stat-v2-progress">
-            <div className="space-stat-v2-progress-fill orange" style={{ width: "62%" }} />
-          </div>
           <div className="space-stat-v2-foot">
-            <span className="space-stat-v2-trend up">
-              <ArrowUpRight size={14} /> Bank Mandiri
+            <span className="space-kpi-badge neutral">
+              Mandiri
             </span>
-            <span>Rekening Khusus DHE SDA</span>
+            <span className="space-kpi-meta" title="Rekening Khusus DHE SDA">
+              Rek. Khusus DHE SDA
+            </span>
           </div>
         </div>
 
@@ -266,20 +262,17 @@ export function DashboardView({
           <div className="space-stat-v2-header">
             <span className="space-stat-v2-title">Kepatuhan DHE SDA</span>
             <div className="space-stat-v2-icon mint">
-              <ShieldCheck size={18} />
+              <ShieldCheck size={16} />
             </div>
           </div>
           <div className="space-stat-v2-value">
             100% Patuh
           </div>
-          <div className="space-stat-v2-progress">
-            <div className="space-stat-v2-progress-fill mint" style={{ width: "100%" }} />
-          </div>
           <div className="space-stat-v2-foot">
-            <span className="space-stat-v2-trend up">
-              <CheckCircle2 size={14} /> PP 36/2023
+            <span className="space-kpi-badge positive">
+              <Check size={11} /> PP 36
             </span>
-            <span>Retensi 30% · Tenor 90 Hari</span>
+            <span className="space-kpi-meta">Retensi 30% · 90 Hari</span>
           </div>
         </div>
 
@@ -288,20 +281,17 @@ export function DashboardView({
           <div className="space-stat-v2-header">
             <span className="space-stat-v2-title">Muatan & Kontainer</span>
             <div className="space-stat-v2-icon blue">
-              <Package size={18} />
+              <Package size={16} />
             </div>
           </div>
           <div className="space-stat-v2-value">
             19.2 MT · 1x20'
           </div>
-          <div className="space-stat-v2-progress">
-            <div className="space-stat-v2-progress-fill mint" style={{ width: "87%" }} />
-          </div>
           <div className="space-stat-v2-foot">
-            <span className="space-stat-v2-trend up">
-              <Check size={14} /> 320 Karung ICO
+            <span className="space-kpi-badge info">
+              87.2% CBM
             </span>
-            <span>Utilitas 87.2% CBM</span>
+            <span className="space-kpi-meta">320 Karung Kopi ICO</span>
           </div>
         </div>
       </div>
