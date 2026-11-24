@@ -21731,10 +21731,10 @@ table.unlk-items-table th.active-cell {
 }
 
 .space-vessel-top-banner {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-  border-radius: 16px;
-  padding: 18px 20px;
-  color: #FFFFFF;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px 18px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -21747,29 +21747,39 @@ table.unlk-items-table th.active-cell {
   gap: 14px;
 }
 .space-vessel-badge-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  background: rgba(0, 102, 255, 0.25);
-  border: 1px solid rgba(0, 102, 255, 0.4);
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: #EFF6FF;
+  border: 1px solid #DBEAFE;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #60A5FA;
+  color: #2563EB;
   flex-shrink: 0;
 }
 .space-vessel-name-title {
   font-size: 15px;
   font-weight: 700;
-  color: #FFFFFF;
+  color: #0F172A;
   display: flex;
   align-items: center;
   gap: 8px;
 }
+.space-vessel-voyage-badge {
+  font-size: 11px;
+  background: #EFF6FF;
+  color: #1D4ED8;
+  border: 1px solid #BFDBFE;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
 .space-vessel-route {
   font-size: 12.5px;
-  color: #94A3B8;
-  margin-top: 2px;
+  color: #475569;
+  font-weight: 500;
+  margin-top: 3px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -21778,11 +21788,17 @@ table.unlk-items-table th.active-cell {
 .space-vessel-etd-eta {
   display: flex;
   align-items: center;
-  gap: 20px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  padding: 10px 16px;
+  gap: 16px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border-radius: 10px;
+  padding: 8px 16px;
+}
+.space-vessel-etd-divider {
+  width: 1px;
+  height: 24px;
+  background: #E2E8F0;
 }
 .space-vessel-etd-item {
   display: flex;
@@ -21790,14 +21806,22 @@ table.unlk-items-table th.active-cell {
   gap: 2px;
 }
 .space-vessel-etd-item span {
-  font-size: 10.5px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #94A3B8;
+  color: #64748B;
+  font-weight: 600;
 }
 .space-vessel-etd-item strong {
   font-size: 13px;
-  color: #F8FAFC;
+  color: #0F172A;
+  font-weight: 700;
+}
+.space-vessel-etd-item.eta span {
+  color: #2563EB;
+}
+.space-vessel-etd-item.eta strong {
+  color: #2563EB;
 }
 
 /* 6-Stage Export Milestone Stepper */

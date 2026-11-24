@@ -321,7 +321,7 @@ export function DashboardView({
             </button>
           </div>
 
-          {/* Sleek Vessel Banner */}
+          {/* Sleek Light Enterprise Vessel Banner */}
           <div className="space-vessel-top-banner">
             <div className="space-vessel-info-left">
               <div className="space-vessel-badge-icon">
@@ -330,13 +330,13 @@ export function DashboardView({
               <div>
                 <div className="space-vessel-name-title">
                   <span>MV CMA CGM Dignity</span>
-                  <span style={{ fontSize: 11, background: "rgba(37,99,235,0.4)", border: "1px solid rgba(59,130,246,0.5)", padding: "2px 8px", borderRadius: 6, fontWeight: 500 }}>
+                  <span className="space-vessel-voyage-badge">
                     Voyage 024W
                   </span>
                 </div>
                 <div className="space-vessel-route">
                   <span>Tanjung Priok (IDTPP)</span>
-                  <span style={{ color: "#60A5FA", fontWeight: 600 }}>→</span>
+                  <span style={{ color: "#2563EB", fontWeight: 700 }}>→</span>
                   <span>Port of Los Angeles (USLAX)</span>
                 </div>
               </div>
@@ -347,10 +347,10 @@ export function DashboardView({
                 <span>ETD (PRIOK)</span>
                 <strong>28 Nov 2026</strong>
               </div>
-              <div style={{ color: "rgba(255,255,255,0.3)" }}>|</div>
-              <div className="space-vessel-etd-item">
+              <div className="space-vessel-etd-divider" />
+              <div className="space-vessel-etd-item eta">
                 <span>ETA (LOS ANGELES)</span>
-                <strong style={{ color: "#38BDF8" }}>18 Des 2026</strong>
+                <strong>18 Des 2026</strong>
               </div>
             </div>
           </div>
