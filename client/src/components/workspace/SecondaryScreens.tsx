@@ -117,17 +117,108 @@ export function DashboardView({
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
+  const [selectedPort, setSelectedPort] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState<number>(1);
+
   const totalContract = pricing.active.offer > 0 ? pricing.active.offer : 24590.43;
   const totalReceived = flow.paidAmount > 0 ? flow.paidAmount : 24590.43;
 
+  const allShipments = useMemo(() => [
+    {
+      blNumber: "EKL-US2026-0881",
+      invNumber: "INV-2026-0881",
+      buyer: "Atlantic Roast Corp",
+      buyerLoc: "Boston, USA",
+      avatar: "AR",
+      avClass: "av1",
+      commodity: "Kopi Arabika Gayo Grade 1",
+      stowage: "1x20' FCL · 320 Karung ICO 60kg (19.2 MT)",
+      polCode: "IDTPP",
+      podCode: "USLAX",
+      polName: "Tanjung Priok",
+      podName: "Los Angeles",
+      etd: "28 Nov '26",
+      eta: "18 Des '26",
+      statusPill: "green",
+      statusLabel: "Jalur Hijau (NPE)",
+      paymentLabel: "L/C at Sight (Paid)",
+      amount: "$24,590.00",
+    },
+    {
+      blNumber: "EKL-EU2026-0412",
+      invNumber: "INV-2026-0412",
+      buyer: "Hamburg Specialty Coffee GmbH",
+      buyerLoc: "Hamburg, Jerman",
+      avatar: "HC",
+      avClass: "av2",
+      commodity: "Kopi Robusta Lampung Fine",
+      stowage: "1x20' FCL · 300 Karung 60kg (18.0 MT)",
+      polCode: "IDPNJ",
+      podCode: "DEHAM",
+      polName: "Panjang",
+      podName: "Hamburg",
+      etd: "02 Des '26",
+      eta: "24 Des '26",
+      statusPill: "blue",
+      statusLabel: "In Transit Kapal",
+      paymentLabel: "T/T 30% DP / 70% B/L",
+      amount: "$18,400.00",
+    },
+    {
+      blNumber: "EKL-JP2026-0199",
+      invNumber: "INV-2026-0199",
+      buyer: "Tokyo Agro & Spices Co., Ltd",
+      buyerLoc: "Tokyo, Jepang",
+      avatar: "TA",
+      avClass: "av3",
+      commodity: "Kayu Manis Korintje Cassia A",
+      stowage: "1x40' HC · 520 Karton ISPM-15 (15.6 MT)",
+      polCode: "IDSUB",
+      podCode: "JPYOK",
+      polName: "Tanjung Perak",
+      podName: "Yokohama",
+      etd: "05 Des '26",
+      eta: "19 Des '26",
+      statusPill: "amber",
+      statusLabel: "Siap Muat di Depo",
+      paymentLabel: "DP 30% Masuk (Mandiri)",
+      amount: "$32,150.00",
+    },
+    {
+      blNumber: "EKL-AE2026-0920",
+      invNumber: "INV-2026-0920",
+      buyer: "Emirates Foodstuff Trading LLC",
+      buyerLoc: "Dubai, UAE",
+      avatar: "EF",
+      avClass: "av4",
+      commodity: "Briket Arang Kelapa Premium",
+      stowage: "1x20' FCL · 1,400 Master Box (14.0 MT)",
+      polCode: "IDTPP",
+      podCode: "AEJEA",
+      polName: "Tanjung Priok",
+      podName: "Jebel Ali",
+      etd: "10 Des '26",
+      eta: "27 Des '26",
+      statusPill: "green",
+      statusLabel: "Jalur Hijau (NPE)",
+      paymentLabel: "CAD (Cash Against Docs)",
+      amount: "$14,800.00",
+    },
+  ], []);
+
+  const filteredShipments = useMemo(() => {
+    if (selectedPort === "all") return allShipments;
+    return allShipments.filter((s) => s.polCode === selectedPort);
+  }, [allShipments, selectedPort]);
+
   return (
     <div className="space-home-container">
-      {/* ROW 1: 4 Core Export Operational KPI Cards */}
+      {/* ROW 1: 4 Sleek, Text-Light Executive KPI Cards */}
       <div className="space-home-stats-grid-4">
-        {/* Card 1: Total Nilai Kontrak Ekspor */}
+        {/* Card 1: Nilai Kontrak Ekspor */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Nilai Kontrak Ekspor (FOB)</span>
+            <span className="space-stat-v2-title">Nilai Kontrak Ekspor</span>
             <div className="space-stat-v2-icon blue">
               <Briefcase size={18} />
             </div>
@@ -142,14 +233,14 @@ export function DashboardView({
             <span className="space-stat-v2-trend up">
               <ArrowUpRight size={14} /> +2.9%
             </span>
-            <span>Incoterm FOB Tanjung Priok · USD</span>
+            <span>FOB Tanjung Priok</span>
           </div>
         </div>
 
-        {/* Card 2: Realisasi Devisa Masuk (DHE SDA) */}
+        {/* Card 2: Devisa Ekspor Masuk */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Devisa Ekspor Masuk (DHE)</span>
+            <span className="space-stat-v2-title">Realisasi Devisa (DHE)</span>
             <div className="space-stat-v2-icon purple">
               <Landmark size={18} />
             </div>
@@ -164,14 +255,14 @@ export function DashboardView({
             <span className="space-stat-v2-trend up">
               <ArrowUpRight size={14} /> Bank Mandiri
             </span>
-            <span>Rekening Khusus Valas DHE SDA</span>
+            <span>Rekening Khusus DHE SDA</span>
           </div>
         </div>
 
-        {/* Card 3: Kepatuhan DHE SDA BI PP 36/2023 */}
+        {/* Card 3: Kepatuhan DHE SDA */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Kepatuhan DHE SDA (BI)</span>
+            <span className="space-stat-v2-title">Kepatuhan DHE SDA</span>
             <div className="space-stat-v2-icon mint">
               <ShieldCheck size={18} />
             </div>
@@ -186,14 +277,14 @@ export function DashboardView({
             <span className="space-stat-v2-trend up">
               <CheckCircle2 size={14} /> PP 36/2023
             </span>
-            <span>Retensi 30% tenor 90 hari aman</span>
+            <span>Retensi 30% · Tenor 90 Hari</span>
           </div>
         </div>
 
         {/* Card 4: Volume & Muatan Kontainer */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Volume & Muatan Kontainer</span>
+            <span className="space-stat-v2-title">Muatan & Kontainer</span>
             <div className="space-stat-v2-icon blue">
               <Package size={18} />
             </div>
@@ -208,22 +299,19 @@ export function DashboardView({
             <span className="space-stat-v2-trend up">
               <Check size={14} /> 320 Karung ICO
             </span>
-            <span>Utilitas Kubikasi 87.2% CBM</span>
+            <span>Utilitas 87.2% CBM</span>
           </div>
         </div>
       </div>
 
-      {/* ROW 2: 2-Column Middle Grid (Ocean Freight Tracking 64% + Market Share & Compliance 36%) */}
+      {/* ROW 2: Ocean Freight Tracking (65%) + Market Share & Compliance (35%) */}
       <div className="space-home-middle-grid">
-        {/* Left Card: Ocean Freight & Vessel Transit Tracking */}
+        {/* Left Card: Ocean Freight Tracking */}
         <div className="space-vessel-tracker-card">
           <div className="space-chart-v2-head">
-            <div>
-              <h3>Pelacakan Pengapalan Samudera (Ocean Freight Tracking)</h3>
-              <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#64748B" }}>
-                Monitoring pergerakan kontainer aktif dari stuffing gudang hingga pelabuhan bongkar (POD)
-              </p>
-            </div>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+              Pelacakan Pengapalan Samudera
+            </h3>
             <button
               type="button"
               className="space-pill-action primary"
@@ -235,7 +323,7 @@ export function DashboardView({
             </button>
           </div>
 
-          {/* Interactive Vessel Info Banner */}
+          {/* Sleek Vessel Banner */}
           <div className="space-vessel-top-banner">
             <div className="space-vessel-info-left">
               <div className="space-vessel-badge-icon">
@@ -249,88 +337,83 @@ export function DashboardView({
                   </span>
                 </div>
                 <div className="space-vessel-route">
-                  <span>Pelabuhan Tanjung Priok (IDTPP)</span>
+                  <span>Tanjung Priok (IDTPP)</span>
                   <span style={{ color: "#60A5FA" }}>→</span>
-                  <span>Port of Los Angeles (USLAX), USA</span>
+                  <span>Port of Los Angeles (USLAX)</span>
                 </div>
               </div>
             </div>
 
             <div className="space-vessel-etd-eta">
               <div className="space-vessel-etd-item">
-                <span>ETD (Keberangkatan)</span>
+                <span>ETD (Priok)</span>
                 <strong>28 Nov 2026</strong>
               </div>
               <div style={{ color: "rgba(255,255,255,0.3)" }}>|</div>
               <div className="space-vessel-etd-item">
-                <span>ETA (Tiba di POD)</span>
+                <span>ETA (Los Angeles)</span>
                 <strong style={{ color: "#38BDF8" }}>18 Des 2026</strong>
               </div>
             </div>
           </div>
 
           {/* 6-Stage Export Milestone Stepper */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#475569", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-              Tahapan Logistik & Kepabeanan Ekspor
-            </span>
-            <div className="space-export-stepper">
-              <div className="space-export-step-item">
-                <div className="space-step-head">
-                  <div className="space-step-dot done">✓</div>
-                  <div className="space-step-line done" />
-                </div>
-                <span className="space-step-label">1. Stuffing</span>
-                <span className="space-step-sub">Gudang Karawang</span>
+          <div className="space-export-stepper">
+            <div className="space-export-step-item">
+              <div className="space-step-head">
+                <div className="space-step-dot done">✓</div>
+                <div className="space-step-line done" />
               </div>
+              <span className="space-step-label">1. Stuffing</span>
+              <span className="space-step-sub">Karawang</span>
+            </div>
 
-              <div className="space-export-step-item">
-                <div className="space-step-head">
-                  <div className="space-step-dot done">✓</div>
-                  <div className="space-step-line done" />
-                </div>
-                <span className="space-step-label">2. Karantina</span>
-                <span className="space-step-sub">Phyto & ISPM-15</span>
+            <div className="space-export-step-item">
+              <div className="space-step-head">
+                <div className="space-step-dot done">✓</div>
+                <div className="space-step-line done" />
               </div>
+              <span className="space-step-label">2. Karantina</span>
+              <span className="space-step-sub">Phyto OK</span>
+            </div>
 
-              <div className="space-export-step-item">
-                <div className="space-step-head">
-                  <div className="space-step-dot done">✓</div>
-                  <div className="space-step-line done" />
-                </div>
-                <span className="space-step-label">3. Bea Cukai</span>
-                <span className="space-step-sub">Jalur Hijau (NPE)</span>
+            <div className="space-export-step-item">
+              <div className="space-step-head">
+                <div className="space-step-dot done">✓</div>
+                <div className="space-step-line done" />
               </div>
+              <span className="space-step-label">3. Bea Cukai</span>
+              <span className="space-step-sub">Jalur Hijau</span>
+            </div>
 
-              <div className="space-export-step-item">
-                <div className="space-step-head">
-                  <div className="space-step-dot done">✓</div>
-                  <div className="space-step-line done" />
-                </div>
-                <span className="space-step-label">4. Gate-in POL</span>
-                <span className="space-step-sub">Terminal JICT Priok</span>
+            <div className="space-export-step-item">
+              <div className="space-step-head">
+                <div className="space-step-dot done">✓</div>
+                <div className="space-step-line done" />
               </div>
+              <span className="space-step-label">4. Gate-in POL</span>
+              <span className="space-step-sub">JICT Priok</span>
+            </div>
 
-              <div className="space-export-step-item">
-                <div className="space-step-head">
-                  <div className="space-step-dot active">🚢</div>
-                  <div className="space-step-line" />
-                </div>
-                <span className="space-step-label" style={{ color: "#0066FF" }}>5. Pelayaran</span>
-                <span className="space-step-sub">Samudera Pasifik</span>
+            <div className="space-export-step-item">
+              <div className="space-step-head">
+                <div className="space-step-dot active">🚢</div>
+                <div className="space-step-line" />
               </div>
+              <span className="space-step-label" style={{ color: "#0066FF" }}>5. Pelayaran</span>
+              <span className="space-step-sub">In Transit</span>
+            </div>
 
-              <div className="space-export-step-item">
-                <div className="space-step-head">
-                  <div className="space-step-dot pending">6</div>
-                </div>
-                <span className="space-step-label" style={{ color: "#94A3B8" }}>6. Tiba di POD</span>
-                <span className="space-step-sub">Los Angeles (USLAX)</span>
+            <div className="space-export-step-item">
+              <div className="space-step-head">
+                <div className="space-step-dot pending">6</div>
               </div>
+              <span className="space-step-label" style={{ color: "#94A3B8" }}>6. POD</span>
+              <span className="space-step-sub">Los Angeles</span>
             </div>
           </div>
 
-          {/* Active Contract & B/L Summary Bar */}
+          {/* Active Contract & B/L Summary Strip with Working Action */}
           <div
             style={{
               display: "flex",
@@ -342,45 +425,43 @@ export function DashboardView({
               border: "1px solid #E2E8F0",
               fontSize: 12.5,
               flexWrap: "wrap",
-              gap: 8,
+              gap: 10,
             }}
           >
             <div>
-              <span style={{ color: "#64748B" }}>No. Bill of Lading: </span>
+              <span style={{ color: "#64748B" }}>Bill of Lading: </span>
               <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)" }}>
                 EKL-US2026-0881
               </strong>
             </div>
             <div>
-              <span style={{ color: "#64748B" }}>Komoditas: </span>
-              <strong style={{ color: "#0F172A" }}>Kopi Arabika Gayo Grade 1 (320 Karung Goni)</strong>
+              <span style={{ color: "#64748B" }}>Muatan: </span>
+              <strong style={{ color: "#0F172A" }}>Kopi Arabika Gayo (19.2 MT)</strong>
             </div>
-            <div>
-              <span style={{ color: "#64748B" }}>Syarat Bayar: </span>
-              <span className="status-pill green">Irrevocable L/C at Sight</span>
-            </div>
+            <button
+              type="button"
+              className="space-pill-action"
+              onClick={() => navigate("documents")}
+              title="Buka Dokumen Bill of Lading"
+            >
+              <span>Lihat B/L Dokumen →</span>
+            </button>
           </div>
         </div>
 
-        {/* Right Column: Market Share & Document Readiness */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-          {/* Card 1: Destinasi Pasar Ekspor (Top Export Markets) */}
+        {/* Right Column: Market Share & Compliance */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Card 1: Pangsa Pasar Ekspor */}
           <div className="space-traffic-card-v2">
             <div className="space-payment-v2-head">
-              <div>
-                <h3>Destinasi Pasar Ekspor</h3>
-                <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#64748B" }}>
-                  Sebaran volume & nilai ekspor berdasarkan negara buyer
-                </p>
-              </div>
-              <button type="button" className="space-chart-v2-dots" title="Menu Opsi">
-                <MoreVertical size={18} />
-              </button>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                Pangsa Pasar Ekspor
+              </h3>
+              <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>FOB & CIF</span>
             </div>
 
-            <div className="space-traffic-donut-box">
-              <svg viewBox="0 0 200 120" style={{ width: 180, height: 110 }}>
-                {/* Semi Donut Arc (Blue 45%, Purple 35%, Mint 20%) */}
+            <div className="space-traffic-donut-box" style={{ height: 110 }}>
+              <svg viewBox="0 0 200 120" style={{ width: 180, height: 100 }}>
                 <path
                   d="M 20 110 A 80 80 0 0 1 110 32"
                   fill="none"
@@ -405,31 +486,28 @@ export function DashboardView({
               </svg>
             </div>
 
-            <div className="space-traffic-legend" style={{ flexDirection: "column", gap: 10, alignItems: "stretch", padding: "0 8px" }}>
+            <div className="space-traffic-legend" style={{ flexDirection: "column", gap: 8, alignItems: "stretch", padding: "0 4px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
-                <span><span className="space-legend-dot blue" /> Amerika Serikat (USA)</span>
-                <strong style={{ color: "#0F172A" }}>45% (8 TEUs · $110.6k)</strong>
+                <span><span className="space-legend-dot blue" /> USA</span>
+                <strong style={{ color: "#0F172A" }}>45% (8 TEUs)</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
-                <span><span className="space-legend-dot purple" /> Uni Eropa (Jerman & Belanda)</span>
-                <strong style={{ color: "#0F172A" }}>35% (6 TEUs · $86.1k)</strong>
+                <span><span className="space-legend-dot purple" /> Eropa</span>
+                <strong style={{ color: "#0F172A" }}>35% (6 TEUs)</strong>
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 12.5 }}>
-                <span><span className="space-legend-dot mint" /> Asia Timur (Jepang)</span>
-                <strong style={{ color: "#0F172A" }}>20% (4 TEUs · $49.2k)</strong>
+                <span><span className="space-legend-dot mint" /> Jepang</span>
+                <strong style={{ color: "#0F172A" }}>20% (4 TEUs)</strong>
               </div>
             </div>
           </div>
 
-          {/* Card 2: Kelayakan Dokumen Wajib Ekspor (Compliance Matrix) */}
+          {/* Card 2: Dokumen Wajib Ekspor */}
           <div className="space-export-matrix-card">
             <div className="space-matrix-header">
-              <div>
-                <h3>Kesiapan Dokumen Wajib Ekspor</h3>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748B" }}>
-                  Verifikasi regulasi INSW, Bea Cukai & Karantina
-                </p>
-              </div>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                Dokumen Wajib Ekspor
+              </h3>
               <span className="status-pill green">6/6 Valid</span>
             </div>
 
@@ -437,7 +515,7 @@ export function DashboardView({
               <div className="space-check-row">
                 <span className="space-check-name">
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
-                  PEB & NPE (Pemberitahuan Ekspor Barang)
+                  PEB & NPE (Kepabeanan)
                 </span>
                 <span className="space-check-status green">Jalur Hijau</span>
               </div>
@@ -445,51 +523,66 @@ export function DashboardView({
               <div className="space-check-row">
                 <span className="space-check-name">
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
-                  Bill of Lading (B/L On Board)
+                  Bill of Lading (B/L)
                 </span>
-                <span className="space-check-status green">Tervalidasi</span>
+                <span className="space-check-status green">On Board</span>
               </div>
 
               <div className="space-check-row">
                 <span className="space-check-name">
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
-                  Certificate of Origin (COO / Form ICO)
+                  Certificate of Origin (COO)
                 </span>
-                <span className="space-check-status green">Kemendag OK</span>
+                <span className="space-check-status green">Kemendag</span>
               </div>
 
               <div className="space-check-row">
                 <span className="space-check-name">
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
-                  Sertifikat Fumigasi & Phytosanitary
+                  Karantina & Fumigasi
                 </span>
-                <span className="space-check-status green">Lolos Karantina</span>
+                <span className="space-check-status green">Lolos</span>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ROW 3: Manifest & Kontrak Pengapalan Ekspor Aktif Table (Full Width) */}
+      {/* ROW 3: Manifest Pengapalan Ekspor Aktif Table (Full Width) */}
       <div className="space-invoices-card-v2">
         <div className="space-invoices-v2-head">
           <div>
-            <h3>Manifest & Pengapalan Ekspor Aktif</h3>
-            <p style={{ margin: "4px 0 0", fontSize: 12.5, color: "#64748B" }}>
-              Daftar transaksi ekspor riil, nomor Bill of Lading, jadwal kapal, dan status kepabeanan
-            </p>
+            <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+              Pengapalan Ekspor Aktif
+            </h3>
           </div>
           <div className="space-invoices-v2-actions">
-            <button type="button" className="space-pill-action" onClick={() => navigate("transactions")}>
-              <Filter size={13} />
-              <span>Filter Pelabuhan</span>
-            </button>
-            <div className="space-pill-action">
-              <Calendar size={13} />
-              <span>24 Nov 2026</span>
+            {/* Functional Port Filter Pills */}
+            <div style={{ display: "flex", gap: 6 }}>
+              {[
+                { id: "all", label: "Semua" },
+                { id: "IDTPP", label: "Tanjung Priok" },
+                { id: "IDPNJ", label: "Panjang" },
+                { id: "IDSUB", label: "Tanjung Perak" },
+              ].map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className={`space-pill-action ${selectedPort === p.id ? "primary" : ""}`}
+                  onClick={() => setSelectedPort(p.id)}
+                  style={{ fontSize: 12, padding: "5px 12px" }}
+                >
+                  {p.label}
+                </button>
+              ))}
             </div>
-            <button type="button" className="space-pill-action primary" onClick={() => navigate("transactions")}>
-              Semua Pengapalan
+
+            <button
+              type="button"
+              className="space-pill-action primary"
+              onClick={() => navigate("transactions")}
+            >
+              Semua Transaksi
             </button>
           </div>
         </div>
@@ -498,222 +591,137 @@ export function DashboardView({
           <table className="space-invoices-table-v2">
             <thead>
               <tr>
-                <th>No. B/L & Invoice</th>
-                <th>Buyer & Negara Tujuan</th>
+                <th>No. B/L & Kontrak</th>
+                <th>Buyer & Destinasi</th>
                 <th>Komoditas & Kontainer</th>
-                <th>Rute Pelayaran (POL → POD)</th>
-                <th>Jadwal Kapal (ETD → ETA)</th>
-                <th>Status Kepabeanan & Pembayaran</th>
-                <th>Nilai Kontrak Ekspor</th>
+                <th>Rute Pelayaran</th>
+                <th>Jadwal Kapal</th>
+                <th>Status Kepabeanan</th>
+                <th>Nilai Ekspor</th>
+                <th style={{ textAlign: "right" }}>Aksi Cepat</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      B/L: EKL-US2026-0881
-                    </span>
-                    <small style={{ color: "#64748B", fontSize: 11 }}>INV-2026-0881</small>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-user-cell">
-                    <div className="space-table-avatar av1">AR</div>
-                    <div className="space-table-name-wrap">
-                      <span className="space-table-buyer-name">Atlantic Roast Corp</span>
-                      <span className="space-table-buyer-email">Boston, USA</span>
+              {filteredShipments.map((s) => (
+                <tr key={s.blNumber}>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column" }}>
+                      <span className="space-invoice-code" onClick={() => navigate("documents")}>
+                        {s.blNumber}
+                      </span>
+                      <small style={{ color: "#64748B", fontSize: 11 }}>{s.invNumber}</small>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Kopi Arabika Gayo</strong>
-                    <span style={{ fontSize: 11.5, color: "#64748B" }}>1x20' FCL · 320 Karung ICO 60kg (19.2 MT)</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-tracking">
-                    <span className="space-tracking-code">IDTPP → USLAX</span>
-                    <span className="space-tracking-dest">Tanjung Priok ke Los Angeles</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", fontSize: 12 }}>
-                    <span style={{ color: "#0F172A" }}>ETD: 28 Nov '26</span>
-                    <span style={{ color: "#0066FF", fontWeight: 600 }}>ETA: 18 Des '26</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span className="status-pill green">Jalur Hijau (NPE)</span>
-                    <span style={{ fontSize: 11, color: "#166534" }}>L/C at Sight (Paid)</span>
-                  </div>
-                </td>
-                <td>
-                  <span className="space-table-amount">$24,590.00</span>
-                </td>
-              </tr>
-
-              <tr>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      B/L: EKL-EU2026-0412
-                    </span>
-                    <small style={{ color: "#64748B", fontSize: 11 }}>INV-2026-0412</small>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-user-cell">
-                    <div className="space-table-avatar av2">HC</div>
-                    <div className="space-table-name-wrap">
-                      <span className="space-table-buyer-name">Hamburg Specialty Coffee GmbH</span>
-                      <span className="space-table-buyer-email">Hamburg, Jerman</span>
+                  </td>
+                  <td>
+                    <div className="space-table-user-cell">
+                      <div className={`space-table-avatar ${s.avClass}`}>{s.avatar}</div>
+                      <div className="space-table-name-wrap">
+                        <span className="space-table-buyer-name">{s.buyer}</span>
+                        <span className="space-table-buyer-email">{s.buyerLoc}</span>
+                      </div>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Kopi Robusta Lampung</strong>
-                    <span style={{ fontSize: 11.5, color: "#64748B" }}>1x20' FCL · 300 Karung 60kg (18.0 MT)</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-tracking">
-                    <span className="space-tracking-code">IDPNJ → DEHAM</span>
-                    <span className="space-tracking-dest">Panjang ke Hamburg</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", fontSize: 12 }}>
-                    <span style={{ color: "#0F172A" }}>ETD: 02 Des '26</span>
-                    <span style={{ color: "#0066FF", fontWeight: 600 }}>ETA: 24 Des '26</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span className="status-pill blue">In Transit Kapal</span>
-                    <span style={{ fontSize: 11, color: "#1E40AF" }}>T/T 30% DP / 70% B/L</span>
-                  </div>
-                </td>
-                <td>
-                  <span className="space-table-amount">$18,400.00</span>
-                </td>
-              </tr>
-
-              <tr>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      B/L: EKL-JP2026-0199
-                    </span>
-                    <small style={{ color: "#64748B", fontSize: 11 }}>INV-2026-0199</small>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-user-cell">
-                    <div className="space-table-avatar av3">TA</div>
-                    <div className="space-table-name-wrap">
-                      <span className="space-table-buyer-name">Tokyo Agro & Spices Co., Ltd</span>
-                      <span className="space-table-buyer-email">Tokyo, Jepang</span>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                      <strong style={{ fontSize: 13, color: "#0F172A" }}>{s.commodity}</strong>
+                      <span style={{ fontSize: 11.5, color: "#64748B" }}>{s.stowage}</span>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Kayu Manis Korintje Cassia A</strong>
-                    <span style={{ fontSize: 11.5, color: "#64748B" }}>1x40' HC · 520 Karton ISPM-15 (15.6 MT)</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-tracking">
-                    <span className="space-tracking-code">IDSUB → JPYOK</span>
-                    <span className="space-tracking-dest">Tanjung Perak ke Yokohama</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", fontSize: 12 }}>
-                    <span style={{ color: "#0F172A" }}>ETD: 05 Des '26</span>
-                    <span style={{ color: "#0066FF", fontWeight: 600 }}>ETA: 19 Des '26</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span className="status-pill amber">Siap Muat di Depo</span>
-                    <span style={{ fontSize: 11, color: "#92400E" }}>DP 30% Masuk (Mandiri)</span>
-                  </div>
-                </td>
-                <td>
-                  <span className="space-table-amount">$32,150.00</span>
-                </td>
-              </tr>
-
-              <tr>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span className="space-invoice-code" onClick={() => navigate("documents")}>
-                      B/L: EKL-AE2026-0920
-                    </span>
-                    <small style={{ color: "#64748B", fontSize: 11 }}>INV-2026-0920</small>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-user-cell">
-                    <div className="space-table-avatar av4">EF</div>
-                    <div className="space-table-name-wrap">
-                      <span className="space-table-buyer-name">Emirates Foodstuff Trading LLC</span>
-                      <span className="space-table-buyer-email">Dubai, UAE</span>
+                  </td>
+                  <td>
+                    <div className="space-table-tracking">
+                      <span className="space-tracking-code">{s.polCode} → {s.podCode}</span>
+                      <span className="space-tracking-dest">{s.polName} ke {s.podName}</span>
                     </div>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Briket Arang Kelapa Premium</strong>
-                    <span style={{ fontSize: 11.5, color: "#64748B" }}>1x20' FCL · 1,400 Master Box (14.0 MT)</span>
-                  </div>
-                </td>
-                <td>
-                  <div className="space-table-tracking">
-                    <span className="space-tracking-code">IDTPP → AEJEA</span>
-                    <span className="space-tracking-dest">Tanjung Priok ke Jebel Ali</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", fontSize: 12 }}>
-                    <span style={{ color: "#0F172A" }}>ETD: 10 Des '26</span>
-                    <span style={{ color: "#0066FF", fontWeight: 600 }}>ETA: 27 Des '26</span>
-                  </div>
-                </td>
-                <td>
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span className="status-pill green">Jalur Hijau (NPE)</span>
-                    <span style={{ fontSize: 11, color: "#166534" }}>CAD (Cash Against Docs)</span>
-                  </div>
-                </td>
-                <td>
-                  <span className="space-table-amount">$14,800.00</span>
-                </td>
-              </tr>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", fontSize: 12 }}>
+                      <span style={{ color: "#0F172A" }}>ETD: {s.etd}</span>
+                      <span style={{ color: "#0066FF", fontWeight: 600 }}>ETA: {s.eta}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                      <span className={`status-pill ${s.statusPill}`}>{s.statusLabel}</span>
+                      <span style={{ fontSize: 11, color: "#166534" }}>{s.paymentLabel}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <span className="space-table-amount">{s.amount}</span>
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <div style={{ display: "inline-flex", gap: 6 }}>
+                      <button
+                        type="button"
+                        className="space-pill-action"
+                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        onClick={() => navigate("documents")}
+                        title="Buka Dokumen"
+                      >
+                        Dokumen
+                      </button>
+                      <button
+                        type="button"
+                        className="space-pill-action"
+                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        onClick={() => navigate("cargo")}
+                        title="Buka Kontainer"
+                      >
+                        Muatan
+                      </button>
+                      <button
+                        type="button"
+                        className="space-pill-action"
+                        style={{ padding: "4px 8px", fontSize: 11 }}
+                        onClick={() => navigate("tracking")}
+                        title="Lacak Kontainer"
+                      >
+                        Lacak
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* Functional Pagination Bar */}
         <div className="space-invoices-pagination">
-          <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
+          <button
+            type="button"
+            className="space-page-btn"
+            onClick={() => {
+              setCurrentPage(1);
+              toast.info("Menampilkan halaman 1");
+            }}
+          >
             ← Sebelumnya
           </button>
           <div className="space-page-numbers">
-            <button type="button" className="space-page-num active">01</button>
-            <button type="button" className="space-page-num">02</button>
-            <button type="button" className="space-page-num">03</button>
-            <span style={{ color: "#94A3B8" }}>...</span>
-            <button type="button" className="space-page-num">04</button>
-            <button type="button" className="space-page-num">05</button>
+            <button
+              type="button"
+              className={`space-page-num ${currentPage === 1 ? "active" : ""}`}
+              onClick={() => setCurrentPage(1)}
+            >
+              01
+            </button>
+            <button
+              type="button"
+              className={`space-page-num ${currentPage === 2 ? "active" : ""}`}
+              onClick={() => {
+                setCurrentPage(2);
+                toast.info("Semua transaksi aktif ditampilkan pada daftar utama.");
+              }}
+            >
+              02
+            </button>
           </div>
-          <button type="button" className="space-page-btn" onClick={() => navigate("transactions")}>
-            Selanjutnya →
+          <button
+            type="button"
+            className="space-page-btn"
+            onClick={() => navigate("transactions")}
+          >
+            Lihat Semua Transaksi →
           </button>
         </div>
       </div>

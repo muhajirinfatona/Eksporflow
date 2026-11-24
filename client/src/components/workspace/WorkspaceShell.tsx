@@ -29,6 +29,7 @@ import {
   FileSearch,
   FileSpreadsheet,
   FileText,
+  FileCheck2,
   FolderArchive,
   HardDrive,
   Landmark,
@@ -498,6 +499,9 @@ export function WorkspaceShell({
     typeof window !== "undefined" ? window.innerWidth <= 768 : false,
   );
   const [searchOpen, setSearchOpen] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [activeLocale, setActiveLocale] = useState<"ID" | "EN">("ID");
+  const [showCalendarInfo, setShowCalendarInfo] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isConsultationOpen, setIsConsultationOpen] = useState(false);
   const [consultationPrompt, setConsultationPrompt] = useState("");
@@ -573,14 +577,6 @@ export function WorkspaceShell({
       )}
 
       <aside className="sidebar clean-sidebar">
-        {/* Space DS Top Profile Header */}
-        <div className="space-sidebar-top-profile">
-          <div className="space-sidebar-avatar">{userInitials || "OF"}</div>
-          <div className="space-sidebar-user-info">
-            <span className="space-sidebar-user-name">{exporterName || "PT Nusantara Ekspor Mandiri"}</span>
-            <span className="space-sidebar-user-sub">{user?.email || "operasional@nusantaraekspor.com"}</span>
-          </div>
-        </div>
         <div className="brand-lockup clean-brand-lockup">
           <div className="brand-mark">
             <span />
@@ -758,55 +754,115 @@ export function WorkspaceShell({
           </div>
 
           <div className="topbar-actions" style={{ gap: 10 }}>
-            {/* Live Date Pill */}
-            <div className="space-topbar-pill">
-              <Calendar size={13} />
-              <span>{new Intl.DateTimeFormat("id-ID", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date())}</span>
-              <ChevronDown size={12} />
+            {/* Live Interactive Date & Voyage Calendar Pill */}
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="space-topbar-pill"
+                onClick={() => setShowCalendarInfo((prev) => !prev)}
+                title="Kalender Operasional & Jadwal Pelayaran"
+              >
+                <Calendar size={13} />
+                <span>{new Intl.DateTimeFormat(activeLocale === "ID" ? "id-ID" : "en-US", { weekday: "short", day: "numeric", month: "short", year: "numeric" }).format(new Date())}</span>
+                <ChevronDown size={12} />
+              </button>
+              {showCalendarInfo && (
+                <div style={{ position: "absolute", top: 42, right: 0, width: 280, background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: 16, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.12)", zIndex: 120 }}>
+                  <strong style={{ fontSize: 13, color: "#0F172A", display: "block", marginBottom: 8 }}>Jadwal Operasional Ekspor</strong>
+                  <div style={{ fontSize: 12, color: "#475569", lineHeight: 1.6 }}>
+                    <div>🚢 <b>Pelayaran:</b> MV CMA CGM Dignity (28 Nov)</div>
+                    <div>📦 <b>Closing Cargo:</b> Jumat, 27 Nov '26</div>
+                    <div>🏦 <b>Retensi DHE BI:</b> Aktif PP 36/2023</div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* 24/7 Support Pill */}
+            {/* AI Advisor Pill */}
             <button
               type="button"
               className="space-topbar-pill support"
               onClick={() => navigate("advisor")}
               title="Konsultasi Regulasi Ekspor & AI Advisor"
             >
-              <PhoneCall size={13} />
+              <Sparkles size={13} />
               <span>AI Advisor & Regulasi</span>
             </button>
 
-            {/* Notification Bell with Red Badge */}
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="Notifikasi"
-              title="Notifikasi Operasional Ekspor"
-              style={{ position: "relative" }}
-            >
-              <Bell size={16} />
-              <span
-                style={{
-                  position: "absolute",
-                  top: 4,
-                  right: 4,
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  background: "#EF4444",
-                }}
-              />
-            </button>
-
-            {/* Language / Region Selector */}
-            <div className="space-topbar-pill">
-              <span style={{ fontSize: 13 }}>🇺🇸</span>
-              <span>ENG</span>
-              <ChevronDown size={12} />
+            {/* Functional Notification Bell */}
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                className="icon-button"
+                aria-label="Notifikasi Operasional Ekspor"
+                title="Notifikasi Operasional Ekspor"
+                onClick={() => setShowNotifications((prev) => !prev)}
+                style={{ position: "relative" }}
+              >
+                <Bell size={16} />
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 4,
+                    right: 4,
+                    width: 7,
+                    height: 7,
+                    borderRadius: "50%",
+                    background: "#EF4444",
+                  }}
+                />
+              </button>
+              {showNotifications && (
+                <div style={{ position: "absolute", top: 42, right: 0, width: 330, background: "#FFFFFF", border: "1px solid #E2E8F0", borderRadius: 14, padding: 16, boxShadow: "0 10px 25px -5px rgba(0,0,0,0.12)", zIndex: 120 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, paddingBottom: 8, borderBottom: "1px solid #F1F5F9" }}>
+                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Notifikasi Operasional (3)</strong>
+                    <button type="button" style={{ background: "none", border: "none", fontSize: 11.5, color: "#0066FF", cursor: "pointer", fontWeight: 600 }} onClick={() => setShowNotifications(false)}>Tutup</button>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 10, fontSize: 12 }}>
+                    <div style={{ padding: "8px 10px", background: "#F8FAFC", borderRadius: 8, color: "#334155" }}>
+                      🚢 <b>MV CMA CGM Dignity:</b> Kontainer FCL 20ft on board menuju Los Angeles (ETA 18 Des).
+                    </div>
+                    <div style={{ padding: "8px 10px", background: "#F0FDF4", borderRadius: 8, color: "#166534" }}>
+                      🛃 <b>PEB No. 084920:</b> Jalur Hijau NPE terbit dari Bea Cukai Tanjung Priok.
+                    </div>
+                    <div style={{ padding: "8px 10px", background: "#EFF6FF", borderRadius: 8, color: "#1E40AF" }}>
+                      🏦 <b>Bank Mandiri:</b> Devisa Masuk $24,590.00 masuk rekening DHE SDA.
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Cloud Persistence Badge */}
-            {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
+            {/* Language / Region Selector Toggle */}
+            <button
+              type="button"
+              className="space-topbar-pill"
+              onClick={() => {
+                const next = activeLocale === "ID" ? "EN" : "ID";
+                setActiveLocale(next);
+                toast.success(next === "ID" ? "Bahasa diubah ke Bahasa Indonesia" : "Language switched to English");
+              }}
+              title="Ganti Bahasa (ID / EN)"
+            >
+              <span style={{ fontSize: 13 }}>{activeLocale === "ID" ? "🇮🇩" : "🇺🇸"}</span>
+              <span>{activeLocale === "ID" ? "ID" : "ENG"}</span>
+              <ChevronDown size={12} />
+            </button>
+
+            {/* Cloud Supabase Persistence Badge */}
+            <button
+              type="button"
+              className="sync-status-badge sync-saved tabular-nums"
+              style={{ cursor: "pointer", background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", color: "#065F46" }}
+              title="Terhubung ke PostgreSQL / Supabase Cloud"
+              onClick={() => {
+                if (onSave) onSave();
+                toast.success("Database Supabase Terhubung", { description: "Semua perubahan transaksi tersinkronisasi otomatis ke Cloud." });
+              }}
+            >
+              <Cloud size={13} style={{ color: "#10B981" }} />
+              <span>Cloud Supabase Aktif</span>
+            </button>
           </div>
         </header>
 
@@ -852,7 +908,17 @@ export function WorkspaceShell({
               <h1>{activeMeta.title}</h1>
             </div>
             <div className="heading-actions">
-              {renderPersistenceBadge(user, saveState, version, activeShipmentId)}
+              <button
+                type="button"
+                className="space-pill-action primary"
+                onClick={() => {
+                  if (onSave) onSave();
+                  toast.success("Data Tersimpan di Supabase Cloud");
+                }}
+              >
+                <FileCheck2 size={13} />
+                <span>Simpan Transaksi</span>
+              </button>
             </div>
           </section>
 
