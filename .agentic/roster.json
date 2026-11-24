@@ -13,6 +13,17 @@
   },
   "agents": [
     {
+      "id": "product-lead",
+      "name": "Head of Product & Market Research",
+      "skills": ["product-manager", "ux-researcher", "business-analyst"],
+      "owns": [
+        "docs/prd/",
+        "docs/research/",
+        "client/src/components/workspace/GuidedOnboardingModal.tsx"
+      ],
+      "mission": "Validate exporter pain points, benchmark international trade competitors, ensure Product-Market Fit (PMF), and design high-adoption workflows for Indonesian UMKM exporters without discarding existing MVP foundations."
+    },
+    {
       "id": "architect",
       "name": "Lead Solution Architect",
       "skills": ["solution-architect", "backend-developer"],
