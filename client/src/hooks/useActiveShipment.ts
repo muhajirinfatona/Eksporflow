@@ -48,7 +48,7 @@ function createInitialDemoShipment(): Shipment {
   return {
     ...initialShipment,
     reference: "DEMO-2026-001",
-    exporter: "UMKM Nusantara Ekspor (Demo)",
+    exporter: "PT Nusantara Ekspor Mandiri",
     letterheadText:
       "UMKM NUSANTARA EKSPOR\nIndonesian Organic Agricultural & Coconut Commodities Exporter\nJl. Pettarani No. 18, Makassar, Sulawesi Selatan 90222 · Indonesia",
     signatoryName: "Tim Ekspor UMKM (Demo)",

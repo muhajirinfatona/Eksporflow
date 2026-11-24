@@ -19449,10 +19449,10 @@ table.unlk-items-table th.active-cell {
   gap: 24px;
   padding: 20px 24px;
   border-radius: var(--radius-card);
-  background: var(--navy-deep);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0px 4px 20px -2px rgba(19, 27, 38, 0.12);
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow-card);
 }
 
 .ef-module-hero-copy {
@@ -19464,7 +19464,7 @@ table.unlk-items-table th.active-cell {
   margin: 4px 0 6px;
   font-size: 20px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--ink);
   line-height: 1.25;
   letter-spacing: -0.02em;
 }
@@ -19473,7 +19473,7 @@ table.unlk-items-table th.active-cell {
   margin: 0;
   font-size: 13px;
   line-height: 1.5;
-  color: #cbd5e1;
+  color: var(--muted);
   max-width: 640px;
 }
 
@@ -19492,11 +19492,11 @@ table.unlk-items-table th.active-cell {
   padding: 8px 16px;
   min-height: 38px;
   border-radius: var(--radius);
-  background: var(--brand-primary);
+  background: var(--navy);
   color: #ffffff;
   font-size: 13px;
   font-weight: 500;
-  border: 1px solid var(--brand-primary);
+  border: 1px solid var(--navy-deep);
   cursor: pointer;
   white-space: nowrap;
   box-shadow: 0 1px 2px rgba(11, 25, 44, 0.16);
@@ -19504,8 +19504,8 @@ table.unlk-items-table th.active-cell {
 }
 
 .ef-hero-btn-primary:hover {
-  background: var(--brand-hover);
-  border-color: var(--brand-hover);
+  background: var(--navy-hover);
+  border-color: var(--navy-hover);
 }
 
 .ef-hero-btn-ghost {
@@ -19515,9 +19515,9 @@ table.unlk-items-table th.active-cell {
   padding: 8px 14px;
   min-height: 38px;
   border-radius: var(--radius);
-  background: rgba(255, 255, 255, 0.06);
-  color: #f1f5f9;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: #ffffff;
+  color: var(--ink);
+  border: 1px solid var(--line-strong);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -19527,9 +19527,8 @@ table.unlk-items-table th.active-cell {
 }
 
 .ef-hero-btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.12);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.25);
+  background: var(--surface-app);
+  border-color: var(--muted);
 }
 
 .ef-hero-kpis {
@@ -19543,8 +19542,8 @@ table.unlk-items-table th.active-cell {
   min-width: 150px;
   padding: 12px 18px;
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-app);
+  border: 1px solid var(--line);
   display: flex;
   flex-direction: column;
   gap: 3px;
@@ -19554,21 +19553,21 @@ table.unlk-items-table th.active-cell {
   font-size: 10.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
-  color: #94a3b8;
+  color: var(--muted);
   text-transform: uppercase;
 }
 
 .ef-hero-kpi-card strong {
   font-size: 19px;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--ink);
   line-height: 1.2;
   font-variant-numeric: tabular-nums;
 }
 
 .ef-hero-kpi-card small {
   font-size: 11px;
-  color: #cbd5e1;
+  color: var(--muted);
 }
 
 .ef-form label {

@@ -72,7 +72,7 @@ export function formatDemoRemainingLabel(remainingMs: number): string {
   return `${Math.max(1, mins)} Menit`;
 }
 
-export function startDemoSession(companyName = "UMKM Nusantara Ekspor (Demo)"): UserSession {
+export function startDemoSession(companyName = "PT Nusantara Ekspor Mandiri"): UserSession {
   const now = new Date();
   let expiresAt = "";
   try {
