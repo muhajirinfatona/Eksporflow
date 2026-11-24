@@ -58,7 +58,6 @@ import type { ContainerCalc, LineItem, Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import { IconButton, StatusPill } from "./Primitives";
 import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
-import { GuidedOnboardingModal } from "./GuidedOnboardingModal";
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -81,7 +80,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Ringkasan",
         title: "Dashboard Ekspor",
         description:
-          "Satu sumber data terhubung untuk memantau penawaran, kesiapan dokumen, muatan kontainer, dan langkah operasional.",
+          "Ringkasan transaksi aktif, status kelengkapan dokumen, kontainer, dan jadwal PEB.",
         icon: <LayoutGrid size={16} />,
       },
       {
@@ -91,7 +90,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Ringkasan",
         title: "Asesmen Kesiapan Ekspor",
         description:
-          "Petakan informasi produk, pasar tujuan, dan kesiapan dokumen sebelum mengirim penawaran ke buyer.",
+          "Evaluasi legalitas badan usaha, sertifikasi komoditas, dan perizinan ekspor.",
         icon: <CheckCircle2 size={16} />,
       },
     ],
@@ -106,7 +105,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Penjualan",
         title: "Akuisisi Buyer & Pra-Transaksi",
         description:
-          "Generator surat Inquiry, Quotation, Negosiasi AI 3 gaya bahasa & checklist validasi legalitas buyer.",
+          "Penyusunan penawaran harga (Quotation), surat minat (Inquiry), dan verifikasi buyer.",
         icon: <Sparkles size={16} />,
       },
       {
@@ -115,7 +114,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         group: "Penjualan",
         phase: "Penjualan",
         title: "Pesanan Ekspor",
-        description: "Kelola daftar pesanan buyer dan pantau alur tahapan operasional ekspor.",
+        description: "Daftar pesanan ekspor, tracking invoice, dan tahapan operasional pengapalan.",
         icon: <Layers size={16} />,
       },
       {
@@ -134,7 +133,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Penjualan",
         title: "Harga & Order",
         description:
-          "Kalkulasi biaya logistik, kepabeanan, contingency, dan harga jual bersih di 7 skenario Incoterms® 2020.",
+          "Kalkulasi struktur HPP, freight forwarder, dan penetapan harga per Incoterm (FOB, CIF).",
         icon: <Calculator size={16} />,
       },
       {
@@ -474,11 +473,7 @@ export function WorkspaceShell({
   const demoRemainingLabel = isDemoUser
     ? formatDemoRemainingLabel(getDemoRemainingMs(user as UserSession))
     : "";
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(() => {
-    if (typeof window === "undefined") return false;
-    // Tampilkan onboarding secara otomatis jika belum pernah ditutup atau jika user berada dalam mode demo
-    return localStorage.getItem("ef_onboarding_completed") !== "true";
-  });
+
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(() =>
     typeof window !== "undefined" ? window.innerWidth > 1024 : true,
   );
@@ -742,18 +737,7 @@ export function WorkspaceShell({
               <Settings2 size={17} />
             </IconButton>
 
-            {shipment && update && (
-              <button
-                type="button"
-                className="topbar-guide-btn"
-                onClick={() => setIsOnboardingOpen(true)}
-                title="Panduan 4 Langkah Mulai Ekspor untuk Eksportir & UMKM"
-              >
-                <Compass size={14} className="text-amber-400" />
-                <span className="btn-label-desktop">Panduan Ekspor</span>
-                <span className="btn-label-mobile">Panduan</span>
-              </button>
-            )}
+
 
             {isDemoUser && (
               <button
@@ -870,34 +854,7 @@ export function WorkspaceShell({
         />
       )}
 
-      {shipment && update && (
-        <GuidedOnboardingModal
-          isOpen={isOnboardingOpen}
-          onClose={() => {
-            setIsOnboardingOpen(false);
-            try {
-              localStorage.setItem("ef_onboarding_completed", "true");
-            } catch {}
-          }}
-          shipment={shipment}
-          update={update}
-          updateNumber={(key, val) => {
-            if (updateNumber) {
-              updateNumber(key, String(val));
-            } else if (update) {
-              update(key, val as any);
-            }
-          }}
-          updateLineItems={updateLineItems ?? (() => {})}
-          onFinish={(targetScreen) => {
-            setIsOnboardingOpen(false);
-            try {
-              localStorage.setItem("ef_onboarding_completed", "true");
-            } catch {}
-            navigate(targetScreen);
-          }}
-        />
-      )}
+
 
       {!isCompactViewport && !sidebarOpen && (
         <button

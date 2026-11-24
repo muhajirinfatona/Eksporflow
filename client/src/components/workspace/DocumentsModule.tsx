@@ -1467,10 +1467,10 @@ export function DocumentsModule({
               type="button"
               className="doc-btn-ai-screen"
               onClick={() => setIsAiScreeningOpen(true)}
-              title="AI Audit & Deteksi Kesalahan Dokumen"
+              title="Pemeriksaan Kelengkapan & Validitas Dokumen"
             >
               <Sparkles size={14} className="icon-sparkle-amber" />
-              <span>AI Audit</span>
+              <span>Audit Dokumen</span>
             </button>
 
             {/* Fitur 3.3: Cap Scanned Copy untuk Penagihan TT */}

@@ -292,7 +292,7 @@ export function PreTransactionModule({
           <ServerCog size={18} style={{ color: "#0f2942", marginTop: 2, flexShrink: 0 }} />
           <div style={{ fontSize: 12.5, color: "#334155", lineHeight: 1.5 }}>
             <b style={{ color: "#0f172a" }}>Status Konektor Eksternal Pra-Transaksi:</b> Generator surat
-            penawaran, 3 gaya AI copywriting, sinkronisasi transaksi, dan 1-klik <code>mailto:</code>{" "}
+            penawaran, 3 format korespondensi bisnis, sinkronisasi transaksi, dan 1-klik <code>mailto:</code>{" "}
             berjalan langsung saat ini. Modul <b>Live Web Buyer Scraping</b> &amp; <b>SMTP Bulk Email Blast</b>{" "}
             otomatis dijadwalkan aktif setelah migrasi ke backend VPS khusus agar reputasi domain pengirim tetap terjaga.
           </div>
@@ -307,7 +307,7 @@ export function PreTransactionModule({
           <div className="panel-head">
             <div>
               <span className="eyebrow">GENERATOR SURAT PRA-TRANSAKSI</span>
-              <h3>Komposisi Dokumen &amp; Gaya AI Copywriting</h3>
+              <h3>Draf Korespondensi &amp; Penawaran Ekspor</h3>
             </div>
             <button
               type="button"
@@ -385,7 +385,7 @@ export function PreTransactionModule({
 
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
-                2. Gaya Bahasa (AI Tone)
+                2. Format Bahasa Korespondensi
               </span>
               <div className="clean-tabs" style={{ flexWrap: "wrap" }}>
                 {(

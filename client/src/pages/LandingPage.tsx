@@ -148,11 +148,11 @@ export function LandingPage({
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                <span>AI Advisor Terverifikasi</span>
+                <span>Audit Kepatuhan Bea Cukai</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={15} className="text-emerald-600 shrink-0" />
-                <span>Audit DJBC Terisolasi</span>
+                <span>Arsip Digital Ekspor DJBC</span>
               </div>
             </div>
           </div>
@@ -288,10 +288,10 @@ export function LandingPage({
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-xl mb-12">
             <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F2942]">
-              ARSITEKTUR PLATFORM
+              MODUL OPERASIONAL
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-3">
-              Fungsionalitas Inti untuk Setiap Transaksi
+              Fasilitas Utama Pengelolaan Ekspor
             </h2>
             <p className="text-sm text-slate-600 leading-relaxed">
               Dirancang tanpa jargon berlebih. Semua modul bekerja terpadu dari satu sumber data transaksi.
@@ -335,7 +335,7 @@ export function LandingPage({
               <p className="text-xs text-slate-600 leading-relaxed mb-4">
                 Simulasi muatan kontainer 20ft, 40ft, 40HC, perhitungan susut bobot komoditas, dan kalkulasi harga jual akurat di skenario FOB, CIF, CFR, hingga DDP.
               </p>
-              <span className="text-[11px] font-mono text-slate-500">Mesin: Kalkulator Deterministik</span>
+              <span className="text-[11px] font-mono text-slate-500">Standar: Incoterms® 2020 ICC</span>
             </div>
 
             <div className="p-6 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors">

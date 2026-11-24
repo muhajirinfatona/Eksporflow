@@ -1253,7 +1253,7 @@ export function TransactionsModule({
                       <Sparkles size={14} />
                       <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
                       <span className="compliance-tag-scanned">
-                        <CheckCircle2 size={11} /> AI Rekomendasi Aktif dari PO / LOI
+                        <CheckCircle2 size={11} /> Rekomendasi Dokumen Ketentuan Buyer
                       </span>
                     </div>
                     <div className="trans-compliance-actions">
@@ -1353,7 +1353,7 @@ export function TransactionsModule({
             <div className="po-screening-banner" style={{ padding: "10px 14px", marginBottom: "16px", borderRadius: "6px" }}>
               <div className="po-screening-banner-left" style={{ gap: "4px" }}>
                 <span className="po-screening-badge" style={{ fontSize: "12.5px" }}>
-                  <CheckCircle2 size={14} /> Buyer Terverifikasi AI ({activeScreening.validation.score}%) · {activeScreening.buyer}
+                  <CheckCircle2 size={14} /> Validasi Profil Buyer Terverifikasi ({activeScreening.validation.score}%) · {activeScreening.buyer}
                 </span>
                 <p style={{ fontSize: "12px", margin: 0 }}>
                   {activeScreening.validation.legalEntityStatus} · {activeScreening.validation.sanctionCheck}
