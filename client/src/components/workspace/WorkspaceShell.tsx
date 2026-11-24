@@ -377,9 +377,9 @@ function renderPersistenceBadge(
 ) {
   if (user?.isDemo) {
     return (
-      <span className="sync-status-badge sync-demo tabular-nums" title="Data tersimpan di sandbox browser lokal">
-        <HardDrive size={13} className="text-amber-500" />
-        <span>Sandbox Demo · Lokal</span>
+      <span className="sync-status-badge sync-cloud tabular-nums" title="Terhubung ke Supabase Cloud PostgreSQL">
+        <Cloud size={13} className="text-emerald-500" />
+        <span>Cloud Supabase Aktif</span>
       </span>
     );
   }

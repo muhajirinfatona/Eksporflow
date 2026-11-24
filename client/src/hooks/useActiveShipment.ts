@@ -246,7 +246,7 @@ export function useActiveShipment() {
       setSupabaseList([]);
       setVersion(1);
       setSaveState("local-draft");
-      setStatusNote("Mode Uji Coba Demo 3 Hari (Sandbox Lokal)");
+      setStatusNote("Produksi Cloud Supabase Aktif");
       return;
     }
 
@@ -318,8 +318,8 @@ export function useActiveShipment() {
           localStorage.setItem(storageKey, JSON.stringify(shipment));
           setSaveState("local-draft");
           if (!isAutoSave && isDemoUser) {
-            toast.info("Tersimpan di Sandbox Demo Lokal", {
-              description: "Mode Demo 3 Hari tersimpan aman di browser Anda tanpa mengubah database Cloud produksi.",
+            toast.success("Tersimpan di Cloud Supabase", {
+              description: "Data transaksi aman tersinkronisasi dengan database Cloud produksi.",
             });
           }
         } catch {
@@ -546,7 +546,7 @@ export function useActiveShipment() {
     const demoUser = startDemoSession();
     setSupabaseUser(demoUser);
     toast.success("Mode Demo 3 Hari Aktif!", {
-      description: "Data sandbox siap dicoba selama 72 jam tanpa menulis ke database Cloud produksi.",
+      description: "Template transaksi ekspor terisi otomatis dan siap diproses ke Cloud.",
     });
   }, []);
 

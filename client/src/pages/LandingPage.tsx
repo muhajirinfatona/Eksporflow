@@ -124,7 +124,7 @@ export function LandingPage({
                 onClick={onStartDemo}
                 className="inline-flex items-center gap-2 bg-[#F59E0B] hover:bg-[#D97706] text-[#0B192C] font-semibold text-sm px-5 py-2.5 rounded-lg shadow-sm transition-all border border-[#D97706]/30"
               >
-                <span>Buka Sandbox Demo (Gratis)</span>
+                <span>Buka Workspace Operasional</span>
                 <ArrowRight size={16} />
               </button>
 

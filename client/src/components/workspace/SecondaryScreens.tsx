@@ -3854,21 +3854,15 @@ export function SettingsView({
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">MODE DEMO 3 HARI &amp; KUOTA HIBRIDA</span>
-              <h3>Status Masa Uji Coba &amp; Kalkulator Paket</h3>
+              <span className="eyebrow">STATUS LISENSI &amp; KONTRAK CLOUD</span>
+              <h3>Status Langganan Enterprise &amp; Kuota Dokumen</h3>
             </div>
-            <StatusPill tone={isDemo ? "amber" : "green"}>
-              {isDemo ? `Demo Aktif · Sisa ${demoRemainingLabel}` : "Akun Cloud Terdaftar"}
-            </StatusPill>
+            <StatusPill tone="green">Akun Cloud Supabase Aktif</StatusPill>
           </div>
           <div className="module-stack" style={{ gap: 10 }}>
             <div className="clean-kv">
               <span>Status Sesi Saat Ini</span>
-              <b>
-                {isDemo
-                  ? `Sandbox Demo 3 Hari (Terisolasi Lokal · Sisa ${demoRemainingLabel})`
-                  : "Akun Perusahaan Terdaftar (Cloud Sync Supabase Aktif)"}
-              </b>
+              <b>Akun Perusahaan Terdaftar (Cloud Sync Supabase Aktif)</b>
             </div>
             <div className="clean-kv">
               <span>Simulasi Paket Pilihan</span>

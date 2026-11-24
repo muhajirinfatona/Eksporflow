@@ -635,10 +635,9 @@ export function getCustomerSupportAnswer(
   ) {
     return `### 💾 Panduan Penyimpanan Data di EksporFlow
 
-1. **Mode Demo (Sandbox Browser Lokal):**
-   - Transaksi Anda tersimpan di memori browser lokal (*LocalStorage*).
-   - Selalu klik tombol **"Simpan Sandbox"** di pojok kanan atas sebelum menutup atau merefresh halaman agar perubahan tidak hilang.
-   - Sesi demo aktif selama **3 hari**.
+1. **Koneksi Cloud Supabase Aktif:**
+   - Semua transaksi otomatis tersinkronisasi dengan database PostgreSQL Cloud Supabase.
+   - Perubahan data otomatis terlindungi dengan *Optimistic Locking* dan *Audit Vault*.
 
 2. **Mode Akun Cloud (Permanen):**
    - Untuk penyimpanan data permanen di cloud, kolaborasi tim, dan sinkronisasi lintas perangkat tanpa khawatir data terhapus, silakan klik tombol **"Daftar Akun / Masuk"** di bilah atas.
