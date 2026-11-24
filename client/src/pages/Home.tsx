@@ -131,11 +131,23 @@ export default function Home() {
       const url = new URL(window.location.href);
       url.searchParams.set("screen", next);
       window.history.pushState({}, "", url.toString());
-      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch {
       // Abaikan bila history API terbatas.
     }
+    const mainEl = document.querySelector(".main-content");
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   }, []);
+
+  useEffect(() => {
+    const mainEl = document.querySelector(".main-content");
+    if (mainEl) {
+      mainEl.scrollTo({ top: 0, behavior: "auto" });
+    }
+  }, [screen]);
 
   useEffect(() => {
     const onPopState = () => setScreen(readScreenFromUrl());

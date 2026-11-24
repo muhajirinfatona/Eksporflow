@@ -1031,7 +1031,7 @@ export function TransactionsModule({
               {/* Space DS Filter Toolbar */}
               <div className="space-toolbar">
                 <div className="space-toolbar-left">
-                  <div style={{ minWidth: 260, flex: 1 }}>
+                  <div style={{ minWidth: 180, flex: "1 1 200px" }}>
                     <SpaceInput
                       placeholder="Cari PO, buyer, komoditas..."
                       value={query}
@@ -1042,7 +1042,7 @@ export function TransactionsModule({
                       iconLeft={<Search size={15} />}
                     />
                   </div>
-                  <div style={{ width: 170 }}>
+                  <div style={{ width: 150, minWidth: 130 }}>
                     <SpaceSelect
                       value={countryFilter}
                       onChange={(e) => {
@@ -1062,7 +1062,7 @@ export function TransactionsModule({
                 </div>
 
                 <div className="space-toolbar-right">
-                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                  <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
                     {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
                       <button
                         key={st}
@@ -1078,22 +1078,24 @@ export function TransactionsModule({
                       </button>
                     ))}
                   </div>
-                  <SpaceButton
-                    variant="primary"
-                    size="sm"
-                    icon={<Plus size={14} />}
-                    onClick={handleNewTransactionClick}
-                  >
-                    Input PO Baru
-                  </SpaceButton>
-                  <SpaceButton
-                    variant="secondary"
-                    size="sm"
-                    icon={<FileText size={14} />}
-                    onClick={() => setPoModalOpen(true)}
-                  >
-                    Scan PO / OCR
-                  </SpaceButton>
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                    <SpaceButton
+                      variant="primary"
+                      size="sm"
+                      icon={<Plus size={14} />}
+                      onClick={handleNewTransactionClick}
+                    >
+                      Input PO Baru
+                    </SpaceButton>
+                    <SpaceButton
+                      variant="secondary"
+                      size="sm"
+                      icon={<FileText size={14} />}
+                      onClick={() => setPoModalOpen(true)}
+                    >
+                      Scan PO / OCR
+                    </SpaceButton>
+                  </div>
                 </div>
               </div>
 
@@ -1110,8 +1112,9 @@ export function TransactionsModule({
                   </SpaceButton>
                 </div>
               ) : (
-                <div className="space-table-wrap">
-                  <table className="space-table">
+                <div className="space-card-table-container">
+                  <div className="space-table-wrap">
+                    <table className="space-table">
                     <thead>
                       <tr>
                         <th style={{ width: 40 }}>
@@ -1239,16 +1242,17 @@ export function TransactionsModule({
                         })}
                     </tbody>
                   </table>
-
-                  {/* Space DS Pagination Component */}
-                  <SpacePagination
-                    currentPage={currentPage}
-                    totalItems={allTransactions.length}
-                    pageSize={pageSize}
-                    onPageChange={(p) => setCurrentPage(p)}
-                  />
                 </div>
-              )}
+
+                {/* Space DS Pagination Component */}
+                <SpacePagination
+                  currentPage={currentPage}
+                  totalItems={allTransactions.length}
+                  pageSize={pageSize}
+                  onPageChange={(p) => setCurrentPage(p)}
+                />
+              </div>
+            )}
             </div>
           )}
 

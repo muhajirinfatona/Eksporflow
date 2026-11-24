@@ -502,6 +502,13 @@ export function WorkspaceShell({
   }, []);
 
   useEffect(() => {
+    const activeBtn = document.querySelector(".clean-nav-item.active");
+    if (activeBtn) {
+      activeBtn.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [screen]);
+
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const media = window.matchMedia("(max-width: 768px)");
     const syncViewport = (matches: boolean) => {
