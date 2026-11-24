@@ -21731,15 +21731,16 @@ table.unlk-items-table th.active-cell {
 }
 
 .space-vessel-top-banner {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 14px 18px;
+  background: linear-gradient(135deg, #F97316 0%, #EA580C 50%, #C2410C 100%);
+  border-radius: 14px;
+  padding: 16px 20px;
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 16px;
+  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.22);
 }
 .space-vessel-info-left {
   display: flex;
@@ -21747,58 +21748,52 @@ table.unlk-items-table th.active-cell {
   gap: 14px;
 }
 .space-vessel-badge-icon {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
-  background: #EFF6FF;
-  border: 1px solid #DBEAFE;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2563EB;
+  color: #FFFFFF;
   flex-shrink: 0;
 }
 .space-vessel-name-title {
-  font-size: 15px;
+  font-size: 15.5px;
   font-weight: 700;
-  color: #0F172A;
+  color: #FFFFFF;
   display: flex;
   align-items: center;
   gap: 8px;
 }
 .space-vessel-voyage-badge {
   font-size: 11px;
-  background: #EFF6FF;
-  color: #1D4ED8;
-  border: 1px solid #BFDBFE;
+  background: rgba(255, 255, 255, 0.25);
+  color: #FFFFFF;
+  border: 1px solid rgba(255, 255, 255, 0.4);
   padding: 2px 8px;
   border-radius: 6px;
   font-weight: 600;
 }
 .space-vessel-route {
   font-size: 12.5px;
-  color: #475569;
-  font-weight: 500;
+  color: rgba(255, 255, 255, 0.92);
   margin-top: 3px;
   display: flex;
   align-items: center;
   gap: 6px;
+  font-weight: 500;
 }
 
 .space-vessel-etd-eta {
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  background: rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: 10px;
-  padding: 8px 16px;
-}
-.space-vessel-etd-divider {
-  width: 1px;
-  height: 24px;
-  background: #E2E8F0;
+  padding: 9px 16px;
 }
 .space-vessel-etd-item {
   display: flex;
@@ -21806,31 +21801,28 @@ table.unlk-items-table th.active-cell {
   gap: 2px;
 }
 .space-vessel-etd-item span {
-  font-size: 10px;
+  font-size: 10.5px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748B;
+  color: rgba(255, 255, 255, 0.82);
   font-weight: 600;
 }
 .space-vessel-etd-item strong {
-  font-size: 13px;
-  color: #0F172A;
+  font-size: 13.5px;
+  color: #FFFFFF;
   font-weight: 700;
 }
-.space-vessel-etd-item.eta span {
-  color: #2563EB;
-}
 .space-vessel-etd-item.eta strong {
-  color: #2563EB;
+  color: #FEF08A; /* warm golden glow for ETA */
 }
 
-/* 6-Stage Export Milestone Stepper */
+/* 6-Stage Export Milestone Stepper (Rata Tengah / Center-Aligned) */
 .space-export-stepper {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   position: relative;
-  gap: 8px;
-  margin-top: 4px;
+  gap: 0;
+  margin: 14px 0 6px 0;
 }
 @media (max-width: 900px) {
   .space-export-stepper {
@@ -21847,13 +21839,18 @@ table.unlk-items-table th.active-cell {
 .space-export-step-item {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  align-items: center;
+  text-align: center;
   position: relative;
+  padding: 0 4px;
 }
 .space-step-head {
+  width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  position: relative;
+  margin-bottom: 8px;
 }
 .space-step-dot {
   width: 24px;
@@ -21865,6 +21862,8 @@ table.unlk-items-table th.active-cell {
   font-size: 11px;
   font-weight: 700;
   flex-shrink: 0;
+  position: relative;
+  z-index: 2;
   transition: all 0.2s ease;
 }
 .space-step-dot.done {
@@ -21883,9 +21882,14 @@ table.unlk-items-table th.active-cell {
   font-size: 10px;
 }
 .space-step-line {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  width: 100%;
   height: 2px;
   background: #E2E8F0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
 }
 .space-step-line.done {
   background: #10B981;
@@ -21896,6 +21900,8 @@ table.unlk-items-table th.active-cell {
   font-weight: 600;
   color: #0F172A;
   line-height: 1.3;
+  text-align: center;
+  width: 100%;
 }
 .space-step-label.active {
   color: #2563EB;
@@ -21909,6 +21915,9 @@ table.unlk-items-table th.active-cell {
   font-size: 11px;
   color: #64748B;
   line-height: 1.3;
+  text-align: center;
+  width: 100%;
+  margin-top: 2px;
 }
 .space-step-sub.active {
   color: #2563EB;

@@ -298,103 +298,65 @@ export function DashboardView({
 
       {/* ROW 2: Ocean Freight Tracking (65%) + Market Share & Compliance (35%) */}
       <div className="space-home-middle-grid">
-        {/* Left Card: Ocean Freight Tracking (Pure Enterprise Single-Canvas Design) */}
-        <div className="space-vessel-tracker-card" style={{ gap: 20 }}>
-          {/* 1. Header Row: Title, Status Badge, and Action Button */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div style={{ width: 40, height: 40, borderRadius: 10, background: "#EFF6FF", border: "1px solid #DBEAFE", display: "flex", alignItems: "center", justifyContent: "center", color: "#2563EB", flexShrink: 0 }}>
-                <Ship size={20} />
-              </div>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-                    Pelacakan Pengapalan Samudera
-                  </h3>
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#166534", background: "#F0FDF4", border: "1px solid #BBF7D0", padding: "2px 8px", borderRadius: 12, display: "inline-flex", alignItems: "center", gap: 5 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#22C55E" }} />
-                    In Transit · Di Laut
-                  </span>
-                </div>
-                <p style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#64748B" }}>
-                  MV CMA CGM Dignity (Voyage 024W) · CMA CGM Line
-                </p>
-              </div>
+        {/* Left Card: Ocean Freight Tracking */}
+        <div className="space-vessel-tracker-card">
+          <div className="space-chart-v2-head">
+            <div>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
+                Pelacakan Pengapalan Samudera
+              </h3>
+              <p style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#64748B" }}>
+                Pemantauan rute kargo maritim aktif &amp; status izin kepabeanan
+              </p>
             </div>
-
             <button
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("tracking")}
               title="Buka Pelacakan Kontainer Lengkap"
-              style={{ padding: "7px 16px", fontSize: 12.5 }}
+              style={{ padding: "6px 14px", fontSize: 12 }}
             >
               <Ship size={13} />
               <span>Detail Kapal</span>
             </button>
           </div>
 
-          {/* 2. Route Strip: Clean, Breathable, Full-Width (Zero Grey Box) */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "14px 0",
-              borderTop: "1px solid #F1F5F9",
-              borderBottom: "1px solid #F1F5F9",
-              gap: 16,
-            }}
-          >
-            {/* Origin (POL) */}
-            <div style={{ minWidth: 160 }}>
-              <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em", color: "#64748B", fontWeight: 600 }}>
-                Pelabuhan Muat (POL)
+          {/* Premium Orange Vessel Banner (Requested: Pengganti Hitam dengan Orange Elegan) */}
+          <div className="space-vessel-top-banner">
+            <div className="space-vessel-info-left">
+              <div className="space-vessel-badge-icon">
+                <Ship size={24} />
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginTop: 2, whiteSpace: "nowrap" }}>
-                Tanjung Priok, ID
-              </div>
-              <div style={{ fontSize: 12, color: "#059669", fontWeight: 600, marginTop: 2, whiteSpace: "nowrap" }}>
-                ETD: 28 Nov 2026 · IDTPP
-              </div>
-            </div>
-
-            {/* Center Ocean Route Graphic */}
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, flex: 1, padding: "0 10px" }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: "#2563EB", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
-                <Ship size={12} />
-                <span>Rute Samudera Pasifik</span>
-              </div>
-              <div style={{ width: "100%", maxWidth: 180, display: "flex", alignItems: "center" }}>
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", flexShrink: 0 }} />
-                <div style={{ flex: 1, height: 2, background: "linear-gradient(90deg, #10B981, #2563EB)" }} />
-                <div style={{ width: 18, height: 18, borderRadius: "50%", background: "#2563EB", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 0 3px rgba(37,99,235,0.15)" }}>
-                  <Ship size={10} />
+              <div>
+                <div className="space-vessel-name-title">
+                  <span>MV CMA CGM Dignity</span>
+                  <span className="space-vessel-voyage-badge">
+                    Voyage 024W
+                  </span>
                 </div>
-                <div style={{ flex: 1, height: 2, borderTop: "2px dashed #CBD5E1" }} />
-                <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#94A3B8", flexShrink: 0 }} />
-              </div>
-              <div style={{ fontSize: 11, color: "#64748B", whiteSpace: "nowrap" }}>
-                Estimasi 14 Hari Berlayar
+                <div className="space-vessel-route">
+                  <span>Tanjung Priok (IDTPP)</span>
+                  <span style={{ color: "#FFFFFF", fontWeight: 700 }}>→</span>
+                  <span>Port of Los Angeles (USLAX)</span>
+                </div>
               </div>
             </div>
 
-            {/* Destination (POD) */}
-            <div style={{ minWidth: 160, textAlign: "right" }}>
-              <div style={{ fontSize: 10.5, textTransform: "uppercase", letterSpacing: "0.05em", color: "#2563EB", fontWeight: 600 }}>
-                Pelabuhan Bongkar (POD)
+            <div className="space-vessel-etd-eta">
+              <div className="space-vessel-etd-item">
+                <span>ETD (PRIOK)</span>
+                <strong>28 Nov 2026</strong>
               </div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "#0F172A", marginTop: 2, whiteSpace: "nowrap" }}>
-                Los Angeles, US
-              </div>
-              <div style={{ fontSize: 12, color: "#2563EB", fontWeight: 700, marginTop: 2, whiteSpace: "nowrap" }}>
-                ETA: 18 Des 2026 · USLAX
+              <div style={{ color: "rgba(255,255,255,0.35)", fontWeight: 300 }}>|</div>
+              <div className="space-vessel-etd-item eta">
+                <span>ETA (LOS ANGELES)</span>
+                <strong>18 Des 2026</strong>
               </div>
             </div>
           </div>
 
-          {/* 3. 6-Stage Export Milestone Stepper */}
-          <div className="space-export-stepper" style={{ margin: "2px 0" }}>
+          {/* 6-Stage Export Milestone Stepper (Rata Tengah / Center-Aligned) */}
+          <div className="space-export-stepper">
             <div className="space-export-step-item">
               <div className="space-step-head">
                 <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
@@ -449,39 +411,42 @@ export function DashboardView({
             </div>
           </div>
 
-          {/* 4. Sleek 1-Line Footer: Bill of Lading, Komoditas + Action */}
+          {/* Active Contract & B/L Summary Strip */}
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
-              paddingTop: 12,
-              borderTop: "1px solid #F1F5F9",
+              padding: "12px 18px",
+              background: "#F8FAFC",
+              borderRadius: 12,
+              border: "1px solid #E2E8F0",
               fontSize: 12.5,
-              gap: 12,
+              gap: 16,
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, color: "#475569", whiteSpace: "nowrap" }}>
-              <span style={{ color: "#64748B" }}>B/L:</span>
-              <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)" }}>
-                EKL-US2026-0881
-              </strong>
+            <div style={{ display: "flex", alignItems: "center", gap: 16, color: "#475569", flexWrap: "wrap" }}>
+              <div>
+                <span style={{ color: "#64748B", fontSize: 12 }}>Bill of Lading: </span>
+                <strong style={{ color: "#0F172A", fontFamily: "var(--font-mono, monospace)", fontSize: 13 }}>
+                  EKL-US2026-0881
+                </strong>
+              </div>
               <span style={{ color: "#CBD5E1" }}>•</span>
-              <span style={{ color: "#64748B" }}>Muatan:</span>
-              <strong style={{ color: "#0F172A" }}>
-                Kopi Arabika Gayo (19.2 MT · 1x20' FCL)
-              </strong>
+              <div>
+                <span style={{ color: "#64748B", fontSize: 12 }}>Muatan: </span>
+                <strong style={{ color: "#0F172A", fontSize: 13 }}>Kopi Arabika Gayo (19.2 MT · 1x20' FCL)</strong>
+              </div>
             </div>
-
             <button
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("documents")}
               title="Buka Dokumen Bill of Lading"
-              style={{ padding: "5px 12px", fontSize: 12, flexShrink: 0 }}
+              style={{ padding: "6px 14px", fontSize: 12, flexShrink: 0 }}
             >
               <FileText size={13} />
-              <span>Dokumen B/L</span>
+              <span>Lihat B/L Dokumen</span>
             </button>
           </div>
         </div>
