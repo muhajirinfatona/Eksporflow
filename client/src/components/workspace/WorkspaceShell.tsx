@@ -653,50 +653,6 @@ export function WorkspaceShell({
           ))}
         </nav>
 
-        {/* Space DS Upgrade Card */}
-        <div className="space-sidebar-upgrade-card">
-          <div className="space-upgrade-donut-ring">
-            <svg viewBox="0 0 44 44" width="44" height="44">
-              <circle cx="22" cy="22" r="16" fill="none" stroke="#334155" strokeWidth="5" />
-              <circle
-                cx="22"
-                cy="22"
-                r="16"
-                fill="none"
-                stroke="#0066FF"
-                strokeWidth="5"
-                strokeDasharray="75 100"
-                strokeLinecap="round"
-                transform="rotate(-90 22 22)"
-              />
-              <circle
-                cx="22"
-                cy="22"
-                r="16"
-                fill="none"
-                stroke="#8B5CF6"
-                strokeWidth="5"
-                strokeDasharray="25 100"
-                strokeDashoffset="-75"
-                strokeLinecap="round"
-                transform="rotate(-90 22 22)"
-              />
-            </svg>
-          </div>
-          <h4>Upgrade Space</h4>
-          <p>We published our new updates, checkout video.</p>
-          <div style={{ display: "flex", gap: 12 }}>
-            <span style={{ fontSize: 11, color: "#94A3B8", cursor: "pointer" }}>Cancel</span>
-            <button
-              type="button"
-              className="space-upgrade-link"
-              onClick={() => navigate("settings")}
-            >
-              Upgrade plan
-            </button>
-          </div>
-        </div>
-
         <div className="sidebar-bottom clean-sidebar-footer">
           <div className="user-row">
             <div className="user-avatar">{userInitials || "PD"}</div>

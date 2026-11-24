@@ -21152,50 +21152,6 @@ table.unlk-items-table th.active-cell {
   color: #FFFFFF;
 }
 
-/* Sidebar Bottom Upgrade / Compliance Card */
-.space-sidebar-upgrade-card {
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.9) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 16px;
-  padding: 16px;
-  margin-top: auto;
-  margin-bottom: 8px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  gap: 10px;
-}
-.space-upgrade-donut-ring {
-  width: 64px;
-  height: 64px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.space-sidebar-upgrade-card h4 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 600;
-  color: #FFFFFF;
-}
-.space-sidebar-upgrade-card p {
-  margin: 0;
-  font-size: 11.5px;
-  color: #94A3B8;
-  line-height: 1.4;
-}
-.space-upgrade-link {
-  font-size: 11.5px;
-  font-weight: 600;
-  color: #0066FF;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-}
 
 /* 2-Column Space Financial Home Layout */
 .space-home-grid {
