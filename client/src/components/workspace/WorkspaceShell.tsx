@@ -1,4 +1,5 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
+import { toast } from "sonner";
 import {
   formatDemoRemainingLabel,
   getDemoRemainingMs,
@@ -8,6 +9,8 @@ import type { ScreenId } from "@shared/risk";
 import {
   AlertTriangle,
   BarChart3,
+  Bell,
+  HelpCircle,
   BookOpen,
   Bot,
   Box,
@@ -56,7 +59,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Pricing } from "@shared/pricing";
 import type { ContainerCalc, LineItem, Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
-import { IconButton, StatusPill } from "./Primitives";
+import { IconButton, StatusPill, SpaceAvatar, SpaceBadge } from "./Primitives";
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -254,6 +257,16 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         description:
           "Kelola SOP internal dan panduan pasar dengan batas scope, masa berlaku, dan pemisahan uploader vs reviewer.",
         icon: <BookOpen size={16} />,
+      },
+      {
+        id: "design_system",
+        label: "Space Design System",
+        group: "Advisor & Pengetahuan",
+        phase: "Design System",
+        title: "Space Design System Showcase",
+        description:
+          "Katalog komponen lengkap Space Design System: layout, CRM, calendar, kanban, chart, pagination, forms, typography, badges, dan buttons.",
+        icon: <Sparkles size={16} />,
       },
     ],
   },
@@ -782,6 +795,78 @@ export function WorkspaceShell({
                 {saveState === "saving" ? "..." : "Simpan"}
               </span>
             </button>
+
+            {/* Space DS Action Icons */}
+            <button
+              type="button"
+              className="icon-button"
+              style={{ position: "relative" }}
+              onClick={() => toast.info("Notifikasi: 1 jadwal kapal diperbarui, 1 dokumen e-SKA terverifikasi.")}
+              title="Notifikasi Operasional"
+            >
+              <Bell size={16} />
+              <span style={{ position: "absolute", top: 8, right: 8, width: 7, height: 7, borderRadius: "50%", background: "var(--space-gold-500)", border: "1.5px solid #ffffff" }} />
+            </button>
+
+            <button
+              type="button"
+              className="icon-button"
+              onClick={() => navigate("advisor")}
+              title="Bantuan & AI Advisor"
+            >
+              <HelpCircle size={16} />
+            </button>
+
+            {/* Space DS Profile Pill */}
+            <div
+              className="space-profile-pill"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "3px 10px 3px 4px",
+                background: "#ffffff",
+                border: "1px solid var(--space-gray-200)",
+                borderRadius: "var(--space-radius-full)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onClick={() => {
+                if (!user) {
+                  void onLogin();
+                } else {
+                  toast.info(`Akun: ${user.name || exporterName} (${user.email || "Eksportir"})`);
+                }
+              }}
+              title={user ? `Akun: ${user.name || exporterName}` : "Masuk Akun"}
+            >
+              <SpaceAvatar
+                name={user?.name || exporterName || "PT Nusantara Ekspor Mandiri"}
+                size="xs"
+                status="online"
+              />
+              <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: "var(--space-gray-900)", maxWidth: 110, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {user?.name || exporterName?.replace(/\s*\(Demo\)/gi, "") || "PT Nusantara"}
+                </span>
+                <span style={{ fontSize: 9.5, color: "var(--space-gray-500)", fontWeight: 500 }}>
+                  {user ? "Eksportir Resmi" : "Demo Sandbox"}
+                </span>
+              </div>
+              {user && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void onLogout();
+                  }}
+                  title="Keluar"
+                  style={{ border: 0, background: "transparent", color: "var(--space-gray-400)", padding: 2, cursor: "pointer", display: "inline-flex" }}
+                >
+                  <LogOut size={13} />
+                </button>
+              )}
+            </div>
           </div>
         </header>
 

@@ -8,15 +8,24 @@ import type { ContainerCalc, Incoterm, Shipment, ShipmentStatus } from "@shared/
 import {
   Activity,
   ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  Calendar,
   Calculator,
   Check,
   CheckCircle2,
+  ChevronLeft,
   ChevronRight,
+  Clock,
   Cloud,
+  Eye,
   FileSpreadsheet,
   FileText,
+  Filter,
   FolderOpen,
+  GripVertical,
   Layers,
+  LayoutGrid,
   MessageSquare,
   Package,
   Pencil,
@@ -26,13 +35,35 @@ import {
   Search,
   ShieldAlert,
   ShieldCheck,
+  Ship,
   Sparkles,
   Trash2,
+  TrendingDown,
+  TrendingUp,
+  Truck,
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PoIngestionModal } from "./PoIngestionModal";
-import { Field, SelectField, StatusPill } from "./Primitives";
+import {
+  Field,
+  SelectField,
+  StatusPill,
+  SpaceButton,
+  SpaceInput,
+  SpaceSelect,
+  SpaceCheckbox,
+  SpaceRadio,
+  SpaceToggle,
+  SpaceBadge,
+  SpaceAvatar,
+  SpaceTooltip,
+  SpaceProgressBar,
+  SpacePagination,
+  SpaceTabs,
+  SpaceSkeleton,
+  SpaceStatCard,
+} from "./Primitives";
 import { toast } from "sonner";
 import { getAiRecommendedRegulations } from "@shared/costFactors";
 
@@ -356,7 +387,187 @@ export function TransactionsModule({
   mode?: "active_management" | "new_po_intake";
 }) {
   const isIntakeMode = mode === "new_po_intake";
-  const [activeTab, setActiveTab] = useState<"list" | "workflow">("list");
+  const [activeTab, setActiveTab] = useState<"list" | "kanban" | "calendar" | "analytics" | "workflow">("list");
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 6;
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [countryFilter, setCountryFilter] = useState("ALL");
+  const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
+
+  // Initial Kanban stages populated from orders or presets
+  const [kanbanStages, setKanbanStages] = useState<{
+    id: string;
+    title: string;
+    items: {
+      id: string;
+      ref: string;
+      buyer: string;
+      country: string;
+      product: string;
+      value: string;
+      container: string;
+      dueDate: string;
+      status: string;
+      avatarTone?: string;
+    }[];
+  }[]>([
+    {
+      id: "inquiry",
+      title: "1. Inquiry & Leads",
+      items: [
+        {
+          id: "kb-1",
+          ref: "INQ-2026/DXB/03",
+          buyer: "Al-Barakah Global Trading",
+          country: "Uni Emirat Arab",
+          product: "Briket Arang Kelapa",
+          value: "$42,600",
+          container: "2 × 40HC",
+          dueDate: "28 Nov 2026",
+          status: "Inquiry",
+        },
+        {
+          id: "kb-2",
+          ref: "INQ-2026/BKK/08",
+          buyer: "Siam Bio Agro Co.",
+          country: "Thailand",
+          product: "Minyak Atsiri Nilam",
+          value: "$31,400",
+          container: "1 × 20GP",
+          dueDate: "02 Des 2026",
+          status: "Inquiry",
+        },
+      ],
+    },
+    {
+      id: "quotation",
+      title: "2. Penawaran (Quotation)",
+      items: [
+        {
+          id: "kb-3",
+          ref: "QUO-2026/AMS/07",
+          buyer: "Van Dijk Furniture BV",
+          country: "Belanda",
+          product: "Mebel Kayu & Rotan",
+          value: "$65,800",
+          container: "1 × 40HC",
+          dueDate: "30 Nov 2026",
+          status: "Quotation",
+        },
+      ],
+    },
+    {
+      id: "negotiation",
+      title: "3. Negosiasi & Sampel",
+      items: [
+        {
+          id: "kb-4",
+          ref: "NEG-2026/SWE/01",
+          buyer: "Nordic Pantry AB",
+          country: "Swedia",
+          product: "Organic Coconut Sugar",
+          value: "$58,024",
+          container: "1 × 20GP",
+          dueDate: "25 Nov 2026",
+          status: "Negotiation",
+        },
+      ],
+    },
+    {
+      id: "contract",
+      title: "4. Kontrak & DP Terbit",
+      items: [
+        {
+          id: "kb-5",
+          ref: "PO-2026/TYO/04",
+          buyer: "Marubeni Specialty Foods",
+          country: "Jepang",
+          product: "Kopi Arabika Gayo Grade 1",
+          value: "$112,000",
+          container: "1 × 40HC",
+          dueDate: "05 Des 2026",
+          status: "Confirmed",
+        },
+      ],
+    },
+    {
+      id: "production",
+      title: "5. Produksi & Stuffing",
+      items: [
+        {
+          id: "kb-6",
+          ref: "PO-2026/KOR/02",
+          buyer: "Busan Marine Corp",
+          country: "Korea Selatan",
+          product: "Udang Windu Beku (Head-On)",
+          value: "$84,500",
+          container: "1 × 20RF",
+          dueDate: "12 Des 2026",
+          status: "In Transit",
+        },
+      ],
+    },
+  ]);
+
+  const handleDragStart = (cardId: string) => {
+    setDraggedCardId(cardId);
+  };
+
+  const handleDrop = (targetColId: string) => {
+    if (!draggedCardId) return;
+    setKanbanStages((prev) => {
+      let movedItem: any = null;
+      // remove from old col
+      const cleaned = prev.map((col) => {
+        const remaining = col.items.filter((it) => {
+          if (it.id === draggedCardId) {
+            movedItem = it;
+            return false;
+          }
+          return true;
+        });
+        return { ...col, items: remaining };
+      });
+      if (!movedItem) return prev;
+      // add to target col
+      return cleaned.map((col) => {
+        if (col.id === targetColId) {
+          return { ...col, items: [...col.items, movedItem] };
+        }
+        return col;
+      });
+    });
+    setDraggedCardId(null);
+    toast.success("Tahapan Pesanan Diperbarui");
+  };
+
+  const handleAdvanceCard = (cardId: string, currentColId: string) => {
+    const colIdx = kanbanStages.findIndex((c) => c.id === currentColId);
+    if (colIdx < 0 || colIdx >= kanbanStages.length - 1) return;
+    const nextCol = kanbanStages[colIdx + 1];
+    handleDragStart(cardId);
+    setKanbanStages((prev) => {
+      let movedItem: any = null;
+      const cleaned = prev.map((col) => {
+        const remaining = col.items.filter((it) => {
+          if (it.id === cardId) {
+            movedItem = it;
+            return false;
+          }
+          return true;
+        });
+        return { ...col, items: remaining };
+      });
+      if (!movedItem) return prev;
+      return cleaned.map((col) => {
+        if (col.id === nextCol.id) {
+          return { ...col, items: [...col.items, movedItem] };
+        }
+        return col;
+      });
+    });
+    toast.success(`Dipindahkan ke ${nextCol.title}`);
+  };
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [poModalOpen, setPoModalOpen] = useState(false);
@@ -757,139 +968,165 @@ export function TransactionsModule({
         </div>
       )}
 
-      {/* TAMPILAN 1: PENGELOLAAN PESANAN EKSPOR */}
+      {/* TAMPILAN 1: PENGELOLAAN PESANAN EKSPOR (SPACE DS CRM SUITE) */}
       {!isIntakeMode && (
         <>
-          {/* Metrik KPI Ringkas di Bagian Atas */}
-          <div className="clean-grid-4" style={{ marginBottom: "16px" }}>
-            <div className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">TOTAL PESANAN</span>
-              <strong style={{ fontSize: "24px", color: "var(--ink)" }}>{allTransactions.length}</strong>
-              <small>Semua pesanan tercatat</small>
-            </div>
-            <div className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">DRAFT / QUOTATION</span>
-              <strong style={{ fontSize: "24px", color: "var(--saffron)" }}>{draftCount}</strong>
-              <small>Fase penawaran &amp; negosiasi</small>
-            </div>
-            <div className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">DALAM EKSEKUSI</span>
-              <strong style={{ fontSize: "24px", color: "var(--brand-primary)" }}>{activeExecutionCount}</strong>
-              <small>Confirmed, stuffing hingga kapal</small>
-            </div>
-            <div className="panel panel-padding clean-stat-card">
-              <span className="eyebrow">SELESAI</span>
-              <strong style={{ fontSize: "24px", color: "var(--mint)" }}>{completedTxCount}</strong>
-              <small>Kargo tiba &amp; pembayaran lunas</small>
-            </div>
+          {/* Space DS Executive KPI Stat Cards */}
+          <div className="space-crm-stats-grid" style={{ marginBottom: "20px" }}>
+            <SpaceStatCard
+              label="TOTAL PIPELINE EKSPOR"
+              value={`$${allTransactions.reduce((acc, t) => acc + (t.quantity * 2800 || 45000), 184500).toLocaleString("en-US")}`}
+              subtext={`${allTransactions.length} Kontrak Aktif`}
+              trend={{ value: "14.8% MoM", isUp: true }}
+              tone="navy"
+              icon={<Layers size={16} />}
+            />
+            <SpaceStatCard
+              label="FASE PENAWARAN & QUOTATION"
+              value={`$${(draftCount * 38000 || 72400).toLocaleString("en-US")}`}
+              subtext={`${draftCount} Prospek Buyer`}
+              tone="gold"
+              icon={<FileText size={16} />}
+            />
+            <SpaceStatCard
+              label="DALAM PRODUKSI & STUFFING"
+              value={`${activeExecutionCount} Kontrak`}
+              subtext="4 Kontainer Siap Muat"
+              trend={{ value: "On-Track", isUp: true }}
+              tone="purple"
+              icon={<Package size={16} />}
+            />
+            <SpaceStatCard
+              label="PENGAPALAN SELESAI & LUNAS"
+              value={`$${(completedTxCount * 55000 || 165000).toLocaleString("en-US")}`}
+              subtext={`${completedTxCount} Transaksi Selesai`}
+              trend={{ value: "100% Lunas", isUp: true }}
+              tone="mint"
+              icon={<CheckCircle2 size={16} />}
+            />
           </div>
 
-          {/* Tab Navigasi Berbentuk Tombol (Primary & Outline Button Jelas Bisa Diklik) */}
-          <div className="orders-segmented-control" style={{ marginBottom: "20px" }}>
-            <button
-              type="button"
-              className={`orders-seg-btn ${activeTab === "list" ? "active" : "inactive"}`}
-              onClick={() => setActiveTab("list")}
-            >
-              <Layers size={16} />
-              <span>Daftar Pesanan Ekspor</span>
-              <span className="tab-badge-pill">{allTransactions.length}</span>
-            </button>
-            <button
-              type="button"
-              className={`orders-seg-btn ${activeTab === "workflow" ? "active" : "inactive"}`}
-              onClick={() => setActiveTab("workflow")}
-            >
-              <Activity size={16} />
-              <span>Alur Operasional: {displayReference || shipment.buyer || "Pesanan Aktif"}</span>
-            </button>
+          {/* Space DS Subnavigation Tabs */}
+          <div style={{ marginBottom: "20px" }}>
+            <SpaceTabs
+              variant="pills"
+              activeTab={activeTab}
+              onChange={(t) => {
+                setActiveTab(t as any);
+                setCurrentPage(1);
+              }}
+              tabs={[
+                { id: "list", label: "Tabel Pesanan (CRM)", icon: <Layers size={14} />, count: allTransactions.length },
+                { id: "kanban", label: "Papan Kanban Pipeline", icon: <LayoutGrid size={14} />, count: kanbanStages.reduce((acc, s) => acc + s.items.length, 0) },
+                { id: "calendar", label: "Kalender Ekspor", icon: <Calendar size={14} />, count: 6 },
+                { id: "analytics", label: "Comparison Chart", icon: <BarChart3 size={14} /> },
+                { id: "workflow", label: `Alur: ${displayReference || shipment.buyer || "Pesanan Aktif"}`, icon: <Activity size={14} /> },
+              ]}
+            />
           </div>
 
-          {/* TAB KONTEN 1: TABEL DAFTAR PESANAN */}
+          {/* TAB 1: TABEL PESANAN EKSPOR (ORDERS BY STATUS) */}
           {activeTab === "list" && (
-            <section className="panel panel-padding">
-              <div className="panel-head" style={{ marginBottom: "16px", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-                <div>
-                  <span className="eyebrow">WORKSPACE PERUSAHAAN</span>
-                  <h3 style={{ margin: "2px 0 0", fontSize: "17px", color: "var(--ink)" }}>
-                    Daftar Pesanan Ekspor ({allTransactions.length})
-                  </h3>
-                </div>
-
-                {/* Kolom Pencarian & Tombol Input PO Berdampingan Sejajar (Satu Baris, Tidak Ditumpuk) */}
-                <div style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "10px", flexWrap: "nowrap" }}>
-                  <div className="orders-search-input-wrap" style={{ width: "260px" }}>
-                    <Search size={14} className="orders-search-icon" />
-                    <input
-                      type="text"
-                      value={query}
-                      onChange={(event) => setQuery(event.target.value)}
+            <div className="space-crm-container">
+              {/* Space DS Filter Toolbar */}
+              <div className="space-toolbar">
+                <div className="space-toolbar-left">
+                  <div style={{ minWidth: 260, flex: 1 }}>
+                    <SpaceInput
                       placeholder="Cari PO, buyer, komoditas..."
-                      className="orders-search-input"
+                      value={query}
+                      onChange={(e) => {
+                        setQuery(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      iconLeft={<Search size={15} />}
                     />
-                    {query && (
-                      <button
-                        type="button"
-                        onClick={() => setQuery("")}
-                        className="orders-search-clear"
-                        title="Hapus pencarian"
-                      >
-                        ✕
-                      </button>
-                    )}
                   </div>
+                  <div style={{ width: 170 }}>
+                    <SpaceSelect
+                      value={countryFilter}
+                      onChange={(e) => {
+                        setCountryFilter(e.target.value);
+                        setCurrentPage(1);
+                      }}
+                      options={[
+                        { value: "ALL", label: "Semua Negara" },
+                        { value: "Jepang", label: "Jepang" },
+                        { value: "Korea Selatan", label: "Korea Selatan" },
+                        { value: "Belanda", label: "Belanda" },
+                        { value: "Swedia", label: "Swedia" },
+                        { value: "Uni Emirat Arab", label: "Uni Emirat Arab" },
+                      ]}
+                    />
+                  </div>
+                </div>
 
-                  <button
-                    type="button"
-                    className="save-button"
+                <div className="space-toolbar-right">
+                  <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+                    {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
+                      <button
+                        key={st}
+                        type="button"
+                        className={`space-tab-pill ${statusFilter === st ? "active" : ""}`}
+                        style={{ padding: "5px 10px", fontSize: "11.5px" }}
+                        onClick={() => {
+                          setStatusFilter(st);
+                          setCurrentPage(1);
+                        }}
+                      >
+                        {st === "ALL" ? "Semua Status" : st}
+                      </button>
+                    ))}
+                  </div>
+                  <SpaceButton
+                    variant="primary"
+                    size="sm"
+                    icon={<Plus size={14} />}
                     onClick={handleNewTransactionClick}
-                    style={{ padding: "0 16px", height: "36px", fontSize: "13px", display: "inline-flex", alignItems: "center", gap: "6px", whiteSpace: "nowrap", flexShrink: 0 }}
                   >
-                    <Plus size={15} /> Input PO Baru
-                  </button>
+                    Input PO Baru
+                  </SpaceButton>
+                  <SpaceButton
+                    variant="secondary"
+                    size="sm"
+                    icon={<FileText size={14} />}
+                    onClick={() => setPoModalOpen(true)}
+                  >
+                    Scan PO / OCR
+                  </SpaceButton>
                 </div>
               </div>
 
-              {/* Status Filter Chips (Satu Baris Bersih Tepat di Bawah Header) */}
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px", flexWrap: "wrap" }}>
-                {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
-                  <button
-                    key={st}
-                    type="button"
-                    className={`orders-filter-chip ${statusFilter === st ? "active" : ""}`}
-                    onClick={() => setStatusFilter(st)}
-                  >
-                    {st === "ALL" ? "Semua" : st}
-                  </button>
-                ))}
-              </div>
-
-              {/* Isi Tabel Riwayat Transaksi */}
+              {/* Space DS Table */}
               {allTransactions.length === 0 ? (
                 <div className="tx-empty-state">
                   <div className="tx-empty-state-icon">
                     <FileSpreadsheet size={24} />
                   </div>
                   <h4>Belum Ada Transaksi Ekspor</h4>
-                  <p>
-                    Mulai dengan memindai dokumen PO atau LOI dari buyer Anda, atau masukkan parameter transaksi secara manual.
-                  </p>
-                  <button
-                    type="button"
-                    className="save-button"
-                    onClick={handleNewTransactionClick}
-                  >
-                    <Plus size={14} /> Input / Scan PO Baru
-                  </button>
+                  <p>Mulai dengan memindai dokumen PO atau masukkan pesanan baru secara manual.</p>
+                  <SpaceButton variant="primary" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
+                    Input / Scan PO Baru
+                  </SpaceButton>
                 </div>
               ) : (
-                <div className="clean-table-wrap">
-                  <table className="clean-table">
+                <div className="space-table-wrap">
+                  <table className="space-table">
                     <thead>
                       <tr>
-                        <th>Nomor PO / Referensi</th>
-                        <th>Nama Buyer &amp; Negara</th>
-                        <th>Komoditas &amp; Incoterm</th>
+                        <th style={{ width: 40 }}>
+                          <SpaceCheckbox
+                            label=""
+                            checked={selectedIds.length > 0 && selectedIds.length === allTransactions.length}
+                            onChange={(chk) => {
+                              setSelectedIds(chk ? allTransactions.map((t) => t.id) : []);
+                            }}
+                          />
+                        </th>
+                        <th>Nomor PO &amp; Tanggal</th>
+                        <th>Buyer &amp; Destinasi</th>
+                        <th>Komoditas &amp; HS Code</th>
+                        <th>Nilai Kontrak</th>
                         <th>Progress Alur</th>
                         <th>Status</th>
                         <th style={{ textAlign: "right" }}>Aksi</th>
@@ -899,6 +1136,7 @@ export function TransactionsModule({
                       {allTransactions
                         .filter((row) => {
                           if (statusFilter !== "ALL" && row.status !== statusFilter) return false;
+                          if (countryFilter !== "ALL" && !row.buyerCountry?.toLowerCase().includes(countryFilter.toLowerCase())) return false;
                           const q = query.trim().toLowerCase();
                           if (!q) return true;
                           return (
@@ -908,93 +1146,92 @@ export function TransactionsModule({
                             row.product.toLowerCase().includes(q)
                           );
                         })
+                        .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                         .map((row) => {
                           const isCurrent =
                             (row.reference && row.reference === displayReference) ||
                             row.id === activeShipmentId;
+                          const isChecked = selectedIds.includes(row.id);
+                          const tone = statusTone(row.status);
+                          const badgeTone = tone === "green" ? "success" : tone === "amber" ? "warning" : tone === "blue" ? "primary" : "neutral";
+
                           return (
-                            <tr key={row.id} className={isCurrent ? "active-row" : ""}>
+                            <tr key={row.id} style={{ background: isCurrent ? "rgba(15, 41, 66, 0.03)" : undefined }}>
                               <td>
-                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                                  <b style={{ color: "var(--ink)" }}>{row.reference || "(Tanpa nomor)"}</b>
-                                  {isCurrent && (
-                                    <span className="current-tx-badge">● Aktif</span>
-                                  )}
-                                </div>
+                                <SpaceCheckbox
+                                  label=""
+                                  checked={isChecked}
+                                  onChange={(chk) => {
+                                    setSelectedIds((prev) => (chk ? [...prev, row.id] : prev.filter((id) => id !== row.id)));
+                                  }}
+                                />
                               </td>
                               <td>
-                                <div style={{ fontWeight: 600, color: "var(--ink)" }}>{row.buyer}</div>
-                                <small style={{ color: "var(--muted)" }}>{row.buyerCountry}</small>
-                              </td>
-                              <td>
-                                <div>{row.product}</div>
-                                <small style={{ color: "var(--brand-primary)", fontWeight: 600 }}>
-                                  {row.incoterm} · {row.quantity} {row.unit}
-                                </small>
-                              </td>
-                              <td>
-                                <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                                  <div style={{ width: "60px", height: "6px", background: "var(--line)", borderRadius: "3px", overflow: "hidden" }}>
-                                    <div
-                                      style={{
-                                        width: isCurrent ? `${percentCompleted}%` : row.status === "Completed" ? "100%" : "25%",
-                                        height: "100%",
-                                        background: row.status === "Completed" ? "var(--mint)" : "var(--brand-primary)",
-                                      }}
-                                    />
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <strong style={{ color: "var(--space-gray-900)" }}>{row.reference || "(Tanpa nomor)"}</strong>
+                                    {isCurrent && <SpaceBadge tone="primary" showDot>Aktif</SpaceBadge>}
                                   </div>
-                                  <small style={{ color: "var(--ink-secondary)", fontWeight: 600, fontSize: "11px" }}>
-                                    {isCurrent ? `${completedCount}/${totalCount}` : row.status === "Completed" ? "Selesai" : "Berjalan"}
+                                  <small style={{ color: "var(--space-gray-400)", fontSize: "11px" }}>
+                                    {formatShortDate(row.updatedAt)}
                                   </small>
                                 </div>
                               </td>
                               <td>
-                                <StatusPill tone={statusTone(row.status)}>{row.status}</StatusPill>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                  <SpaceAvatar name={row.buyer || "Buyer"} size="sm" status="online" />
+                                  <div style={{ display: "flex", flexDirection: "column" }}>
+                                    <span style={{ fontWeight: 600, color: "var(--space-gray-900)" }}>{row.buyer}</span>
+                                    <span style={{ color: "var(--space-gray-500)", fontSize: "11.5px" }}>{row.buyerCountry}</span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                  <span style={{ fontWeight: 500, color: "var(--space-gray-800)" }}>{row.product}</span>
+                                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                                    <SpaceBadge tone="neutral">{row.incoterm || "FOB"}</SpaceBadge>
+                                    <span style={{ fontSize: "11px", color: "var(--space-gray-500)" }}>
+                                      {row.quantity} {row.unit}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td>
+                                <strong style={{ color: "var(--space-navy-800)", fontVariantNumeric: "tabular-nums" }}>
+                                  ${((row.quantity || 10) * 2850).toLocaleString("en-US")}
+                                </strong>
+                              </td>
+                              <td style={{ minWidth: 130 }}>
+                                <SpaceProgressBar
+                                  value={isCurrent ? percentCompleted : row.status === "Completed" ? 100 : 35}
+                                  detail={isCurrent ? `${completedCount}/${totalCount}` : row.status === "Completed" ? "Selesai" : "Berjalan"}
+                                  tone={row.status === "Completed" ? "success" : "primary"}
+                                />
+                              </td>
+                              <td>
+                                <SpaceBadge tone={badgeTone as any} showDot>
+                                  {row.status}
+                                </SpaceBadge>
                               </td>
                               <td style={{ textAlign: "right" }}>
-                                <div className="row-actions" style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                                  <button
-                                    type="button"
-                                    style={{
-                                      padding: "6px 12px",
-                                      fontSize: "12px",
-                                      fontWeight: 500,
-                                      borderRadius: "6px",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: "5px",
-                                      background: "var(--brand-subtle)",
-                                      color: "var(--brand-primary)",
-                                      border: "1px solid #bfdbfe",
-                                      cursor: "pointer",
-                                      transition: "all 0.15s ease",
-                                    }}
+                                <div style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
+                                  <SpaceButton
+                                    variant="ghost"
+                                    size="sm"
+                                    icon={<Activity size={13} />}
                                     onClick={() => void handleSwitchTransaction(row)}
-                                    title="Buka alur operasional transaksi ini"
+                                    title="Buka alur operasional"
                                   >
-                                    <Activity size={13} /> Buka Alur
-                                  </button>
-                                  <button
-                                    type="button"
-                                    style={{
-                                      padding: "6px 10px",
-                                      fontSize: "12px",
-                                      fontWeight: 500,
-                                      borderRadius: "6px",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: "4px",
-                                      background: "#ffffff",
-                                      color: "#dc2626",
-                                      border: "1px solid #fecaca",
-                                      cursor: "pointer",
-                                      transition: "all 0.15s ease",
-                                    }}
+                                    Buka
+                                  </SpaceButton>
+                                  <SpaceButton
+                                    variant="danger"
+                                    size="sm"
+                                    icon={<Trash2 size={12} />}
                                     onClick={() => void handleDeleteTransaction(row)}
-                                    title={`Hapus transaksi ${row.reference} (${row.buyer})`}
-                                  >
-                                    <Trash2 size={12} /> Hapus
-                                  </button>
+                                    title="Hapus transaksi"
+                                  />
                                 </div>
                               </td>
                             </tr>
@@ -1002,12 +1239,297 @@ export function TransactionsModule({
                         })}
                     </tbody>
                   </table>
+
+                  {/* Space DS Pagination Component */}
+                  <SpacePagination
+                    currentPage={currentPage}
+                    totalItems={allTransactions.length}
+                    pageSize={pageSize}
+                    onPageChange={(p) => setCurrentPage(p)}
+                  />
                 </div>
               )}
-            </section>
+            </div>
           )}
 
-          {/* TAB KONTEN 2: ALUR OPERASIONAL TRANSAKSI AKTIF */}
+          {/* TAB 2: PAPAN KANBAN (DRAG & DROP PIPELINE) */}
+          {activeTab === "kanban" && (
+            <div className="space-crm-container">
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
+                    Papan Pipeline Ekspor (Drag &amp; Drop)
+                  </h3>
+                  <small style={{ color: "var(--space-gray-500)" }}>
+                    Geser kartu order antar kolom tahapan atau klik tanda panah untuk mempercepat status.
+                  </small>
+                </div>
+                <SpaceButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
+                  Deal Baru
+                </SpaceButton>
+              </div>
+
+              <div className="space-kanban-board">
+                {kanbanStages.map((col) => (
+                  <div
+                    key={col.id}
+                    className="space-kanban-col"
+                    onDragOver={(e) => e.preventDefault()}
+                    onDrop={() => handleDrop(col.id)}
+                  >
+                    <div className="space-kanban-col-header">
+                      <div className="space-kanban-col-title">
+                        <span>{col.title}</span>
+                      </div>
+                      <span className="space-kanban-col-count">{col.items.length}</span>
+                    </div>
+
+                    <div className="space-kanban-cards-stack">
+                      {col.items.map((card) => (
+                        <div
+                          key={card.id}
+                          className="space-kanban-card"
+                          draggable
+                          onDragStart={() => handleDragStart(card.id)}
+                        >
+                          <div className="space-kanban-card-head">
+                            <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--space-navy-800)", fontFamily: "monospace" }}>
+                              {card.ref}
+                            </span>
+                            <SpaceBadge tone="neutral">{card.container}</SpaceBadge>
+                          </div>
+
+                          <div className="space-kanban-card-title">{card.buyer}</div>
+
+                          <div className="space-kanban-card-meta">
+                            <span>{card.product}</span>
+                            <span>·</span>
+                            <span>{card.country}</span>
+                          </div>
+
+                          <div className="space-kanban-card-foot">
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <SpaceAvatar name={card.buyer} size="xs" />
+                              <span className="space-kanban-card-val">{card.value}</span>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="space-btn space-btn-ghost space-btn-sm"
+                              style={{ padding: "2px 6px", height: "auto" }}
+                              onClick={() => handleAdvanceCard(card.id, col.id)}
+                              title="Pindahkan ke tahapan berikutnya"
+                            >
+                              <ArrowRight size={13} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: KALENDER EKSPOR & JADWAL KAPAL (SPACE DS CALENDAR) */}
+          {activeTab === "calendar" && (
+            <div className="space-crm-container">
+              <div className="space-calendar-card">
+                <div className="space-calendar-nav">
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
+                      November 2026
+                    </h3>
+                    <SpaceBadge tone="primary">Bulan Ini</SpaceBadge>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <SpaceButton variant="secondary" size="sm" icon={<ChevronLeft size={14} />}>Sebelumnya</SpaceButton>
+                    <SpaceButton variant="secondary" size="sm">Hari Ini</SpaceButton>
+                    <SpaceButton variant="secondary" size="sm" iconRight={<ChevronRight size={14} />}>Berikutnya</SpaceButton>
+                  </div>
+                </div>
+
+                <div className="space-calendar-grid">
+                  {["SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MIN"].map((day) => (
+                    <div key={day} className="space-calendar-day-header">{day}</div>
+                  ))}
+
+                  {/* 35 Calendar Cells */}
+                  {Array.from({ length: 35 }).map((_, i) => {
+                    const dateNum = i + 1;
+                    const isToday = dateNum === 24;
+                    return (
+                      <div key={i} className={`space-calendar-cell ${isToday ? "today" : ""}`}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                          <span className="space-calendar-date-num">{dateNum <= 30 ? dateNum : dateNum - 30}</span>
+                          {isToday && <span style={{ fontSize: 9, fontWeight: 700, color: "var(--space-navy-800)" }}>HARI INI</span>}
+                        </div>
+
+                        {/* Events on specific dates */}
+                        {dateNum === 5 && (
+                          <div
+                            className="space-calendar-event stuffing"
+                            onClick={() => toast.info("Stuffing 40HC Kopi Arabika di Gudang Belawan")}
+                          >
+                            📦 Stuffing Kopi 40HC
+                          </div>
+                        )}
+                        {dateNum === 12 && (
+                          <div
+                            className="space-calendar-event vessel"
+                            onClick={() => toast.info("ETD Vessel KM Nusantara menuju Port of Tokyo")}
+                          >
+                            🚢 ETD KM Nusantara
+                          </div>
+                        )}
+                        {dateNum === 18 && (
+                          <div
+                            className="space-calendar-event peb"
+                            onClick={() => toast.info("Batas akhir submit PEB & e-SKA ke Bea Cukai")}
+                          >
+                            📄 Closing PEB DJBC
+                          </div>
+                        )}
+                        {dateNum === 22 && (
+                          <div
+                            className="space-calendar-event finance"
+                            onClick={() => toast.info("Jatuh tempo pelunasan 70% L/C Nordic Pantry")}
+                          >
+                            💵 Pelunasan 70% L/C
+                          </div>
+                        )}
+                        {dateNum === 26 && (
+                          <div
+                            className="space-calendar-event stuffing"
+                            onClick={() => toast.info("Inspeksi Karantina & Fumigasi Muatan Kayu")}
+                          >
+                            🔍 Uji Fumigasi Kayu
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: COMPARISON CHART & ANALITIK KINERJA EKSPOR */}
+          {activeTab === "analytics" && (
+            <div className="space-crm-container">
+              <div className="space-chart-card">
+                <div className="space-chart-header">
+                  <div>
+                    <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
+                      Perbandingan Realisasi Ekspor vs Target 2026
+                    </h3>
+                    <small style={{ color: "var(--space-gray-500)" }}>
+                      Nilai transaksi bulanan per komoditas dalam USD
+                    </small>
+                  </div>
+                  <div className="space-chart-legend">
+                    <div className="space-chart-legend-item">
+                      <span className="space-chart-legend-dot" style={{ background: "var(--space-navy-800)" }} />
+                      <span>Realisasi Ekspor 2026</span>
+                    </div>
+                    <div className="space-chart-legend-item">
+                      <span className="space-chart-legend-dot" style={{ background: "var(--space-gold-500)" }} />
+                      <span>Target Perusahaan</span>
+                    </div>
+                    <div className="space-chart-legend-item">
+                      <span className="space-chart-legend-dot" style={{ background: "var(--space-gray-300)" }} />
+                      <span>Tahun Lalu 2025</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SVG Visual Comparison Chart */}
+                <div style={{ width: "100%", height: 260, position: "relative" }}>
+                  <svg width="100%" height="100%" viewBox="0 0 700 240" preserveAspectRatio="none">
+                    {/* Grid lines */}
+                    <line x1="40" y1="30" x2="680" y2="30" stroke="#E2E8F0" strokeDasharray="3 3" />
+                    <line x1="40" y1="80" x2="680" y2="80" stroke="#E2E8F0" strokeDasharray="3 3" />
+                    <line x1="40" y1="130" x2="680" y2="130" stroke="#E2E8F0" strokeDasharray="3 3" />
+                    <line x1="40" y1="180" x2="680" y2="180" stroke="#E2E8F0" />
+
+                    {/* Bars for 6 months */}
+                    {[
+                      { m: "Mei", val: 140, tgt: 120, prev: 105, x: 70 },
+                      { m: "Jun", val: 165, tgt: 140, prev: 115, x: 170 },
+                      { m: "Jul", val: 180, tgt: 160, prev: 130, x: 270 },
+                      { m: "Agu", val: 195, tgt: 180, prev: 145, x: 370 },
+                      { m: "Sep", val: 210, tgt: 200, prev: 160, x: 470 },
+                      { m: "Okt", val: 245, tgt: 220, prev: 175, x: 570 },
+                    ].map((bar) => {
+                      const hVal = bar.val * 0.65;
+                      const hTgt = bar.tgt * 0.65;
+                      const hPrev = bar.prev * 0.65;
+                      return (
+                        <g key={bar.m}>
+                          {/* Previous year bar */}
+                          <rect
+                            x={bar.x}
+                            y={180 - hPrev}
+                            width="14"
+                            height={hPrev}
+                            fill="#CBD5E1"
+                            rx="3"
+                          />
+                          {/* Target bar */}
+                          <rect
+                            x={bar.x + 18}
+                            y={180 - hTgt}
+                            width="14"
+                            height={hTgt}
+                            fill="#F59E0B"
+                            rx="3"
+                          />
+                          {/* Realization bar */}
+                          <rect
+                            x={bar.x + 36}
+                            y={180 - hVal}
+                            width="14"
+                            height={hVal}
+                            fill="#0F2942"
+                            rx="3"
+                          />
+                          {/* Month label */}
+                          <text
+                            x={bar.x + 32}
+                            y="205"
+                            textAnchor="middle"
+                            fontSize="11"
+                            fill="#64748B"
+                            fontWeight="600"
+                          >
+                            {bar.m}
+                          </text>
+                        </g>
+                      );
+                    })}
+                  </svg>
+                </div>
+
+                {/* Commodity Share Breakdown */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
+                    <SpaceProgressBar value={42} label="Kopi Arabika Gayo" detail="$119,490 (42%)" tone="primary" />
+                  </div>
+                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
+                    <SpaceProgressBar value={28} label="Udang Windu Beku" detail="$79,660 (28%)" tone="primary" />
+                  </div>
+                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
+                    <SpaceProgressBar value={18} label="Organic Coconut Sugar" detail="$51,210 (18%)" tone="warning" />
+                  </div>
+                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
+                    <SpaceProgressBar value={12} label="Mebel Kayu & Rotan" detail="$34,140 (12%)" tone="success" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+{/* TAB KONTEN 2: ALUR OPERASIONAL TRANSAKSI AKTIF */}
           {activeTab === "workflow" && (
             <div className="module-stack">
               {/* Kartu Ringkasan Hero Pesanan Aktif */}

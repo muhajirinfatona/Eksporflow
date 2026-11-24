@@ -22,6 +22,7 @@ import {
   ReportsView,
   SettingsView,
 } from "@/components/workspace/SecondaryScreens";
+import { SpaceDesignSystemShowcase } from "@/components/workspace/SpaceDesignSystemShowcase";
 import { TransactionsModule } from "@/components/workspace/TransactionsModule";
 import { ALL_SCREENS, getScreenMeta, WorkspaceShell } from "@/components/workspace/WorkspaceShell";
 import { useActiveShipment } from "@/hooks/useActiveShipment";
@@ -496,6 +497,9 @@ export default function Home() {
           onUpgradeFromDemo={() => void handleUpgradeFromDemo()}
           navigate={navigate}
         />
+      )}
+      {screen === "design_system" && (
+        <SpaceDesignSystemShowcase navigate={navigate} />
       )}
     </WorkspaceShell>
   );

@@ -25,7 +25,8 @@ export type ScreenId =
   | "bank"
   | "journals"
   | "reports"
-  | "settings";
+  | "settings"
+  | "design_system";
 
 export type LegalChecklist = {
   hsCodeReviewed: boolean;
