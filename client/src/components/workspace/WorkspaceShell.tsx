@@ -271,16 +271,6 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
           "Kelola SOP internal dan panduan pasar dengan batas scope, masa berlaku, dan pemisahan uploader vs reviewer.",
         icon: <BookOpen size={16} />,
       },
-      {
-        id: "design_system",
-        label: "Space Design System",
-        group: "Advisor & Pengetahuan",
-        phase: "Design System",
-        title: "Space Design System Showcase",
-        description:
-          "Katalog komponen lengkap Space Design System: layout, CRM, calendar, kanban, chart, pagination, forms, typography, badges, dan buttons.",
-        icon: <Sparkles size={16} />,
-      },
     ],
   },
   {
