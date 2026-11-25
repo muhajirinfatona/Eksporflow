@@ -21879,6 +21879,18 @@ table.unlk-items-table th.active-cell {
   background: #FFFFFF !important;
 }
 
+.input-shell.select-shell select {
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  width: 100% !important;
+  min-height: 38px !important;
+  padding: 6px 10px !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+}
+
 /* Universal Table Styling */
 .compact-table,
 .matrix-table,

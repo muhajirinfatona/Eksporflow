@@ -1068,16 +1068,44 @@ export function ReadinessView({
                   value={shipment.hsCode}
                   onChange={(v) => update("hsCode", v)}
                 />
-                <Field
+                <SelectField
                   label="Satuan jual"
-                  value={shipment.unit}
+                  value={shipment.unit || "carton"}
                   onChange={(v) => update("unit", v)}
-                />
-                <Field
+                >
+                  <option value="carton">Carton / Karton (Box)</option>
+                  <option value="karung">Bag / Karung (Jute / Gunny Bag)</option>
+                  <option value="kg">Kilogram (KG)</option>
+                  <option value="MT">Metric Ton (MT / Ton)</option>
+                  <option value="drum">Drum / Barel (Minyak / Cairan)</option>
+                  <option value="pallet">Pallet (PLT)</option>
+                  <option value="pcs">Pieces / Buah (Pcs)</option>
+                  <option value="bale">Bale / Bal (Tekstil / Tembakau)</option>
+                  <option value="crate">Crate / Peti Kayu</option>
+                  <option value="liter">Liter (LTR)</option>
+                  <option value="set">Set / Paket</option>
+                  {!["carton", "karung", "kg", "MT", "drum", "pallet", "pcs", "bale", "crate", "liter", "set"].includes(shipment.unit) && shipment.unit && (
+                    <option value={shipment.unit}>{shipment.unit}</option>
+                  )}
+                </SelectField>
+                <SelectField
                   label="Pengalaman ekspor tim"
-                  value={readiness.experience}
+                  value={readiness.experience || "Eksportir Pemula (Pengapalan Perdana)"}
                   onChange={(v) => setReadiness({ experience: v })}
-                />
+                >
+                  <option value="Eksportir Pemula (Pengapalan Perdana)">Eksportir Pemula (Pengapalan Perdana)</option>
+                  <option value="1–3 Kali Pengapalan (Tahap Rintisan)">1–3 Kali Pengapalan (Tahap Rintisan)</option>
+                  <option value="Rutin / Berpengalaman (>3 Kontainer/Tahun)">Rutin / Berpengalaman (&gt;3 Kontainer/Tahun)</option>
+                  <option value="Eksportir Mahir & Terakreditasi (AEO)">Eksportir Mahir &amp; Terakreditasi (AEO)</option>
+                  {readiness.experience && ![
+                    "Eksportir Pemula (Pengapalan Perdana)",
+                    "1–3 Kali Pengapalan (Tahap Rintisan)",
+                    "Rutin / Berpengalaman (>3 Kontainer/Tahun)",
+                    "Eksportir Mahir & Terakreditasi (AEO)"
+                  ].includes(readiness.experience) && (
+                    <option value={readiness.experience}>{readiness.experience}</option>
+                  )}
+                </SelectField>
                 <div className="row-actions" style={{ gridColumn: "1 / -1", marginTop: 4 }}>
                   <button type="button" className="ghost-button" onClick={() => navigate("products")}>
                     <Package size={14} /> Ambil dari Katalog Produk
