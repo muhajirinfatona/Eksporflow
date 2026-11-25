@@ -95,7 +95,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         phase: "Ringkasan",
         title: "Dashboard Ekspor",
         description:
-          "Ringkasan transaksi aktif, status kelengkapan dokumen, kontainer, dan jadwal PEB.",
+          "Ringkasan operasional transaksi ekspor aktif & kepatuhan devisa",
         icon: <LayoutGrid size={16} />,
       },
       {
@@ -684,12 +684,6 @@ export function WorkspaceShell({
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, color: "#64748B" }}>
               <span style={{ fontWeight: 600, color: "#0F172A" }}>EksporFlow</span>
-              {screen !== "dashboard" && (
-                <>
-                  <span>/</span>
-                  <span>{activeMeta.title}</span>
-                </>
-              )}
             </div>
           </div>
 
@@ -907,28 +901,10 @@ export function WorkspaceShell({
 
           <section className={`page-heading ${screen === "documents" ? "doc-screen-heading" : ""}`}>
             <div>
-              {screen !== "dashboard" ? (
-                <span className="eyebrow">
-                  {activeMeta.phase}
-                  {reference && !reference.startsWith("EXP-") && reference !== "Transaksi Ekspor" ? (
-                    <>
-                      {" · "}
-                      <button
-                        type="button"
-                        className="eyebrow-ref-link mono-code"
-                        title="Kelola atau ganti transaksi aktif"
-                        onClick={() => navigate("transactions")}
-                      >
-                        {reference}
-                      </button>
-                    </>
-                  ) : null}
-                </span>
-              ) : null}
               <h1 style={{ margin: "0 0 2px 0" }}>{activeMeta.title}</h1>
-              {screen === "dashboard" && (
+              {activeMeta.description && (
                 <p style={{ margin: 0, fontSize: 12.5, color: "#64748B" }}>
-                  Ringkasan operasional transaksi ekspor aktif &amp; kepatuhan devisa
+                  {activeMeta.description}
                 </p>
               )}
             </div>
