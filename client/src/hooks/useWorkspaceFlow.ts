@@ -66,6 +66,8 @@ export type KnowledgeSource = {
 export type ReadinessRecord = {
   experience: string;
   certReady: boolean;
+  specialDocs?: string[];
+  customDocs?: string[];
 };
 
 const LEGACY_KEYS = [
@@ -455,6 +457,8 @@ export function useWorkspaceFlow({
   const readiness: ReadinessRecord = readinessMap[shipment.reference] ?? {
     experience: "",
     certReady: false,
+    specialDocs: ["coo", "phyto"],
+    customDocs: [],
   };
 
   const setReadiness = useCallback(
@@ -462,7 +466,12 @@ export function useWorkspaceFlow({
       setReadinessMap((prev) => ({
         ...prev,
         [shipment.reference]: {
-          ...(prev[shipment.reference] ?? { experience: "", certReady: false }),
+          ...(prev[shipment.reference] ?? {
+            experience: "",
+            certReady: false,
+            specialDocs: ["coo", "phyto"],
+            customDocs: [],
+          }),
           ...patch,
         },
       }));
@@ -475,7 +484,7 @@ export function useWorkspaceFlow({
     (shipment.hsCode.trim() ? 20 : 0) +
     (shipment.buyerCountry.trim() ? 20 : 0) +
     (shipment.packaging > 0 ? 15 : 0) +
-    (readiness.certReady ? 20 : 0);
+    (readiness.certReady || (readiness.specialDocs && readiness.specialDocs.length > 0) ? 20 : 0);
 
   return {
     partners,

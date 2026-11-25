@@ -592,6 +592,7 @@ export function DashboardView({
 
           {/* Active Contract & B/L Summary Strip (Preserved Layout Gambar 1: 2 Baris Kiri, Tombol Kanan, Spasi Atas-Bawah Rapat) */}
           <div
+            className="space-vessel-bl-strip"
             style={{
               display: "flex",
               alignItems: "center",
@@ -631,7 +632,7 @@ export function DashboardView({
         </div>
 
         {/* Right Column: Market Share & Compliance */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="space-home-right-col" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
           {/* Card 1: Pangsa Pasar Ekspor (Professional Donut Pie Chart) */}
           <div className="space-traffic-card-v2">
             <div className="space-payment-v2-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
@@ -1019,6 +1020,109 @@ export function DashboardView({
   );
 }
 
+const EXPORT_DESTINATION_COUNTRIES = [
+  "United States (USA)",
+  "Japan (Jepang)",
+  "China (Tiongkok)",
+  "Germany (Jerman)",
+  "Netherlands (Belanda)",
+  "Singapore (Singapura)",
+  "Malaysia",
+  "United Arab Emirates (UAE)",
+  "Saudi Arabia (Arab Saudi)",
+  "South Korea (Korea Selatan)",
+  "Australia",
+  "United Kingdom (UK)",
+  "India",
+  "Vietnam",
+  "Philippines (Filipina)",
+  "Thailand",
+  "Italy (Italia)",
+  "Spain (Spanyol)",
+  "France (Prancis)",
+  "Canada (Kanada)",
+  "Taiwan",
+  "Egypt (Mesir)",
+  "South Africa (Afrika Selatan)",
+  "Turkey (Turki)",
+  "Brazil",
+  "New Zealand",
+];
+
+const EXPORT_PAYMENT_TERMS = [
+  "T/T 30% Advance, 70% against Copy B/L (Standar Ekspor)",
+  "T/T 50% Advance, 50% Before Shipment",
+  "T/T 100% Advance Payment (Full DP di Awal)",
+  "L/C at Sight (Irrevocable & Confirmed)",
+  "Usance L/C 30 Hari",
+  "Usance L/C 60 Hari",
+  "CAD (Cash Against Documents / D/P)",
+  "D/A 30 Hari (Documents Against Acceptance)",
+  "Open Account (O/A) Net 30 Hari",
+  "Open Account (O/A) Net 60 Hari",
+];
+
+const STANDARD_EXPORT_DOCS = [
+  {
+    id: "coo",
+    label: "e-SKA / Certificate of Origin (COO)",
+    issuer: "Kemendag / IPSKA",
+    desc: "Form A/D/AK/AJ/E/B untuk keringanan tarif bea masuk di negara tujuan.",
+  },
+  {
+    id: "phyto",
+    label: "Phytosanitary Certificate",
+    issuer: "Barantin (Karantina)",
+    desc: "Wajib komoditas hasil bumi, rempah, kopi, briket arang, & produk nabati.",
+  },
+  {
+    id: "fumigation",
+    label: "Fumigation Certificate (ISPM #15)",
+    issuer: "Badan Fumigasi / AFAS",
+    desc: "Perlakuan hama kemasan kayu & pallet kontainer ekspor.",
+  },
+  {
+    id: "coa",
+    label: "Certificate of Analysis (CoA)",
+    issuer: "Sucofindo / SGS / Lab",
+    desc: "Uji mutu kimia, kadar air, kemurnian, & spesifikasi lab independen.",
+  },
+  {
+    id: "halal",
+    label: "Halal Export Certificate",
+    issuer: "BPJPH / Kemenag RI",
+    desc: "Wajib untuk ekspor makanan, minuman & kosmetik ke Timur Tengah & OIC.",
+  },
+  {
+    id: "health",
+    label: "Health Certificate (HC)",
+    issuer: "Barantin / KKP / BPOM",
+    desc: "Sertifikasi higienitas & keamanan pangan untuk konsumsi manusia.",
+  },
+  {
+    id: "surveyor",
+    label: "Laporan Surveyor Ekspor (LS / VPTI)",
+    issuer: "Surveyor KSO (Sucofindo)",
+    desc: "Verifikasi teknis pra-pengapalan kuantitas & mutu sebelum muat kapal.",
+  },
+  {
+    id: "weight",
+    label: "Weight & Quality Certificate",
+    issuer: "Otoritas Pelabuhan",
+    desc: "Sertifikat timbang resmi berat kotor & bersih saat stuffing kontainer.",
+  },
+];
+
+const QUICK_BUYER_DOCS = [
+  "Fairtrade Certificate",
+  "FDA Prior Notice Confirmation (USA)",
+  "USDA Organic / EU Bio",
+  "Kosher Certificate",
+  "Non-GMO Statement",
+  "Aflatoxin-Free Lab Report",
+  "Manufacturer Declaration",
+];
+
 export function ReadinessView({
   shipment,
   update,
@@ -1032,6 +1136,46 @@ export function ReadinessView({
 }) {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const { readiness, readinessScore, setReadiness } = flow;
+  const [newCustomDoc, setNewCustomDoc] = useState("");
+
+  const activeSpecialDocs = readiness.specialDocs || ["coo", "phyto"];
+  const activeCustomDocs = readiness.customDocs || [];
+  const totalMappedDocs = activeSpecialDocs.length + activeCustomDocs.length;
+
+  const toggleSpecialDoc = (docId: string) => {
+    const next = activeSpecialDocs.includes(docId)
+      ? activeSpecialDocs.filter((id) => id !== docId)
+      : [...activeSpecialDocs, docId];
+    setReadiness({
+      specialDocs: next,
+      certReady: next.length > 0 || activeCustomDocs.length > 0,
+    });
+  };
+
+  const handleAddCustomDoc = (nameToAdd?: string) => {
+    const val = (nameToAdd || newCustomDoc).trim();
+    if (!val) return;
+    if (activeCustomDocs.includes(val)) {
+      toast.info(`Dokumen "${val}" sudah ada di daftar.`);
+      return;
+    }
+    const next = [...activeCustomDocs, val];
+    setReadiness({
+      customDocs: next,
+      certReady: true,
+    });
+    setNewCustomDoc("");
+    toast.success(`Dokumen khusus buyer "${val}" berhasil ditambahkan.`);
+  };
+
+  const handleRemoveCustomDoc = (val: string) => {
+    const next = activeCustomDocs.filter((d) => d !== val);
+    setReadiness({
+      customDocs: next,
+      certReady: activeSpecialDocs.length > 0 || next.length > 0,
+    });
+    toast.info(`Dokumen "${val}" dihapus.`);
+  };
 
   return (
     <div className="module-stack">
@@ -1124,21 +1268,41 @@ export function ReadinessView({
                   value={shipment.buyer}
                   onChange={(v) => update("buyer", v)}
                 />
-                <Field
+                <SelectField
                   label="Negara tujuan"
-                  value={shipment.buyerCountry}
+                  value={shipment.buyerCountry || "United States (USA)"}
                   onChange={(v) => update("buyerCountry", v)}
-                />
+                >
+                  {EXPORT_DESTINATION_COUNTRIES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                  {shipment.buyerCountry &&
+                    !EXPORT_DESTINATION_COUNTRIES.includes(shipment.buyerCountry) && (
+                      <option value={shipment.buyerCountry}>{shipment.buyerCountry}</option>
+                    )}
+                </SelectField>
                 <Field
                   label="Pelabuhan / kota tujuan"
                   value={shipment.destination}
                   onChange={(v) => update("destination", v)}
                 />
-                <Field
+                <SelectField
                   label="Terms pembayaran"
-                  value={shipment.paymentTerms}
+                  value={shipment.paymentTerms || "T/T 30% Advance, 70% against Copy B/L (Standar Ekspor)"}
                   onChange={(v) => update("paymentTerms", v)}
-                />
+                >
+                  {EXPORT_PAYMENT_TERMS.map((term) => (
+                    <option key={term} value={term}>
+                      {term}
+                    </option>
+                  ))}
+                  {shipment.paymentTerms &&
+                    !EXPORT_PAYMENT_TERMS.includes(shipment.paymentTerms) && (
+                      <option value={shipment.paymentTerms}>{shipment.paymentTerms}</option>
+                    )}
+                </SelectField>
                 <div className="row-actions" style={{ gridColumn: "1 / -1", marginTop: 4 }}>
                   <button type="button" className="ghost-button" onClick={() => navigate("partners")}>
                     <UserRound size={14} /> Pilih dari Direktori Mitra
@@ -1166,23 +1330,123 @@ export function ReadinessView({
                     <option key={term}>{term}</option>
                   ))}
                 </SelectField>
-                <label className="legal-check-row" style={{ gridColumn: "1 / -1" }}>
-                  <input
-                    type="checkbox"
-                    checked={readiness.certReady}
-                    onChange={(e) => setReadiness({ certReady: e.target.checked })}
-                  />
-                  <span>
-                    <b>Dokumen mutu / COO / sertifikat pendukung sudah dipetakan</b>
-                    <small>Tandai bila daftar persyaratan dari buyer atau broker sudah dikonfirmasi.</small>
-                  </span>
-                </label>
+
+                {/* Buyer Special Documents & Standard Certification Module */}
+                <div className="special-docs-container">
+                  <div className="special-docs-head">
+                    <div className="special-docs-title-wrap">
+                      <div className="special-docs-icon">
+                        <FileCheck2 size={18} />
+                      </div>
+                      <div>
+                        <h4>Sertifikasi &amp; Dokumen Khusus Permintaan Buyer</h4>
+                        <p>
+                          Tandai dokumen wajib dari instansi penerbit atau tambahkan persyaratan khusus sesuai Sales Contract / L/C buyer.
+                        </p>
+                      </div>
+                    </div>
+                    <StatusPill tone={totalMappedDocs > 0 ? "green" : "amber"}>
+                      {totalMappedDocs} Dokumen Terpetakan
+                    </StatusPill>
+                  </div>
+
+                  {/* Standard Certificate Grid */}
+                  <div className="special-docs-grid">
+                    {STANDARD_EXPORT_DOCS.map((doc) => {
+                      const isChecked = activeSpecialDocs.includes(doc.id);
+                      return (
+                        <div
+                          key={doc.id}
+                          className={`special-doc-card ${isChecked ? "active" : ""}`}
+                          onClick={() => toggleSpecialDoc(doc.id)}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => {}} // handled by parent div onClick
+                          />
+                          <div className="special-doc-info">
+                            <div className="special-doc-title-row">
+                              <span className="special-doc-name">{doc.label}</span>
+                              <span className="special-doc-issuer">{doc.issuer}</span>
+                            </div>
+                            <span className="special-doc-desc">{doc.desc}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Custom Buyer Documents Box */}
+                  <div className="custom-docs-box">
+                    <div className="custom-docs-title">
+                      <ShieldCheck size={15} style={{ color: "#D97706" }} />
+                      <span>Dokumen Khusus Tambahan dari Buyer (Custom Request)</span>
+                    </div>
+                    <div className="custom-doc-input-row">
+                      <input
+                        type="text"
+                        className="custom-doc-input"
+                        placeholder="Ketik nama sertifikat khusus (contoh: Fairtrade, FDA Prior Notice, Kosher)..."
+                        value={newCustomDoc}
+                        onChange={(e) => setNewCustomDoc(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddCustomDoc();
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="custom-doc-add-btn"
+                        onClick={() => handleAddCustomDoc()}
+                      >
+                        <Plus size={14} /> Tambah Dokumen
+                      </button>
+                    </div>
+
+                    {/* Quick Recommendations */}
+                    <div className="quick-buyer-docs">
+                      <span className="quick-buyer-docs-label">Saran Cepat:</span>
+                      {QUICK_BUYER_DOCS.map((quickDoc) => (
+                        <button
+                          key={quickDoc}
+                          type="button"
+                          className="quick-doc-pill"
+                          onClick={() => handleAddCustomDoc(quickDoc)}
+                        >
+                          <Plus size={10} /> {quickDoc}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Active Custom Documents Badges */}
+                    {activeCustomDocs.length > 0 && (
+                      <div className="custom-docs-tag-list">
+                        {activeCustomDocs.map((docName) => (
+                          <span key={docName} className="custom-doc-badge-tag">
+                            <span>📄 {docName}</span>
+                            <button
+                              type="button"
+                              title="Hapus dokumen ini"
+                              onClick={() => handleRemoveCustomDoc(docName)}
+                            >
+                              <X size={12} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="row-actions" style={{ gridColumn: "1 / -1", marginTop: 4 }}>
                   <button type="button" className="ghost-button" onClick={() => navigate("cargo")}>
                     <Box size={14} /> Atur Dimensi Kontainer 3D
                   </button>
                   <button type="button" className="save-button" onClick={() => setStep(4)}>
-                    Lihat Ringkasan Kesiapan →
+                    Lihat Ringkasan Kesiapan ({totalMappedDocs} Dokumen) →
                   </button>
                 </div>
               </div>
@@ -1190,10 +1454,47 @@ export function ReadinessView({
 
             {step === 4 && (
               <div className="module-stack">
-                <div className="clean-notice">
-                  Seluruh data yang Anda isi di asesmen ini sudah otomatis tersambung ke transaksi{" "}
-                  <b>{shipment.reference}</b> di Kalkulator Harga, Dokumen Ekspor, dan Risk Center.
+                <div className="clean-notice" style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderRadius: 10, background: "#EFF6FF", border: "1px solid #BFDBFE" }}>
+                  <div style={{ width: 30, height: 30, borderRadius: 8, background: "#DBEAFE", color: "#1D4ED8", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <CheckCircle2 size={16} />
+                  </div>
+                  <div style={{ fontSize: 13, color: "#1E3A8A", lineHeight: 1.5, flex: 1 }}>
+                    Seluruh data asesmen ini otomatis tersinkronisasi ke modul <b>Kalkulator Harga</b>, <b>Dokumen Ekspor</b>, dan <b>Risk Center</b> untuk transaksi {shipment.reference ? (
+                      <span style={{ fontWeight: 700, background: "#DBEAFE", color: "#1E40AF", padding: "2px 8px", borderRadius: 6, letterSpacing: 0.2 }}>
+                        {shipment.reference}
+                      </span>
+                    ) : (
+                      <b>ekspor aktif ini</b>
+                    )}.
+                  </div>
                 </div>
+
+                <div className="panel panel-padding" style={{ background: "#F8FAFC", borderRadius: 12 }}>
+                  <span className="eyebrow" style={{ marginBottom: 6 }}>RINGKASAN DOKUMEN &amp; KEPATUHAN TERPETAKAN</span>
+                  <div className="readiness-docs-summary-list">
+                    {activeSpecialDocs.map((id) => {
+                      const found = STANDARD_EXPORT_DOCS.find((d) => d.id === id);
+                      return (
+                        <div key={id} className="readiness-doc-item">
+                          <span><b>{found?.label || id}</b></span>
+                          <StatusPill tone="green">{found?.issuer || "Standar"}</StatusPill>
+                        </div>
+                      );
+                    })}
+                    {activeCustomDocs.map((cd) => (
+                      <div key={cd} className="readiness-doc-item" style={{ background: "#FEF3C7", borderColor: "#FDE68A" }}>
+                        <span><b>{cd}</b></span>
+                        <StatusPill tone="amber">Permintaan Buyer</StatusPill>
+                      </div>
+                    ))}
+                    {totalMappedDocs === 0 && (
+                      <div style={{ color: "#94A3B8", fontSize: 13, fontStyle: "italic" }}>
+                        Belum ada dokumen atau sertifikat khusus yang ditandai.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="row-actions">
                   <button type="button" className="save-button" onClick={() => navigate("pricing")}>
                     <Calculator size={14} /> Lanjut Susun Harga &amp; Order
@@ -1232,8 +1533,8 @@ export function ReadinessView({
             </div>
             <div className="clean-kv">
               <span>Pemetaan COO / sertifikat</span>
-              <StatusPill tone={readiness.certReady ? "green" : "amber"}>
-                {readiness.certReady ? "Siap" : "Belum ditandai"}
+              <StatusPill tone={totalMappedDocs > 0 ? "green" : "amber"}>
+                {totalMappedDocs > 0 ? `${totalMappedDocs} Dokumen Terpetakan` : "Belum ditandai"}
               </StatusPill>
             </div>
           </div>
@@ -1305,6 +1606,22 @@ export function ReadinessView({
                 <td>
                   <button type="button" className="table-inline-btn" onClick={() => navigate("pricing")}>
                     Buka Harga →
+                  </button>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <b>Penerbitan COO &amp; sertifikat khusus buyer ({totalMappedDocs} dokumen terpetakan)</b>
+                </td>
+                <td>Legal &amp; Mutu</td>
+                <td>
+                  <StatusPill tone={totalMappedDocs > 0 ? "green" : "amber"}>
+                    {totalMappedDocs > 0 ? "Terpetakan" : "Perlu Pemetaan"}
+                  </StatusPill>
+                </td>
+                <td>
+                  <button type="button" className="table-inline-btn" onClick={() => navigate("documents")}>
+                    Buka Dokumen Ekspor →
                   </button>
                 </td>
               </tr>

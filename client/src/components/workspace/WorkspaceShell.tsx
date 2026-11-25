@@ -496,6 +496,7 @@ export function WorkspaceShell({
     typeof window !== "undefined" ? window.innerWidth <= 768 : false,
   );
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
   const [activeLocale, setActiveLocale] = useState<SupportedLocale>("ID");
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -689,8 +690,8 @@ export function WorkspaceShell({
 
           {/* Topbar Right Actions: Search + Bantuan + Notifikasi + Bahasa (Grouped Closely Together on Right) */}
           <div className="topbar-actions" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            {/* 1. Global Search Box (Right Aligned next to tools) */}
-            <div className="space-topbar-omni" style={{ width: 230, position: "relative" }}>
+            {/* Desktop Global Search Box */}
+            <div className="space-topbar-omni desktop-only-search">
               <Search size={14} style={{ color: "#64748B" }} />
               <input
                 value={searchTerm}
@@ -725,7 +726,18 @@ export function WorkspaceShell({
               )}
             </div>
 
-            {searchOpen && matchingScreens.length > 0 && (
+            {/* Mobile Search Icon Trigger */}
+            <button
+              type="button"
+              className="icon-button mobile-only-search-btn"
+              onClick={() => setMobileSearchOpen((prev) => !prev)}
+              aria-label="Cari transaksi atau menu"
+              title="Pencarian"
+            >
+              <Search size={16} />
+            </button>
+
+            {searchOpen && matchingScreens.length > 0 && !mobileSearchOpen && (
               <div className="top-search-dropdown" style={{ position: "absolute", top: 52, right: 280, zIndex: 100 }}>
                 {matchingScreens.map((m) => (
                   <button
@@ -747,13 +759,13 @@ export function WorkspaceShell({
             {/* 2. Bantuan / Support Button (Replaces top AI Advisor) */}
             <button
               type="button"
-              className="space-btn-secondary"
+              className="space-btn-secondary topbar-help-btn"
               onClick={() => setShowSupportModal(true)}
               title="Pusat Bantuan & Hubungi Tim Dukungan"
               style={{ padding: "6px 12px", fontSize: 12.5 }}
             >
               <HelpCircle size={14} style={{ color: "#2563EB" }} />
-              <span>Bantuan</span>
+              <span className="topbar-help-text">Bantuan</span>
             </button>
 
             {/* 3. Notification Bell with Empty State & Mark Read */}
@@ -878,6 +890,54 @@ export function WorkspaceShell({
           </div>
         </header>
 
+        {/* Mobile Expandable Search Strip */}
+        {mobileSearchOpen && (
+          <div className="mobile-search-bar-wrap">
+            <div className="mobile-search-bar">
+              <Search size={14} style={{ color: "#64748B", flexShrink: 0 }} />
+              <input
+                autoFocus
+                value={searchTerm}
+                onChange={(event) => {
+                  setSearchTerm(event.target.value);
+                  setSearchOpen(Boolean(event.target.value.trim()));
+                }}
+                placeholder="Cari transaksi, B/L, dokumen..."
+              />
+              <button
+                type="button"
+                className="mobile-search-close-btn"
+                onClick={() => {
+                  setMobileSearchOpen(false);
+                  setSearchOpen(false);
+                  setSearchTerm("");
+                }}
+              >
+                <X size={15} />
+              </button>
+            </div>
+            {searchOpen && matchingScreens.length > 0 && (
+              <div className="mobile-search-dropdown">
+                {matchingScreens.map((m) => (
+                  <button
+                    type="button"
+                    key={m.id}
+                    onClick={() => {
+                      navigate(m.id);
+                      setMobileSearchOpen(false);
+                      setSearchOpen(false);
+                      setSearchTerm("");
+                    }}
+                  >
+                    <b>{m.label}</b>
+                    <small>{m.group}</small>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="page-wrap">
           {saveState === "conflict" && (
             <div className="conflict-banner">
@@ -936,7 +996,7 @@ export function WorkspaceShell({
                     title="Buat Transaksi Ekspor Baru"
                   >
                     <Plus size={14} />
-                    <span>+ Transaksi Baru</span>
+                    <span>Transaksi Baru</span>
                   </button>
                 </>
               ) : (
