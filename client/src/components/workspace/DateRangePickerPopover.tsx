@@ -100,59 +100,65 @@ export function DateRangePickerPopover({
     return t >= s && t <= e;
   };
 
+  const getPresetLabel = (key: string) => {
+    const dict: Record<string, Record<string, string>> = {
+      today: { ID: "Hari Ini", EN: "Today", AR: "اليوم" },
+      yesterday: { ID: "Kemarin", EN: "Yesterday", AR: "أمس" },
+      last_7: { ID: "7 Hari Terakhir", EN: "Last 7 Days", AR: "آخر 7 أيام" },
+      last_14: { ID: "14 Hari Terakhir", EN: "Last 14 Days", AR: "آخر 14 يوماً" },
+      last_30: { ID: "30 Hari Terakhir", EN: "Last 30 Days", AR: "آخر 30 يوماً" },
+      this_month: { ID: "Bulan Ini", EN: "This Month", AR: "هذا الشهر" },
+      last_month: { ID: "Bulan Lalu", EN: "Last Month", AR: "الشهر الماضي" },
+      max: { ID: "Sepanjang Waktu", EN: "Max Range", AR: "أقصى فترة" },
+    };
+    return dict[key]?.[locale] || dict[key]?.ID || key;
+  };
+
   // Meta Ads presets list
   const presets = [
-    { key: "today", label: "Hari Ini" },
-    { key: "yesterday", label: "Kemarin" },
-    { key: "last_7", label: "7 Hari Terakhir" },
-    { key: "last_14", label: "14 Hari Terakhir" },
-    { key: "last_30", label: "30 Hari Terakhir" },
-    { key: "this_month", label: "Bulan Ini" },
-    { key: "last_month", label: "Bulan Lalu" },
-    { key: "max", label: "Sepanjang Waktu" },
+    { key: "today", label: getPresetLabel("today") },
+    { key: "yesterday", label: getPresetLabel("yesterday") },
+    { key: "last_7", label: getPresetLabel("last_7") },
+    { key: "last_14", label: getPresetLabel("last_14") },
+    { key: "last_30", label: getPresetLabel("last_30") },
+    { key: "this_month", label: getPresetLabel("this_month") },
+    { key: "last_month", label: getPresetLabel("last_month") },
+    { key: "max", label: getPresetLabel("max") },
   ];
 
   const applyPreset = (key: string) => {
     const baseToday = new Date(2026, 10, 24); // Reference 24 Nov 2026
     let s = new Date(baseToday);
     let e = new Date(baseToday);
-    let lbl = "Hari Ini";
+    let lbl = getPresetLabel(key);
 
     switch (key) {
       case "today":
-        lbl = "Hari Ini (24 Nov)";
         break;
       case "yesterday":
         s.setDate(baseToday.getDate() - 1);
         e.setDate(baseToday.getDate() - 1);
-        lbl = "Kemarin (23 Nov)";
         break;
       case "last_7":
         s.setDate(baseToday.getDate() - 6);
-        lbl = "7 Hari Terakhir";
         break;
       case "last_14":
         s.setDate(baseToday.getDate() - 13);
-        lbl = "14 Hari Terakhir";
         break;
       case "last_30":
         s.setDate(baseToday.getDate() - 29);
-        lbl = "30 Hari Terakhir";
         break;
       case "this_month":
         s = new Date(2026, 10, 1);
         e = new Date(2026, 10, 24);
-        lbl = "Bulan Ini (Nov 2026)";
         break;
       case "last_month":
         s = new Date(2026, 9, 1);
         e = new Date(2026, 9, 31);
-        lbl = "Bulan Lalu (Okt 2026)";
         break;
       case "max":
         s = new Date(2026, 0, 1);
         e = new Date(2026, 10, 24);
-        lbl = "Sepanjang Waktu (2026)";
         break;
     }
 
@@ -232,7 +238,7 @@ export function DateRangePickerPopover({
         <Calendar size={13} style={{ color: "#2563EB" }} />
         <span>
           {selectedRange.presetKey !== "custom"
-            ? `${selectedRange.label}: ${formatDateDisplay(selectedRange.startDate)} - ${formatDateDisplay(selectedRange.endDate)}`
+            ? `${getPresetLabel(selectedRange.presetKey)}: ${formatDateDisplay(selectedRange.startDate)} - ${formatDateDisplay(selectedRange.endDate)}`
             : `${formatDateDisplay(selectedRange.startDate)} - ${formatDateDisplay(selectedRange.endDate)}`}
         </span>
         <ChevronDown size={11} style={{ color: "#64748B" }} />
@@ -282,7 +288,7 @@ export function DateRangePickerPopover({
                   letterSpacing: "0.05em",
                 }}
               >
-                Rentang Waktu
+                {locale === "AR" ? "الفترة الزمنية" : locale === "EN" ? "Date Range" : "Rentang Waktu"}
               </span>
               {presets.map((p) => {
                 const isActive = tempPreset === p.key;
@@ -466,12 +472,12 @@ export function DateRangePickerPopover({
             }}
           >
             <div style={{ fontSize: 12, color: "#475569" }}>
-              <span style={{ color: "#64748B" }}>Terpilih: </span>
+              <span style={{ color: "#64748B" }}>{locale === "AR" ? "المحدد: " : locale === "EN" ? "Selected: " : "Terpilih: "}</span>
               <strong style={{ color: "#0F172A" }}>
                 {formatDateDisplay(tempStart)} - {formatDateDisplay(tempEnd)}
               </strong>
               <span style={{ color: "#2563EB", marginLeft: 6, fontWeight: 500 }}>
-                ({rangeDaysCount} hari)
+                ({rangeDaysCount} {locale === "AR" ? "أيام" : locale === "EN" ? "days" : "hari"})
               </span>
             </div>
 
@@ -482,7 +488,7 @@ export function DateRangePickerPopover({
                 onClick={() => setIsOpen(false)}
                 style={{ padding: "5px 12px", fontSize: 12 }}
               >
-                Batal
+                {locale === "AR" ? "إلغاء" : locale === "EN" ? "Cancel" : "Batal"}
               </button>
               <button
                 type="button"
@@ -490,7 +496,7 @@ export function DateRangePickerPopover({
                 onClick={handleApply}
                 style={{ padding: "5px 14px", fontSize: 12 }}
               >
-                Terapkan
+                {locale === "AR" ? "تطبيق" : locale === "EN" ? "Apply" : "Terapkan"}
               </button>
             </div>
           </div>

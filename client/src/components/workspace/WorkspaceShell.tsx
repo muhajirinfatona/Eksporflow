@@ -9,6 +9,7 @@ import type { ScreenId } from "@shared/risk";
 import { DateRangePickerPopover, type DateRange } from "./DateRangePickerPopover";
 import { SupportModal } from "./SupportModal";
 import { LanguageDropdown, type SupportedLocale } from "./LanguageDropdown";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { ScreenAIFloatingWidget } from "./ScreenAIAdvisor";
 import {
   AlertTriangle,
@@ -498,7 +499,7 @@ export function WorkspaceShell({
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
-  const [activeLocale, setActiveLocale] = useState<SupportedLocale>("ID");
+  const { locale, setLocale, t, navGroups, screens } = useLanguage();
   const [dateRange, setDateRange] = useState<DateRange>({
     startDate: new Date(2026, 10, 1),
     endDate: new Date(2026, 10, 24),
@@ -551,18 +552,18 @@ export function WorkspaceShell({
     };
   }, [isCompactViewport, sidebarOpen]);
 
-  const activeMeta = getScreenMeta(screen);
+  const activeMeta = screens.find((item) => item.id === screen) ?? getScreenMeta(screen);
 
   const matchingScreens = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     if (!q) return [];
-    return ALL_SCREENS.filter(
+    return screens.filter(
       (item) =>
         item.label.toLowerCase().includes(q) ||
         item.group.toLowerCase().includes(q) ||
         item.description.toLowerCase().includes(q),
     ).slice(0, 6);
-  }, [searchTerm]);
+  }, [searchTerm, screens]);
 
   const companyOrUserName =
     user?.companyName?.trim() ||
@@ -615,7 +616,7 @@ export function WorkspaceShell({
         </div>
 
         <nav className="clean-nav-scroll" aria-label="Navigasi utama EksporFlow">
-          {NAV_GROUPS.map((group) => (
+          {navGroups.map((group) => (
             <div className="clean-nav-group" key={group.group}>
               <span className="clean-nav-group-title">{group.group}</span>
               {group.items.map((item) => (
@@ -699,7 +700,7 @@ export function WorkspaceShell({
                   setSearchTerm(event.target.value);
                   setSearchOpen(Boolean(event.target.value.trim()));
                 }}
-                placeholder="Cari transaksi, B/L..."
+                placeholder={t("topbar.search_placeholder", "Cari transaksi, B/L...")}
                 style={{ fontSize: 12.5 }}
                 onKeyDown={(event) => {
                   if (event.key === "Escape") {
@@ -761,11 +762,11 @@ export function WorkspaceShell({
               type="button"
               className="space-btn-secondary topbar-help-btn"
               onClick={() => setShowSupportModal(true)}
-              title="Pusat Bantuan & Hubungi Tim Dukungan"
+              title={t("topbar.support_title", "Pusat Bantuan & Hubungi Tim Dukungan")}
               style={{ padding: "6px 12px", fontSize: 12.5 }}
             >
               <HelpCircle size={14} style={{ color: "#2563EB" }} />
-              <span className="topbar-help-text">Bantuan</span>
+              <span className="topbar-help-text">{t("topbar.help", "Bantuan")}</span>
             </button>
 
             {/* 3. Notification Bell with Empty State & Mark Read */}
@@ -818,7 +819,7 @@ export function WorkspaceShell({
                       borderBottom: "1px solid #F1F5F9",
                     }}
                   >
-                    <strong style={{ fontSize: 13, color: "#0F172A" }}>Notifikasi</strong>
+                    <strong style={{ fontSize: 13, color: "#0F172A" }}>{t("topbar.notifications", "Notifikasi")}</strong>
                     <button
                       type="button"
                       style={{
@@ -834,7 +835,7 @@ export function WorkspaceShell({
                         toast.success("Semua notifikasi ditandai sudah dibaca");
                       }}
                     >
-                      Tandai sudah dibaca
+                      {t("topbar.mark_all_read", "Tandai sudah dibaca")}
                     </button>
                   </div>
                   {/* Clean Empty State as requested by user */}
@@ -864,10 +865,10 @@ export function WorkspaceShell({
                       <BellOff size={18} />
                     </div>
                     <strong style={{ fontSize: 12.5, color: "#0F172A", marginBottom: 4 }}>
-                      Belum ada notifikasi baru
+                      {t("topbar.notifications_empty", "Belum ada notifikasi baru")}
                     </strong>
                     <p style={{ margin: 0, fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>
-                      Semua pembaruan sistem, dokumen kepabeanan, dan jadwal kapal akan muncul di sini.
+                      {t("topbar.notifications_empty_desc", "Semua pembaruan sistem, dokumen kepabeanan, dan jadwal kapal akan muncul di sini.")}
                     </p>
                   </div>
                 </div>
@@ -876,15 +877,15 @@ export function WorkspaceShell({
 
             {/* 4. Language Selector Dropdown (ID 🇮🇩 / EN 🇺🇸 / AR 🇸🇦) */}
             <LanguageDropdown
-              currentLocale={activeLocale}
+              currentLocale={locale}
               onSelectLocale={(loc) => {
-                setActiveLocale(loc);
+                setLocale(loc);
                 const labels: Record<string, string> = {
                   ID: "Bahasa Indonesia",
                   EN: "English (US)",
                   AR: "العربية (Arabic)",
                 };
-                toast.success(`Bahasa sistem diubah ke: ${labels[loc]}`);
+                toast.success(`${t("topbar.language_changed", "Bahasa sistem diubah ke")}: ${labels[loc]}`);
               }}
             />
           </div>
@@ -902,7 +903,7 @@ export function WorkspaceShell({
                   setSearchTerm(event.target.value);
                   setSearchOpen(Boolean(event.target.value.trim()));
                 }}
-                placeholder="Cari transaksi, B/L, dokumen..."
+                placeholder={t("topbar.search_mobile_placeholder", "Cari transaksi, B/L, dokumen...")}
               />
               <button
                 type="button"
@@ -944,7 +945,7 @@ export function WorkspaceShell({
               <div>
                 <AlertTriangle size={16} />
                 <span>
-                  <b>Konflik versi terdeteksi:</b> {statusNote || "Transaksi telah diperbarui dari sesi lain."} Muat versi terbaru sebelum menyimpan kembali agar tidak menimpa data tim.
+                  <b>{t("topbar.conflict_detected", "Konflik versi terdeteksi:")}</b> {statusNote || t("topbar.conflict_desc", "Transaksi telah diperbarui dari sesi lain. Muat versi terbaru sebelum menyimpan kembali agar tidak menimpa data tim.")}
                 </span>
               </div>
               {activeShipmentId && (
@@ -953,7 +954,7 @@ export function WorkspaceShell({
                   className="save-button"
                   onClick={() => void onReloadLatest()}
                 >
-                  <RefreshCcw size={14} /> Muat Versi Terbaru
+                  <RefreshCcw size={14} /> {t("topbar.reload_latest", "Muat Versi Terbaru")}
                 </button>
               )}
             </div>
@@ -978,25 +979,25 @@ export function WorkspaceShell({
                       setDateRange(range);
                       toast.success(`Filter rentang waktu: ${range.label} diterapkan`);
                     }}
-                    locale={activeLocale}
+                    locale={locale}
                   />
                   <button
                     type="button"
                     className="space-btn-secondary"
                     onClick={() => toast.success("Ringkasan operasional berhasil diunduh (PDF/CSV)")}
-                    title="Unduh Ringkasan Operasional"
+                    title={t("topbar.download_summary", "Unduh Laporan")}
                   >
                     <Download size={13} />
-                    <span>Unduh Laporan</span>
+                    <span>{t("topbar.download_summary", "Unduh Laporan")}</span>
                   </button>
                   <button
                     type="button"
                     className="space-btn-primary"
                     onClick={() => navigate("transactions")}
-                    title="Buat Transaksi Ekspor Baru"
+                    title={t("topbar.new_shipment", "Transaksi Baru")}
                   >
                     <Plus size={14} />
-                    <span>Transaksi Baru</span>
+                    <span>{t("topbar.new_shipment", "Transaksi Baru")}</span>
                   </button>
                 </>
               ) : (
@@ -1009,7 +1010,7 @@ export function WorkspaceShell({
                   }}
                 >
                   <FileCheck2 size={13} />
-                  <span>Simpan Transaksi</span>
+                  <span>{t("topbar.save_shipment", "Simpan Transaksi")}</span>
                 </button>
               )}
             </div>
