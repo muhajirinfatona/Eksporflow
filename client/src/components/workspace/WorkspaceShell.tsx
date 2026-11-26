@@ -125,15 +125,6 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         icon: <Sparkles size={16} />,
       },
       {
-        id: "transactions",
-        label: "Pesanan Ekspor",
-        group: "Penjualan",
-        phase: "Penjualan",
-        title: "Pesanan Ekspor",
-        description: "Daftar pesanan ekspor, tracking invoice, dan tahapan operasional pengapalan.",
-        icon: <Layers size={16} />,
-      },
-      {
         id: "po_intake",
         label: "Input PO",
         group: "Penjualan",
@@ -141,6 +132,15 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         title: "Input Purchase Order",
         description: "Catat pesanan baru atau pindai dokumen PO/LOI buyer.",
         icon: <PlusCircle size={16} />,
+      },
+      {
+        id: "transactions",
+        label: "Pesanan Ekspor",
+        group: "Penjualan",
+        phase: "Penjualan",
+        title: "Pesanan Ekspor",
+        description: "Daftar pesanan ekspor, tracking invoice, dan tahapan operasional pengapalan.",
+        icon: <Layers size={16} />,
       },
       {
         id: "pricing",

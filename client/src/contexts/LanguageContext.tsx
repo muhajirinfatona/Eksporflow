@@ -532,15 +532,6 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             icon: <Sparkles size={16} />,
           },
           {
-            id: "transactions",
-            label: t("screen.transactions.label", "Pesanan Ekspor"),
-            group: t("nav.group.sales", "Penjualan"),
-            phase: t("nav.group.sales", "Penjualan"),
-            title: t("screen.transactions.title", "Pesanan Ekspor"),
-            description: t("screen.transactions.desc", "Daftar pesanan ekspor, tracking invoice, dan tahapan operasional pengapalan."),
-            icon: <Layers size={16} />,
-          },
-          {
             id: "po_intake",
             label: t("screen.po_intake.label", "Input PO"),
             group: t("nav.group.sales", "Penjualan"),
@@ -548,6 +539,15 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             title: t("screen.po_intake.title", "Input Purchase Order"),
             description: t("screen.po_intake.desc", "Catat pesanan baru atau pindai dokumen PO/LOI buyer."),
             icon: <PlusCircle size={16} />,
+          },
+          {
+            id: "transactions",
+            label: t("screen.transactions.label", "Pesanan Ekspor"),
+            group: t("nav.group.sales", "Penjualan"),
+            phase: t("nav.group.sales", "Penjualan"),
+            title: t("screen.transactions.title", "Pesanan Ekspor"),
+            description: t("screen.transactions.desc", "Daftar pesanan ekspor, tracking invoice, dan tahapan operasional pengapalan."),
+            icon: <Layers size={16} />,
           },
           {
             id: "pricing",

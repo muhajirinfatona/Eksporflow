@@ -26,6 +26,7 @@ import {
   GripVertical,
   Layers,
   LayoutGrid,
+  MapPin,
   MessageSquare,
   Package,
   Pencil,
@@ -1819,32 +1820,57 @@ export function TransactionsModule({
                               </div>
                             </div>
 
-                            <div className="space-kanban-card-title" style={{ color: "#0F172A", fontWeight: 700 }}>
+                            <div className="space-kanban-card-title" style={{ color: "#0F172A", fontWeight: 700, fontSize: "13px", lineHeight: 1.3 }}>
                               {card.buyer}
                             </div>
 
-                            <div className="space-kanban-card-meta" style={{ color: "#64748B", fontSize: "11.5px" }}>
-                              <span>{card.product}</span>
-                              <span>·</span>
-                              <span>{card.country}</span>
+                            {/* Komoditas Barang */}
+                            <div style={{ color: "#334155", fontSize: "12px", fontWeight: 500, marginTop: 3 }}>
+                              {card.product}
+                            </div>
+
+                            {/* Negara & Pelabuhan Tujuan (Dedicated clean line) */}
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 4,
+                                color: "#64748B",
+                                fontSize: "11px",
+                                marginTop: 5,
+                                background: "#F8FAFC",
+                                padding: "3px 6px",
+                                borderRadius: 5,
+                                border: "1px solid #F1F5F9",
+                              }}
+                            >
+                              <MapPin size={11} style={{ flexShrink: 0, color: "#64748B" }} />
+                              <span style={{ fontWeight: 600, color: "#334155" }}>{card.country}</span>
                               {card.destinationPort && (
-                                <span style={{ color: "#475569", fontSize: "11px" }}> ({card.destinationPort})</span>
+                                <>
+                                  <span style={{ color: "#CBD5E1" }}>•</span>
+                                  <span style={{ color: "#64748B", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                    {card.destinationPort}
+                                  </span>
+                                </>
                               )}
                             </div>
 
                             <div
                               className="space-kanban-card-foot"
                               style={{
-                                marginTop: 4,
+                                marginTop: 8,
+                                paddingTop: 8,
+                                borderTop: "1px solid #F1F5F9",
                                 display: "flex",
                                 justifyContent: "space-between",
                                 alignItems: "center",
                                 gap: 6,
                               }}
                             >
-                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
                                 <SpaceAvatar name={card.buyer} size="xs" />
-                                <span className="space-kanban-card-val" style={{ fontWeight: 700, color: "#0F172A" }}>
+                                <span className="space-kanban-card-val" style={{ fontWeight: 700, color: "#0F172A", fontSize: "12.5px" }}>
                                   {card.value}
                                 </span>
                               </div>
@@ -1854,12 +1880,19 @@ export function TransactionsModule({
                                 {colIdx > 0 && (
                                   <button
                                     type="button"
-                                    className="space-btn space-btn-ghost space-btn-sm"
                                     style={{
-                                      padding: "3px 6px",
-                                      height: "auto",
-                                      color: "#475569",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      width: 26,
+                                      height: 26,
+                                      padding: 0,
+                                      background: "#FFFFFF",
+                                      border: "1px solid #CBD5E1",
                                       borderRadius: 5,
+                                      color: "#475569",
+                                      cursor: "pointer",
+                                      transition: "all 0.15s ease",
                                     }}
                                     onClick={() => handleRegressCard(card.id, col.id)}
                                     title={`Kembalikan ke tahapan sebelumnya (${kanbanStages[colIdx - 1]?.title})`}
@@ -1872,10 +1905,10 @@ export function TransactionsModule({
                                   <button
                                     type="button"
                                     onClick={() => navigate("partners")}
-                                    className="space-btn space-btn-sm"
                                     style={{
-                                      padding: "3px 8px",
-                                      fontSize: 10.5,
+                                      height: 26,
+                                      padding: "0 8px",
+                                      fontSize: 11,
                                       fontWeight: 700,
                                       color: "#047857",
                                       background: "#DCFCE7",
@@ -1885,6 +1918,7 @@ export function TransactionsModule({
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: 4,
+                                      boxShadow: "0 1px 2px rgba(4, 120, 87, 0.08)",
                                     }}
                                     title="Kargo telah selesai & buka data di menu Mitra & Kontak"
                                   >
@@ -1900,10 +1934,11 @@ export function TransactionsModule({
                                         onClick={() => handleMarkCompleteAndSaveBuyer(card, col.id)}
                                         title={`Kargo tiba di ${card.destinationPort || "pelabuhan buyer"} (${card.incoterm}). Klik selesai untuk simpan ke Data Mitra & Kontak.`}
                                         style={{
+                                          height: 26,
                                           display: "inline-flex",
                                           alignItems: "center",
-                                          gap: 3,
-                                          padding: "3px 7px",
+                                          gap: 4,
+                                          padding: "0 8px",
                                           fontSize: 11,
                                           fontWeight: 700,
                                           background: "#ECFDF5",
@@ -1911,6 +1946,7 @@ export function TransactionsModule({
                                           color: "#047857",
                                           borderRadius: 5,
                                           cursor: "pointer",
+                                          boxShadow: "0 1px 2px rgba(4, 120, 87, 0.08)",
                                         }}
                                       >
                                         <CheckCircle2 size={12} />
@@ -1922,8 +1958,20 @@ export function TransactionsModule({
                                     {colIdx < kanbanStages.length - 1 && (
                                       <button
                                         type="button"
-                                        className="space-btn space-btn-ghost space-btn-sm"
-                                        style={{ padding: "3px 6px", height: "auto" }}
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          width: 26,
+                                          height: 26,
+                                          padding: 0,
+                                          background: "#FFFFFF",
+                                          border: "1px solid #CBD5E1",
+                                          borderRadius: 5,
+                                          color: "#475569",
+                                          cursor: "pointer",
+                                          transition: "all 0.15s ease",
+                                        }}
                                         onClick={() => handleAdvanceCard(card.id, col.id)}
                                         title={
                                           col.id === "production"
@@ -1964,90 +2012,122 @@ export function TransactionsModule({
 
           {/* TAB 4: COMPARISON CHART & ANALITIK KINERJA EKSPOR */}
           {activeTab === "analytics" && (
-            <div className="space-crm-container">
-              <div className="space-chart-card">
-                <div className="space-chart-header">
+            <div className="space-crm-container" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div className="space-chart-card" style={{ padding: "22px 24px" }}>
+                <div className="space-chart-header" style={{ marginBottom: 12 }}>
                   <div>
-                    <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
+                    <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
                       Perbandingan Realisasi Ekspor vs Target 2026
                     </h3>
-                    <small style={{ color: "var(--space-gray-500)" }}>
-                      Nilai transaksi bulanan per komoditas dalam USD
+                    <small style={{ color: "#64748B", fontSize: "12.5px" }}>
+                      Nilai transaksi bulanan per komoditas dalam USD (Periode Mei – Oktober 2026)
                     </small>
                   </div>
-                  <div className="space-chart-legend">
-                    <div className="space-chart-legend-item">
-                      <span className="space-chart-legend-dot" style={{ background: "var(--space-navy-800)" }} />
-                      <span>Realisasi Ekspor 2026</span>
+                  <div className="space-chart-legend" style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                    <div className="space-chart-legend-item" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#334155" }}>
+                      <span className="space-chart-legend-dot" style={{ background: "#2563EB", width: 10, height: 10, borderRadius: 3 }} />
+                      <span style={{ fontWeight: 600 }}>Realisasi Ekspor 2026</span>
                     </div>
-                    <div className="space-chart-legend-item">
-                      <span className="space-chart-legend-dot" style={{ background: "var(--space-gold-500)" }} />
-                      <span>Target Perusahaan</span>
+                    <div className="space-chart-legend-item" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#334155" }}>
+                      <span className="space-chart-legend-dot" style={{ background: "#059669", width: 10, height: 10, borderRadius: 3 }} />
+                      <span style={{ fontWeight: 600 }}>Target Perusahaan</span>
                     </div>
-                    <div className="space-chart-legend-item">
-                      <span className="space-chart-legend-dot" style={{ background: "var(--space-gray-300)" }} />
-                      <span>Tahun Lalu 2025</span>
+                    <div className="space-chart-legend-item" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#334155" }}>
+                      <span className="space-chart-legend-dot" style={{ background: "#94A3B8", width: 10, height: 10, borderRadius: 3 }} />
+                      <span style={{ fontWeight: 600 }}>Tahun Lalu 2025</span>
                     </div>
                   </div>
                 </div>
 
-                {/* SVG Visual Comparison Chart */}
-                <div style={{ width: "100%", height: 260, position: "relative" }}>
-                  <svg width="100%" height="100%" viewBox="0 0 700 240" preserveAspectRatio="none">
-                    {/* Grid lines */}
-                    <line x1="40" y1="30" x2="680" y2="30" stroke="#E2E8F0" strokeDasharray="3 3" />
-                    <line x1="40" y1="80" x2="680" y2="80" stroke="#E2E8F0" strokeDasharray="3 3" />
-                    <line x1="40" y1="130" x2="680" y2="130" stroke="#E2E8F0" strokeDasharray="3 3" />
-                    <line x1="40" y1="180" x2="680" y2="180" stroke="#E2E8F0" />
+                {/* SVG Visual Comparison Chart with Harmonious Professional Fintech Palette */}
+                <div style={{ width: "100%", height: 260, position: "relative", background: "#FAFBFD", borderRadius: 8, padding: "10px 14px", border: "1px solid #F1F5F9" }}>
+                  <svg width="100%" height="100%" viewBox="0 0 720 230" preserveAspectRatio="none">
+                    {/* Y-Axis Value Labels & Grid Lines */}
+                    {[
+                      { y: 30, val: "$250k" },
+                      { y: 75, val: "$200k" },
+                      { y: 120, val: "$150k" },
+                      { y: 165, val: "$100k" },
+                      { y: 200, val: "$0" },
+                    ].map((g) => (
+                      <g key={g.val}>
+                        <line x1="55" y1={g.y} x2="700" y2={g.y} stroke="#E2E8F0" strokeDasharray={g.y === 200 ? "none" : "3 3"} />
+                        <text x="48" y={g.y + 4} textAnchor="end" fontSize="10.5" fill="#94A3B8" fontWeight="600">
+                          {g.val}
+                        </text>
+                      </g>
+                    ))}
 
                     {/* Bars for 6 months */}
                     {[
-                      { m: "Mei", val: 140, tgt: 120, prev: 105, x: 70 },
-                      { m: "Jun", val: 165, tgt: 140, prev: 115, x: 170 },
-                      { m: "Jul", val: 180, tgt: 160, prev: 130, x: 270 },
-                      { m: "Agu", val: 195, tgt: 180, prev: 145, x: 370 },
-                      { m: "Sep", val: 210, tgt: 200, prev: 160, x: 470 },
-                      { m: "Okt", val: 245, tgt: 220, prev: 175, x: 570 },
+                      { m: "Mei", val: 140, tgt: 120, prev: 105, x: 80 },
+                      { m: "Jun", val: 165, tgt: 140, prev: 115, x: 185 },
+                      { m: "Jul", val: 180, tgt: 160, prev: 130, x: 290 },
+                      { m: "Agu", val: 195, tgt: 180, prev: 145, x: 395 },
+                      { m: "Sep", val: 210, tgt: 200, prev: 160, x: 500 },
+                      { m: "Okt", val: 245, tgt: 220, prev: 175, x: 605 },
                     ].map((bar) => {
                       const hVal = bar.val * 0.65;
                       const hTgt = bar.tgt * 0.65;
                       const hPrev = bar.prev * 0.65;
+                      const baseY = 200;
                       return (
                         <g key={bar.m}>
-                          {/* Previous year bar */}
+                          {/* Previous year bar (Neutral Slate) */}
                           <rect
                             x={bar.x}
-                            y={180 - hPrev}
+                            y={baseY - hPrev}
                             width="14"
                             height={hPrev}
                             fill="#CBD5E1"
                             rx="3"
-                          />
-                          {/* Target bar */}
+                          >
+                            <title>{`Tahun Lalu 2025 (${bar.m}): $${bar.prev},000`}</title>
+                          </rect>
+
+                          {/* Target bar (Emerald Green) */}
                           <rect
-                            x={bar.x + 18}
-                            y={180 - hTgt}
+                            x={bar.x + 17}
+                            y={baseY - hTgt}
                             width="14"
                             height={hTgt}
-                            fill="#F59E0B"
+                            fill="#059669"
                             rx="3"
-                          />
-                          {/* Realization bar */}
+                          >
+                            <title>{`Target Perusahaan (${bar.m}): $${bar.tgt},000`}</title>
+                          </rect>
+
+                          {/* Realization bar (Modern Tech Royal Blue) */}
                           <rect
-                            x={bar.x + 36}
-                            y={180 - hVal}
+                            x={bar.x + 34}
+                            y={baseY - hVal}
                             width="14"
                             height={hVal}
-                            fill="#0F2942"
+                            fill="#2563EB"
                             rx="3"
-                          />
+                          >
+                            <title>{`Realisasi Ekspor 2026 (${bar.m}): $${bar.val},000`}</title>
+                          </rect>
+
+                          {/* Value tag above Realization bar */}
+                          <text
+                            x={bar.x + 41}
+                            y={baseY - hVal - 5}
+                            textAnchor="middle"
+                            fontSize="9.5"
+                            fill="#1D4ED8"
+                            fontWeight="700"
+                          >
+                            ${bar.val}k
+                          </text>
+
                           {/* Month label */}
                           <text
                             x={bar.x + 32}
-                            y="205"
+                            y={baseY + 18}
                             textAnchor="middle"
-                            fontSize="11"
-                            fill="#64748B"
+                            fontSize="11.5"
+                            fill="#475569"
                             fontWeight="600"
                           >
                             {bar.m}
@@ -2059,18 +2139,74 @@ export function TransactionsModule({
                 </div>
 
                 {/* Commodity Share Breakdown */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginTop: 4 }}>
+                  <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
                     <SpaceProgressBar value={42} label="Kopi Arabika Gayo" detail="$119,490 (42%)" tone="primary" />
                   </div>
-                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
-                    <SpaceProgressBar value={28} label="Udang Windu Beku" detail="$79,660 (28%)" tone="primary" />
+                  <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                    <SpaceProgressBar value={28} label="Udang Windu Beku" detail="$79,660 (28%)" tone="success" />
                   </div>
-                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
-                    <SpaceProgressBar value={18} label="Organic Coconut Sugar" detail="$51,210 (18%)" tone="warning" />
+                  <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                    <SpaceProgressBar value={18} label="Organic Coconut Sugar" detail="$51,210 (18%)" tone="primary" />
                   </div>
-                  <div style={{ background: "var(--space-gray-50)", padding: 14, borderRadius: 8, border: "1px solid var(--space-gray-200)" }}>
+                  <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
                     <SpaceProgressBar value={12} label="Mebel Kayu & Rotan" detail="$34,140 (12%)" tone="success" />
+                  </div>
+                </div>
+
+                {/* EXECUTIVE CONCLUSION & CHART ANALYSIS (KESIMPULAN TERKAIT GRAFIK) */}
+                <div
+                  style={{
+                    marginTop: 8,
+                    background: "#F8FAFC",
+                    border: "1px solid #E2E8F0",
+                    borderRadius: 10,
+                    padding: "18px 20px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 12,
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <TrendingUp size={18} color="#2563EB" />
+                      <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
+                        Kesimpulan &amp; Analisis Kinerja Realisasi Ekspor 2026
+                      </h4>
+                    </div>
+                    <SpaceBadge tone="primary">Evaluasi Semester II (Mei - Oktober 2026)</SpaceBadge>
+                  </div>
+
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
+                    {/* Insight 1: Ketercapaian Target */}
+                    <div style={{ background: "#FFFFFF", padding: "14px 16px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#059669", display: "flex", alignItems: "center", gap: 6 }}>
+                        <CheckCircle2 size={15} /> 1. Realisasi Konsisten Melampaui Target (+11.3%)
+                      </span>
+                      <p style={{ margin: "6px 0 0 0", fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+                        Total realisasi kumulatif mencapai <strong>$1,135,000 USD</strong> melampaui target korporasi ($1,020,000 USD). Bulan Oktober mencatat rekor tertinggi ($245,000 USD) berkat peningkatan volume pesanan dari Marubeni Specialty dan Van Dijk Furniture.
+                      </p>
+                    </div>
+
+                    {/* Insight 2: Pertumbuhan YoY */}
+                    <div style={{ background: "#FFFFFF", padding: "14px 16px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#2563EB", display: "flex", alignItems: "center", gap: 6 }}>
+                        <TrendingUp size={15} /> 2. Pertumbuhan Signifikan Tahunan (+36.7% YoY)
+                      </span>
+                      <p style={{ margin: "6px 0 0 0", fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+                        Dibandingkan periode yang sama pada tahun 2025 ($830,000 USD), ekspor melonjak <strong>+$305,000 USD</strong> didorong oleh stabilitas pasokan komoditas kopi dan ekspansi rute buyer baru di Belanda dan Korea Selatan.
+                      </p>
+                    </div>
+
+                    {/* Insight 3: Rekomendasi Strategis */}
+                    <div style={{ background: "#FFFFFF", padding: "14px 16px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0284C7", display: "flex", alignItems: "center", gap: 6 }}>
+                        <Package size={15} /> 3. Komoditas Unggulan &amp; Rekomendasi Q4
+                      </span>
+                      <p style={{ margin: "6px 0 0 0", fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
+                        Kopi Arabika Gayo (42%) dan Udang Windu Beku (28%) menyumbang 70% total omzet. Disarankan segera mengamankan alokasi kontainer reefer dan 40HC lebih awal guna mengantisipasi kenaikan freight rate akhir tahun.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
