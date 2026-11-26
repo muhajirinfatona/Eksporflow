@@ -413,6 +413,8 @@ export function TransactionsModule({
       product: string;
       value: string;
       container: string;
+      incoterm: string;
+      destinationPort?: string;
       dueDate: string;
       status: string;
       avatarTone?: string;
@@ -435,6 +437,8 @@ export function TransactionsModule({
           product: "Briket Arang Kelapa",
           value: "$42,600",
           container: "2 × 40HC",
+          incoterm: "CIF",
+          destinationPort: "Jebel Ali Port",
           dueDate: "28 Nov 2026",
           status: "Inquiry",
         },
@@ -446,6 +450,8 @@ export function TransactionsModule({
           product: "Minyak Atsiri Nilam",
           value: "$31,400",
           container: "1 × 20GP",
+          incoterm: "FOB",
+          destinationPort: "Bangkok Port",
           dueDate: "02 Des 2026",
           status: "Inquiry",
         },
@@ -468,6 +474,8 @@ export function TransactionsModule({
           product: "Mebel Kayu & Rotan",
           value: "$65,800",
           container: "1 × 40HC",
+          incoterm: "CFR",
+          destinationPort: "Rotterdam Port",
           dueDate: "30 Nov 2026",
           status: "Quotation",
         },
@@ -490,6 +498,8 @@ export function TransactionsModule({
           product: "Organic Coconut Sugar",
           value: "$58,024",
           container: "1 × 20GP",
+          incoterm: "CIF",
+          destinationPort: "Gothenburg Port",
           dueDate: "25 Nov 2026",
           status: "Negotiation",
         },
@@ -512,6 +522,8 @@ export function TransactionsModule({
           product: "Kopi Arabika Gayo Grade 1",
           value: "$112,000",
           container: "1 × 40HC",
+          incoterm: "CIF",
+          destinationPort: "Yokohama Port",
           dueDate: "05 Des 2026",
           status: "Confirmed",
         },
@@ -534,6 +546,8 @@ export function TransactionsModule({
           product: "Udang Windu Beku (Head-On)",
           value: "$84,500",
           container: "1 × 20RF",
+          incoterm: "CFR",
+          destinationPort: "Busan Port",
           dueDate: "12 Des 2026",
           status: "In Transit",
         },
@@ -556,6 +570,8 @@ export function TransactionsModule({
           product: "Biji Kakao Fermentasi Sulawesi",
           value: "$71,250",
           container: "1 × 40HC",
+          incoterm: "CIF",
+          destinationPort: "Rotterdam Port",
           dueDate: "18 Des 2026",
           status: "In Transit",
         },
@@ -578,6 +594,8 @@ export function TransactionsModule({
           product: "Kayu Manis Korintje A",
           value: "$55,000",
           container: "1 × 20GP",
+          incoterm: "FOB",
+          destinationPort: "Singapore Port",
           dueDate: "10 Nov 2026",
           status: "Completed",
         },
@@ -646,7 +664,7 @@ export function TransactionsModule({
   };
 
   const handleMarkCompleteAndSaveBuyer = (
-    card: { id: string; ref: string; buyer: string; country: string; product: string; value: string; container: string; dueDate: string; status: string },
+    card: { id: string; ref: string; buyer: string; country: string; product: string; value: string; container: string; incoterm?: string; destinationPort?: string; dueDate: string; status: string },
     _currentColId: string
   ) => {
     // 1. Pindahkan kartu ke tahapan 7. Selesai & Diterima Buyer
@@ -672,7 +690,16 @@ export function TransactionsModule({
       });
     });
 
-    // 2. Simpan secara permanen ke Database Buyer (Menu Pra-Transaksi & Buyer)
+    // 2. Simpan secara permanen ke Database Mitra & Kontak (flow + localStorage)
+    if (flow?.addPartner) {
+      flow.addPartner({
+        name: card.buyer,
+        country: card.country,
+        destination: card.destinationPort || card.country,
+        terms: `Incoterms 2020 ${card.incoterm || "CIF"} · 30% DP / 70% before shipment`,
+      });
+    }
+
     try {
       const raw = localStorage.getItem("eksporflow_saved_buyers");
       const list = raw ? JSON.parse(raw) : [];
@@ -684,6 +711,8 @@ export function TransactionsModule({
         lastPoRef: card.ref,
         dealValue: card.value,
         container: card.container,
+        incoterm: card.incoterm || "CIF",
+        destinationPort: card.destinationPort || card.country,
         status: "Kargo Diterima & Lunas",
         savedAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
       };
@@ -699,12 +728,14 @@ export function TransactionsModule({
     if (update) {
       update("buyer", card.buyer);
       update("buyerCountry", card.country);
+      if (card.incoterm) update("incoterm", card.incoterm as any);
+      if (card.destinationPort) update("destination", card.destinationPort);
     }
 
-    toast.success(`Pesanan ${card.ref} Selesai! Data buyer ${card.buyer} (${card.country}) berhasil tersimpan di menu Data Buyer & CRM.`, {
+    toast.success(`Kargo ${card.ref} Diterima Buyer (${card.incoterm || "CIF"})! Data tersimpan di Data Mitra & Kontak.`, {
       action: {
-        label: "Buka Data Buyer",
-        onClick: () => navigate("pre_transaction"),
+        label: "Buka Mitra & Kontak",
+        onClick: () => navigate("partners"),
       },
       duration: 6000,
     });
@@ -1656,7 +1687,7 @@ export function TransactionsModule({
                     <SpaceBadge tone="primary">Scroll Kesamping →</SpaceBadge>
                   </div>
                   <small style={{ color: "var(--space-gray-500)", display: "block", marginTop: 2 }}>
-                    Geser kartu order antar kolom tahapan atau geser horizontal kesamping untuk meninjau seluruh siklus ekspor. Klik "Selesai" untuk langsung simpan ke Data Buyer.
+                    Geser kartu order antar kolom tahapan. Untuk Incoterm CFR &amp; CIF, tombol <strong>Selesai (Tiba)</strong> aktif pada tahap Kapal Berlayar saat kargo tiba di pelabuhan buyer dan langsung tersimpan ke <strong>Data Mitra &amp; Kontak</strong>.
                   </small>
                 </div>
                 <SpaceButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
@@ -1667,7 +1698,6 @@ export function TransactionsModule({
               <div className="space-kanban-board">
                 {kanbanStages.map((col) => {
                   const isCompletedCol = col.id === "completed";
-                  const isLateStage = col.id === "production" || col.id === "shipping" || col.id === "contract";
 
                   return (
                     <div
@@ -1729,7 +1759,7 @@ export function TransactionsModule({
                             draggable
                             onDragStart={() => handleDragStart(card.id)}
                           >
-                            <div className="space-kanban-card-head">
+                            <div className="space-kanban-card-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6 }}>
                               <span
                                 style={{
                                   fontSize: "11px",
@@ -1740,7 +1770,24 @@ export function TransactionsModule({
                               >
                                 {card.ref}
                               </span>
-                              <SpaceBadge tone="neutral">{card.container}</SpaceBadge>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                <span
+                                  style={{
+                                    background: card.incoterm === "CIF" ? "#EFF6FF" : card.incoterm === "CFR" ? "#F5F3FF" : card.incoterm === "FOB" ? "#FEF3C7" : "#F1F5F9",
+                                    color: card.incoterm === "CIF" ? "#1D4ED8" : card.incoterm === "CFR" ? "#6D28D9" : card.incoterm === "FOB" ? "#B45309" : "#334155",
+                                    border: `1px solid ${card.incoterm === "CIF" ? "#BFDBFE" : card.incoterm === "CFR" ? "#DDD6FE" : card.incoterm === "FOB" ? "#FDE68A" : "#CBD5E1"}`,
+                                    padding: "1px 6px",
+                                    borderRadius: 4,
+                                    fontSize: "10.5px",
+                                    fontWeight: 700,
+                                    lineHeight: 1.4,
+                                  }}
+                                  title={`Incoterms 2020: ${card.incoterm} (${card.destinationPort || card.country})`}
+                                >
+                                  {card.incoterm}
+                                </span>
+                                <SpaceBadge tone="neutral">{card.container}</SpaceBadge>
+                              </div>
                             </div>
 
                             <div className="space-kanban-card-title" style={{ color: "#0F172A", fontWeight: 700 }}>
@@ -1751,6 +1798,9 @@ export function TransactionsModule({
                               <span>{card.product}</span>
                               <span>·</span>
                               <span>{card.country}</span>
+                              {card.destinationPort && (
+                                <span style={{ color: "#475569", fontSize: "11px" }}> ({card.destinationPort})</span>
+                              )}
                             </div>
 
                             <div
@@ -1774,29 +1824,34 @@ export function TransactionsModule({
                                 {isCompletedCol ? (
                                   <button
                                     type="button"
-                                    onClick={() => navigate("pre_transaction")}
-                                    className="space-btn space-btn-ghost space-btn-sm"
+                                    onClick={() => navigate("partners")}
+                                    className="space-btn space-btn-sm"
                                     style={{
-                                      padding: "3px 7px",
+                                      padding: "3px 8px",
                                       fontSize: 10.5,
-                                      fontWeight: 600,
+                                      fontWeight: 700,
                                       color: "#047857",
                                       background: "#DCFCE7",
                                       borderRadius: 5,
-                                      border: "1px solid #BBF7D0",
+                                      border: "1px solid #A7F3D0",
                                       cursor: "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 4,
                                     }}
-                                    title="Kargo selesai & data tersimpan di menu Data Buyer"
+                                    title="Kargo telah selesai & buka data di menu Mitra & Kontak"
                                   >
-                                    Data Buyer ↗
+                                    <Users size={12} />
+                                    <span>Mitra &amp; Kontrak ↗</span>
                                   </button>
                                 ) : (
                                   <>
-                                    {isLateStage && (
+                                    {/* Tombol Selesai HANYA diaktifkan pada Kapal Berlayar saat kargo tiba di pelabuhan buyer (khususnya CFR/CIF) */}
+                                    {col.id === "shipping" && (
                                       <button
                                         type="button"
                                         onClick={() => handleMarkCompleteAndSaveBuyer(card, col.id)}
-                                        title="Selesai stuffing / kargo diterima buyer & otomatis simpan ke menu Data Buyer"
+                                        title={`Kargo tiba di ${card.destinationPort || "pelabuhan buyer"} (${card.incoterm}). Klik selesai untuk simpan ke Data Mitra & Kontak.`}
                                         style={{
                                           display: "inline-flex",
                                           alignItems: "center",
@@ -1812,7 +1867,7 @@ export function TransactionsModule({
                                         }}
                                       >
                                         <CheckCircle2 size={12} />
-                                        <span>Selesai</span>
+                                        <span>Selesai (Tiba)</span>
                                       </button>
                                     )}
                                     <button
@@ -1820,7 +1875,13 @@ export function TransactionsModule({
                                       className="space-btn space-btn-ghost space-btn-sm"
                                       style={{ padding: "3px 6px", height: "auto" }}
                                       onClick={() => handleAdvanceCard(card.id, col.id)}
-                                      title="Pindahkan ke tahapan berikutnya"
+                                      title={
+                                        col.id === "production"
+                                          ? "Selesai stuffing, kargo siap berlayar"
+                                          : col.id === "contract"
+                                          ? "Mulai proses produksi & stuffing"
+                                          : "Pindahkan ke tahapan berikutnya"
+                                      }
                                     >
                                       <ArrowRight size={13} />
                                     </button>
