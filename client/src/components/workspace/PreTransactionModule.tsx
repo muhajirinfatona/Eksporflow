@@ -7,14 +7,16 @@ import type { Shipment } from "@shared/shipment";
 import {
   ArrowRight,
   Building2,
+  CheckCircle2,
   Copy,
   Database,
+  Eye,
   FileText,
-  Languages,
   Mail,
   Paperclip,
   Printer,
   RefreshCw,
+  Save,
   Send,
   ShieldCheck,
   Sparkles,
@@ -787,14 +789,14 @@ export function PreTransactionModule({
   const currentSubject = letterLang === "id" ? activeSubjectId : activeSubjectEn;
   const currentBody = letterLang === "id" ? activeBodyId : activeBodyEn;
 
-  // The ONLY Translation Function
-  const handleTranslateToEnglish = () => {
+  // Simpan draf Bahasa Indonesia dan ubah ke Bahasa Inggris resmi ekspor
+  const handleSaveAndChangeToEnglish = () => {
     const freshEn = buildDraftCopyEn(draftParams);
     setCustomSubjectEn(freshEn.subject);
     setCustomBodyEn(freshEn.body);
     setIsTranslated(true);
     setLetterLang("en");
-    toast.success("Draf berhasil diterjemahkan ke Bahasa Inggris!");
+    toast.success("Draf disimpan dan otomatis diubah ke Bahasa Inggris!");
   };
 
   const handleResetIndonesianDraft = () => {
@@ -844,7 +846,7 @@ export function PreTransactionModule({
           </span>
           <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
           <p className="lead">
-            Review dan edit surat penawaran dalam Bahasa Indonesia, terjemahkan ke Bahasa Inggris resmi ekspor, dan verifikasi kepatuhan importir.
+            Review dan edit surat penawaran dalam Bahasa Indonesia, simpan untuk langsung diubah ke Bahasa Inggris resmi ekspor, dan verifikasi kepatuhan importir.
           </p>
           <div className="ef-hero-actions">
             <button type="button" className="ef-hero-btn-primary" onClick={handleCopyDraft}>
@@ -1057,15 +1059,17 @@ export function PreTransactionModule({
                     gap: 6,
                     transition: "all 0.15s ease",
                   }}
+                  title="Review dan edit draf dalam Bahasa Indonesia"
                 >
-                  <span>🇮🇩</span> Bahasa Indonesia
+                  <Eye size={13} style={{ color: letterLang === "id" ? "#2563EB" : "#64748B" }} />
+                  <span>Review (Bahasa Indonesia)</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => {
                     if (!isTranslated) {
-                      handleTranslateToEnglish();
+                      handleSaveAndChangeToEnglish();
                     } else {
                       setLetterLang("en");
                     }
@@ -1085,56 +1089,44 @@ export function PreTransactionModule({
                     gap: 6,
                     transition: "all 0.15s ease",
                   }}
+                  title="Surat resmi ekspor dalam Bahasa Inggris siap kirim"
                 >
-                  <span>🇬🇧</span> Bahasa Inggris
+                  <span>🇬🇧</span>
+                  <span>Bahasa Inggris</span>
                 </button>
               </div>
 
-              {/* TUNGGAL: SATU TOMBOL TERJEMAHKAN KE BAHASA INGGRIS */}
-              {letterLang === "id" ? (
-                <button
-                  type="button"
-                  onClick={handleTranslateToEnglish}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    background: "#0F172A",
-                    color: "#FFFFFF",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 14px",
-                    fontSize: 12,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
-                  }}
-                  title="Terjemahkan draf Bahasa Indonesia ke Bahasa Inggris resmi ekspor"
-                >
-                  <Languages size={13} /> Terjemahkan ke Bahasa Inggris →
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleTranslateToEnglish}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    background: "#F8FAFC",
-                    color: "#0F172A",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 6,
-                    padding: "5px 12px",
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
-                  title="Terjemahkan ulang draf Bahasa Inggris dari draf Bahasa Indonesia"
-                >
-                  <RefreshCw size={12} /> Terjemahkan Ulang
-                </button>
-              )}
+              {/* Tombol Simpan */}
+              <button
+                type="button"
+                onClick={
+                  letterLang === "id"
+                    ? handleSaveAndChangeToEnglish
+                    : () => toast.success("Draf surat ekspor Bahasa Inggris tersimpan!")
+                }
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#0F172A",
+                  color: "#FFFFFF",
+                  border: "none",
+                  borderRadius: 6,
+                  padding: "6px 14px",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  cursor: "pointer",
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
+                }}
+                title={
+                  letterLang === "id"
+                    ? "Simpan draf dan ubah ke Bahasa Inggris"
+                    : "Simpan perubahan draf Bahasa Inggris"
+                }
+              >
+                <Save size={13} />
+                <span>Simpan</span>
+              </button>
             </div>
 
             {/* Input Subjek Surat */}
@@ -1148,7 +1140,7 @@ export function PreTransactionModule({
                   marginBottom: 4,
                 }}
               >
-                Subjek Surat {letterLang === "id" ? "(Bahasa Indonesia)" : "(English)"}:
+                Subjek Surat {letterLang === "id" ? "(Review - Bahasa Indonesia)" : "(Resmi Ekspor - Bahasa Inggris)"}:
               </label>
               <input
                 type="text"
@@ -1189,7 +1181,7 @@ export function PreTransactionModule({
                     color: "#475569",
                   }}
                 >
-                  Isi Surat {letterLang === "id" ? "(Dapat diedit langsung)" : "(Siap kirim ke buyer)"}:
+                  Isi Surat {letterLang === "id" ? "(Review & Edit Langsung)" : "(Siap Kirim ke Buyer)"}:
                 </label>
                 {letterLang === "id" && (
                   <button
