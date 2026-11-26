@@ -241,7 +241,7 @@ export function PreTransactionModule({
       </section>
 
       {/* Grid 2 Kolom: Draf Korespondensi & Checklist Validasi */}
-      <div className="content-grid two-thirds">
+      <div className="content-grid pretrans-grid">
         {/* Kolom Kiri: Formulir & Draf Surat */}
         <section className="panel panel-padding">
           <div className="panel-head">
@@ -298,12 +298,12 @@ export function PreTransactionModule({
             </label>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 12, marginBottom: 14 }}>
+          <div className="pretrans-controls-row">
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
                 Jenis surat
               </span>
-              <div className="clean-tabs" style={{ flexWrap: "wrap" }}>
+              <div className="space-segmented-track">
                 {(
                   [
                     { id: "inquiry", label: "Inquiry" },
@@ -314,7 +314,7 @@ export function PreTransactionModule({
                   <button
                     key={item.id}
                     type="button"
-                    className={docType === item.id ? "active" : ""}
+                    className={`space-segmented-pill ${docType === item.id ? "active" : ""}`}
                     onClick={() => updateDraft({ docType: item.id })}
                   >
                     {item.label}
@@ -327,7 +327,7 @@ export function PreTransactionModule({
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
                 Format bahasa
               </span>
-              <div className="clean-tabs" style={{ flexWrap: "wrap" }}>
+              <div className="space-segmented-track">
                 {(
                   [
                     { id: "formal", label: "Formal" },
@@ -338,7 +338,7 @@ export function PreTransactionModule({
                   <button
                     key={item.id}
                     type="button"
-                    className={tone === item.id ? "active" : ""}
+                    className={`space-segmented-pill ${tone === item.id ? "active" : ""}`}
                     onClick={() => updateDraft({ tone: item.id })}
                   >
                     {item.label}
@@ -404,7 +404,7 @@ export function PreTransactionModule({
         </section>
 
         {/* Kolom Kanan: Checklist Validasi Legalitas Buyer */}
-        <section className="panel panel-padding">
+        <section className="panel panel-padding pretrans-check-card">
           <div className="panel-head">
             <div>
               <span className="eyebrow">Verifikasi buyer</span>
@@ -421,66 +421,29 @@ export function PreTransactionModule({
               return (
                 <label
                   key={item.id}
-                  className={`legal-check-row ${checked ? "done" : ""}`}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    gap: 8,
-                    padding: "9px 12px",
-                    borderRadius: 8,
-                    border: "1px solid",
-                    borderColor: checked ? "#cbd5e1" : "var(--line)",
-                    background: checked ? "#f8fafc" : "#ffffff",
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    minWidth: 0,
-                    width: "100%",
-                    boxSizing: "border-box",
-                  }}
+                  className={`pretrans-check-item ${checked ? "done" : ""}`}
                 >
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0, flex: "1 1 auto" }}>
-                    <input
-                      type="checkbox"
-                      checked={checked}
-                      onChange={() => toggleChecklist(item.id)}
-                      style={{ flexShrink: 0, width: 16, height: 16, accentColor: "var(--navy)", cursor: "pointer" }}
-                    />
-                    <span
-                      style={{
-                        fontSize: 12.5,
-                        lineHeight: 1.35,
-                        fontWeight: checked ? 600 : 500,
-                        color: checked ? "var(--ink)" : "var(--ink-secondary)",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      {item.label}
-                    </span>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    onChange={() => toggleChecklist(item.id)}
+                  />
+                  <div className="pretrans-check-content">
+                    <div className="pretrans-check-header">
+                      <span className="pretrans-check-title">
+                        {item.label}
+                      </span>
+                      <span className="pretrans-check-tag">
+                        {item.tag}
+                      </span>
+                    </div>
                   </div>
-                  <span
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 500,
-                      padding: "2px 7px",
-                      borderRadius: 4,
-                      background: checked ? "#ecfdf5" : "var(--surface-app)",
-                      color: checked ? "#059669" : "var(--muted)",
-                      border: "1px solid",
-                      borderColor: checked ? "#a7f3d0" : "var(--line)",
-                      flexShrink: 0,
-                      marginLeft: 8,
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {item.tag}
-                  </span>
                 </label>
               );
             })}
           </div>
 
-          <div className="row-actions" style={{ marginTop: 20 }}>
+          <div className="pretrans-btn-stack">
             <button type="button" className="save-button" onClick={() => navigate("documents")}>
               <Building2 size={14} /> Terbitkan PI / Kontrak →
             </button>

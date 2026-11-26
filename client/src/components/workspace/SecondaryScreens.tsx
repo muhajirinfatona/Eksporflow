@@ -954,7 +954,7 @@ export function DashboardView({
                       <button
                         type="button"
                         className="space-btn-table-ghost"
-                        onClick={() => navigate("container")}
+                        onClick={() => navigate("cargo")}
                         title="Rencana Muatan & Kontainer"
                       >
                         <Package size={11.5} />
