@@ -1717,7 +1717,7 @@ export function TransactionsModule({
                     <SpaceBadge tone="primary">Scroll Kesamping →</SpaceBadge>
                   </div>
                   <small style={{ color: "var(--space-gray-500)", display: "block", marginTop: 2 }}>
-                    Gunakan tombol panah <strong>[ ← ] Mundur</strong> dan <strong>[ → ] Maju</strong> pada setiap kartu untuk memindahkan status order bolak-balik antar tahapan. Pada tahap Kapal Berlayar, klik <strong>Selesai (Tiba)</strong> untuk menyimpan ke Data Mitra &amp; Kontrak.
+                    Gunakan tombol panah <strong>[ ← ] Mundur</strong> dan <strong>[ → ] Maju</strong> pada setiap kartu untuk memindahkan status order bolak-balik antar tahapan. Pada tahap Kapal Berlayar, klik tombol checklist <strong>[ ✓ ] Selesai</strong> untuk menyelesaikan kargo dan menyimpan ke Data Mitra &amp; Kontrak.
                   </small>
                 </div>
                 <SpaceButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
@@ -1875,7 +1875,7 @@ export function TransactionsModule({
                                 </span>
                               </div>
 
-                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
                                 {/* Tombol Mundur (Kembali ke tahapan sebelumnya) */}
                                 {colIdx > 0 && (
                                   <button
@@ -1909,48 +1909,49 @@ export function TransactionsModule({
                                       height: 26,
                                       padding: "0 8px",
                                       fontSize: 11,
-                                      fontWeight: 700,
+                                      fontWeight: 600,
                                       color: "#047857",
-                                      background: "#DCFCE7",
+                                      background: "#ECFDF5",
                                       borderRadius: 5,
                                       border: "1px solid #A7F3D0",
                                       cursor: "pointer",
                                       display: "inline-flex",
                                       alignItems: "center",
                                       gap: 4,
+                                      whiteSpace: "nowrap",
                                       boxShadow: "0 1px 2px rgba(4, 120, 87, 0.08)",
+                                      transition: "all 0.15s ease",
                                     }}
-                                    title="Kargo telah selesai & buka data di menu Mitra & Kontak"
+                                    title="Kargo telah selesai. Klik untuk buka data buyer di menu Mitra & Kontrak"
                                   >
                                     <Users size={12} />
                                     <span>Mitra &amp; Kontrak ↗</span>
                                   </button>
                                 ) : (
                                   <>
-                                    {/* Tombol Selesai HANYA diaktifkan pada Kapal Berlayar saat kargo tiba di pelabuhan buyer (khususnya CFR/CIF) */}
+                                    {/* Tombol Selesai (Checklist Icon) HANYA diaktifkan pada Kapal Berlayar saat kargo tiba di pelabuhan buyer */}
                                     {col.id === "shipping" && (
                                       <button
                                         type="button"
                                         onClick={() => handleMarkCompleteAndSaveBuyer(card, col.id)}
-                                        title={`Kargo tiba di ${card.destinationPort || "pelabuhan buyer"} (${card.incoterm}). Klik selesai untuk simpan ke Data Mitra & Kontak.`}
+                                        title={`Selesai (Kargo tiba di ${card.destinationPort || "pelabuhan buyer"} - ${card.incoterm}). Klik untuk simpan ke Data Mitra & Kontrak.`}
                                         style={{
-                                          height: 26,
                                           display: "inline-flex",
                                           alignItems: "center",
-                                          gap: 4,
-                                          padding: "0 8px",
-                                          fontSize: 11,
-                                          fontWeight: 700,
+                                          justifyContent: "center",
+                                          width: 26,
+                                          height: 26,
+                                          padding: 0,
                                           background: "#ECFDF5",
-                                          border: "1px solid #A7F3D0",
-                                          color: "#047857",
+                                          border: "1px solid #10B981",
+                                          color: "#059669",
                                           borderRadius: 5,
                                           cursor: "pointer",
-                                          boxShadow: "0 1px 2px rgba(4, 120, 87, 0.08)",
+                                          boxShadow: "0 1px 2px rgba(5, 150, 105, 0.12)",
+                                          transition: "all 0.15s ease",
                                         }}
                                       >
-                                        <CheckCircle2 size={12} />
-                                        <span>Selesai (Tiba)</span>
+                                        <Check size={14} strokeWidth={2.5} />
                                       </button>
                                     )}
 
