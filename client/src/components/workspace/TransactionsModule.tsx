@@ -396,10 +396,15 @@ export function TransactionsModule({
   const [countryFilter, setCountryFilter] = useState("ALL");
   const [draggedCardId, setDraggedCardId] = useState<string | null>(null);
 
-  // Initial Kanban stages populated from orders or presets
+  // Initial Kanban stages populated from orders or presets with distinct stage colors
   const [kanbanStages, setKanbanStages] = useState<{
     id: string;
     title: string;
+    accentColor: string;
+    bgTint: string;
+    badgeBg: string;
+    badgeText: string;
+    borderColor: string;
     items: {
       id: string;
       ref: string;
@@ -416,6 +421,11 @@ export function TransactionsModule({
     {
       id: "inquiry",
       title: "1. Inquiry & Leads",
+      accentColor: "#2563EB",
+      bgTint: "#F8FAFC",
+      badgeBg: "#DBEAFE",
+      badgeText: "#1D4ED8",
+      borderColor: "#93C5FD",
       items: [
         {
           id: "kb-1",
@@ -444,6 +454,11 @@ export function TransactionsModule({
     {
       id: "quotation",
       title: "2. Penawaran (Quotation)",
+      accentColor: "#D97706",
+      bgTint: "#FFFDF5",
+      badgeBg: "#FEF3C7",
+      badgeText: "#B45309",
+      borderColor: "#FDE68A",
       items: [
         {
           id: "kb-3",
@@ -461,6 +476,11 @@ export function TransactionsModule({
     {
       id: "negotiation",
       title: "3. Negosiasi & Sampel",
+      accentColor: "#7C3AED",
+      bgTint: "#FAF5FF",
+      badgeBg: "#EDE9FE",
+      badgeText: "#6D28D9",
+      borderColor: "#DDD6FE",
       items: [
         {
           id: "kb-4",
@@ -478,6 +498,11 @@ export function TransactionsModule({
     {
       id: "contract",
       title: "4. Kontrak & DP Terbit",
+      accentColor: "#0D9488",
+      bgTint: "#F0FDFA",
+      badgeBg: "#CCFBF1",
+      badgeText: "#0F766E",
+      borderColor: "#99F6E4",
       items: [
         {
           id: "kb-5",
@@ -495,6 +520,11 @@ export function TransactionsModule({
     {
       id: "production",
       title: "5. Produksi & Stuffing",
+      accentColor: "#EA580C",
+      bgTint: "#FFF7ED",
+      badgeBg: "#FFEDD5",
+      badgeText: "#C2410C",
+      borderColor: "#FED7AA",
       items: [
         {
           id: "kb-6",
@@ -506,6 +536,50 @@ export function TransactionsModule({
           container: "1 × 20RF",
           dueDate: "12 Des 2026",
           status: "In Transit",
+        },
+      ],
+    },
+    {
+      id: "shipping",
+      title: "6. Kapal Berlayar (In Transit)",
+      accentColor: "#0284C7",
+      bgTint: "#F0F9FF",
+      badgeBg: "#E0F2FE",
+      badgeText: "#0369A1",
+      borderColor: "#BAE6FD",
+      items: [
+        {
+          id: "kb-7",
+          ref: "PO-2026/DEU/12",
+          buyer: "Hamburg Roasters B.V.",
+          country: "Belanda",
+          product: "Biji Kakao Fermentasi Sulawesi",
+          value: "$71,250",
+          container: "1 × 40HC",
+          dueDate: "18 Des 2026",
+          status: "In Transit",
+        },
+      ],
+    },
+    {
+      id: "completed",
+      title: "7. Selesai & Diterima Buyer",
+      accentColor: "#16A34A",
+      bgTint: "#F0FDF4",
+      badgeBg: "#DCFCE7",
+      badgeText: "#15803D",
+      borderColor: "#BBF7D0",
+      items: [
+        {
+          id: "kb-8",
+          ref: "PO-2026/SIN/01",
+          buyer: "Olam International Ltd",
+          country: "Singapura",
+          product: "Kayu Manis Korintje A",
+          value: "$55,000",
+          container: "1 × 20GP",
+          dueDate: "10 Nov 2026",
+          status: "Completed",
         },
       ],
     },
@@ -569,6 +643,71 @@ export function TransactionsModule({
       });
     });
     toast.success(`Dipindahkan ke ${nextCol.title}`);
+  };
+
+  const handleMarkCompleteAndSaveBuyer = (
+    card: { id: string; ref: string; buyer: string; country: string; product: string; value: string; container: string; dueDate: string; status: string },
+    _currentColId: string
+  ) => {
+    // 1. Pindahkan kartu ke tahapan 7. Selesai & Diterima Buyer
+    setKanbanStages((prev) => {
+      let movedItem: any = null;
+      const cleaned = prev.map((col) => {
+        const remaining = col.items.filter((it) => {
+          if (it.id === card.id) {
+            movedItem = { ...it, status: "Completed" };
+            return false;
+          }
+          return true;
+        });
+        return { ...col, items: remaining };
+      });
+      if (!movedItem) return prev;
+      return cleaned.map((col) => {
+        if (col.id === "completed") {
+          const exists = col.items.some((it) => it.id === movedItem.id);
+          return { ...col, items: exists ? col.items : [movedItem, ...col.items] };
+        }
+        return col;
+      });
+    });
+
+    // 2. Simpan secara permanen ke Database Buyer (Menu Pra-Transaksi & Buyer)
+    try {
+      const raw = localStorage.getItem("eksporflow_saved_buyers");
+      const list = raw ? JSON.parse(raw) : [];
+      const newBuyerRecord = {
+        id: `buyer-${Date.now()}`,
+        companyName: card.buyer,
+        country: card.country,
+        product: card.product,
+        lastPoRef: card.ref,
+        dealValue: card.value,
+        container: card.container,
+        status: "Kargo Diterima & Lunas",
+        savedAt: new Date().toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }),
+      };
+      const filtered = list.filter((b: any) => b.companyName !== card.buyer);
+      const updated = [newBuyerRecord, ...filtered];
+      localStorage.setItem("eksporflow_saved_buyers", JSON.stringify(updated));
+      window.dispatchEvent(new Event("eksporflow_buyer_saved"));
+    } catch (err) {
+      console.error("Gagal menyimpan buyer ke CRM", err);
+    }
+
+    // 3. Sinkronkan dengan transaksi aktif bila diperlukan
+    if (update) {
+      update("buyer", card.buyer);
+      update("buyerCountry", card.country);
+    }
+
+    toast.success(`Pesanan ${card.ref} Selesai! Data buyer ${card.buyer} (${card.country}) berhasil tersimpan di menu Data Buyer & CRM.`, {
+      action: {
+        label: "Buka Data Buyer",
+        onClick: () => navigate("pre_transaction"),
+      },
+      duration: 6000,
+    });
   };
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
@@ -1510,11 +1649,14 @@ export function TransactionsModule({
             <div className="space-crm-container">
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
-                    Papan Pipeline Ekspor (Drag &amp; Drop)
-                  </h3>
-                  <small style={{ color: "var(--space-gray-500)" }}>
-                    Geser kartu order antar kolom tahapan atau klik tanda panah untuk mempercepat status.
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
+                      Papan Pipeline Ekspor (7 Tahapan Alur Kesamping)
+                    </h3>
+                    <SpaceBadge tone="primary">Scroll Kesamping →</SpaceBadge>
+                  </div>
+                  <small style={{ color: "var(--space-gray-500)", display: "block", marginTop: 2 }}>
+                    Geser kartu order antar kolom tahapan atau geser horizontal kesamping untuk meninjau seluruh siklus ekspor. Klik "Selesai" untuk langsung simpan ke Data Buyer.
                   </small>
                 </div>
                 <SpaceButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
@@ -1523,64 +1665,175 @@ export function TransactionsModule({
               </div>
 
               <div className="space-kanban-board">
-                {kanbanStages.map((col) => (
-                  <div
-                    key={col.id}
-                    className="space-kanban-col"
-                    onDragOver={(e) => e.preventDefault()}
-                    onDrop={() => handleDrop(col.id)}
-                  >
-                    <div className="space-kanban-col-header">
-                      <div className="space-kanban-col-title">
-                        <span>{col.title}</span>
-                      </div>
-                      <span className="space-kanban-col-count">{col.items.length}</span>
-                    </div>
+                {kanbanStages.map((col) => {
+                  const isCompletedCol = col.id === "completed";
+                  const isLateStage = col.id === "production" || col.id === "shipping" || col.id === "contract";
 
-                    <div className="space-kanban-cards-stack">
-                      {col.items.map((card) => (
-                        <div
-                          key={card.id}
-                          className="space-kanban-card"
-                          draggable
-                          onDragStart={() => handleDragStart(card.id)}
+                  return (
+                    <div
+                      key={col.id}
+                      className="space-kanban-col"
+                      style={{
+                        borderTop: `4px solid ${col.accentColor}`,
+                        background: col.bgTint,
+                      }}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={() => handleDrop(col.id)}
+                    >
+                      <div
+                        className="space-kanban-col-header"
+                        style={{
+                          borderBottom: `1.5px solid ${col.borderColor}`,
+                          paddingBottom: 8,
+                        }}
+                      >
+                        <div className="space-kanban-col-title" style={{ gap: 8 }}>
+                          <span
+                            style={{
+                              width: 8,
+                              height: 8,
+                              borderRadius: "50%",
+                              background: col.accentColor,
+                              display: "inline-block",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span style={{ color: "#0F172A", fontSize: 13, fontWeight: 700 }}>
+                            {col.title}
+                          </span>
+                        </div>
+                        <span
+                          className="space-kanban-col-count"
+                          style={{
+                            background: col.badgeBg,
+                            color: col.badgeText,
+                            border: `1px solid ${col.borderColor}`,
+                            fontWeight: 700,
+                            padding: "1px 8px",
+                            borderRadius: 99,
+                            fontSize: 11,
+                          }}
                         >
-                          <div className="space-kanban-card-head">
-                            <span style={{ fontSize: "11px", fontWeight: 700, color: "var(--space-navy-800)", fontFamily: "monospace" }}>
-                              {card.ref}
-                            </span>
-                            <SpaceBadge tone="neutral">{card.container}</SpaceBadge>
-                          </div>
+                          {col.items.length}
+                        </span>
+                      </div>
 
-                          <div className="space-kanban-card-title">{card.buyer}</div>
-
-                          <div className="space-kanban-card-meta">
-                            <span>{card.product}</span>
-                            <span>·</span>
-                            <span>{card.country}</span>
-                          </div>
-
-                          <div className="space-kanban-card-foot">
-                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                              <SpaceAvatar name={card.buyer} size="xs" />
-                              <span className="space-kanban-card-val">{card.value}</span>
+                      <div className="space-kanban-cards-stack">
+                        {col.items.map((card) => (
+                          <div
+                            key={card.id}
+                            className="space-kanban-card"
+                            style={{
+                              borderLeft: `3.5px solid ${col.accentColor}`,
+                            }}
+                            draggable
+                            onDragStart={() => handleDragStart(card.id)}
+                          >
+                            <div className="space-kanban-card-head">
+                              <span
+                                style={{
+                                  fontSize: "11px",
+                                  fontWeight: 700,
+                                  color: "#0F172A",
+                                  fontFamily: "monospace",
+                                }}
+                              >
+                                {card.ref}
+                              </span>
+                              <SpaceBadge tone="neutral">{card.container}</SpaceBadge>
                             </div>
 
-                            <button
-                              type="button"
-                              className="space-btn space-btn-ghost space-btn-sm"
-                              style={{ padding: "2px 6px", height: "auto" }}
-                              onClick={() => handleAdvanceCard(card.id, col.id)}
-                              title="Pindahkan ke tahapan berikutnya"
+                            <div className="space-kanban-card-title" style={{ color: "#0F172A", fontWeight: 700 }}>
+                              {card.buyer}
+                            </div>
+
+                            <div className="space-kanban-card-meta" style={{ color: "#64748B", fontSize: "11.5px" }}>
+                              <span>{card.product}</span>
+                              <span>·</span>
+                              <span>{card.country}</span>
+                            </div>
+
+                            <div
+                              className="space-kanban-card-foot"
+                              style={{
+                                marginTop: 4,
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                gap: 6,
+                              }}
                             >
-                              <ArrowRight size={13} />
-                            </button>
+                              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <SpaceAvatar name={card.buyer} size="xs" />
+                                <span className="space-kanban-card-val" style={{ fontWeight: 700, color: "#0F172A" }}>
+                                  {card.value}
+                                </span>
+                              </div>
+
+                              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                                {isCompletedCol ? (
+                                  <button
+                                    type="button"
+                                    onClick={() => navigate("pre_transaction")}
+                                    className="space-btn space-btn-ghost space-btn-sm"
+                                    style={{
+                                      padding: "3px 7px",
+                                      fontSize: 10.5,
+                                      fontWeight: 600,
+                                      color: "#047857",
+                                      background: "#DCFCE7",
+                                      borderRadius: 5,
+                                      border: "1px solid #BBF7D0",
+                                      cursor: "pointer",
+                                    }}
+                                    title="Kargo selesai & data tersimpan di menu Data Buyer"
+                                  >
+                                    Data Buyer ↗
+                                  </button>
+                                ) : (
+                                  <>
+                                    {isLateStage && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleMarkCompleteAndSaveBuyer(card, col.id)}
+                                        title="Selesai stuffing / kargo diterima buyer & otomatis simpan ke menu Data Buyer"
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: 3,
+                                          padding: "3px 7px",
+                                          fontSize: 11,
+                                          fontWeight: 700,
+                                          background: "#ECFDF5",
+                                          border: "1px solid #A7F3D0",
+                                          color: "#047857",
+                                          borderRadius: 5,
+                                          cursor: "pointer",
+                                        }}
+                                      >
+                                        <CheckCircle2 size={12} />
+                                        <span>Selesai</span>
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      className="space-btn space-btn-ghost space-btn-sm"
+                                      style={{ padding: "3px 6px", height: "auto" }}
+                                      onClick={() => handleAdvanceCard(card.id, col.id)}
+                                      title="Pindahkan ke tahapan berikutnya"
+                                    >
+                                      <ArrowRight size={13} />
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

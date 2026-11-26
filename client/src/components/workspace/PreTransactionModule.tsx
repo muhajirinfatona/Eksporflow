@@ -22,7 +22,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
 
 interface PreTransactionModuleProps {
@@ -825,6 +825,96 @@ export function PreTransactionModule({
     toast.success("Data Buyer Disinkronkan ke Transaksi Aktif");
   };
 
+  // Direktori Data Buyer Tersimpan (CRM Ekspor)
+  const [savedBuyersList, setSavedBuyersList] = useState<{
+    id: string;
+    companyName: string;
+    country: string;
+    product: string;
+    lastPoRef?: string;
+    dealValue?: string;
+    container?: string;
+    status: string;
+    savedAt: string;
+    email?: string;
+  }[]>(() => {
+    try {
+      const raw = localStorage.getItem("eksporflow_saved_buyers");
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return [
+      {
+        id: "buyer-seed-1",
+        companyName: "Al-Barakah Global Trading",
+        country: "Uni Emirat Arab",
+        product: "Briket Arang Kelapa",
+        lastPoRef: "INQ-2026/DXB/03",
+        dealValue: "$42,600",
+        container: "2 × 40HC",
+        status: "Kargo Diterima & Lunas",
+        savedAt: "24 Nov 2026",
+      },
+      {
+        id: "buyer-seed-2",
+        companyName: "Hamburg Roasters B.V.",
+        country: "Belanda",
+        product: "Biji Kakao Fermentasi Sulawesi",
+        lastPoRef: "PO-2026/DEU/12",
+        dealValue: "$71,250",
+        container: "1 × 40HC",
+        status: "Kargo Diterima & Lunas",
+        savedAt: "21 Nov 2026",
+      },
+      {
+        id: "buyer-seed-3",
+        companyName: "Marubeni Specialty Foods",
+        country: "Jepang",
+        product: "Kopi Arabika Gayo Grade 1",
+        lastPoRef: "PO-2026/TYO/04",
+        dealValue: "$112,000",
+        container: "1 × 40HC",
+        status: "Kargo Diterima & Lunas",
+        savedAt: "19 Nov 2026",
+      },
+      {
+        id: "buyer-seed-4",
+        companyName: "Olam International Ltd",
+        country: "Singapura",
+        product: "Kayu Manis Korintje A",
+        lastPoRef: "PO-2026/SIN/01",
+        dealValue: "$55,000",
+        container: "1 × 20GP",
+        status: "Kargo Diterima & Lunas",
+        savedAt: "10 Nov 2026",
+      },
+    ];
+  });
+
+  useEffect(() => {
+    const handleSyncEvent = () => {
+      try {
+        const raw = localStorage.getItem("eksporflow_saved_buyers");
+        if (raw) setSavedBuyersList(JSON.parse(raw));
+      } catch {}
+    };
+    window.addEventListener("eksporflow_buyer_saved", handleSyncEvent);
+    return () => window.removeEventListener("eksporflow_buyer_saved", handleSyncEvent);
+  }, []);
+
+  const handleSelectSavedBuyer = (buyerItem: any) => {
+    updateDraft({
+      prospectCompany: buyerItem.companyName,
+      prospectCountry: buyerItem.country,
+      prospectEmail: buyerItem.email || `procurement@${buyerItem.companyName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
+      customNotes: `Repeat order / follow up: ${buyerItem.product} (${buyerItem.container || "1 x 40HC"}). Ref PO kargo: ${buyerItem.lastPoRef || "-"}`,
+    });
+    if (update) {
+      update("buyer", buyerItem.companyName);
+      update("buyerCountry", buyerItem.country);
+    }
+    toast.success(`Data buyer ${buyerItem.companyName} (${buyerItem.country}) berhasil dimuat ke draf!`);
+  };
+
   const handlePrintOrDownloadPDF = () => {
     window.print();
     toast.success("Membuka dialog cetak / Simpan sebagai PDF");
@@ -902,6 +992,68 @@ export function PreTransactionModule({
             >
               <Database size={14} /> Sinkronkan ke Transaksi
             </button>
+          </div>
+
+          {/* Quick-fill from Saved Buyer Database (CRM Ekspor) */}
+          <div
+            style={{
+              background: "#F8FAFC",
+              border: "1px solid #E2E8F0",
+              borderRadius: 8,
+              padding: "10px 12px",
+              marginBottom: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <Building2 size={14} style={{ color: "#2563EB" }} />
+                <strong style={{ fontSize: "12px", color: "#1E293B" }}>
+                  Data Buyer Tersimpan ({savedBuyersList.length}) · Hasil Selesai Kargo
+                </strong>
+              </div>
+              <span style={{ fontSize: "10.5px", color: "#64748B" }}>
+                Klik nama buyer untuk langsung memuat ke formulir penawaran
+              </span>
+            </div>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {savedBuyersList.map((b) => {
+                const isSelected = prospectCompany === b.companyName;
+                return (
+                  <button
+                    key={b.id || b.companyName}
+                    type="button"
+                    onClick={() => handleSelectSavedBuyer(b)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      padding: "4px 10px",
+                      borderRadius: 99,
+                      fontSize: "11px",
+                      fontWeight: 600,
+                      cursor: "pointer",
+                      border: isSelected ? "1.5px solid #2563EB" : "1px solid #CBD5E1",
+                      background: isSelected ? "#EFF6FF" : "#FFFFFF",
+                      color: isSelected ? "#1D4ED8" : "#334155",
+                      boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
+                      transition: "all 0.15s ease",
+                    }}
+                    title={`Klik untuk memuat profil ${b.companyName} (${b.country})`}
+                  >
+                    <span>{b.companyName}</span>
+                    <span style={{ fontSize: "10px", color: isSelected ? "#2563EB" : "#64748B" }}>
+                      · {b.country}
+                    </span>
+                    {b.status?.includes("Selesai") && (
+                      <span style={{ color: "#10B981", fontSize: "11px", fontWeight: 700 }}>✓</span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="form-grid two ef-form" style={{ marginBottom: 14 }}>

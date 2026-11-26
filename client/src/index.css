@@ -20756,33 +20756,49 @@ table.unlk-items-table th.active-cell {
   background: var(--space-gray-50);
 }
 
-/* Space DS Kanban Board (Drag & Drop) */
+/* Space DS Kanban Board (Drag & Drop) - Always Horizontal Scroll */
 .space-kanban-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 14px;
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  gap: 16px;
   width: 100%;
-  align-items: start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 4px 4px 18px 2px;
+  align-items: flex-start;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
-@media (max-width: 1200px) {
-  .space-kanban-board {
-    display: flex;
-    overflow-x: auto;
-    padding-bottom: 12px;
-  }
-  .space-kanban-col {
-    min-width: 280px;
-    flex-shrink: 0;
-  }
+.space-kanban-board::-webkit-scrollbar {
+  height: 8px;
 }
-.space-kanban-col {
+.space-kanban-board::-webkit-scrollbar-track {
   background: #F1F5F9;
+  border-radius: 99px;
+}
+.space-kanban-board::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 99px;
+}
+.space-kanban-board::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.space-kanban-col {
+  background: #F8FAFC;
   border-radius: var(--space-radius-lg);
   border: 1px solid var(--space-gray-200);
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-width: 295px;
+  max-width: 310px;
+  width: 300px;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: all 0.2s ease;
 }
 .space-kanban-col-header {
   display: flex;
