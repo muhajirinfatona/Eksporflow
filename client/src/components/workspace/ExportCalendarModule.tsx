@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import {
   Calendar as CalendarIcon,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -593,7 +594,7 @@ export function ExportCalendarModule({
 
   return (
     <div className="space-crm-container" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* 1. TOP TOOLBAR: QUICK PERIOD PRESETS & RANGE PICKER */}
+      {/* 1. TOP TOOLBAR: JUDUL & TOMBOL BUAT PLAN */}
       <div
         style={{
           background: "#FFFFFF",
@@ -601,174 +602,36 @@ export function ExportCalendarModule({
           borderRadius: 12,
           padding: "16px 20px",
           display: "flex",
-          flexDirection: "column",
-          gap: 14,
+          justifyContent: "space-between",
+          alignItems: "center",
+          flexWrap: "wrap",
+          gap: 12,
           boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
-                Kalender Ekspor &amp; Penjadwalan Rencana Operasional
-              </h3>
-              <SpaceBadge tone="primary">
-                {plans.length} Total Plan Terjadwal
-              </SpaceBadge>
-            </div>
-            <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "#64748B" }}>
-              Pilih periode (Hari Ini, Kemarin, Mingguan, Bulan Ini, Bulan Lalu, atau Range Tanggal) dan kelola jadwal ekspor agar seluruh rencana pengapalan terpantau presisi.
-            </p>
-          </div>
-
-          {/* Tombol Buat Jadwal Plan */}
-          <SpaceButton
-            variant="primary"
-            size="md"
-            icon={<Plus size={16} />}
-            onClick={() => handleOpenAddModalForDate(selectedDate || "2026-11-24")}
-          >
-            + Buat Jadwal / Tambah Plan
-          </SpaceButton>
-        </div>
-
-        {/* 2. FILTER PERIOD BUTTONS BAR */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 10,
-            paddingTop: 12,
-            borderTop: "1px solid #F1F5F9",
-          }}
-        >
-          {/* Quick Preset Buttons */}
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 12, fontWeight: 600, color: "#475569", marginRight: 4 }}>
-              Pilih Periode:
-            </span>
-
-            {[
-              { key: "today" as const, label: "Hari Ini" },
-              { key: "yesterday" as const, label: "Kemarin" },
-              { key: "7days" as const, label: "7 Hari (Mingguan)" },
-              { key: "this_month" as const, label: "Bulan Ini" },
-              { key: "last_month" as const, label: "Bulan Lalu" },
-              { key: "custom" as const, label: "📅 Range Tanggal" },
-            ].map((preset) => {
-              const isActive = periodFilter === preset.key;
-              return (
-                <button
-                  key={preset.key}
-                  type="button"
-                  onClick={() => handleSelectPeriod(preset.key)}
-                  style={{
-                    padding: "6px 14px",
-                    borderRadius: 8,
-                    fontSize: 12.5,
-                    fontWeight: isActive ? 700 : 500,
-                    cursor: "pointer",
-                    transition: "all 0.15s ease",
-                    border: isActive ? "1px solid #0F2942" : "1px solid #E2E8F0",
-                    background: isActive ? "#0F2942" : "#FFFFFF",
-                    color: isActive ? "#FFFFFF" : "#334155",
-                    boxShadow: isActive ? "0 2px 4px rgba(15, 41, 66, 0.15)" : "none",
-                  }}
-                >
-                  {preset.label}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Active Period Display Badge */}
+        <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 12, color: "#64748B" }}>Periode Aktif:</span>
-            <span
-              style={{
-                fontSize: 12,
-                fontWeight: 600,
-                color: "#0F2942",
-                background: "#F1F5F9",
-                padding: "4px 10px",
-                borderRadius: 6,
-                border: "1px solid #E2E8F0",
-              }}
-            >
-              {dateRangeBounds.label}
-            </span>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
+              Kalender Ekspor &amp; Penjadwalan Rencana Operasional
+            </h3>
+            <SpaceBadge tone="primary">
+              {plans.length} Total Plan Terjadwal
+            </SpaceBadge>
           </div>
+          <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "#64748B" }}>
+            Pantau dan jadwalkan kegiatan pengapalan ekspor (Stuffing, Vessel ETD/ETA, Closing PEB DJBC, dan Pelunasan L/C) sesuai periode yang dipilih.
+          </p>
         </div>
 
-        {/* Custom Range Input Bar (Appears when 'custom' is active) */}
-        {periodFilter === "custom" && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "10px 14px",
-              background: "#F8FAFC",
-              borderRadius: 8,
-              border: "1px dashed #CBD5E1",
-              flexWrap: "wrap",
-            }}
-          >
-            <span style={{ fontSize: 12.5, fontWeight: 600, color: "#334155" }}>
-              Tentukan Rentang Tanggal Ekspor:
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <label style={{ fontSize: 12, color: "#64748B" }}>Dari:</label>
-              <input
-                type="date"
-                value={customStartDate}
-                onChange={(e) => setCustomStartDate(e.target.value)}
-                style={{
-                  padding: "5px 10px",
-                  borderRadius: 6,
-                  border: "1px solid #CBD5E1",
-                  fontSize: 12.5,
-                  color: "#0F172A",
-                  background: "#FFFFFF",
-                }}
-              />
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <label style={{ fontSize: 12, color: "#64748B" }}>Sampai:</label>
-              <input
-                type="date"
-                value={customEndDate}
-                onChange={(e) => setCustomEndDate(e.target.value)}
-                style={{
-                  padding: "5px 10px",
-                  borderRadius: 6,
-                  border: "1px solid #CBD5E1",
-                  fontSize: 12.5,
-                  color: "#0F172A",
-                  background: "#FFFFFF",
-                }}
-              />
-            </div>
-            <button
-              type="button"
-              onClick={() => toast.success(`Rentang diterapkan: ${customStartDate} s/d ${customEndDate}`)}
-              style={{
-                padding: "5px 12px",
-                borderRadius: 6,
-                background: "#0F2942",
-                color: "#FFFFFF",
-                fontSize: 12,
-                fontWeight: 600,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              Terapkan Rentang
-            </button>
-          </div>
-        )}
+        {/* Tombol Buat Jadwal Plan */}
+        <SpaceButton
+          variant="primary"
+          size="md"
+          icon={<Plus size={16} />}
+          onClick={() => handleOpenAddModalForDate(selectedDate || "2026-11-24")}
+        >
+          + Buat Jadwal / Tambah Plan
+        </SpaceButton>
       </div>
 
       {/* 2. MAIN LAYOUT: MONTHLY CALENDAR GRID + OPERATIONAL PLAN AGENDA PANEL */}
@@ -776,7 +639,17 @@ export function ExportCalendarModule({
         {/* CALENDAR CARD */}
         <div className="space-calendar-card" style={{ padding: "18px 20px" }}>
           {/* Calendar Header Navigation */}
-          <div className="space-calendar-nav" style={{ marginBottom: 14 }}>
+          <div
+            className="space-calendar-nav"
+            style={{
+              marginBottom: 14,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              flexWrap: "wrap",
+              gap: 12,
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
                 {MONTH_NAMES_ID[currentMonth]} {currentYear}
@@ -787,10 +660,25 @@ export function ExportCalendarModule({
               {currentMonth === 9 && currentYear === 2026 && (
                 <SpaceBadge tone="neutral">Bulan Lalu</SpaceBadge>
               )}
+              {periodFilter !== "this_month" && (
+                <span
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: "#0284C7",
+                    background: "#F0F9FF",
+                    border: "1px solid #BAE6FD",
+                    padding: "2px 8px",
+                    borderRadius: 6,
+                  }}
+                >
+                  {dateRangeBounds.label}
+                </span>
+              )}
             </div>
 
-            {/* Navigation buttons: Sebelumnya, Hari Ini, Berikutnya */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Navigation buttons: Sebelumnya, Hari Ini, Berikutnya + Dropdown Pilihan Periode */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               <SpaceButton
                 variant="secondary"
                 size="sm"
@@ -802,7 +690,7 @@ export function ExportCalendarModule({
               </SpaceButton>
 
               <SpaceButton
-                variant="secondary"
+                variant={periodFilter === "today" ? "primary" : "secondary"}
                 size="sm"
                 onClick={handleResetToToday}
                 title="Kembali ke Hari Ini (24 Nov 2026)"
@@ -819,8 +707,131 @@ export function ExportCalendarModule({
               >
                 Berikutnya
               </SpaceButton>
+
+              {/* DROPDOWN PILIHAN PERIODE */}
+              <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
+                <CalendarIcon
+                  size={13}
+                  style={{
+                    position: "absolute",
+                    left: 9,
+                    color: "#64748B",
+                    pointerEvents: "none",
+                    zIndex: 1,
+                  }}
+                />
+                <select
+                  value={periodFilter}
+                  onChange={(e) => handleSelectPeriod(e.target.value as PeriodFilterKey)}
+                  style={{
+                    height: 32,
+                    paddingLeft: 27,
+                    paddingRight: 26,
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "#0F2942",
+                    background: "#F8FAFC",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 6,
+                    cursor: "pointer",
+                    outline: "none",
+                    appearance: "none",
+                    WebkitAppearance: "none",
+                    MozAppearance: "none",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
+                    transition: "all 0.15s ease",
+                  }}
+                  title="Pilih Periode Waktu Kalender & Agenda"
+                >
+                  <option value="today">Hari Ini</option>
+                  <option value="yesterday">Kemarin</option>
+                  <option value="7days">7 Hari (Mingguan)</option>
+                  <option value="this_month">Bulan Ini</option>
+                  <option value="last_month">Bulan Lalu</option>
+                  <option value="custom">📅 Range Tanggal...</option>
+                </select>
+                <ChevronDown
+                  size={13}
+                  style={{
+                    position: "absolute",
+                    right: 8,
+                    color: "#64748B",
+                    pointerEvents: "none",
+                    zIndex: 1,
+                  }}
+                />
+              </div>
             </div>
           </div>
+
+          {/* Custom Range Input Bar (Muncul saat 'custom' dipilih pada dropdown) */}
+          {periodFilter === "custom" && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "10px 14px",
+                marginBottom: 14,
+                background: "#F8FAFC",
+                borderRadius: 8,
+                border: "1px dashed #CBD5E1",
+                flexWrap: "wrap",
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>
+                Tentukan Rentang Tanggal Ekspor:
+              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <label style={{ fontSize: 11.5, color: "#64748B" }}>Dari:</label>
+                <input
+                  type="date"
+                  value={customStartDate}
+                  onChange={(e) => setCustomStartDate(e.target.value)}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    border: "1px solid #CBD5E1",
+                    fontSize: 12,
+                    color: "#0F172A",
+                    background: "#FFFFFF",
+                  }}
+                />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <label style={{ fontSize: 11.5, color: "#64748B" }}>Sampai:</label>
+                <input
+                  type="date"
+                  value={customEndDate}
+                  onChange={(e) => setCustomEndDate(e.target.value)}
+                  style={{
+                    padding: "4px 8px",
+                    borderRadius: 6,
+                    border: "1px solid #CBD5E1",
+                    fontSize: 12,
+                    color: "#0F172A",
+                    background: "#FFFFFF",
+                  }}
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => toast.success(`Rentang diterapkan: ${customStartDate} s/d ${customEndDate}`)}
+                style={{
+                  padding: "5px 12px",
+                  borderRadius: 6,
+                  background: "#0F2942",
+                  color: "#FFFFFF",
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                Terapkan Rentang
+              </button>
+            </div>
+          )}
 
           {/* Day Headers (SEN, SEL, RAB, KAM, JUM, SAB, MIN) */}
           <div className="space-calendar-grid" style={{ marginBottom: 4 }}>
