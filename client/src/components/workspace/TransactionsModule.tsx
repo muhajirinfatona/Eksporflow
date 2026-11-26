@@ -1926,7 +1926,7 @@ export function TransactionsModule({
                                     title="Kargo telah selesai. Klik untuk buka data buyer di menu Mitra & Kontrak"
                                   >
                                     <UserPlus size={13} />
-                                    <span>Mitra &amp; Kontrak ↗</span>
+                                    <span>Mitra ↗</span>
                                   </button>
                                 ) : (
                                   <>
