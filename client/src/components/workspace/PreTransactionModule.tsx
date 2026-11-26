@@ -7,7 +7,6 @@ import type { Shipment } from "@shared/shipment";
 import {
   ArrowRight,
   Building2,
-  CheckCircle2,
   Copy,
   Database,
   FileText,
@@ -116,7 +115,7 @@ function buildDraftCopyId(params: DraftParams): { subject: string; body: string 
       ? `\n\nLAMPIRAN DOKUMEN RESMI:\n${params.attachmentsList.map((att, i) => `${i + 1}. ${att}`).join("\n")}`
       : "";
 
-  // 1. INQUIRY (Surat Minat & Pengenalan Suplai Komoditas Ekspor)
+  // 1. INQUIRY
   if (params.docType === "inquiry") {
     if (params.tone === "formal") {
       const subject = `[SURAT MINAT RESMI EKSPOR] Pengenalan & Penawaran Pasokan Komersial: ${product}${hs} — ${exporter}`;
@@ -141,9 +140,7 @@ PARAMETER UTAMA PASOKAN & KESEPAKATAN:
 4. Pelabuhan Muat Asal: Pelabuhan Utama Indonesia (Tanjung Priok / Tanjung Perak / Belawan)
 5. Kepatuhan Mutu: Fitosanitari, Certificate of Origin (e-SKA), dan standar jaminan mutu internasional.${notesBlock}
 
-Apabila divisi pengadaan Anda sedang mengevaluasi pemasok komoditas terpercaya dari Indonesia, kami siap mengirimkan spesifikasi teknis lengkap, lembar hasil uji lab, serta sampel produk resmi.
-
-Dokumen pendukung terlampir dapat ditinjau di bawah ini.${attachmentSection}
+Apabila divisi pengadaan Anda sedang mengevaluasi pemasok komoditas terpercaya dari Indonesia, kami siap mengirimkan spesifikasi teknis lengkap, lembar hasil uji lab, serta sampel produk resmi.${attachmentSection}
 
 Atas perhatian dan kesempatan kerja sama yang baik ini, kami ucapkan terima kasih.
 
@@ -176,7 +173,6 @@ ${exporter}`;
       return { subject, body };
     }
 
-    // casual / ringkas
     const subject = `[PENAWARAN AWAL EKSPOR] Pasokan ${product} (${volStr}) — ${exporter}`;
     const body = `Halo Tim Pengadaan ${buyer},
 
@@ -193,7 +189,7 @@ ${signatory} — ${exporter}`;
     return { subject, body };
   }
 
-  // 2. QUOTATION (Surat Penawaran Harga Resmi)
+  // 2. QUOTATION
   if (params.docType === "quotation") {
     if (params.tone === "formal") {
       const subject = `[SURAT PENAWARAN HARGA RESMI] Penawaran Ekspor: ${product} (${params.incoterm} ${route}) — Ref: ${params.refNum}`;
@@ -259,7 +255,6 @@ ${exporter}`;
       return { subject, body };
     }
 
-    // casual / ringkas
     const subject = `[QUOTATION RINGKAS] ${product} (${volStr}) — ${params.incoterm} ${route}`;
     const body = `Halo Tim Pengadaan ${buyer},
 
@@ -276,7 +271,7 @@ ${signatory} — ${exporter}`;
     return { subject, body };
   }
 
-  // 3. NEGOTIATION (Surat Negosiasi & Penyelarasan Ketentuan)
+  // 3. NEGOTIATION
   if (params.tone === "formal") {
     const subject = `[SURAT NEGOSIASI KOMERSIAL] Penyelarasan Ketentuan & Finalisasi Kontrak: ${product} — Ref: ${params.refNum}`;
     const body = `NOMOR SURAT: ${params.refNum}
@@ -333,7 +328,6 @@ ${exporter}`;
     return { subject, body };
   }
 
-  // casual / ringkas
   const subject = `[PENYELARASAN SYARAT] Finalisasi Ketentuan Penyerahan & Pembayaran: ${product} — Ref: ${params.refNum}`;
   const body = `Halo Tim Pengadaan ${buyer},
 
@@ -402,9 +396,7 @@ KEY SUPPLY PARAMETERS:
 4. Origin Loading Port: Indonesian Main Port (Tanjung Priok / Tanjung Perak / Belawan)
 5. Export Compliance: Phytosanitary Certificate, Certificate of Origin (e-SKA), and quality assurance.${notesBlock}
 
-Should your desk be evaluating qualified Indonesian suppliers, we would be pleased to dispatch our technical specifications and lab analysis sheets.
-
-Please review the attached official credentials below.${attachmentSection}
+Should your desk be evaluating qualified Indonesian suppliers, we would be pleased to dispatch our technical specifications and lab analysis sheets.${attachmentSection}
 
 We look forward to establishing a prosperous and enduring trade partnership.
 
@@ -795,15 +787,14 @@ export function PreTransactionModule({
   const currentSubject = letterLang === "id" ? activeSubjectId : activeSubjectEn;
   const currentBody = letterLang === "id" ? activeBodyId : activeBodyEn;
 
-  // Translate Indonesian draft to English
+  // The ONLY Translation Function
   const handleTranslateToEnglish = () => {
-    // Generate fresh English export copy
     const freshEn = buildDraftCopyEn(draftParams);
     setCustomSubjectEn(freshEn.subject);
     setCustomBodyEn(freshEn.body);
     setIsTranslated(true);
     setLetterLang("en");
-    toast.success("Draf berhasil diterjemahkan ke Bahasa Inggris resmi ekspor! Siap dikirim ke buyer.");
+    toast.success("Draf berhasil diterjemahkan ke Bahasa Inggris!");
   };
 
   const handleResetIndonesianDraft = () => {
@@ -853,30 +844,10 @@ export function PreTransactionModule({
           </span>
           <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
           <p className="lead">
-            Review dan edit draf surat penawaran dalam Bahasa Indonesia, lalu terjemahkan langsung ke Bahasa Inggris resmi ekspor untuk dikirim ke buyer internasional.
+            Review dan edit surat penawaran dalam Bahasa Indonesia, terjemahkan ke Bahasa Inggris resmi ekspor, dan verifikasi kepatuhan importir.
           </p>
           <div className="ef-hero-actions">
-            {letterLang === "id" ? (
-              <button
-                type="button"
-                className="ef-hero-btn-primary"
-                onClick={handleTranslateToEnglish}
-                title="Terjemahkan draf Bahasa Indonesia ke Bahasa Inggris resmi siap kirim"
-              >
-                <Languages size={14} /> Terjemahkan ke Bahasa Inggris
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="ef-hero-btn-primary"
-                onClick={() => setLetterLang("id")}
-                title="Kembali tinjau dan edit dalam Bahasa Indonesia"
-              >
-                <Languages size={14} /> Edit Draf Bahasa Indonesia
-              </button>
-            )}
-
-            <button type="button" className="ef-hero-btn-ghost" onClick={handleCopyDraft}>
+            <button type="button" className="ef-hero-btn-primary" onClick={handleCopyDraft}>
               <Copy size={14} /> Salin Surat ({letterLang.toUpperCase()})
             </button>
             <a href={mailtoUrl} className="ef-hero-btn-ghost">
@@ -910,10 +881,10 @@ export function PreTransactionModule({
         </div>
       </section>
 
-      {/* Grid 2 Kolom: Kiri (Draf Editor & Lampiran) & Kanan (Checklist, Parameter & Panduan Aman) */}
+      {/* Grid 2 Kolom: Kiri (Draf Editor) & Kanan (Checklist & Kepatuhan) */}
       <div className="content-grid pretrans-grid">
         {/* ======================================================== */}
-        {/* KOLOM KIRI: FORMULIR PROSPEK & DRAF SURAT MULTI-BAHASA   */}
+        {/* KOLOM KIRI: FORMULIR PROSPEK & DRAF SURAT                */}
         {/* ======================================================== */}
         <section className="panel panel-padding">
           <div className="panel-head">
@@ -1034,18 +1005,19 @@ export function PreTransactionModule({
           </div>
 
           {/* ======================================================== */}
-          {/* TAB REVIEW & EDIT DALAM BAHASA INDONESIA / INGGRIS        */}
+          {/* KOTAK EDITOR DRAF SURAT EKSPOR (BERSIH & TERATUR)        */}
           {/* ======================================================== */}
           <div
             style={{
-              background: "#F8FAFC",
-              border: "1px solid #CBD5E1",
+              background: "#FFFFFF",
+              border: "1px solid #E2E8F0",
               borderRadius: "var(--radius)",
               padding: 16,
               marginTop: 14,
+              boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
             }}
           >
-            {/* Header Switcher Tab: Bahasa Indonesia vs Bahasa Inggris */}
+            {/* Header Switcher: Segmented Pill + SATU Tombol Terjemahkan di Kanan */}
             <div
               style={{
                 display: "flex",
@@ -1054,111 +1026,72 @@ export function PreTransactionModule({
                 flexWrap: "wrap",
                 gap: 10,
                 marginBottom: 14,
+                paddingBottom: 12,
+                borderBottom: "1px solid #F1F5F9",
               }}
             >
               <div
                 style={{
                   display: "inline-flex",
-                  background: "#E2E8F0",
+                  background: "#F1F5F9",
                   padding: 3,
                   borderRadius: 8,
-                  gap: 4,
+                  gap: 3,
                 }}
               >
                 <button
                   type="button"
                   onClick={() => setLetterLang("id")}
                   style={{
-                    padding: "6px 14px",
+                    padding: "5px 12px",
                     borderRadius: 6,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     fontWeight: 600,
                     border: "none",
                     cursor: "pointer",
                     background: letterLang === "id" ? "#FFFFFF" : "transparent",
                     color: letterLang === "id" ? "#0F172A" : "#64748B",
-                    boxShadow: letterLang === "id" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    boxShadow: letterLang === "id" ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
                     transition: "all 0.15s ease",
                   }}
                 >
-                  <span>🇮🇩</span> Draf Bahasa Indonesia (Tinjau &amp; Edit)
+                  <span>🇮🇩</span> Draf Bahasa Indonesia
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setLetterLang("en")}
+                  onClick={() => {
+                    if (!isTranslated) {
+                      handleTranslateToEnglish();
+                    } else {
+                      setLetterLang("en");
+                    }
+                  }}
                   style={{
-                    padding: "6px 14px",
+                    padding: "5px 12px",
                     borderRadius: 6,
-                    fontSize: 12.5,
+                    fontSize: 12,
                     fontWeight: 600,
                     border: "none",
                     cursor: "pointer",
                     background: letterLang === "en" ? "#FFFFFF" : "transparent",
                     color: letterLang === "en" ? "#0F172A" : "#64748B",
-                    boxShadow: letterLang === "en" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    boxShadow: letterLang === "en" ? "0 1px 2px rgba(0,0,0,0.06)" : "none",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
                     transition: "all 0.15s ease",
                   }}
                 >
-                  <span>🇬🇧</span> Draf Bahasa Inggris (Siap Kirim)
-                  {isTranslated && (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        background: "#10B981",
-                        color: "#FFFFFF",
-                        padding: "1px 6px",
-                        borderRadius: 4,
-                        fontWeight: 700,
-                      }}
-                    >
-                      Terjemah
-                    </span>
-                  )}
+                  <span>🇬🇧</span> Draf Bahasa Inggris
                 </button>
               </div>
 
+              {/* TUNGGAL: SATU TOMBOL TERJEMAHKAN KE BAHASA INGGRIS */}
               {letterLang === "id" ? (
-                <StatusPill tone="amber">Mode Tinjau &amp; Edit (ID)</StatusPill>
-              ) : (
-                <StatusPill tone="green">Siap Kirim ke Buyer (EN)</StatusPill>
-              )}
-            </div>
-
-            {/* Banner Alur Terjemahan Cepat saat di Bahasa Indonesia */}
-            {letterLang === "id" && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 12,
-                  background: "linear-gradient(135deg, #EFF6FF 0%, #EEF2FF 100%)",
-                  border: "1px solid #BFDBFE",
-                  borderRadius: 8,
-                  padding: "12px 14px",
-                  marginBottom: 14,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 260, flex: 1 }}>
-                  <Sparkles size={18} style={{ color: "#2563EB", flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "#1E40AF" }}>
-                      Tinjau &amp; Edit dalam Bahasa Indonesia
-                    </div>
-                    <div style={{ fontSize: 11.5, color: "#3B82F6", lineHeight: 1.4 }}>
-                      Sesuaikan isi surat di bawah. Jika draf sudah aman, klik tombol di sebelah kanan untuk langsung menerjemahkan ke format resmi Bahasa Inggris.
-                    </div>
-                  </div>
-                </div>
-
                 <button
                   type="button"
                   onClick={handleTranslateToEnglish}
@@ -1166,97 +1099,45 @@ export function PreTransactionModule({
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    background: "#2563EB",
+                    background: "#0F172A",
                     color: "#FFFFFF",
                     border: "none",
-                    borderRadius: 7,
-                    padding: "8px 14px",
-                    fontSize: 12.5,
+                    borderRadius: 6,
+                    padding: "6px 14px",
+                    fontSize: 12,
                     fontWeight: 600,
                     cursor: "pointer",
-                    boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)",
-                    whiteSpace: "nowrap",
+                    boxShadow: "0 1px 2px rgba(0,0,0,0.08)",
                   }}
+                  title="Terjemahkan draf Bahasa Indonesia ke Bahasa Inggris resmi ekspor"
                 >
-                  <Languages size={15} /> Terjemahkan ke Bahasa Inggris →
+                  <Languages size={13} /> Terjemahkan ke Bahasa Inggris →
                 </button>
-              </div>
-            )}
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleTranslateToEnglish}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#F8FAFC",
+                    color: "#0F172A",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 6,
+                    padding: "5px 12px",
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                  title="Sinkronkan ulang terjemahan dari draf Bahasa Indonesia"
+                >
+                  <RefreshCw size={12} /> Sinkronkan Terjemahan
+                </button>
+              )}
+            </div>
 
-            {/* Banner Keterangan saat di Bahasa Inggris */}
-            {letterLang === "en" && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
-                  gap: 12,
-                  background: "#ECFDF5",
-                  border: "1px solid #A7F3D0",
-                  borderRadius: 8,
-                  padding: "12px 14px",
-                  marginBottom: 14,
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 260, flex: 1 }}>
-                  <CheckCircle2 size={18} style={{ color: "#059669", flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "#065F46" }}>
-                      Draf Bahasa Inggris Resmi Siap Kirim
-                    </div>
-                    <div style={{ fontSize: 11.5, color: "#047857", lineHeight: 1.4 }}>
-                      Standar korespondensi dagang internasional dengan nomor ref, terms pembayaran devisa, dan lampiran dokumen resmi.
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: "flex", gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => setLetterLang("id")}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      background: "#FFFFFF",
-                      color: "#0F172A",
-                      border: "1px solid #CBD5E1",
-                      borderRadius: 7,
-                      padding: "6px 12px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    ← Edit di Bahasa Indonesia
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={handleTranslateToEnglish}
-                    title="Sinkronkan ulang draf Bahasa Inggris dengan draf Bahasa Indonesia terbaru"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      background: "#059669",
-                      color: "#FFFFFF",
-                      border: "none",
-                      borderRadius: 7,
-                      padding: "6px 12px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      cursor: "pointer",
-                    }}
-                  >
-                    <RefreshCw size={12} /> Sinkronkan Ulang
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Input Subjek Surat (Editable) */}
+            {/* Input Subjek Surat */}
             <div style={{ marginBottom: 12 }}>
               <label
                 style={{
@@ -1265,11 +1146,9 @@ export function PreTransactionModule({
                   fontWeight: 600,
                   color: "#475569",
                   marginBottom: 4,
-                  textTransform: "uppercase",
-                  letterSpacing: "0.3px",
                 }}
               >
-                Subjek Surat ({letterLang === "id" ? "Bahasa Indonesia" : "Bahasa Inggris"}):
+                Subjek Surat {letterLang === "id" ? "(Bahasa Indonesia)" : "(English)"}:
               </label>
               <input
                 type="text"
@@ -1285,22 +1164,22 @@ export function PreTransactionModule({
                   fontSize: 13,
                   fontWeight: 600,
                   color: "#0F172A",
-                  background: "#FFFFFF",
+                  background: "#F8FAFC",
                   border: "1px solid #CBD5E1",
                   borderRadius: 6,
-                  padding: "8px 12px",
+                  padding: "7px 11px",
                 }}
               />
             </div>
 
-            {/* Textarea Isi Surat (Editable) */}
+            {/* Textarea Isi Surat */}
             <div style={{ marginBottom: 14 }}>
               <div
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
                   alignItems: "center",
-                  marginBottom: 6,
+                  marginBottom: 5,
                 }}
               >
                 <label
@@ -1308,11 +1187,9 @@ export function PreTransactionModule({
                     fontSize: 11.5,
                     fontWeight: 600,
                     color: "#475569",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.3px",
                   }}
                 >
-                  Badan Surat ({letterLang === "id" ? "Dapat Diedit Langsung dalam Bahasa Indonesia" : "Versi Terjemahan Bahasa Inggris"}):
+                  Isi Surat {letterLang === "id" ? "(Dapat diedit langsung)" : "(Siap kirim ke buyer)"}:
                 </label>
                 {letterLang === "id" && (
                   <button
@@ -1322,15 +1199,16 @@ export function PreTransactionModule({
                       background: "transparent",
                       border: "none",
                       color: "#64748B",
-                      fontSize: 11,
+                      fontSize: 11.5,
                       cursor: "pointer",
                       display: "inline-flex",
                       alignItems: "center",
                       gap: 4,
+                      whiteSpace: "nowrap",
                     }}
-                    title="Kembalikan isi surat bahasa Indonesia ke template standar"
+                    title="Kembalikan isi surat ke template awal"
                   >
-                    <RefreshCw size={11} /> Reset ke Template Awal
+                    <RefreshCw size={11} /> Reset Template
                   </button>
                 )}
               </div>
@@ -1347,9 +1225,9 @@ export function PreTransactionModule({
                   boxSizing: "border-box",
                   fontFamily: "var(--font-sans)",
                   fontSize: 12.5,
-                  lineHeight: 1.6,
+                  lineHeight: 1.65,
                   color: "#0F172A",
-                  background: "#FFFFFF",
+                  background: "#F8FAFC",
                   border: "1px solid #CBD5E1",
                   borderRadius: 8,
                   padding: "12px 14px",
@@ -1360,13 +1238,13 @@ export function PreTransactionModule({
             </div>
 
             {/* ======================================================== */}
-            {/* GMAIL-STYLE ATTACHMENTS CHIP SECTION (INSIDE COMPOSE BOX) */}
+            {/* GMAIL-STYLE COMPACT ATTACHMENT SECTION                   */}
             {/* ======================================================== */}
             <div
               style={{
-                marginTop: 14,
+                marginTop: 12,
                 paddingTop: 12,
-                borderTop: "1px dashed #CBD5E1",
+                borderTop: "1px solid #E2E8F0",
               }}
             >
               <div
@@ -1377,90 +1255,68 @@ export function PreTransactionModule({
                   marginBottom: 8,
                 }}
               >
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: "#334155" }}>
                   <Paperclip size={13} style={{ color: "#2563EB" }} />
-                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "#334155" }}>
-                    Berkas Lampiran ({attachedFiles.length} file terlampir):
-                  </span>
+                  <span>Lampiran Dokumen ({attachedFiles.length}):</span>
                 </div>
-
-                <div style={{ fontSize: 11, color: "#64748B" }}>
-                  Maks. 25 MB per pengiriman email
-                </div>
+                <span style={{ fontSize: 11, color: "#94A3B8" }}>Maks. 25 MB</span>
               </div>
 
-              {/* Uploaded File Chips (Seperti Gmail Attachment Pills) */}
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+              {/* Compact horizontal chips */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 8 }}>
                 {attachedFiles.map((file) => (
                   <div
                     key={file.id}
                     style={{
                       display: "inline-flex",
                       alignItems: "center",
-                      gap: 8,
-                      background: "#FFFFFF",
+                      gap: 6,
+                      background: "#F8FAFC",
                       border: "1px solid #CBD5E1",
                       borderRadius: 6,
-                      padding: "5px 10px",
-                      fontSize: 12,
-                      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
-                      maxWidth: "100%",
+                      padding: "4px 8px",
+                      fontSize: 11.5,
                     }}
                   >
-                    <FileText size={13} style={{ color: "#2563EB", flexShrink: 0 }} />
+                    <FileText size={12} style={{ color: "#2563EB", flexShrink: 0 }} />
                     <span
                       style={{
                         fontWeight: 600,
                         color: "#0F172A",
+                        maxWidth: 180,
                         overflow: "hidden",
                         textOverflow: "ellipsis",
                         whiteSpace: "nowrap",
-                        maxWidth: 220,
                       }}
                       title={file.name}
                     >
                       {file.name}
                     </span>
-                    <span style={{ color: "#64748B", fontSize: 11, flexShrink: 0 }}>
-                      ({file.size})
-                    </span>
+                    <span style={{ color: "#64748B", fontSize: 10.5 }}>({file.size})</span>
                     <button
                       type="button"
                       onClick={() => handleRemoveFile(file.id)}
-                      title="Hapus berkas ini"
+                      title="Hapus lampiran"
                       style={{
                         background: "transparent",
                         border: "none",
                         cursor: "pointer",
-                        padding: "2px",
+                        padding: 1,
                         color: "#94A3B8",
                         display: "flex",
                         alignItems: "center",
-                        justifyContent: "center",
-                        borderRadius: "50%",
                         marginLeft: 2,
-                        transition: "color 0.1s ease",
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = "#EF4444")}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}
                     >
-                      <X size={13} />
+                      <X size={12} />
                     </button>
                   </div>
                 ))}
               </div>
 
-              {/* Quick Preset Buttons for Standard Export Documents */}
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 6,
-                  flexWrap: "wrap",
-                  paddingTop: 6,
-                }}
-              >
-                <span style={{ fontSize: 11, color: "#64748B" }}>Tambah Cepat Dokumen Ekspor:</span>
+              {/* Subtle preset links */}
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: 11, color: "#64748B" }}>
+                <span>Tambah cepat:</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -1474,19 +1330,17 @@ export function PreTransactionModule({
                     )
                   }
                   style={{
-                    background: "#FFFFFF",
+                    background: "transparent",
                     border: "1px solid #CBD5E1",
                     borderRadius: 4,
-                    padding: "3px 8px",
+                    padding: "2px 6px",
                     fontSize: 11,
                     color: "#2563EB",
                     cursor: "pointer",
-                    fontWeight: 500,
                   }}
                 >
-                  + Surat Resmi ({docType.toUpperCase()})
+                  + Surat Resmi
                 </button>
-
                 <button
                   type="button"
                   onClick={() =>
@@ -1496,33 +1350,30 @@ export function PreTransactionModule({
                     )
                   }
                   style={{
-                    background: "#FFFFFF",
+                    background: "transparent",
                     border: "1px solid #CBD5E1",
                     borderRadius: 4,
-                    padding: "3px 8px",
+                    padding: "2px 6px",
                     fontSize: 11,
                     color: "#059669",
                     cursor: "pointer",
-                    fontWeight: 500,
                   }}
                 >
-                  + Spec Sheet Mutu
+                  + Spec Mutu
                 </button>
-
                 <button
                   type="button"
                   onClick={() =>
                     handleAddPresetFile("Company_Profile_PT_Nusantara_Ekspor_Mandiri.pdf", "240 KB")
                   }
                   style={{
-                    background: "#FFFFFF",
+                    background: "transparent",
                     border: "1px solid #CBD5E1",
                     borderRadius: 4,
-                    padding: "3px 8px",
+                    padding: "2px 6px",
                     fontSize: 11,
                     color: "#475569",
                     cursor: "pointer",
-                    fontWeight: 500,
                   }}
                 >
                   + Company Profile
@@ -1530,20 +1381,20 @@ export function PreTransactionModule({
               </div>
             </div>
 
-            {/* Bottom Action Bar (Gmail Style Toolbar) */}
+            {/* Bottom Action Bar (Satu Baris Bersih: Lampirkan di Kiri, Aksi di Kanan) */}
             <div
-              className="row-actions"
               style={{
                 marginTop: 14,
                 paddingTop: 12,
-                borderTop: "1px solid var(--line)",
+                borderTop: "1px solid #E2E8F0",
                 display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
                 flexWrap: "wrap",
                 gap: 8,
-                alignItems: "center",
               }}
             >
-              {/* Hidden file input for Gmail-style file picking */}
+              {/* Hidden file input */}
               <input
                 type="file"
                 ref={fileInputRef}
@@ -1552,95 +1403,68 @@ export function PreTransactionModule({
                 style={{ display: "none" }}
               />
 
-              {/* Gmail-style paperclip upload button */}
+              {/* Kiri: Tombol Lampirkan */}
               <button
                 type="button"
                 className="space-btn-secondary"
                 onClick={() => fileInputRef.current?.click()}
-                title="Pilih file dari komputer / laptop Anda (PDF, DOCX, XLSX)"
                 style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 6,
                   background: "#FFFFFF",
                   border: "1px solid #CBD5E1",
-                  borderRadius: 8,
-                  padding: "7px 13px",
-                  fontSize: 12.5,
+                  borderRadius: 6,
+                  padding: "6px 12px",
+                  fontSize: 12,
                   fontWeight: 600,
                   color: "#0F172A",
                   cursor: "pointer",
                 }}
               >
-                <Paperclip size={14} style={{ color: "#2563EB" }} />
-                <span>Lampirkan File</span>
+                <Paperclip size={13} style={{ color: "#2563EB" }} />
+                <span>Lampirkan Berkas</span>
               </button>
 
-              {letterLang === "id" ? (
+              {/* Kanan: Aksi Ekspor */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <button
                   type="button"
-                  className="space-btn-primary"
-                  onClick={handleTranslateToEnglish}
+                  className="save-button"
+                  onClick={handleCopyDraft}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}
+                >
+                  <Copy size={13} /> Salin Surat
+                </button>
+
+                <a
+                  href={mailtoUrl}
+                  className="ghost-button"
                   style={{
+                    textDecoration: "none",
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 6,
-                    background: "#2563EB",
+                    fontSize: 12,
+                    background: "#0F172A",
                     color: "#FFFFFF",
                     border: "none",
-                    borderRadius: 8,
-                    padding: "7px 14px",
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
                   }}
+                  title="Buka di aplikasi email dengan draf Bahasa Inggris resmi"
                 >
-                  <Languages size={14} /> Terjemahkan ke English
-                </button>
-              ) : (
+                  <Send size={13} /> Buka di Email (EN)
+                </a>
+
                 <button
                   type="button"
-                  className="space-btn-secondary"
-                  onClick={() => setLetterLang("id")}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    background: "#FFFFFF",
-                    color: "#0F172A",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 8,
-                    padding: "7px 13px",
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                  }}
+                  className="ghost-button"
+                  onClick={handlePrintOrDownloadPDF}
+                  style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}
+                  title="Cetak atau Unduh Dokumen Surat sebagai PDF"
                 >
-                  <span>🇮🇩</span> Tinjau Bahasa Indonesia
+                  <Printer size={13} /> Cetak / PDF
                 </button>
-              )}
-
-              <button type="button" className="save-button" onClick={handleCopyDraft}>
-                <Copy size={14} /> Salin Surat ({letterLang.toUpperCase()})
-              </button>
-
-              <a
-                href={mailtoUrl}
-                className="ghost-button"
-                style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
-                title="Buka di aplikasi email dengan draf Bahasa Inggris resmi"
-              >
-                <Send size={14} /> Buka di Email (EN)
-              </a>
-
-              <button
-                type="button"
-                className="ghost-button"
-                onClick={handlePrintOrDownloadPDF}
-                title="Cetak atau Unduh Dokumen Surat sebagai PDF"
-              >
-                <Printer size={14} /> Cetak / PDF
-              </button>
+              </div>
             </div>
           </div>
         </section>
@@ -1743,7 +1567,7 @@ export function PreTransactionModule({
             </ul>
           </section>
 
-          {/* Action Button Stack (Tepat di bawah card tanpa celah kosong) */}
+          {/* Action Button Stack */}
           <div className="pretrans-btn-stack" style={{ marginTop: 2 }}>
             <button type="button" className="save-button" onClick={() => navigate("documents")}>
               <Building2 size={14} /> Terbitkan PI / Kontrak →
