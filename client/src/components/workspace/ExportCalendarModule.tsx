@@ -45,7 +45,38 @@ export interface ExportPlan {
   notes?: string;
 }
 
-export type PeriodFilterKey = "today" | "yesterday" | "7days" | "this_month" | "last_month" | "custom";
+export type PeriodFilterKey =
+  | "today"
+  | "yesterday"
+  | "today_yesterday"
+  | "7days"
+  | "14days"
+  | "28days"
+  | "30days"
+  | "this_week"
+  | "last_week"
+  | "this_month"
+  | "last_month"
+  | "custom";
+
+export const DATE_PRESETS: {
+  key: PeriodFilterKey;
+  label: string;
+  start: string;
+  end: string;
+}[] = [
+  { key: "today", label: "Hari ini", start: "2026-11-24", end: "2026-11-24" },
+  { key: "yesterday", label: "Kemarin", start: "2026-11-23", end: "2026-11-23" },
+  { key: "today_yesterday", label: "Hari ini dan kemarin", start: "2026-11-23", end: "2026-11-24" },
+  { key: "7days", label: "7 hari terakhir", start: "2026-11-18", end: "2026-11-24" },
+  { key: "14days", label: "14 hari terakhir", start: "2026-11-11", end: "2026-11-24" },
+  { key: "28days", label: "28 hari terakhir", start: "2026-10-28", end: "2026-11-24" },
+  { key: "30days", label: "30 hari terakhir", start: "2026-10-26", end: "2026-11-24" },
+  { key: "this_week", label: "Minggu ini", start: "2026-11-23", end: "2026-11-29" },
+  { key: "last_week", label: "Minggu lalu", start: "2026-11-16", end: "2026-11-22" },
+  { key: "this_month", label: "Bulan ini", start: "2026-11-01", end: "2026-11-30" },
+  { key: "last_month", label: "Bulan lalu", start: "2026-10-01", end: "2026-10-31" },
+];
 
 interface UnifiedTxSimple {
   id: string;
@@ -285,8 +316,52 @@ export function ExportCalendarModule({
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterKey>("this_month");
   
   // Custom range dates
-  const [customStartDate, setCustomStartDate] = useState<string>("2026-11-20");
-  const [customEndDate, setCustomEndDate] = useState<string>("2026-11-27");
+  const [customStartDate, setCustomStartDate] = useState<string>("2026-11-01");
+  const [customEndDate, setCustomEndDate] = useState<string>("2026-11-30");
+
+  // Date Range Popover Modal state (matching Gambar 2)
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [tempPreset, setTempPreset] = useState<PeriodFilterKey>("this_month");
+  const [tempStart, setTempStart] = useState<string>("2026-11-01");
+  const [tempEnd, setTempEnd] = useState<string>("2026-11-30");
+  const [compareEnabled, setCompareEnabled] = useState(false);
+
+  // Dual Mini-Calendar View in Popover (right month = pickerNavMonth, left month = leftMiniMonth)
+  const [pickerNavMonth, setPickerNavMonth] = useState(10); // November (0-indexed)
+  const [pickerNavYear, setPickerNavYear] = useState(2026);
+
+  const leftMiniMonth = pickerNavMonth === 0 ? 11 : pickerNavMonth - 1;
+  const leftMiniYear = pickerNavMonth === 0 ? pickerNavYear - 1 : pickerNavYear;
+
+  const handlePickerPrev = () => {
+    if (pickerNavMonth === 0) {
+      setPickerNavMonth(11);
+      setPickerNavYear((y) => y - 1);
+    } else {
+      setPickerNavMonth((m) => m - 1);
+    }
+  };
+
+  const handlePickerNext = () => {
+    if (pickerNavMonth === 11) {
+      setPickerNavMonth(0);
+      setPickerNavYear((y) => y + 1);
+    } else {
+      setPickerNavMonth((m) => m + 1);
+    }
+  };
+
+  const formatShortDateID = (dateStr: string): string => {
+    if (!dateStr) return "";
+    const parts = dateStr.split("-");
+    if (parts.length < 3) return dateStr;
+    const y = parts[0];
+    const m = parts[1];
+    const d = parts[2];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const mIdx = parseInt(m, 10) - 1;
+    return `${parseInt(d, 10)} ${monthNames[mIdx] || m} ${y}`;
+  };
 
   // Plan search and status filter
   const [planStatusFilter, setPlanStatusFilter] = useState<"ALL" | "planned" | "completed">("ALL");
@@ -326,37 +401,80 @@ export function ExportCalendarModule({
     }
   }, [plans]);
 
-  // Handle preset period filter selection
-  const handleSelectPeriod = (key: PeriodFilterKey) => {
-    setPeriodFilter(key);
-    if (key === "today") {
-      setCurrentYear(2026);
-      setCurrentMonth(10);
-      setSelectedDate("2026-11-24");
-      toast.info("Filter aktif: Hari Ini (24 Nov 2026)");
-    } else if (key === "yesterday") {
-      setCurrentYear(2026);
-      setCurrentMonth(10);
-      setSelectedDate("2026-11-23");
-      toast.info("Filter aktif: Kemarin (23 Nov 2026)");
-    } else if (key === "7days") {
-      setCurrentYear(2026);
-      setCurrentMonth(10);
-      toast.info("Filter aktif: 7 Hari / Mingguan (21 - 27 Nov 2026)");
-    } else if (key === "this_month") {
-      setCurrentYear(2026);
-      setCurrentMonth(10);
-      toast.info("Filter aktif: Bulan Ini (November 2026)");
-    } else if (key === "last_month") {
-      setCurrentYear(2026);
-      setCurrentMonth(9); // October
-      toast.info("Filter aktif: Bulan Lalu (Oktober 2026)");
-    } else if (key === "custom") {
-      toast.info("Silakan tentukan Tanggal Mulai dan Tanggal Akhir");
+  // Determine active date range for filtering plans
+  const dateRangeBounds = useMemo(() => {
+    const found = DATE_PRESETS.find((p) => p.key === periodFilter);
+    if (found && periodFilter !== "custom") {
+      return { start: found.start, end: found.end, label: found.label };
+    }
+    const s = customStartDate || "2026-11-01";
+    const e = customEndDate || "2026-11-30";
+    const start = s <= e ? s : e;
+    const end = s <= e ? e : s;
+    return { start, end, label: `${formatShortDateID(start)} - ${formatShortDateID(end)}` };
+  }, [periodFilter, customStartDate, customEndDate]);
+
+  const activePeriodLabel = useMemo(() => {
+    const found = DATE_PRESETS.find((p) => p.key === periodFilter);
+    if (found && periodFilter !== "custom") {
+      if (periodFilter === "today") return "Hari Ini (24 Nov 2026)";
+      if (periodFilter === "yesterday") return "Kemarin (23 Nov 2026)";
+      if (periodFilter === "this_month") return "Bulan Ini (November 2026)";
+      if (periodFilter === "last_month") return "Bulan Lalu (Oktober 2026)";
+      return `${found.label} (${formatShortDateID(dateRangeBounds.start)} - ${formatShortDateID(dateRangeBounds.end)})`;
+    }
+    return `${formatShortDateID(dateRangeBounds.start)} - ${formatShortDateID(dateRangeBounds.end)}`;
+  }, [periodFilter, dateRangeBounds]);
+
+  const handleMiniDayClick = (dStr: string) => {
+    if (tempStart && tempEnd && tempStart !== tempEnd) {
+      setTempStart(dStr);
+      setTempEnd(dStr);
+      setTempPreset("custom");
+    } else if (tempStart && tempStart === tempEnd) {
+      if (dStr < tempStart) {
+        setTempStart(dStr);
+      } else {
+        setTempEnd(dStr);
+      }
+      setTempPreset("custom");
+    } else {
+      setTempStart(dStr);
+      setTempEnd(dStr);
+      setTempPreset("custom");
     }
   };
 
-  // Navigating months
+  const handleApplyDateRangePicker = () => {
+    setPeriodFilter(tempPreset);
+    const finalStart = tempStart <= tempEnd ? tempStart : tempEnd;
+    const finalEnd = tempStart <= tempEnd ? tempEnd : tempStart;
+    setCustomStartDate(finalStart);
+    setCustomEndDate(finalEnd);
+
+    if (tempPreset === "this_month") {
+      setCurrentMonth(10);
+      setCurrentYear(2026);
+    } else if (tempPreset === "last_month") {
+      setCurrentMonth(9);
+      setCurrentYear(2026);
+    } else if (tempPreset === "today") {
+      setCurrentMonth(10);
+      setCurrentYear(2026);
+      setSelectedDate("2026-11-24");
+    } else {
+      const endParts = finalEnd.split("-");
+      if (endParts.length === 3) {
+        setCurrentMonth(parseInt(endParts[1], 10) - 1);
+        setCurrentYear(parseInt(endParts[0], 10));
+      }
+    }
+
+    setIsDatePickerOpen(false);
+    toast.success(`Filter periode diterapkan: ${formatShortDateID(finalStart)} s/d ${formatShortDateID(finalEnd)}`);
+  };
+
+  // Navigating months in main calendar
   const handlePrevMonth = () => {
     if (currentMonth === 0) {
       setCurrentMonth(11);
@@ -375,38 +493,125 @@ export function ExportCalendarModule({
     }
   };
 
-  const handleResetToToday = () => {
-    setCurrentYear(2026);
-    setCurrentMonth(10);
-    setSelectedDate("2026-11-24");
-    setPeriodFilter("today");
-    toast.info("Kembali ke Hari Ini (24 Nov 2026)");
-  };
+  const renderMiniCalendar = (m: number, y: number, showLeftArrow: boolean, showRightArrow: boolean) => {
+    const monthName = MONTH_NAMES_ID[m] ? MONTH_NAMES_ID[m].slice(0, 3) : "";
+    const daysInM = new Date(y, m + 1, 0).getDate();
+    const startDay = new Date(y, m, 1).getDay(); // Sunday = 0
 
-  // Determine active date range for filtering plans
-  const dateRangeBounds = useMemo(() => {
-    if (periodFilter === "today") {
-      return { start: "2026-11-24", end: "2026-11-24", label: "Hari Ini (24 Nov 2026)" };
+    const miniDays: (string | null)[] = [];
+    for (let i = 0; i < startDay; i++) {
+      miniDays.push(null);
     }
-    if (periodFilter === "yesterday") {
-      return { start: "2026-11-23", end: "2026-11-23", label: "Kemarin (23 Nov 2026)" };
+    for (let d = 1; d <= daysInM; d++) {
+      miniDays.push(`${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`);
     }
-    if (periodFilter === "7days") {
-      return { start: "2026-11-21", end: "2026-11-27", label: "7 Hari Terakhir / Minggu Ini (21 - 27 Nov 2026)" };
-    }
-    if (periodFilter === "this_month") {
-      return { start: "2026-11-01", end: "2026-11-30", label: "Bulan Ini (November 2026)" };
-    }
-    if (periodFilter === "last_month") {
-      return { start: "2026-10-01", end: "2026-10-31", label: "Bulan Lalu (Oktober 2026)" };
-    }
-    if (periodFilter === "custom") {
-      const s = customStartDate || "2026-11-01";
-      const e = customEndDate || "2026-11-30";
-      return { start: s <= e ? s : e, end: s <= e ? e : s, label: `Rentang: ${s} s/d ${e}` };
-    }
-    return { start: "2026-11-01", end: "2026-11-30", label: "November 2026" };
-  }, [periodFilter, customStartDate, customEndDate]);
+
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
+        {/* Month & Nav Header */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", height: 26 }}>
+          {showLeftArrow ? (
+            <button
+              type="button"
+              onClick={handlePickerPrev}
+              style={{
+                width: 24,
+                height: 24,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                borderRadius: 4,
+                color: "#475569",
+              }}
+              title="Bulan sebelumnya"
+            >
+              <ChevronLeft size={16} />
+            </button>
+          ) : (
+            <div style={{ width: 24 }} />
+          )}
+
+          <div style={{ display: "flex", alignItems: "center", gap: 3, fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
+            <span>{monthName}</span>
+            <ChevronDown size={11} color="#64748B" />
+            <span style={{ marginLeft: 6 }}>{y}</span>
+            <ChevronDown size={11} color="#64748B" />
+          </div>
+
+          {showRightArrow ? (
+            <button
+              type="button"
+              onClick={handlePickerNext}
+              style={{
+                width: 24,
+                height: 24,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                borderRadius: 4,
+                color: "#475569",
+              }}
+              title="Bulan berikutnya"
+            >
+              <ChevronRight size={16} />
+            </button>
+          ) : (
+            <div style={{ width: 24 }} />
+          )}
+        </div>
+
+        {/* Day of Week Headers */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 1, textAlign: "center" }}>
+          {["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"].map((dow) => (
+            <div key={dow} style={{ fontSize: 11, color: "#94A3B8", fontWeight: 600 }}>
+              {dow}
+            </div>
+          ))}
+        </div>
+
+        {/* Day Cells Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "1px 0", textAlign: "center" }}>
+          {miniDays.map((dStr, idx) => {
+            if (!dStr) {
+              return <div key={`empty-${idx}`} style={{ height: 22 }} />;
+            }
+            const dayNum = parseInt(dStr.split("-")[2], 10);
+            const isStart = dStr === tempStart;
+            const isEnd = dStr === tempEnd;
+            const isInRange = dStr >= tempStart && dStr <= tempEnd;
+
+            return (
+              <button
+                key={dStr}
+                type="button"
+                onClick={() => handleMiniDayClick(dStr)}
+                style={{
+                  height: 22,
+                  border: "none",
+                  padding: 0,
+                  fontSize: 11,
+                  fontWeight: isStart || isEnd ? 700 : isInRange ? 600 : 400,
+                  color: isStart || isEnd ? "#FFFFFF" : isInRange ? "#0369A1" : "#1E293B",
+                  background: isStart || isEnd ? "#0284C7" : isInRange ? "#E0F2FE" : "transparent",
+                  borderRadius: isStart ? "4px 0 0 4px" : isEnd ? "0 4px 4px 0" : 0,
+                  cursor: "pointer",
+                  transition: "background 0.1s ease",
+                }}
+              >
+                {dayNum}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   // Filtered plans list for the Agenda panel
   const filteredPlans = useMemo(() => {
@@ -677,8 +882,8 @@ export function ExportCalendarModule({
               )}
             </div>
 
-            {/* Navigation buttons: Sebelumnya, Hari Ini, Berikutnya + Dropdown Pilihan Periode */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {/* Navigation buttons: Sebelumnya, Berikutnya + Pemilih Rentang Tanggal (Gambar 2) */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", position: "relative" }}>
               <SpaceButton
                 variant="secondary"
                 size="sm"
@@ -687,15 +892,6 @@ export function ExportCalendarModule({
                 title="Bulan sebelumnya"
               >
                 Sebelumnya
-              </SpaceButton>
-
-              <SpaceButton
-                variant={periodFilter === "today" ? "primary" : "secondary"}
-                size="sm"
-                onClick={handleResetToToday}
-                title="Kembali ke Hari Ini (24 Nov 2026)"
-              >
-                Hari Ini
               </SpaceButton>
 
               <SpaceButton
@@ -708,130 +904,321 @@ export function ExportCalendarModule({
                 Berikutnya
               </SpaceButton>
 
-              {/* DROPDOWN PILIHAN PERIODE */}
-              <div style={{ position: "relative", display: "inline-flex", alignItems: "center" }}>
-                <CalendarIcon
-                  size={13}
-                  style={{
-                    position: "absolute",
-                    left: 9,
-                    color: "#64748B",
-                    pointerEvents: "none",
-                    zIndex: 1,
+              {/* TOMBOL PEMILIH PERIODE (POPOVER PERSIS GAMBAR 2) */}
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTempPreset(periodFilter);
+                    setTempStart(dateRangeBounds.start);
+                    setTempEnd(dateRangeBounds.end);
+                    setIsDatePickerOpen((prev) => !prev);
                   }}
-                />
-                <select
-                  value={periodFilter}
-                  onChange={(e) => handleSelectPeriod(e.target.value as PeriodFilterKey)}
                   style={{
                     height: 32,
-                    paddingLeft: 27,
-                    paddingRight: 26,
+                    padding: "0 12px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 8,
                     fontSize: 12,
                     fontWeight: 600,
                     color: "#0F2942",
-                    background: "#F8FAFC",
+                    background: isDatePickerOpen ? "#E2E8F0" : "#FFFFFF",
                     border: "1px solid #CBD5E1",
                     borderRadius: 6,
                     cursor: "pointer",
-                    outline: "none",
-                    appearance: "none",
-                    WebkitAppearance: "none",
-                    MozAppearance: "none",
                     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                     transition: "all 0.15s ease",
                   }}
-                  title="Pilih Periode Waktu Kalender & Agenda"
+                  title="Klik untuk memilih rentang tanggal & periode waktu"
                 >
-                  <option value="today">Hari Ini</option>
-                  <option value="yesterday">Kemarin</option>
-                  <option value="7days">7 Hari (Mingguan)</option>
-                  <option value="this_month">Bulan Ini</option>
-                  <option value="last_month">Bulan Lalu</option>
-                  <option value="custom">📅 Range Tanggal...</option>
-                </select>
-                <ChevronDown
-                  size={13}
-                  style={{
-                    position: "absolute",
-                    right: 8,
-                    color: "#64748B",
-                    pointerEvents: "none",
-                    zIndex: 1,
-                  }}
-                />
+                  <CalendarIcon size={14} color="#0284C7" />
+                  <span>{activePeriodLabel}</span>
+                  <ChevronDown size={14} color="#64748B" />
+                </button>
+
+                {/* POPOVER DATE RANGE PICKER (PERSIS GAMBAR 2) */}
+                {isDatePickerOpen && (
+                  <>
+                    {/* Backdrop */}
+                    <div
+                      onClick={() => setIsDatePickerOpen(false)}
+                      style={{
+                        position: "fixed",
+                        inset: 0,
+                        zIndex: 998,
+                        background: "rgba(15, 23, 42, 0.1)",
+                      }}
+                    />
+
+                    {/* Popover Window */}
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "calc(100% + 8px)",
+                        right: 0,
+                        zIndex: 999,
+                        background: "#FFFFFF",
+                        border: "1px solid #CBD5E1",
+                        borderRadius: 8,
+                        boxShadow: "0 20px 40px -10px rgba(0,0,0,0.2), 0 0 0 1px rgba(0,0,0,0.05)",
+                        width: 710,
+                        maxWidth: "92vw",
+                        display: "flex",
+                        flexDirection: "column",
+                        overflow: "hidden",
+                      }}
+                    >
+                      <div style={{ display: "flex", flex: 1, minHeight: 330 }}>
+                        {/* LEFT COLUMN: PRESETS LIST (PERSIS GAMBAR 2) */}
+                        <div
+                          style={{
+                            width: 195,
+                            borderRight: "1px solid #E2E8F0",
+                            background: "#F8FAFC",
+                            padding: "14px 10px",
+                            overflowY: "auto",
+                            maxHeight: 380,
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 2,
+                            flexShrink: 0,
+                          }}
+                        >
+                          <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B", marginBottom: 8, paddingLeft: 6 }}>
+                            Baru-baru ini digunakan
+                          </div>
+
+                          {DATE_PRESETS.map((p) => {
+                            const isSelected = tempPreset === p.key;
+                            return (
+                              <label
+                                key={p.key}
+                                onClick={() => {
+                                  setTempPreset(p.key);
+                                  setTempStart(p.start);
+                                  setTempEnd(p.end);
+                                  const endMonth = parseInt(p.end.split("-")[1], 10) - 1;
+                                  const endYear = parseInt(p.end.split("-")[0], 10);
+                                  setPickerNavMonth(endMonth);
+                                  setPickerNavYear(endYear);
+                                }}
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 8,
+                                  padding: "6px 8px",
+                                  borderRadius: 6,
+                                  cursor: "pointer",
+                                  fontSize: 12,
+                                  color: isSelected ? "#0F2942" : "#475569",
+                                  fontWeight: isSelected ? 700 : 500,
+                                  background: isSelected ? "#E2E8F0" : "transparent",
+                                  transition: "background 0.15s ease",
+                                }}
+                              >
+                                <div
+                                  style={{
+                                    width: 14,
+                                    height: 14,
+                                    borderRadius: "50%",
+                                    border: isSelected ? "4px solid #0284C7" : "1.5px solid #94A3B8",
+                                    background: "#FFFFFF",
+                                    flexShrink: 0,
+                                    boxSizing: "border-box",
+                                  }}
+                                />
+                                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                  {p.label}
+                                </span>
+                              </label>
+                            );
+                          })}
+                        </div>
+
+                        {/* RIGHT COLUMN: DUAL MONTH CALENDARS & INPUTS */}
+                        <div
+                          style={{
+                            flex: 1,
+                            padding: "16px 20px",
+                            display: "flex",
+                            flexDirection: "column",
+                            justifyContent: "space-between",
+                            background: "#FFFFFF",
+                          }}
+                        >
+                          {/* Dual Calendars Container */}
+                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                            {/* Left Month Calendar */}
+                            {renderMiniCalendar(leftMiniMonth, leftMiniYear, true, false)}
+
+                            {/* Right Month Calendar */}
+                            {renderMiniCalendar(pickerNavMonth, pickerNavYear, false, true)}
+                          </div>
+
+                          {/* Middle Row: Bandingkan Checkbox & Inputs */}
+                          <div
+                            style={{
+                              marginTop: 14,
+                              paddingTop: 12,
+                              borderTop: "1px solid #F1F5F9",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              flexWrap: "wrap",
+                              gap: 10,
+                            }}
+                          >
+                            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "#334155" }}>
+                              <input
+                                type="checkbox"
+                                checked={compareEnabled}
+                                onChange={(e) => setCompareEnabled(e.target.checked)}
+                                style={{ borderRadius: 4, cursor: "pointer" }}
+                              />
+                              <span>Bandingkan</span>
+                            </label>
+
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                              {/* Dropdown Preset Selector */}
+                              <select
+                                value={tempPreset}
+                                onChange={(e) => {
+                                  const val = e.target.value as PeriodFilterKey;
+                                  const found = DATE_PRESETS.find((p) => p.key === val);
+                                  if (found) {
+                                    setTempPreset(val);
+                                    setTempStart(found.start);
+                                    setTempEnd(found.end);
+                                  } else {
+                                    setTempPreset("custom");
+                                  }
+                                }}
+                                style={{
+                                  height: 28,
+                                  fontSize: 11.5,
+                                  padding: "0 6px",
+                                  borderRadius: 5,
+                                  border: "1px solid #CBD5E1",
+                                  background: "#F8FAFC",
+                                  color: "#0F172A",
+                                }}
+                              >
+                                {DATE_PRESETS.map((p) => (
+                                  <option key={p.key} value={p.key}>{p.label}</option>
+                                ))}
+                                <option value="custom">Kustom...</option>
+                              </select>
+
+                              {/* Date Text Inputs */}
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 4,
+                                  fontSize: 11.5,
+                                  color: "#475569",
+                                }}
+                              >
+                                <input
+                                  type="date"
+                                  value={tempStart}
+                                  onChange={(e) => {
+                                    setTempStart(e.target.value);
+                                    setTempPreset("custom");
+                                  }}
+                                  style={{
+                                    height: 28,
+                                    padding: "0 6px",
+                                    borderRadius: 5,
+                                    border: "1px solid #CBD5E1",
+                                    fontSize: 11.5,
+                                    color: "#0F172A",
+                                    background: "#FFFFFF",
+                                  }}
+                                />
+                                <span>-</span>
+                                <input
+                                  type="date"
+                                  value={tempEnd}
+                                  onChange={(e) => {
+                                    setTempEnd(e.target.value);
+                                    setTempPreset("custom");
+                                  }}
+                                  style={{
+                                    height: 28,
+                                    padding: "0 6px",
+                                    borderRadius: 5,
+                                    border: "1px solid #CBD5E1",
+                                    fontSize: 11.5,
+                                    color: "#0F172A",
+                                    background: "#FFFFFF",
+                                  }}
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* FOOTER BAR: Jakarta Time label + Batal & Update Buttons (Persis Gambar 2) */}
+                      <div
+                        style={{
+                          padding: "10px 16px",
+                          background: "#F8FAFC",
+                          borderTop: "1px solid #E2E8F0",
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <span style={{ fontSize: 11.5, color: "#64748B" }}>
+                          Tanggal ditampilkan dalam Waktu Jakarta (WIB)
+                        </span>
+
+                        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <button
+                            type="button"
+                            onClick={() => setIsDatePickerOpen(false)}
+                            style={{
+                              padding: "6px 14px",
+                              borderRadius: 6,
+                              border: "1px solid #CBD5E1",
+                              background: "#FFFFFF",
+                              color: "#334155",
+                              fontSize: 12,
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Batal
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={handleApplyDateRangePicker}
+                            style={{
+                              padding: "6px 18px",
+                              borderRadius: 6,
+                              border: "none",
+                              background: "#0284C7",
+                              color: "#FFFFFF",
+                              fontSize: 12,
+                              fontWeight: 700,
+                              cursor: "pointer",
+                              boxShadow: "0 1px 3px rgba(2, 132, 199, 0.3)",
+                            }}
+                          >
+                            Update
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           </div>
-
-          {/* Custom Range Input Bar (Muncul saat 'custom' dipilih pada dropdown) */}
-          {periodFilter === "custom" && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "10px 14px",
-                marginBottom: 14,
-                background: "#F8FAFC",
-                borderRadius: 8,
-                border: "1px dashed #CBD5E1",
-                flexWrap: "wrap",
-              }}
-            >
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#334155" }}>
-                Tentukan Rentang Tanggal Ekspor:
-              </span>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <label style={{ fontSize: 11.5, color: "#64748B" }}>Dari:</label>
-                <input
-                  type="date"
-                  value={customStartDate}
-                  onChange={(e) => setCustomStartDate(e.target.value)}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: 6,
-                    border: "1px solid #CBD5E1",
-                    fontSize: 12,
-                    color: "#0F172A",
-                    background: "#FFFFFF",
-                  }}
-                />
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <label style={{ fontSize: 11.5, color: "#64748B" }}>Sampai:</label>
-                <input
-                  type="date"
-                  value={customEndDate}
-                  onChange={(e) => setCustomEndDate(e.target.value)}
-                  style={{
-                    padding: "4px 8px",
-                    borderRadius: 6,
-                    border: "1px solid #CBD5E1",
-                    fontSize: 12,
-                    color: "#0F172A",
-                    background: "#FFFFFF",
-                  }}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={() => toast.success(`Rentang diterapkan: ${customStartDate} s/d ${customEndDate}`)}
-                style={{
-                  padding: "5px 12px",
-                  borderRadius: 6,
-                  background: "#0F2942",
-                  color: "#FFFFFF",
-                  fontSize: 11.5,
-                  fontWeight: 600,
-                  border: "none",
-                  cursor: "pointer",
-                }}
-              >
-                Terapkan Rentang
-              </button>
-            </div>
-          )}
 
           {/* Day Headers (SEN, SEL, RAB, KAM, JUM, SAB, MIN) */}
           <div className="space-calendar-grid" style={{ marginBottom: 4 }}>
