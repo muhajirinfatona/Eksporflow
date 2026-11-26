@@ -20938,6 +20938,14 @@ table.unlk-items-table th.active-cell {
   border-color: var(--space-navy-800);
   background: var(--space-navy-50);
 }
+.space-calendar-cell.selected {
+  border-color: #2563EB !important;
+  background: #EFF6FF !important;
+}
+.space-calendar-cell.in-range {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+}
 .space-calendar-cell.other-month {
   opacity: 0.4;
   background: var(--space-white);
@@ -20981,6 +20989,16 @@ table.unlk-items-table th.active-cell {
   background: var(--space-purple-100);
   color: var(--space-purple-600);
   border-color: rgba(139, 92, 246, 0.2);
+}
+.space-calendar-event.inspection {
+  background: #FFF1F2;
+  color: #E11D48;
+  border-color: rgba(225, 29, 72, 0.2);
+}
+.space-calendar-event.meeting {
+  background: #F0FDF4;
+  color: #15803D;
+  border-color: rgba(21, 128, 61, 0.2);
 }
 
 /* --- Space DS Comparison Chart --- */

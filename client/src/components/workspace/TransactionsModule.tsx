@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { PoIngestionModal } from "./PoIngestionModal";
+import { ExportCalendarModule } from "./ExportCalendarModule";
 import {
   Field,
   SelectField,
@@ -1949,87 +1950,16 @@ export function TransactionsModule({
             </div>
           )}
 
-          {/* TAB 3: KALENDER EKSPOR & JADWAL KAPAL (SPACE DS CALENDAR) */}
+          {/* TAB 3: KALENDER EKSPOR & PENJADWALAN RENCANA OPERASIONAL (SPACE DS CALENDAR & PLANNER) */}
           {activeTab === "calendar" && (
-            <div className="space-crm-container">
-              <div className="space-calendar-card">
-                <div className="space-calendar-nav">
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
-                      November 2026
-                    </h3>
-                    <SpaceBadge tone="primary">Bulan Ini</SpaceBadge>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <SpaceButton variant="secondary" size="sm" icon={<ChevronLeft size={14} />}>Sebelumnya</SpaceButton>
-                    <SpaceButton variant="secondary" size="sm">Hari Ini</SpaceButton>
-                    <SpaceButton variant="secondary" size="sm" iconRight={<ChevronRight size={14} />}>Berikutnya</SpaceButton>
-                  </div>
-                </div>
-
-                <div className="space-calendar-grid">
-                  {["SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MIN"].map((day) => (
-                    <div key={day} className="space-calendar-day-header">{day}</div>
-                  ))}
-
-                  {/* 35 Calendar Cells */}
-                  {Array.from({ length: 35 }).map((_, i) => {
-                    const dateNum = i + 1;
-                    const isToday = dateNum === 24;
-                    return (
-                      <div key={i} className={`space-calendar-cell ${isToday ? "today" : ""}`}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span className="space-calendar-date-num">{dateNum <= 30 ? dateNum : dateNum - 30}</span>
-                          {isToday && <span style={{ fontSize: 9, fontWeight: 700, color: "var(--space-navy-800)" }}>HARI INI</span>}
-                        </div>
-
-                        {/* Events on specific dates */}
-                        {dateNum === 5 && (
-                          <div
-                            className="space-calendar-event stuffing"
-                            onClick={() => toast.info("Stuffing 40HC Kopi Arabika di Gudang Belawan")}
-                          >
-                            📦 Stuffing Kopi 40HC
-                          </div>
-                        )}
-                        {dateNum === 12 && (
-                          <div
-                            className="space-calendar-event vessel"
-                            onClick={() => toast.info("ETD Vessel KM Nusantara menuju Port of Tokyo")}
-                          >
-                            🚢 ETD KM Nusantara
-                          </div>
-                        )}
-                        {dateNum === 18 && (
-                          <div
-                            className="space-calendar-event peb"
-                            onClick={() => toast.info("Batas akhir submit PEB & e-SKA ke Bea Cukai")}
-                          >
-                            📄 Closing PEB DJBC
-                          </div>
-                        )}
-                        {dateNum === 22 && (
-                          <div
-                            className="space-calendar-event finance"
-                            onClick={() => toast.info("Jatuh tempo pelunasan 70% L/C Nordic Pantry")}
-                          >
-                            💵 Pelunasan 70% L/C
-                          </div>
-                        )}
-                        {dateNum === 26 && (
-                          <div
-                            className="space-calendar-event stuffing"
-                            onClick={() => toast.info("Inspeksi Karantina & Fumigasi Muatan Kayu")}
-                          >
-                            🔍 Uji Fumigasi Kayu
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
+            <ExportCalendarModule
+              allTransactions={allTransactions}
+              onNavigate={navigate}
+              onSelectBuyer={(buyer) => {
+                const matched = shipmentsList.find((s) => s.buyer === buyer);
+                if (matched) loadShipment(matched.id);
+              }}
+            />
           )}
 
           {/* TAB 4: COMPARISON CHART & ANALITIK KINERJA EKSPOR */}
