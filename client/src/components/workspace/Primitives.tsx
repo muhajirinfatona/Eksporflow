@@ -1266,8 +1266,8 @@ export function SpaceTabs({
                 padding: "1px 5px",
                 fontSize: 10.5,
                 borderRadius: 99,
-                background: tab.id === activeTab ? "var(--space-navy-800)" : "var(--space-gray-200)",
-                color: tab.id === activeTab ? "var(--space-white)" : "var(--space-gray-600)",
+                background: tab.id === activeTab ? "rgba(255, 255, 255, 0.25)" : "var(--space-gray-200)",
+                color: tab.id === activeTab ? "#FFFFFF" : "var(--space-gray-600)",
               }}
             >
               {tab.count}

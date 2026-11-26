@@ -314,8 +314,10 @@ export type UnifiedTransactionItem = {
   id: string;
   reference: string;
   buyer: string;
+  contactPerson?: string;
   buyerCountry: string;
   product: string;
+  hsCode?: string;
   incoterm: string;
   quantity: number;
   unit: string;
@@ -865,6 +867,7 @@ export function TransactionsModule({
       const buyerName = (isCurrentActive && shipment.buyer) ? shipment.buyer : (s.buyer || "-");
       const buyerCountry = (isCurrentActive && shipment.buyerCountry) ? shipment.buyerCountry : (s.buyerCountry || "-");
       const product = (isCurrentActive && shipment.product) ? shipment.product : (s.product || "-");
+      const hsCode = (isCurrentActive && shipment.hsCode) ? shipment.hsCode : "0901.11.10";
       const incoterm = (isCurrentActive && shipment.incoterm) ? shipment.incoterm : (s.incoterm || "FOB");
       const quantity = (isCurrentActive && shipment.quantity) ? shipment.quantity : (s.quantity ?? 20);
       const unit = (isCurrentActive && shipment.unit) ? shipment.unit : (s.unit || "MT");
@@ -873,8 +876,10 @@ export function TransactionsModule({
         id: s.id,
         reference: s.reference,
         buyer: buyerName,
+        contactPerson: isCurrentActive ? (shipment.signatoryName || "") : "",
         buyerCountry: buyerCountry,
         product: product,
+        hsCode: hsCode,
         incoterm: incoterm,
         quantity: quantity,
         unit: unit,
@@ -896,8 +901,10 @@ export function TransactionsModule({
           id: loc.id,
           reference: loc.reference,
           buyer: loc.buyer || "-",
+          contactPerson: loc.shipment?.signatoryName || "",
           buyerCountry: loc.buyerCountry || "-",
           product: loc.product || "-",
+          hsCode: loc.shipment?.hsCode || "0901.11.10",
           incoterm: loc.incoterm || "FOB",
           quantity: loc.quantity || 20,
           unit: loc.unit || "MT",
@@ -923,8 +930,10 @@ export function TransactionsModule({
           id: activeShipmentId || "current-active",
           reference: validCurrentRef || "Draft PO Baru",
           buyer: validCurrentBuyer || "Buyer Baru",
+          contactPerson: shipment.signatoryName || "",
           buyerCountry: shipment.buyerCountry || "-",
           product: shipment.product || "Komoditas Ekspor",
+          hsCode: shipment.hsCode || "0901.11.10",
           incoterm: shipment.incoterm || "FOB",
           quantity: shipment.quantity || 20,
           unit: shipment.unit || "MT",
@@ -942,9 +951,11 @@ export function TransactionsModule({
         {
           id: "tx-sample-1",
           reference: "PO-2026/US/089",
-          buyer: "Marilyn Ramirez (Global Coffee LLC)",
+          buyer: "Global Coffee LLC",
+          contactPerson: "Marilyn Ramirez",
           buyerCountry: "Amerika Serikat",
           product: "Kopi Arabika Gayo Grade 1",
+          hsCode: "0901.11.10",
           incoterm: "FOB",
           quantity: 20,
           unit: "MT",
@@ -955,9 +966,11 @@ export function TransactionsModule({
         {
           id: "tx-sample-2",
           reference: "PO-2026/DEU/12",
-          buyer: "Douglas Cobb (Hamburg Roasters)",
+          buyer: "Hamburg Roasters B.V.",
+          contactPerson: "Douglas Cobb",
           buyerCountry: "Belanda",
           product: "Biji Kakao Fermentasi Sulawesi",
+          hsCode: "1801.00.00",
           incoterm: "CIF",
           quantity: 25,
           unit: "MT",
@@ -969,8 +982,10 @@ export function TransactionsModule({
           id: "tx-sample-3",
           reference: "PO-2026/TYO/04",
           buyer: "Marubeni Specialty Foods",
+          contactPerson: "Kenji Sato",
           buyerCountry: "Jepang",
           product: "Kopi Arabika Mandheling G1",
+          hsCode: "0901.11.20",
           incoterm: "CFR",
           quantity: 40,
           unit: "MT",
@@ -982,8 +997,10 @@ export function TransactionsModule({
           id: "tx-sample-4",
           reference: "PO-2026/KOR/02",
           buyer: "Busan Marine Corp",
+          contactPerson: "Park Jin-Soo",
           buyerCountry: "Korea Selatan",
           product: "Udang Windu Beku (Head-On)",
+          hsCode: "0306.17.10",
           incoterm: "CIF",
           quantity: 18,
           unit: "MT",
@@ -996,6 +1013,24 @@ export function TransactionsModule({
 
     return list;
   }, [genuineShipments, localList, shipment, displayReference, activeShipmentId]);
+
+  // Transaksi terfilter untuk pencarian, negara, dan status
+  const filteredTransactions = useMemo(() => {
+    return allTransactions.filter((row) => {
+      if (statusFilter !== "ALL" && row.status !== statusFilter) return false;
+      if (countryFilter !== "ALL" && !row.buyerCountry?.toLowerCase().includes(countryFilter.toLowerCase())) return false;
+      const q = query.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        row.reference.toLowerCase().includes(q) ||
+        row.buyer.toLowerCase().includes(q) ||
+        (row.contactPerson && row.contactPerson.toLowerCase().includes(q)) ||
+        row.buyerCountry.toLowerCase().includes(q) ||
+        row.product.toLowerCase().includes(q) ||
+        (row.hsCode && row.hsCode.toLowerCase().includes(q))
+      );
+    });
+  }, [allTransactions, statusFilter, countryFilter, query]);
 
   // Apakah ada transaksi tersimpan
   const hasSavedTransactions = allTransactions.length > 0;
@@ -1086,72 +1121,146 @@ export function TransactionsModule({
           {/* TAB 1: TABEL PESANAN EKSPOR (ORDERS BY STATUS) */}
           {activeTab === "list" && (
             <div className="space-crm-container">
-              {/* Space DS Filter Toolbar */}
-              <div className="space-toolbar">
-                <div className="space-toolbar-left">
-                  <div style={{ minWidth: 180, flex: "1 1 200px" }}>
-                    <SpaceInput
-                      placeholder="Cari PO, buyer, komoditas..."
-                      value={query}
-                      onChange={(e) => {
-                        setQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      iconLeft={<Search size={15} />}
-                    />
-                  </div>
-                  <div style={{ width: 140, minWidth: 120 }}>
-                    <SpaceSelect
-                      value={countryFilter}
-                      onChange={(e) => {
-                        setCountryFilter(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      options={[
-                        { value: "ALL", label: "Semua Negara" },
-                        { value: "Jepang", label: "Jepang" },
-                        { value: "Korea Selatan", label: "Korea Selatan" },
-                        { value: "Belanda", label: "Belanda" },
-                        { value: "Swedia", label: "Swedia" },
-                        { value: "Uni Emirat Arab", label: "Uni Emirat Arab" },
-                      ]}
-                    />
-                  </div>
-                  <div style={{ display: "flex", gap: 4, alignItems: "center", flexWrap: "wrap" }}>
-                    {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => (
-                      <button
-                        key={st}
-                        type="button"
-                        className={`space-tab-pill ${statusFilter === st ? "active" : ""}`}
-                        style={{ padding: "5px 10px", fontSize: "11.5px" }}
-                        onClick={() => {
-                          setStatusFilter(st);
+              {/* Space DS 2-Tier Structured Filter Toolbar */}
+              <div
+                style={{
+                  background: "#FFFFFF",
+                  border: "1px solid #E2E8F0",
+                  borderRadius: 12,
+                  padding: "14px 16px",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 12,
+                  boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
+                  marginBottom: 16,
+                }}
+              >
+                {/* Baris 1: Pencarian, Filter Negara, & Tombol Aksi */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 12,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "1 1 360px", minWidth: 260 }}>
+                    <div style={{ flex: 1, minWidth: 180 }}>
+                      <SpaceInput
+                        placeholder="Cari nomor PO, nama buyer, komoditas, HS Code..."
+                        value={query}
+                        onChange={(e) => {
+                          setQuery(e.target.value);
                           setCurrentPage(1);
                         }}
-                      >
-                        {st === "ALL" ? "Semua Status" : st}
-                      </button>
-                    ))}
+                        iconLeft={<Search size={15} />}
+                      />
+                    </div>
+                    <div style={{ width: 170, minWidth: 160, flexShrink: 0 }}>
+                      <SpaceSelect
+                        value={countryFilter}
+                        onChange={(e) => {
+                          setCountryFilter(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        options={[
+                          { value: "ALL", label: "Semua Negara" },
+                          { value: "Amerika Serikat", label: "Amerika Serikat" },
+                          { value: "Belanda", label: "Belanda" },
+                          { value: "Jepang", label: "Jepang" },
+                          { value: "Korea Selatan", label: "Korea Selatan" },
+                          { value: "Swedia", label: "Swedia" },
+                          { value: "Uni Emirat Arab", label: "Uni Emirat Arab" },
+                        ]}
+                      />
+                    </div>
+                  </div>
+
+                  <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
+                    <SpaceButton
+                      variant="primary"
+                      size="sm"
+                      icon={<Plus size={14} />}
+                      onClick={handleNewTransactionClick}
+                    >
+                      Input PO Baru
+                    </SpaceButton>
+                    <SpaceButton
+                      variant="secondary"
+                      size="sm"
+                      icon={<FileText size={14} />}
+                      onClick={() => setPoModalOpen(true)}
+                    >
+                      Scan PO / OCR
+                    </SpaceButton>
                   </div>
                 </div>
 
-                <div className="space-toolbar-right" style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-                  <SpaceButton
-                    variant="primary"
-                    size="sm"
-                    icon={<Plus size={14} />}
-                    onClick={handleNewTransactionClick}
-                  >
-                    Input PO Baru
-                  </SpaceButton>
-                  <SpaceButton
-                    variant="secondary"
-                    size="sm"
-                    icon={<FileText size={14} />}
-                    onClick={() => setPoModalOpen(true)}
-                  >
-                    Scan PO / OCR
-                  </SpaceButton>
+                {/* Baris 2: Segmented Status Filter & Ringkasan Hasil */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    borderTop: "1px solid #F1F5F9",
+                    paddingTop: 10,
+                    gap: 8,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                    {(["ALL", "Draft", "Confirmed", "In Transit", "Completed"] as const).map((st) => {
+                      const countForSt =
+                        st === "ALL"
+                          ? allTransactions.length
+                          : allTransactions.filter((r) => r.status === st).length;
+                      const isActive = statusFilter === st;
+
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => {
+                            setStatusFilter(st);
+                            setCurrentPage(1);
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: isActive ? 600 : 500,
+                            border: isActive ? "1px solid #0F172A" : "1px solid #E2E8F0",
+                            background: isActive ? "#0F172A" : "#F8FAFC",
+                            color: isActive ? "#FFFFFF" : "#475569",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: 6,
+                            transition: "all 0.15s ease",
+                          }}
+                        >
+                          <span>{st === "ALL" ? "Semua Status" : st}</span>
+                          <span
+                            style={{
+                              padding: "1px 5px",
+                              borderRadius: 99,
+                              fontSize: 10,
+                              fontWeight: 600,
+                              background: isActive ? "rgba(255,255,255,0.2)" : "#E2E8F0",
+                              color: isActive ? "#FFFFFF" : "#64748B",
+                            }}
+                          >
+                            {countForSt}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 500 }}>
+                    Menampilkan <strong>{filteredTransactions.length}</strong> dari {allTransactions.length} transaksi
+                  </span>
                 </div>
               </div>
 
@@ -1170,41 +1279,39 @@ export function TransactionsModule({
               ) : (
                 <div className="space-card-table-container">
                   <div className="space-table-wrap">
-                    <table className="space-table">
-                    <thead>
-                      <tr>
-                        <th style={{ width: 40 }}>
-                          <SpaceCheckbox
-                            label=""
-                            checked={selectedIds.length > 0 && selectedIds.length === allTransactions.length}
-                            onChange={(chk) => {
-                              setSelectedIds(chk ? allTransactions.map((t) => t.id) : []);
-                            }}
-                          />
-                        </th>
-                        <th>Nomor PO &amp; Tanggal</th>
-                        <th>Buyer &amp; Destinasi</th>
-                        <th>Komoditas &amp; HS Code</th>
-                        <th>Nilai Kontrak</th>
-                        <th>Progress Alur</th>
-                        <th>Status</th>
-                        <th style={{ textAlign: "right" }}>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {allTransactions
-                        .filter((row) => {
-                          if (statusFilter !== "ALL" && row.status !== statusFilter) return false;
-                          if (countryFilter !== "ALL" && !row.buyerCountry?.toLowerCase().includes(countryFilter.toLowerCase())) return false;
-                          const q = query.trim().toLowerCase();
-                          if (!q) return true;
-                          return (
-                            row.reference.toLowerCase().includes(q) ||
-                            row.buyer.toLowerCase().includes(q) ||
-                            row.buyerCountry.toLowerCase().includes(q) ||
-                            row.product.toLowerCase().includes(q)
-                          );
-                        })
+                    <table className="space-table" style={{ width: "100%", tableLayout: "fixed" }}>
+                      <colgroup>
+                        <col style={{ width: 36 }} />
+                        <col style={{ width: 145 }} />
+                        <col style={{ width: 185 }} />
+                        <col style={{ width: 185 }} />
+                        <col style={{ width: 110 }} />
+                        <col style={{ width: 140 }} />
+                        <col style={{ width: 95 }} />
+                        <col style={{ width: 105 }} />
+                      </colgroup>
+                      <thead>
+                        <tr>
+                          <th style={{ width: 36, textAlign: "center", padding: "10px 4px" }}>
+                            <SpaceCheckbox
+                              label=""
+                              checked={selectedIds.length > 0 && selectedIds.length === filteredTransactions.length}
+                              onChange={(chk) => {
+                                setSelectedIds(chk ? filteredTransactions.map((t) => t.id) : []);
+                              }}
+                            />
+                          </th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>No. PO &amp; Tanggal</th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Buyer &amp; Destinasi</th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Komoditas &amp; HS Code</th>
+                          <th style={{ textAlign: "right", padding: "10px 14px", whiteSpace: "nowrap" }}>Nilai Kontrak</th>
+                          <th style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>Progress Alur</th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Status</th>
+                          <th style={{ textAlign: "right", padding: "10px 10px", whiteSpace: "nowrap" }}>Aksi</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                      {filteredTransactions
                         .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                         .map((row) => {
                           const isCurrent =
@@ -1214,9 +1321,35 @@ export function TransactionsModule({
                           const tone = statusTone(row.status);
                           const badgeTone = tone === "green" ? "success" : tone === "amber" ? "warning" : tone === "blue" ? "primary" : "neutral";
 
+                          // Milestone detail & progress percentage
+                          let progressPercent = 35;
+                          let progressDetail = "3/7 · Kesiapan Kargo";
+                          let progressTone: "success" | "primary" | "warning" = "primary";
+
+                          if (isCurrent) {
+                            progressPercent = percentCompleted;
+                            progressDetail = `${completedCount}/${totalCount} Tahap`;
+                          } else if (row.status === "Completed") {
+                            progressPercent = 100;
+                            progressDetail = "7/7 · Selesai & Lunas";
+                            progressTone = "success";
+                          } else if (row.status === "In Transit") {
+                            progressPercent = 75;
+                            progressDetail = "5/7 · Kapal Berlayar";
+                            progressTone = "primary";
+                          } else if (row.status === "Confirmed") {
+                            progressPercent = 45;
+                            progressDetail = "3/7 · Kesiapan Kargo";
+                            progressTone = "primary";
+                          } else if (row.status === "Draft" || row.status === "Quotation") {
+                            progressPercent = 15;
+                            progressDetail = "1/7 · Draf Negosiasi";
+                            progressTone = "warning";
+                          }
+
                           return (
                             <tr key={row.id} style={{ background: isCurrent ? "rgba(15, 41, 66, 0.03)" : undefined }}>
-                              <td>
+                              <td style={{ textAlign: "center", padding: "10px 6px" }}>
                                 <SpaceCheckbox
                                   label=""
                                   checked={isChecked}
@@ -1225,72 +1358,132 @@ export function TransactionsModule({
                                   }}
                                 />
                               </td>
-                              <td>
+                              <td style={{ padding: "10px 10px" }}>
                                 <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <strong style={{ color: "var(--space-gray-900)" }}>{row.reference || "(Tanpa nomor)"}</strong>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "nowrap" }}>
+                                    <strong style={{ color: "#0F172A", fontSize: 13, letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
+                                      {row.reference || "(Tanpa nomor)"}
+                                    </strong>
                                     {isCurrent && <SpaceBadge tone="primary" showDot>Aktif</SpaceBadge>}
                                   </div>
-                                  <small style={{ color: "var(--space-gray-400)", fontSize: "11px" }}>
+                                  <small style={{ color: "#64748B", fontSize: "11px", whiteSpace: "nowrap" }}>
                                     {formatShortDate(row.updatedAt)}
                                   </small>
                                 </div>
                               </td>
-                              <td>
+                              <td style={{ padding: "10px 10px" }}>
                                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  <SpaceAvatar name={row.buyer || "Buyer"} size="sm" status="online" />
-                                  <div style={{ display: "flex", flexDirection: "column" }}>
-                                    <span style={{ fontWeight: 600, color: "var(--space-gray-900)" }}>{row.buyer}</span>
-                                    <span style={{ color: "var(--space-gray-500)", fontSize: "11.5px" }}>{row.buyerCountry}</span>
-                                  </div>
-                                </div>
-                              </td>
-                              <td>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                  <span style={{ fontWeight: 500, color: "var(--space-gray-800)" }}>{row.product}</span>
-                                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                                    <SpaceBadge tone="neutral">{row.incoterm || "FOB"}</SpaceBadge>
-                                    <span style={{ fontSize: "11px", color: "var(--space-gray-500)" }}>
-                                      {row.quantity} {row.unit}
+                                  <SpaceAvatar name={row.buyer || "Buyer"} size="sm" />
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                    <span style={{ fontWeight: 600, color: "#0F172A", fontSize: 13 }}>{row.buyer}</span>
+                                    <span style={{ color: "#64748B", fontSize: "11.5px" }}>
+                                      {row.contactPerson ? `${row.contactPerson} · ` : ""}{row.buyerCountry}
                                     </span>
                                   </div>
                                 </div>
                               </td>
-                              <td>
-                                <strong style={{ color: "var(--space-navy-800)", fontVariantNumeric: "tabular-nums" }}>
-                                  ${((row.quantity || 10) * 2850).toLocaleString("en-US")}
-                                </strong>
+                              <td style={{ padding: "10px 10px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                                  <span style={{ fontWeight: 600, color: "#1E293B", fontSize: 13 }}>{row.product}</span>
+                                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                                    <span
+                                      style={{
+                                        background: "#F1F5F9",
+                                        color: "#334155",
+                                        padding: "1px 6px",
+                                        borderRadius: 4,
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      {row.incoterm || "FOB"}
+                                    </span>
+                                    <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#475569" }}>
+                                      HS {row.hsCode || "0901.11.10"}
+                                    </span>
+                                    <span style={{ fontSize: "11px", color: "#64748B" }}>
+                                      · {row.quantity} {row.unit}
+                                    </span>
+                                  </div>
+                                </div>
                               </td>
-                              <td style={{ minWidth: 130 }}>
-                                <SpaceProgressBar
-                                  value={isCurrent ? percentCompleted : row.status === "Completed" ? 100 : 35}
-                                  detail={isCurrent ? `${completedCount}/${totalCount}` : row.status === "Completed" ? "Selesai" : "Berjalan"}
-                                  tone={row.status === "Completed" ? "success" : "primary"}
-                                />
+                              <td style={{ textAlign: "right", padding: "10px 14px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
+                                  <strong style={{ color: "#0F172A", fontSize: 13.5, fontVariantNumeric: "tabular-nums" }}>
+                                    ${((row.quantity || 10) * 2850).toLocaleString("en-US")}
+                                  </strong>
+                                  <small style={{ color: "#64748B", fontSize: "11px" }}>
+                                    @ $2,850/{row.unit || "MT"}
+                                  </small>
+                                </div>
                               </td>
-                              <td>
+                              <td style={{ padding: "10px 12px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                                    <span style={{ color: "#334155", fontWeight: 600 }}>{progressDetail}</span>
+                                    <span style={{ color: "#64748B", fontSize: "10.5px" }}>{progressPercent}%</span>
+                                  </div>
+                                  <div style={{ width: "100%", height: 5, background: "#E2E8F0", borderRadius: 99, overflow: "hidden" }}>
+                                    <div
+                                      style={{
+                                        width: `${progressPercent}%`,
+                                        height: "100%",
+                                        borderRadius: 99,
+                                        background: progressTone === "success" ? "#10B981" : progressTone === "warning" ? "#F59E0B" : "#2563EB",
+                                        transition: "width 0.3s ease",
+                                      }}
+                                    />
+                                  </div>
+                                </div>
+                              </td>
+                              <td style={{ padding: "10px 10px" }}>
                                 <SpaceBadge tone={badgeTone as any} showDot>
                                   {row.status}
                                 </SpaceBadge>
                               </td>
-                              <td style={{ textAlign: "right" }}>
-                                <div style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-                                  <SpaceButton
-                                    variant="ghost"
-                                    size="sm"
-                                    icon={<Activity size={13} />}
+                              <td style={{ textAlign: "right", padding: "10px 10px", whiteSpace: "nowrap" }}>
+                                <div style={{ display: "inline-flex", gap: 4, alignItems: "center", justifyContent: "flex-end" }}>
+                                  <button
+                                    type="button"
                                     onClick={() => void handleSwitchTransaction(row)}
-                                    title="Buka alur operasional"
+                                    title="Buka alur operasional transaksi ini"
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: 4,
+                                      padding: "4px 8px",
+                                      fontSize: 11.5,
+                                      fontWeight: 600,
+                                      color: "#0F172A",
+                                      background: "#F1F5F9",
+                                      border: "1px solid #CBD5E1",
+                                      borderRadius: 6,
+                                      cursor: "pointer",
+                                    }}
                                   >
-                                    Buka
-                                  </SpaceButton>
-                                  <SpaceButton
-                                    variant="danger"
-                                    size="sm"
-                                    icon={<Trash2 size={12} />}
+                                    <span>Buka</span>
+                                    <ArrowRight size={12} />
+                                  </button>
+                                  <button
+                                    type="button"
                                     onClick={() => void handleDeleteTransaction(row)}
-                                    title="Hapus transaksi"
-                                  />
+                                    title="Hapus transaksi dari daftar"
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      width: 26,
+                                      height: 26,
+                                      padding: 0,
+                                      color: "#94A3B8",
+                                      background: "transparent",
+                                      border: "none",
+                                      borderRadius: 4,
+                                      cursor: "pointer",
+                                    }}
+                                  >
+                                    <Trash2 size={13} />
+                                  </button>
                                 </div>
                               </td>
                             </tr>
@@ -1303,7 +1496,7 @@ export function TransactionsModule({
                 {/* Space DS Pagination Component */}
                 <SpacePagination
                   currentPage={currentPage}
-                  totalItems={allTransactions.length}
+                  totalItems={filteredTransactions.length}
                   pageSize={pageSize}
                   onPageChange={(p) => setCurrentPage(p)}
                 />
