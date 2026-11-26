@@ -22,11 +22,13 @@ import {
   Printer,
   RefreshCw,
   Send,
+  ShieldAlert,
   ShieldCheck,
   Sparkles,
+  UploadCloud,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 interface PreTransactionModuleProps {
@@ -64,13 +66,10 @@ const BUYER_VALIDATION_CHECKS: { id: string; label: string; tag: string }[] = [
   },
 ];
 
-interface AttachedDoc {
+interface AttachedFileItem {
   id: string;
-  fileName: string;
-  title: string;
-  description: string;
+  name: string;
   size: string;
-  badge: string;
 }
 
 function buildDraftCopy(params: {
@@ -114,10 +113,10 @@ function buildDraftCopy(params: {
       ? formatMoney(Math.round(parseFloat(params.offerValue.replace(/[^0-9.]/g, "") || "24590") / params.quantity), "USD")
       : "$1,280 / MT";
 
-  // Attachment summary text for email copy
+  // Attachment summary text for email copy: NO EMOJIS, numbered, clean, professional
   const attachmentSection =
     params.attachmentsList.length > 0
-      ? `\n\nATTACHED OFFICIAL DOCUMENTS:\n${params.attachmentsList.map((att, i) => `[${i + 1}] 📎 ${att}`).join("\n")}`
+      ? `\n\nENCLOSURES / ATTACHED DOCUMENTS:\n${params.attachmentsList.map((att, i) => `${i + 1}. ${att}`).join("\n")}`
       : "";
 
   // -------------------------------------------------------------
@@ -424,16 +423,32 @@ export function PreTransactionModule({
   const [editableSubject, setEditableSubject] = useState<string>("");
   const [editableBody, setEditableBody] = useState<string>("");
 
-  // Attached files state
-  const [selectedAttachments, setSelectedAttachments] = useState<string[]>([
-    "Official_Quotation_Letter.pdf",
-    "Technical_Spec_Sheet.pdf",
-    "Company_Profile_PT_Nusantara_Ekspor_Mandiri.pdf",
-  ]);
+  // Hidden native file input ref (for Gmail-style attachment input)
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [customAttachments, setCustomAttachments] = useState<AttachedDoc[]>([]);
-  const [newDocName, setNewDocName] = useState("");
-  const [showAddDocForm, setShowAddDocForm] = useState(false);
+  // Attached files state (Gmail-style list)
+  const [attachedFiles, setAttachedFiles] = useState<AttachedFileItem[]>([
+    {
+      id: "f_default_quo",
+      name:
+        docType === "inquiry"
+          ? "Official_Export_Inquiry_INQ-2026.pdf"
+          : docType === "negotiation"
+          ? "Commercial_Negotiation_Agreement_NEG-2026.pdf"
+          : "Official_Commercial_Quotation_QUO-2026.pdf",
+      size: "168 KB",
+    },
+    {
+      id: "f_default_spec",
+      name: `Technical_Spec_Sheet_${(shipment.product || "Export_Commodity").replace(/\s+/g, "_")}.pdf`,
+      size: "115 KB",
+    },
+    {
+      id: "f_default_profile",
+      name: "Company_Profile_PT_Nusantara_Ekspor_Mandiri.pdf",
+      size: "240 KB",
+    },
+  ]);
 
   const formattedDate = useMemo(() => {
     return new Intl.DateTimeFormat("en-US", {
@@ -449,55 +464,6 @@ export function PreTransactionModule({
     return `${prefix}/NEM/${datePart}/088`;
   }, [docType]);
 
-  const defaultAttachments: AttachedDoc[] = useMemo(() => {
-    const mainDocName =
-      docType === "inquiry"
-        ? "Official_Export_Inquiry_INQ-2026.pdf"
-        : docType === "negotiation"
-        ? "Commercial_Negotiation_Agreement_NEG-2026.pdf"
-        : "Official_Commercial_Quotation_QUO-2026.pdf";
-
-    const mainDocTitle =
-      docType === "inquiry"
-        ? "Surat Pengenalan Suplai Ekspor Resmi"
-        : docType === "negotiation"
-        ? "Surat Kesepakatan & Negosiasi Komersial"
-        : "Surat Penawaran Harga Resmi (Kop Surat)";
-
-    const prodSanitized = (shipment.product || "Kopi_Arabika_Gayo").replace(/\s+/g, "_");
-
-    return [
-      {
-        id: "doc_main",
-        fileName: mainDocName,
-        title: mainDocTitle,
-        description: "Dokumen resmi berkop surat eksportir, tanda tangan digital & stempel",
-        size: "168 KB",
-        badge: "Dokumen Utama",
-      },
-      {
-        id: "doc_spec",
-        fileName: `Technical_Spec_Sheet_${prodSanitized}.pdf`,
-        title: "Lembar Spesifikasi Mutu & Analisis Lab",
-        description: "Kadar air ≤ 12.5%, defect max 5%, ukuran screen, dan metode proses",
-        size: "115 KB",
-        badge: "Standar SNI / ICO",
-      },
-      {
-        id: "doc_profile",
-        fileName: "Company_Profile_PT_Nusantara_Ekspor_Mandiri.pdf",
-        title: "Profil Perusahaan & Legalitas Eksportir",
-        description: "Legalitas NIB, NPWP, sertifikasi e-SKA, dan kesiapan karantina",
-        size: "240 KB",
-        badge: "Legalitas Terverifikasi",
-      },
-    ];
-  }, [docType, shipment.product]);
-
-  const allAvailableDocs = useMemo(() => {
-    return [...defaultAttachments, ...customAttachments];
-  }, [defaultAttachments, customAttachments]);
-
   const updateDraft = (patch: Partial<PreTransactionDraftData>) => {
     update("preTransactionData", {
       ...draft,
@@ -512,32 +478,45 @@ export function PreTransactionModule({
     updateDraft({ buyerVerifiedChecklist: next });
   };
 
-  const toggleAttachment = (fileName: string) => {
-    setSelectedAttachments((prev) =>
-      prev.includes(fileName) ? prev.filter((f) => f !== fileName) : [...prev, fileName]
-    );
+  // Gmail-style file selection handler
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const newItems: AttachedFileItem[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const f = files[i];
+      const sizeKb = Math.max(1, Math.round(f.size / 1024));
+      const sizeStr = sizeKb >= 1024 ? `${(sizeKb / 1024).toFixed(1)} MB` : `${sizeKb} KB`;
+      newItems.push({
+        id: `upload_${Date.now()}_${i}`,
+        name: f.name,
+        size: sizeStr,
+      });
+    }
+
+    setAttachedFiles((prev) => [...prev, ...newItems]);
+    toast.success(`${newItems.length} berkas berhasil dilampirkan`);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  const handleAddCustomDoc = () => {
-    if (!newDocName.trim()) {
-      toast.error("Nama dokumen tidak boleh kosong");
+  const handleRemoveFile = (id: string) => {
+    setAttachedFiles((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  const handleAddPresetFile = (name: string, size: string) => {
+    if (attachedFiles.some((f) => f.name === name)) {
+      toast.info(`Berkas "${name}" sudah terlampir`);
       return;
     }
-    const safeName = newDocName.trim().replace(/\s+/g, "_") + (newDocName.endsWith(".pdf") ? "" : ".pdf");
-    const newDoc: AttachedDoc = {
-      id: `custom_${Date.now()}`,
-      fileName: safeName,
-      title: newDocName.trim(),
-      description: "Dokumen lampiran pendukung khusus yang diminta buyer",
-      size: "85 KB",
-      badge: "Lampiran Tambahan",
-    };
-    setCustomAttachments((prev) => [...prev, newDoc]);
-    setSelectedAttachments((prev) => [...prev, safeName]);
-    setNewDocName("");
-    setShowAddDocForm(false);
-    toast.success(`Dokumen "${safeName}" berhasil ditambahkan sebagai lampiran`);
+    setAttachedFiles((prev) => [...prev, { id: `preset_${Date.now()}`, name, size }]);
+    toast.success(`Berkas "${name}" berhasil dilampirkan`);
   };
+
+  // Extract clean file names for the letter body
+  const attachmentsList = useMemo(() => {
+    return attachedFiles.map((f) => f.name);
+  }, [attachedFiles]);
 
   const generatedCopy = useMemo(
     () =>
@@ -559,7 +538,7 @@ export function PreTransactionModule({
         customNotes,
         refNum,
         formattedDate,
-        attachmentsList: selectedAttachments,
+        attachmentsList,
       }),
     [
       docType,
@@ -580,7 +559,7 @@ export function PreTransactionModule({
       customNotes,
       refNum,
       formattedDate,
-      selectedAttachments,
+      attachmentsList,
     ],
   );
 
@@ -631,7 +610,7 @@ export function PreTransactionModule({
           </span>
           <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
           <p className="lead">
-            Penyusunan surat penawaran harga resmi ({shipment.incoterm}), pengelolaan berkas lampiran, dan verifikasi profil calon importir.
+            Penyusunan surat penawaran harga resmi ({shipment.incoterm}), pengelolaan berkas lampiran inputan customer, dan verifikasi profil calon importir.
           </p>
           <div className="ef-hero-actions">
             <button
@@ -676,9 +655,9 @@ export function PreTransactionModule({
         </div>
       </section>
 
-      {/* Grid 2 Kolom: Draf Korespondensi & Checklist Validasi */}
+      {/* Grid 2 Kolom: Draf Korespondensi & Checklist Validasi (Symmetrical & Balanced) */}
       <div className="content-grid pretrans-grid">
-        {/* Kolom Kiri: Formulir & Draf Surat */}
+        {/* Kolom Kiri: Formulir & Draf Surat Compose Box (All-in-One seperti Gmail) */}
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
@@ -793,7 +772,7 @@ export function PreTransactionModule({
             </div>
           </div>
 
-          {/* Letter Preview Box */}
+          {/* Letter Compose Box (Gaya Gmail: Subject + Body + Attachment Chips + Action Toolbar) */}
           <div
             style={{
               background: "#f8fafc",
@@ -838,14 +817,185 @@ export function PreTransactionModule({
                 background: "transparent",
                 border: 0,
                 padding: 0,
-                maxHeight: 280,
+                maxHeight: 260,
                 overflowY: "auto",
               }}
             >
               {activeBody}
             </pre>
 
-            {/* Action Bar */}
+            {/* ======================================================== */}
+            {/* GMAIL-STYLE ATTACHMENTS CHIP SECTION (INSIDE COMPOSE BOX) */}
+            {/* ======================================================== */}
+            <div
+              style={{
+                marginTop: 14,
+                paddingTop: 12,
+                borderTop: "1px dashed #CBD5E1",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  marginBottom: 8,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <Paperclip size={13} style={{ color: "#2563EB" }} />
+                  <span style={{ fontSize: 11.5, fontWeight: 600, color: "#334155" }}>
+                    Berkas Lampiran ({attachedFiles.length} file terlampir):
+                  </span>
+                </div>
+
+                <div style={{ fontSize: 11, color: "#64748B" }}>
+                  Maks. 25 MB per pengiriman
+                </div>
+              </div>
+
+              {/* Uploaded File Chips (Seperti Gmail Attachment Pills) */}
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                {attachedFiles.map((file) => (
+                  <div
+                    key={file.id}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      background: "#FFFFFF",
+                      border: "1px solid #CBD5E1",
+                      borderRadius: 6,
+                      padding: "5px 10px",
+                      fontSize: 12,
+                      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.04)",
+                      maxWidth: "100%",
+                    }}
+                  >
+                    <FileText size={13} style={{ color: "#2563EB", flexShrink: 0 }} />
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        color: "#0F172A",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: 220,
+                      }}
+                      title={file.name}
+                    >
+                      {file.name}
+                    </span>
+                    <span style={{ color: "#64748B", fontSize: 11, flexShrink: 0 }}>
+                      ({file.size})
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveFile(file.id)}
+                      title="Hapus berkas ini"
+                      style={{
+                        background: "transparent",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: "2px",
+                        color: "#94A3B8",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        borderRadius: "50%",
+                        marginLeft: 2,
+                        transition: "color 0.1s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = "#EF4444")}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = "#94A3B8")}
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              {/* Quick Preset Buttons for Standard Export Documents */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  flexWrap: "wrap",
+                  paddingTop: 6,
+                }}
+              >
+                <span style={{ fontSize: 11, color: "#64748B" }}>Tambah Cepat Dokumen Ekspor:</span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleAddPresetFile(
+                      docType === "inquiry"
+                        ? "Official_Export_Inquiry_INQ-2026.pdf"
+                        : docType === "negotiation"
+                        ? "Commercial_Negotiation_Agreement_NEG-2026.pdf"
+                        : "Official_Commercial_Quotation_QUO-2026.pdf",
+                      "168 KB"
+                    )
+                  }
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 4,
+                    padding: "3px 8px",
+                    fontSize: 11,
+                    color: "#2563EB",
+                    cursor: "pointer",
+                    fontWeight: 500,
+                  }}
+                >
+                  + Surat Resmi ({docType.toUpperCase()})
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleAddPresetFile(
+                      `Technical_Spec_Sheet_${(shipment.product || "Export").replace(/\s+/g, "_")}.pdf`,
+                      "115 KB"
+                    )
+                  }
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 4,
+                    padding: "3px 8px",
+                    fontSize: 11,
+                    color: "#059669",
+                    cursor: "pointer",
+                    fontWeight: 500,
+                  }}
+                >
+                  + Spec Sheet Mutu
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    handleAddPresetFile("Company_Profile_PT_Nusantara_Ekspor_Mandiri.pdf", "240 KB")
+                  }
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 4,
+                    padding: "3px 8px",
+                    fontSize: 11,
+                    color: "#475569",
+                    cursor: "pointer",
+                    fontWeight: 500,
+                  }}
+                >
+                  + Company Profile
+                </button>
+              </div>
+            </div>
+
+            {/* Bottom Action Bar (Gmail Style Toolbar) */}
             <div
               className="row-actions"
               style={{
@@ -855,8 +1005,42 @@ export function PreTransactionModule({
                 display: "flex",
                 flexWrap: "wrap",
                 gap: 8,
+                alignItems: "center",
               }}
             >
+              {/* Hidden file input for Gmail-style file picking */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileInputChange}
+                multiple
+                style={{ display: "none" }}
+              />
+
+              {/* Gmail-style paperclip upload button */}
+              <button
+                type="button"
+                className="space-btn-secondary"
+                onClick={() => fileInputRef.current?.click()}
+                title="Pilih file dari komputer / laptop Anda (PDF, DOCX, XLSX)"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  background: "#FFFFFF",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: 8,
+                  padding: "7px 13px",
+                  fontSize: 12.5,
+                  fontWeight: 600,
+                  color: "#0F172A",
+                  cursor: "pointer",
+                }}
+              >
+                <Paperclip size={14} style={{ color: "#2563EB" }} />
+                <span>Lampirkan File</span>
+              </button>
+
               <button
                 type="button"
                 className="space-btn-primary"
@@ -900,245 +1084,10 @@ export function PreTransactionModule({
               </button>
             </div>
           </div>
-
-          {/* Section: Lampiran Berkas Surat Asli (Attachments Manager) */}
-          <div
-            style={{
-              marginTop: 18,
-              background: "#FFFFFF",
-              border: "1px solid var(--line)",
-              borderRadius: "var(--radius)",
-              padding: 16,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 12,
-              }}
-            >
-              <div>
-                <span className="eyebrow" style={{ display: "block", marginBottom: 2 }}>
-                  Berkas resmi &amp; penawaran
-                </span>
-                <h4 style={{ margin: 0, fontSize: 13.5, fontWeight: 700, color: "var(--ink)" }}>
-                  Dokumen Lampiran Surat Asli ({selectedAttachments.length} Terlampir)
-                </h4>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowAddDocForm((prev) => !prev)}
-                style={{
-                  background: "transparent",
-                  border: "1px solid #CBD5E1",
-                  borderRadius: 6,
-                  padding: "5px 10px",
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "#2563EB",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 5,
-                  cursor: "pointer",
-                }}
-              >
-                <Plus size={13} /> Tambah Lampiran Khusus
-              </button>
-            </div>
-
-            {/* Quick add custom attachment form */}
-            {showAddDocForm && (
-              <div
-                style={{
-                  background: "#F8FAFC",
-                  border: "1px dashed #CBD5E1",
-                  borderRadius: 8,
-                  padding: 12,
-                  marginBottom: 12,
-                  display: "flex",
-                  gap: 8,
-                  alignItems: "center",
-                }}
-              >
-                <input
-                  type="text"
-                  placeholder="Nama berkas lampiran (e.g. Certificate_of_Analysis_SGS.pdf)"
-                  value={newDocName}
-                  onChange={(e) => setNewDocName(e.target.value)}
-                  style={{
-                    flex: 1,
-                    fontSize: 12.5,
-                    padding: "6px 10px",
-                    borderRadius: 6,
-                    border: "1px solid #CBD5E1",
-                    background: "#FFFFFF",
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleAddCustomDoc();
-                  }}
-                />
-                <button
-                  type="button"
-                  className="space-btn-primary"
-                  onClick={handleAddCustomDoc}
-                  style={{
-                    background: "#0F172A",
-                    color: "#FFFFFF",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "6px 12px",
-                    fontSize: 12,
-                    cursor: "pointer",
-                  }}
-                >
-                  Lampirkan
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddDocForm(false)}
-                  style={{
-                    background: "transparent",
-                    border: "none",
-                    color: "#64748B",
-                    cursor: "pointer",
-                    padding: 4,
-                  }}
-                >
-                  <X size={15} />
-                </button>
-              </div>
-            )}
-
-            {/* List of attachments with toggles */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              {allAvailableDocs.map((doc) => {
-                const isAttached = selectedAttachments.includes(doc.fileName);
-                return (
-                  <div
-                    key={doc.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 12,
-                      padding: "10px 12px",
-                      background: isAttached ? "#F8FAFC" : "#FFFFFF",
-                      border: isAttached ? "1px solid #94A3B8" : "1px solid #E2E8F0",
-                      borderRadius: 8,
-                      transition: "all 0.15s ease",
-                    }}
-                  >
-                    <label
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 10,
-                        cursor: "pointer",
-                        flex: 1,
-                        margin: 0,
-                      }}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isAttached}
-                        onChange={() => toggleAttachment(doc.fileName)}
-                        style={{ cursor: "pointer", width: 16, height: 16 }}
-                      />
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <div
-                          style={{
-                            width: 32,
-                            height: 32,
-                            borderRadius: 6,
-                            background: isAttached ? "#EFF6FF" : "#F1F5F9",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: isAttached ? "#2563EB" : "#64748B",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Paperclip size={16} />
-                        </div>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                            <strong style={{ fontSize: 12.5, color: "#0F172A" }}>{doc.fileName}</strong>
-                            <span
-                              style={{
-                                fontSize: 10.5,
-                                fontWeight: 600,
-                                color: "#059669",
-                                background: "#ECFDF5",
-                                border: "1px solid #A7F3D0",
-                                padding: "1px 6px",
-                                borderRadius: 4,
-                              }}
-                            >
-                              {doc.badge}
-                            </span>
-                          </div>
-                          <p style={{ margin: 0, fontSize: 11.5, color: "#64748B", lineHeight: 1.4 }}>
-                            {doc.title} · {doc.size}
-                          </p>
-                        </div>
-                      </div>
-                    </label>
-
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <button
-                        type="button"
-                        onClick={handleOpenReviewModal}
-                        title="Tinjau isi dokumen surat"
-                        style={{
-                          background: "#FFFFFF",
-                          border: "1px solid #CBD5E1",
-                          borderRadius: 6,
-                          padding: "5px 9px",
-                          fontSize: 11.5,
-                          fontWeight: 500,
-                          color: "#334155",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <Eye size={12} /> Tinjau
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={handlePrintOrDownloadPDF}
-                        title="Unduh dokumen lampiran asli"
-                        style={{
-                          background: "#F1F5F9",
-                          border: "1px solid #E2E8F0",
-                          borderRadius: 6,
-                          padding: "5px 9px",
-                          fontSize: 11.5,
-                          fontWeight: 500,
-                          color: "#0F172A",
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <Download size={12} /> Unduh
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </section>
 
-        {/* Kolom Kanan: Checklist Validasi Legalitas Buyer */}
-        <section className="panel panel-padding pretrans-check-card">
+        {/* Kolom Kanan: Checklist Validasi Legalitas Buyer & Ringkasan Kepatuhan (Balanced Height) */}
+        <section className="panel panel-padding pretrans-check-card" style={{ display: "flex", flexDirection: "column" }}>
           <div className="panel-head">
             <div>
               <span className="eyebrow">Verifikasi buyer</span>
@@ -1177,7 +1126,42 @@ export function PreTransactionModule({
             })}
           </div>
 
-          <div className="pretrans-btn-stack">
+          {/* Symmetrical Card Filler: Status Kepatuhan & Mitigasi Risiko Buyer (Eliminates Right Side Empty Space) */}
+          <div
+            style={{
+              marginTop: 16,
+              background: "#F8FAFC",
+              border: "1px solid #E2E8F0",
+              borderRadius: 8,
+              padding: 14,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <ShieldCheck size={16} style={{ color: verifiedCount >= 4 ? "#10B981" : "#F59E0B" }} />
+              <strong style={{ fontSize: 12.5, color: "#0F172A" }}>
+                Status Kepatuhan Pra-Transaksi
+              </strong>
+            </div>
+
+            <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>
+              {verifiedCount >= 4
+                ? "Seluruh parameter legalitas importir dan mitigasi risiko pembayaran aman telah terverifikasi. Transaksi siap dinaikkan ke Proforma Invoice (PI)."
+                : "Harap verifikasi keabsahan izin badan usaha, pelabuhan tujuan, dan komitmen uang muka (DP min. 30%) sebelum menandatangani Sales Contract."}
+            </p>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11.5 }}>
+              <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
+                <span style={{ color: "#64748B", display: "block" }}>Proteksi Devisa:</span>
+                <strong style={{ color: "#0F172A" }}>DP 30% T/T Wajib</strong>
+              </div>
+              <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
+                <span style={{ color: "#64748B", display: "block" }}>Dokumen Ekspor:</span>
+                <strong style={{ color: "#0F172A" }}>e-SKA &amp; Phyto Ready</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="pretrans-btn-stack" style={{ marginTop: "auto", paddingTop: 16 }}>
             <button type="button" className="save-button" onClick={() => navigate("documents")}>
               <Building2 size={14} /> Terbitkan PI / Kontrak →
             </button>
@@ -1397,7 +1381,7 @@ export function PreTransactionModule({
                       </div>
                       <div style={{ marginTop: 3 }}>
                         <span style={{ color: "#64748B" }}>Lampiran: </span>
-                        <strong>{selectedAttachments.length} Berkas Dokumen (PDF)</strong>
+                        <strong>{attachedFiles.length} Berkas Dokumen (PDF)</strong>
                       </div>
                     </div>
 
@@ -1504,14 +1488,14 @@ export function PreTransactionModule({
                       </div>
                     </div>
 
-                    {/* Attached files summary */}
+                    {/* Attached files summary (Clean Numbered, NO EMOJIS) */}
                     <div style={{ textAlign: "right", maxWidth: 280 }}>
                       <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 4 }}>
                         DOKUMEN LAMPIRAN TERVERIFIKASI:
                       </div>
-                      {selectedAttachments.map((att, idx) => (
-                        <div key={idx} style={{ fontSize: 10.5, color: "#334155", marginBottom: 2 }}>
-                          📎 {att}
+                      {attachedFiles.map((att, idx) => (
+                        <div key={idx} style={{ fontSize: 11, color: "#334155", marginBottom: 2 }}>
+                          {idx + 1}. {att.name}
                         </div>
                       ))}
                     </div>
@@ -1601,7 +1585,7 @@ export function PreTransactionModule({
             >
               <div style={{ fontSize: 12, color: "#64748B" }}>
                 <span>Lampiran aktif: </span>
-                <strong style={{ color: "#0F172A" }}>{selectedAttachments.length} berkas</strong>
+                <strong style={{ color: "#0F172A" }}>{attachedFiles.length} berkas</strong>
               </div>
 
               <div style={{ display: "flex", gap: 8 }}>
