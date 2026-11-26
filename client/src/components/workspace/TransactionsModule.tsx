@@ -663,6 +663,34 @@ export function TransactionsModule({
     toast.success(`Dipindahkan ke ${nextCol.title}`);
   };
 
+  const handleRegressCard = (cardId: string, currentColId: string) => {
+    const colIdx = kanbanStages.findIndex((c) => c.id === currentColId);
+    if (colIdx <= 0) return;
+    const prevCol = kanbanStages[colIdx - 1];
+    handleDragStart(cardId);
+    setKanbanStages((prev) => {
+      let movedItem: any = null;
+      const cleaned = prev.map((col) => {
+        const remaining = col.items.filter((it) => {
+          if (it.id === cardId) {
+            movedItem = it;
+            return false;
+          }
+          return true;
+        });
+        return { ...col, items: remaining };
+      });
+      if (!movedItem) return prev;
+      return cleaned.map((col) => {
+        if (col.id === prevCol.id) {
+          return { ...col, items: [...col.items, movedItem] };
+        }
+        return col;
+      });
+    });
+    toast.info(`Dikembalikan ke ${prevCol.title}`);
+  };
+
   const handleMarkCompleteAndSaveBuyer = (
     card: { id: string; ref: string; buyer: string; country: string; product: string; value: string; container: string; incoterm?: string; destinationPort?: string; dueDate: string; status: string },
     _currentColId: string
@@ -1687,7 +1715,7 @@ export function TransactionsModule({
                     <SpaceBadge tone="primary">Scroll Kesamping →</SpaceBadge>
                   </div>
                   <small style={{ color: "var(--space-gray-500)", display: "block", marginTop: 2 }}>
-                    Geser kartu order antar kolom tahapan. Untuk Incoterm CFR &amp; CIF, tombol <strong>Selesai (Tiba)</strong> aktif pada tahap Kapal Berlayar saat kargo tiba di pelabuhan buyer dan langsung tersimpan ke <strong>Data Mitra &amp; Kontak</strong>.
+                    Gunakan tombol panah <strong>[ ← ] Mundur</strong> dan <strong>[ → ] Maju</strong> pada setiap kartu untuk memindahkan status order bolak-balik antar tahapan. Pada tahap Kapal Berlayar, klik <strong>Selesai (Tiba)</strong> untuk menyimpan ke Data Mitra &amp; Kontrak.
                   </small>
                 </div>
                 <SpaceButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
@@ -1696,7 +1724,7 @@ export function TransactionsModule({
               </div>
 
               <div className="space-kanban-board">
-                {kanbanStages.map((col) => {
+                {kanbanStages.map((col, colIdx) => {
                   const isCompletedCol = col.id === "completed";
 
                   return (
@@ -1820,7 +1848,25 @@ export function TransactionsModule({
                                 </span>
                               </div>
 
-                              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                {/* Tombol Mundur (Kembali ke tahapan sebelumnya) */}
+                                {colIdx > 0 && (
+                                  <button
+                                    type="button"
+                                    className="space-btn space-btn-ghost space-btn-sm"
+                                    style={{
+                                      padding: "3px 6px",
+                                      height: "auto",
+                                      color: "#475569",
+                                      borderRadius: 5,
+                                    }}
+                                    onClick={() => handleRegressCard(card.id, col.id)}
+                                    title={`Kembalikan ke tahapan sebelumnya (${kanbanStages[colIdx - 1]?.title})`}
+                                  >
+                                    <ArrowLeft size={13} />
+                                  </button>
+                                )}
+
                                 {isCompletedCol ? (
                                   <button
                                     type="button"
@@ -1870,21 +1916,25 @@ export function TransactionsModule({
                                         <span>Selesai (Tiba)</span>
                                       </button>
                                     )}
-                                    <button
-                                      type="button"
-                                      className="space-btn space-btn-ghost space-btn-sm"
-                                      style={{ padding: "3px 6px", height: "auto" }}
-                                      onClick={() => handleAdvanceCard(card.id, col.id)}
-                                      title={
-                                        col.id === "production"
-                                          ? "Selesai stuffing, kargo siap berlayar"
-                                          : col.id === "contract"
-                                          ? "Mulai proses produksi & stuffing"
-                                          : "Pindahkan ke tahapan berikutnya"
-                                      }
-                                    >
-                                      <ArrowRight size={13} />
-                                    </button>
+
+                                    {/* Tombol Maju ke tahapan berikutnya */}
+                                    {colIdx < kanbanStages.length - 1 && (
+                                      <button
+                                        type="button"
+                                        className="space-btn space-btn-ghost space-btn-sm"
+                                        style={{ padding: "3px 6px", height: "auto" }}
+                                        onClick={() => handleAdvanceCard(card.id, col.id)}
+                                        title={
+                                          col.id === "production"
+                                            ? "Selesai stuffing, kargo siap berlayar"
+                                            : col.id === "contract"
+                                            ? "Mulai proses produksi & stuffing"
+                                            : `Pindahkan ke tahapan berikutnya (${kanbanStages[colIdx + 1]?.title})`
+                                        }
+                                      >
+                                        <ArrowRight size={13} />
+                                      </button>
+                                    )}
                                   </>
                                 )}
                               </div>
