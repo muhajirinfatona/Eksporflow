@@ -1058,7 +1058,7 @@ export function PreTransactionModule({
                     transition: "all 0.15s ease",
                   }}
                 >
-                  <span>🇮🇩</span> Draf Bahasa Indonesia
+                  <span>🇮🇩</span> Bahasa Indonesia
                 </button>
 
                 <button
@@ -1086,7 +1086,7 @@ export function PreTransactionModule({
                     transition: "all 0.15s ease",
                   }}
                 >
-                  <span>🇬🇧</span> Draf Bahasa Inggris
+                  <span>🇬🇧</span> Bahasa Inggris
                 </button>
               </div>
 
@@ -1130,9 +1130,9 @@ export function PreTransactionModule({
                     fontWeight: 600,
                     cursor: "pointer",
                   }}
-                  title="Sinkronkan ulang terjemahan dari draf Bahasa Indonesia"
+                  title="Terjemahkan ulang draf Bahasa Inggris dari draf Bahasa Indonesia"
                 >
-                  <RefreshCw size={12} /> Sinkronkan Terjemahan
+                  <RefreshCw size={12} /> Terjemahkan Ulang
                 </button>
               )}
             </div>
