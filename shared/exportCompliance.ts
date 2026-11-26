@@ -58,6 +58,10 @@ export type PreTransactionDraftData = {
   prospectEmail?: string;
   customNotes?: string;
   buyerVerifiedChecklist?: string[];
+  customSubject?: string;
+  customBody?: string;
+  attachments?: string[];
+  referenceNumber?: string;
 };
 
 export interface HsTariffOption {
