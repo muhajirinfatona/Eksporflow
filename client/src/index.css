@@ -23086,6 +23086,7 @@ table.unlk-items-table th.active-cell {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
+  align-items: start;
 }
 
 @media (max-width: 1120px) {

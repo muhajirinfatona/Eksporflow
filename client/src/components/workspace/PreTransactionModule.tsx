@@ -7,25 +7,18 @@ import type { Shipment } from "@shared/shipment";
 import {
   ArrowRight,
   Building2,
-  Check,
   CheckCircle2,
   Copy,
   Database,
-  Download,
-  Edit3,
-  Eye,
-  FileCheck,
   FileText,
+  Languages,
   Mail,
   Paperclip,
-  Plus,
   Printer,
   RefreshCw,
   Send,
-  ShieldAlert,
   ShieldCheck,
   Sparkles,
-  UploadCloud,
   X,
 } from "lucide-react";
 import { useMemo, useRef, useState } from "react";
@@ -72,7 +65,7 @@ interface AttachedFileItem {
   size: string;
 }
 
-function buildDraftCopy(params: {
+interface DraftParams {
   docType: NonNullable<PreTransactionDraftData["docType"]>;
   tone: NonNullable<PreTransactionDraftData["tone"]>;
   companyName: string;
@@ -89,9 +82,277 @@ function buildDraftCopy(params: {
   paymentTerms: string;
   customNotes: string;
   refNum: string;
-  formattedDate: string;
+  formattedDateId: string;
+  formattedDateEn: string;
   attachmentsList: string[];
-}): { subject: string; body: string } {
+}
+
+// =========================================================================
+// 1. DRAF DALAM BAHASA INDONESIA (UNTUK REVIEW & EDIT LANGSUNG)
+// =========================================================================
+function buildDraftCopyId(params: DraftParams): { subject: string; body: string } {
+  const buyer = params.companyName || "Divisi Pengadaan Buyer";
+  const countrySuffix = params.country ? ` (${params.country})` : "";
+  const exporter = (params.exporter || "PT Nusantara Ekspor Mandiri").replace(/\s*\(Demo\)/gi, "").trim();
+  const signatory = (params.signatory || "Manajer Penjualan Ekspor").replace(/\s*\(Demo\)/gi, "").trim();
+  const product = params.product || "Kopi Arabika Gayo Grade 1";
+  const hsRaw = params.hsCode || "0901.11.10";
+  const hs = hsRaw ? ` (HS Code: ${hsRaw})` : "";
+  const route = params.destination || "Pelabuhan Tujuan";
+  const notesBlock = params.customNotes ? `\n\nCATATAN KHUSUS & KETENTUAN TAMBAHAN:\n${params.customNotes}` : "";
+
+  const volStr =
+    params.quantity > 0
+      ? `${params.quantity.toLocaleString("id-ID")} ${params.unit || "MT"} (Est. 1 x 20' FCL)`
+      : `19.2 MT (1 x 20' FCL / 320 Karung Goni @60kg)`;
+
+  const unitPrice =
+    params.quantity > 0
+      ? formatMoney(Math.round(parseFloat(params.offerValue.replace(/[^0-9.]/g, "") || "24590") / params.quantity), "USD")
+      : "$1,280 / MT";
+
+  const attachmentSection =
+    params.attachmentsList.length > 0
+      ? `\n\nLAMPIRAN DOKUMEN RESMI:\n${params.attachmentsList.map((att, i) => `${i + 1}. ${att}`).join("\n")}`
+      : "";
+
+  // 1. INQUIRY (Surat Minat & Pengenalan Suplai Komoditas Ekspor)
+  if (params.docType === "inquiry") {
+    if (params.tone === "formal") {
+      const subject = `[SURAT MINAT RESMI EKSPOR] Pengenalan & Penawaran Pasokan Komersial: ${product}${hs} — ${exporter}`;
+      const body = `NOMOR SURAT: ${params.refNum}
+TANGGAL: ${params.formattedDateId}
+
+KEPADA YTH: Pimpinan Divisi Pengadaan & Sourcing Global
+            ${buyer}${countrySuffix}
+DARI: Divisi Penjualan Ekspor & Perdagangan Internasional, ${exporter}
+PERIHAL: ${subject}
+
+Dengan hormat,
+
+Atas nama ${exporter}, eksportir berizin dan terdaftar resmi di Indonesia (NIB & Terdaftar Kepabeanan DJBC), kami bermaksud memperkenalkan perusahaan kami sebagai pemasok komersial terakreditasi untuk komoditas ekspor ${product}${hs}.
+
+Kami menerapkan standar mutu ekspor internasional dan protokol fitosanitari secara ketat, dengan kapasitas pasokan reguler sebesar ${volStr} per siklus pengapalan serta ketertelusuran rantai pasok penuh.
+
+PARAMETER UTAMA PASOKAN & KESEPAKATAN:
+1. Komoditas & Grade: ${product}${hs}
+2. Kapasitas Pengapalan: ${volStr}
+3. Indikasi Basis Penyerahan: ${params.incoterm} (${route})
+4. Pelabuhan Muat Asal: Pelabuhan Utama Indonesia (Tanjung Priok / Tanjung Perak / Belawan)
+5. Kepatuhan Mutu: Fitosanitari, Certificate of Origin (e-SKA), dan standar jaminan mutu internasional.${notesBlock}
+
+Apabila divisi pengadaan Anda sedang mengevaluasi pemasok komoditas terpercaya dari Indonesia, kami siap mengirimkan spesifikasi teknis lengkap, lembar hasil uji lab, serta sampel produk resmi.
+
+Dokumen pendukung terlampir dapat ditinjau di bawah ini.${attachmentSection}
+
+Atas perhatian dan kesempatan kerja sama yang baik ini, kami ucapkan terima kasih.
+
+Hormat kami,
+${signatory}
+Divisi Penjualan Ekspor
+${exporter}
+Republik Indonesia`;
+      return { subject, body };
+    }
+
+    if (params.tone === "semi_formal") {
+      const subject = `[PENGENALAN PASOKAN EKSPOR] Peluang Suplai Komersial: ${product} — ${exporter}`;
+      const body = `Kepada Yth. Tim Pengadaan di ${buyer}${countrySuffix},
+
+Semoga surat ini menjumpai Anda dalam keadaan baik. Kami dari ${exporter}, eksportir berizin dari Indonesia, ingin memperkenalkan pasokan komoditas ekspor unggulan kami: ${product}${hs}.
+
+Kami dapat menyediakan pengapalan komersial secara rutin (${volStr}) dengan dokumen ekspor lengkap, termasuk Sertifikat Fitosanitari, Certificate of Origin (e-SKA), dan sertifikat mutu surveyor independen.
+
+• Komoditas: ${product}${hs}
+• Kapasitas Pasokan: ${volStr}
+• Basis Penyerahan: ${params.incoterm} (${route})
+• Pelabuhan Muat: Pelabuhan Utama Indonesia${notesBlock}
+
+Bila Anda berminat meninjau profil penawaran atau membutuhkan sampel awal, silakan beri tahu kami agar segera kami siapkan.${attachmentSection}
+
+Salam hormat,
+${signatory}
+${exporter}`;
+      return { subject, body };
+    }
+
+    // casual / ringkas
+    const subject = `[PENAWARAN AWAL EKSPOR] Pasokan ${product} (${volStr}) — ${exporter}`;
+    const body = `Halo Tim Pengadaan ${buyer},
+
+Berikut rangkuman kapasitas pasokan komoditas ekspor dari ${exporter}:
+• Produk: ${product}${hs}
+• Kuantitas: ${volStr}
+• Basis Penyerahan: ${params.incoterm} (${route})
+• Legalitas: Terdaftar NIB & Bea Cukai RI (Fito, e-SKA Ready)${notesBlock}${attachmentSection}
+
+Silakan konfirmasi bila Anda membutuhkan lembar spesifikasi mutu atau draf penawaran harga resmi.
+
+Terima kasih,
+${signatory} — ${exporter}`;
+    return { subject, body };
+  }
+
+  // 2. QUOTATION (Surat Penawaran Harga Resmi)
+  if (params.docType === "quotation") {
+    if (params.tone === "formal") {
+      const subject = `[SURAT PENAWARAN HARGA RESMI] Penawaran Ekspor: ${product} (${params.incoterm} ${route}) — Ref: ${params.refNum}`;
+      const body = `NOMOR SURAT: ${params.refNum}
+TANGGAL: ${params.formattedDateId}
+MASA BERLAKU: 14 Hari Kalender sejak Tanggal Penerbitan
+
+KEPADA YTH: Divisi Pengadaan & Komersial
+            ${buyer}${countrySuffix}
+DARI: Meja Penetapan Harga Ekspor & Komersial, ${exporter}
+PERIHAL: ${subject}
+
+Dengan hormat,
+
+Terima kasih atas permintaan informasi dan ketertarikan pihak Anda terhadap komoditas ${product}. Atas nama ${exporter}, dengan ini kami menyampaikan penawaran harga komersial resmi dengan rincian parameter kesepakatan sebagai berikut:
+
+1. RINGKASAN PENAWARAN KOMERSIAL:
+• Komoditas: ${product}${hs}
+• Kuantitas Pesanan: ${volStr}
+• Ketentuan Penyerahan: ${params.incoterm} (${route})
+• Indikasi Harga Satuan: ${unitPrice}
+• Total Nilai Penawaran: ${params.offerValue}
+
+2. KETENTUAN PEMBAYARAN & PROTEKSI DEVISA:
+• Struktur Pembayaran: ${params.paymentTerms || "30% Uang Muka (DP) via T/T saat Sales Contract ditandatangani; 70% Pelunasan terhadap salinan dokumen resmi (Draft B/L, Commercial Invoice, Packing List, Certificate of Origin, dan Phyto)"}.
+• Alternatif Pembayaran: Irrevocable Documentary Letter of Credit (L/C at sight) yang diterbitkan bank internasional terakreditasi.
+
+3. SPESIFIKASI MUTU & KELENGKAPAN DOKUMEN:
+• Standar Kemasan: Standar kemaritiman internasional ekspor.
+• Dokumen yang Disertakan: Bill of Lading (B/L), Commercial Invoice, Packing List, Certificate of Origin (e-SKA), Sertifikat Fitosanitari & Fumigasi, dan Certificate of Analysis / Mutu.${notesBlock}
+
+4. KONFIRMASI PEMESANAN:
+Untuk menyetujui penawaran ini atau melanjutkan ke penerbitan Proforma Invoice (PI) / Sales Contract, silakan membalas surat ini atau menghubungi kami secara langsung.${attachmentSection}
+
+Atas kerja sama yang terjalin dengan baik, kami ucapkan terima kasih.
+
+Hormat kami,
+${signatory}
+Manajer Komersial Ekspor
+${exporter}`;
+      return { subject, body };
+    }
+
+    if (params.tone === "semi_formal") {
+      const subject = `[PENAWARAN HARGA EKSPOR] Penawaran Komersial: ${product} (${params.incoterm} ${route}) — Ref: ${params.refNum}`;
+      const body = `Kepada Yth. Tim Pengadaan di ${buyer}${countrySuffix},
+
+Merujuk pada komunikasi kita mengenai pengadaan ${product}, kami dari ${exporter} dengan senang hati menyampaikan penawaran harga resmi sebagai berikut:
+
+• Produk: ${product}${hs}
+• Volume: ${volStr}
+• Nilai Penawaran: ${params.offerValue} (${params.incoterm} ${route})
+• Syarat Pembayaran: ${params.paymentTerms || "30% DP T/T, 70% Pelunasan terhadap salinan B/L"}
+• Dokumen Resmi: B/L, Invoice, Packing List, e-SKA, Sertifikat Fitosanitari.${notesBlock}
+
+Penawaran ini berlaku selama 14 hari kalender. Kami menyertakan dokumen pendukung resmi di bawah ini untuk ditinjau oleh tim Anda.${attachmentSection}
+
+Bila ada detail yang perlu disesuaikan, kami siap berdiskusi lebih lanjut.
+
+Salam hangat,
+${signatory}
+${exporter}`;
+      return { subject, body };
+    }
+
+    // casual / ringkas
+    const subject = `[QUOTATION RINGKAS] ${product} (${volStr}) — ${params.incoterm} ${route}`;
+    const body = `Halo Tim Pengadaan ${buyer},
+
+Berikut rincian penawaran harga ekspor untuk ${product}:
+• Kuantitas: ${volStr}
+• Harga Penawaran: ${params.offerValue} (${params.incoterm} ${route})
+• Ketentuan Pembayaran: ${params.paymentTerms || "DP 30% T/T, Pelunasan 70% saat B/L terbit"}
+• Legalitas Dokumen: Lengkap (Fito, e-SKA, Surveyor Certificate)${notesBlock}${attachmentSection}
+
+Bila disetujui, kami dapat langsung menerbitkan Proforma Invoice (PI) untuk finalisasi.
+
+Terima kasih,
+${signatory} — ${exporter}`;
+    return { subject, body };
+  }
+
+  // 3. NEGOTIATION (Surat Negosiasi & Penyelarasan Ketentuan)
+  if (params.tone === "formal") {
+    const subject = `[SURAT NEGOSIASI KOMERSIAL] Penyelarasan Ketentuan & Finalisasi Kontrak: ${product} — Ref: ${params.refNum}`;
+    const body = `NOMOR SURAT: ${params.refNum}
+TANGGAL: ${params.formattedDateId}
+
+KEPADA YTH: Direksi Pengadaan & Komersial
+            ${buyer}${countrySuffix}
+DARI: Meja Negosiasi Ekspor, ${exporter}
+PERIHAL: ${subject}
+
+Dengan hormat,
+
+Kami telah menerima dan mempelajari catatan korespondensi dari pihak Anda terkait penawaran komoditas ${product} (${volStr}, basis ${params.incoterm} ${route} dengan nilai penawaran ${params.offerValue}).
+
+Demi terwujudnya kemitraan dagang yang saling menguntungkan dalam jangka panjang, manajemen kami mengusulkan kerangka kesepakatan yang diselaraskan sebagai berikut:
+
+1. STRUKTUR HARGA & KETENTUAN PENYERAHAN:
+• Opsi Utama: Mempertahankan basis ${params.incoterm} (${route}) dengan nilai kesepakatan ${params.offerValue}.
+• Alternatif Penyesuaian: Penawaran ulang berbasis FOB Pelabuhan Utama Indonesia bila pihak Anda menghendaki pengelolaan kapal kargo mandiri.
+
+2. KEAMANAN PEMBAYARAN & PROTEKSI ARUS KAS:
+• Struktur yang Disepakati: 30% Uang Muka (DP) saat penandatanganan Sales Contract; 70% Pelunasan terhadap salinan dokumen pengapalan lengkap (Draft B/L, Commercial Invoice, Packing List, dan Sertifikat Fitosanitari).
+• Opsi Alternatif: Irrevocable Documentary L/C at Sight dari bank internasional terkemuka.
+
+3. KETERTELUSURAN & PENGAWASAN SEBELUM PENGAPALAN:
+• Pihak Anda dipersilakan menunjuk surveyor independen (SGS / Sucofindo) untuk melakukan inspeksi mutu dan timbang di gudang muat sebelum stuffing kontainer.${notesBlock}${attachmentSection}
+
+Apabila klausul ini telah sesuai, kami akan segera menerbitkan Sales Contract & Proforma Invoice (PI) resmi untuk ditandatangani bersama.
+
+Hormat kami,
+${signatory}
+Meja Negosiasi Dagang Ekspor
+${exporter}`;
+    return { subject, body };
+  }
+
+  if (params.tone === "semi_formal") {
+    const subject = `[NEGOSIASI KONTRAK EKSPOR] Penyelarasan Syarat & Ketentuan: ${product} — Ref: ${params.refNum}`;
+    const body = `Kepada Yth. Tim Pengadaan di ${buyer}${countrySuffix},
+
+Terima kasih atas tanggapan dan masukan Anda terkait penawaran harga kami sebelumnya untuk ${product}.
+
+Kami menghargai diskusi ini dan ingin menawarkan jalan tengah yang fleksibel agar transaksi ini dapat segera terealisasi:
+
+1. Penyesuaian Harga/Volume: Nilai komersial ${params.offerValue} untuk kuantitas ${volStr} (${params.incoterm} ${route}).
+2. Skema Pembayaran: DP 30% T/T untuk mengamankan slot kargo dan proses sertifikasi karantina; pelunasan 70% setelah salinan B/L resmi dikirimkan.
+3. Jaminan Mutu: Dokumen analisis laboratorium dan inspeksi mutu independen sebelum pengapalan.${notesBlock}${attachmentSection}
+
+Mohon konfirmasi kesesuaian poin di atas agar kami dapat menyiapkan dokumen kontrak final.
+
+Salam hangat,
+${signatory}
+${exporter}`;
+    return { subject, body };
+  }
+
+  // casual / ringkas
+  const subject = `[PENYELARASAN SYARAT] Finalisasi Ketentuan Penyerahan & Pembayaran: ${product} — Ref: ${params.refNum}`;
+  const body = `Halo Tim Pengadaan ${buyer},
+
+Menindaklanjuti negosiasi terkait ${product} (${volStr}):
+• Harga/Nilai Akhir: ${params.offerValue} (${params.incoterm} ${route})
+• Pembayaran: DP 30% T/T, sisa 70% saat salinan B/L terbit
+• Dokumen: Lengkap (e-SKA, Phyto, COA)${notesBlock}${attachmentSection}
+
+Silakan beri konfirmasi agar Proforma Invoice (PI) dapat segera kami proses.
+
+Terima kasih,
+${signatory} — ${exporter}`;
+  return { subject, body };
+}
+
+// =========================================================================
+// 2. DRAF DALAM BAHASA INGGRIS (UNTUK PENGIRIMAN RESMI KE BUYER)
+// =========================================================================
+function buildDraftCopyEn(params: DraftParams): { subject: string; body: string } {
   const buyer = params.companyName || "Procurement Department";
   const countrySuffix = params.country ? ` (${params.country})` : "";
   const exporter = (params.exporter || "PT Nusantara Ekspor Mandiri").replace(/\s*\(Demo\)/gi, "").trim();
@@ -102,7 +363,6 @@ function buildDraftCopy(params: {
   const route = params.destination || "Destination Port";
   const notesBlock = params.customNotes ? `\n\nSPECIAL NOTES & REQUIREMENTS:\n${params.customNotes}` : "";
 
-  // Compute realistic volume string
   const volStr =
     params.quantity > 0
       ? `${params.quantity.toLocaleString("en-US")} ${params.unit || "MT"} (Approx. 1 x 20' FCL)`
@@ -113,20 +373,16 @@ function buildDraftCopy(params: {
       ? formatMoney(Math.round(parseFloat(params.offerValue.replace(/[^0-9.]/g, "") || "24590") / params.quantity), "USD")
       : "$1,280 / MT";
 
-  // Attachment summary text for email copy: NO EMOJIS, numbered, clean, professional
   const attachmentSection =
     params.attachmentsList.length > 0
       ? `\n\nENCLOSURES / ATTACHED DOCUMENTS:\n${params.attachmentsList.map((att, i) => `${i + 1}. ${att}`).join("\n")}`
       : "";
 
-  // -------------------------------------------------------------
-  // 1. INQUIRY (Surat Minat & Pengenalan Suplai Komoditas Ekspor)
-  // -------------------------------------------------------------
   if (params.docType === "inquiry") {
     if (params.tone === "formal") {
       const subject = `[OFFICIAL EXPORT INQUIRY] Introduction & Commercial Supply Presentation: ${product}${hs} — ${exporter}`;
       const body = `REF NO: ${params.refNum}
-DATE: ${params.formattedDate}
+DATE: ${params.formattedDateEn}
 
 TO: Head of Procurement & Global Sourcing
     ${buyer}${countrySuffix}
@@ -139,30 +395,24 @@ On behalf of ${exporter}, a licensed and registered Indonesian exporter (NIB & C
 
 We operate under stringent international food safety and phytosanitary quality protocols, maintaining regular supply capacity of ${volStr} per shipping cycle with full traceability.
 
-COMMODITY SPECIFICATIONS:
-• Commodity: ${product}
-• Harmonized System (HS) Code: ${hsRaw}
-• Country of Origin: Indonesia
-• Standard Packaging: 60 kg export-grade Jute Bags with inner GrainPro hermetic moisture barrier (or export cartons upon request)
-• Standard Batch Size: 1 x 20' FCL (${volStr})
-• Pre-Shipment Inspection: Certified by independent surveyor (SGS / Sucofindo) & Quarantine Phytosanitary Office
+KEY SUPPLY PARAMETERS:
+1. Commodity & Grade: ${product}${hs}
+2. Commercial Volume: ${volStr}
+3. Indicative Delivery Term: ${params.incoterm} (${route})
+4. Origin Loading Port: Indonesian Main Port (Tanjung Priok / Tanjung Perak / Belawan)
+5. Export Compliance: Phytosanitary Certificate, Certificate of Origin (e-SKA), and quality assurance.${notesBlock}
 
-EXPORT COMPLIANCE & LEGAL ACCREDITATION:
-1. Legal Export Licensing (NIB & Ministry of Trade Registered)
-2. Electronic Certificate of Origin (e-SKA Form A / Form D / Form AK / Form ICO)
-3. Mandatory Phytosanitary and ISPM #15 Fumigation Certification
+Should your desk be evaluating qualified Indonesian suppliers, we would be pleased to dispatch our technical specifications and lab analysis sheets.
 
-Should your procurement desk be evaluating reliable Indonesian export partners, we would be privileged to dispatch full product specifications, laboratory assay reports, and commercial samples to your office.${notesBlock}${attachmentSection}
+Please review the attached official credentials below.${attachmentSection}
 
-We remain at your disposal for any technical or logistics discussions and look forward to building an enduring commercial partnership.
+We look forward to establishing a prosperous and enduring trade partnership.
 
-Respectfully yours,
-
-[Digital Seal & Signature Verified]
+Sincerely,
 ${signatory}
-Director of Export Operations
+Export Sales Division
 ${exporter}
-Indonesia`;
+Republic of Indonesia`;
       return { subject, body };
     }
 
@@ -170,58 +420,42 @@ Indonesia`;
       const subject = `[SUPPLY INTRODUCTION] Commercial Supply Opportunities: ${product} — ${exporter}`;
       const body = `Dear Purchasing Team at ${buyer}${countrySuffix},
 
-Greetings from Indonesia.
+We are pleased to introduce ${exporter}, an Indonesian exporter specializing in export-ready ${product}${hs}.
 
-We are reaching out from ${exporter} to present our commercial supply capabilities for ${product}${hs}. As an established Indonesian producer-exporter, we support international buyers with consistent quality, transparent pricing, and seamless shipping execution.
+We supply consistent commercial shipments (${volStr}) with full export compliance, including Phytosanitary Certification, Certificate of Origin (e-SKA), and independent surveyor inspection.
 
-KEY SUPPLY HIGHLIGHTS:
-• Commodity: ${product}${hs}
-• Provenance: Indonesia
-• Shipment Volume: ${volStr} (FCL / LCL consolidation available)
-• Packaging: Export-grade packaging with moisture-proof GrainPro protection
-• Quality Standards: Laboratory tested with verified moisture, defect, and screen size thresholds
-• Regulatory Set: Complete Certificate of Origin (COO), Phytosanitary, and Halal / Food Safety documentation
+Delivery Basis: ${params.incoterm} (${route})
+Loading Port: Indonesian Main Port${notesBlock}
 
-We would be pleased to share our full product catalogue, representative lab analysis, and price estimates tailored to your preferred destination port (${route}).${notesBlock}${attachmentSection}
+Should your desk be evaluating qualified Indonesian suppliers, we would be pleased to dispatch specifications and samples.${attachmentSection}
 
-Please let us know your current sourcing schedule and if we may dispatch representative samples for your quality appraisal.
-
-Warm regards,
-
+Best regards,
 ${signatory}
-Export Sales Department
 ${exporter}`;
       return { subject, body };
     }
 
-    // casual / ringkas
     const subject = `[INQUIRY / INTRODUCTION] ${product} Export Supply Specs & Capacity — ${exporter}`;
     const body = `Hi ${buyer} Sourcing Team,
 
-Quick introduction from ${exporter} (Indonesia). We specialize in direct commercial supply of premium export-grade ${product}${hs}.
+Here is a brief overview of our export supply capabilities for ${product}:
+• Commodity: ${product}${hs}
+• Volume: ${volStr}
+• Basis: ${params.incoterm} (${route})
+• Compliance: Fully licensed exporter (Phyto, e-SKA COO Ready)${notesBlock}${attachmentSection}
 
-SNAPSHOT FOR YOUR PROCUREMENT DESK:
-• Product: ${product} (Origin: Indonesia)
-• Volume Capacity: ${volStr} (Standard 20' FCL allocation)
-• Packaging: 60kg export bags with GrainPro moisture barrier
-• Export Documents: Full export package (COO, Phytosanitary, Surveyor Report, B/L)
-• Route: Direct ocean freight to ${route}${notesBlock}${attachmentSection}
-
-Attached please find our technical spec sheet. If your desk has an active tender or requirement for this shipping window, we would be delighted to quote you immediately.
+Please let us know if you require technical spec sheets or sample dispatches.
 
 Best regards,
-${signatory} | ${exporter}`;
+${signatory} — ${exporter}`;
     return { subject, body };
   }
 
-  // -------------------------------------------------------------
-  // 2. QUOTATION (Surat Penawaran Harga Resmi / Commercial Offer)
-  // -------------------------------------------------------------
   if (params.docType === "quotation") {
     if (params.tone === "formal") {
       const subject = `[OFFICIAL COMMERCIAL QUOTATION] Formal Export Offer: ${product} (${params.incoterm} ${route}) — Ref: ${params.refNum}`;
       const body = `REF NO: ${params.refNum}
-DATE: ${params.formattedDate}
+DATE: ${params.formattedDateEn}
 VALIDITY: 14 Calendar Days from Date of Issuance
 
 TO: Procurement & Commercial Division
@@ -234,36 +468,28 @@ Dear Sir / Madam,
 We thank you for your esteemed inquiry regarding ${product}. On behalf of ${exporter}, we have the pleasure to submit our formal commercial price quotation under the agreed parameters below:
 
 1. COMMERCIAL OFFER SUMMARY:
-• Commodity Description: ${product}${hs}
-• Contract Quantity: ${volStr}
-• Delivery Term (Incoterms 2020): ${params.incoterm} (${route})
-• Indicative Unit Price: ${unitPrice}
-• Total Commercial Value: ${params.offerValue}
-• Packaging: 60 kg export Jute Bags with inner GrainPro liner (Palletized upon request)
+• Product / Commodity: ${product}${hs}
+• Order Volume: ${volStr}
+• Delivery Basis: ${params.incoterm} (${route})
+• Unit Price Indication: ${unitPrice}
+• Total Commercial Offer Value: ${params.offerValue}
 
-2. PAYMENT & BANKING TERMS:
-• Payment Structure: ${params.paymentTerms || "30% Advance Down Payment (T/T) upon Sales Contract execution; 70% Balance T/T payable against copy of full shipping documents (Draft B/L, Commercial Invoice, Packing List, Certificate of Origin)"}.
-• Currency: Commercial US Dollars (USD) via International Wire Transfer (SWIFT).
+2. PAYMENT & DEVISEN PROTECTION TERMS:
+• Payment Structure: ${params.paymentTerms || "30% Advance Down Payment upon Sales Contract; 70% Balance payable upon presentation of verified Draft B/L, Commercial Invoice, Packing List, Certificate of Origin, and Phytosanitary Certificate"}.
+• Alternative Instrument: Irrevocable Documentary Letter of Credit (L/C at sight) issued by a top-tier prime international bank.
 
-3. LOGISTICS & DOCUMENTARY COMPLIANCE:
-• Production & Dispatch Lead Time: 14–21 business days from receipt of down payment.
-• Port of Loading: Tanjung Priok, Jakarta (IDTPP) / Belawan, Medan (IDBLW).
-• Port of Discharge: ${route}.
-• Included Export Documentation:
-  - Signed Commercial Invoice & Detailed Packing List (3/3 Original)
-  - Full Set Clean on Board Ocean Bills of Lading (B/L)
-  - Official Electronic Certificate of Origin (e-SKA COO)
-  - Phytosanitary Certificate & Fumigation Certificate
-  - Independent Surveyor Certificate of Weight & Quality (SGS / Sucofindo)${notesBlock}${attachmentSection}
+3. QUALITY STANDARD & DOCUMENTATION:
+• Packaging: Standard maritime export packing.
+• Enclosed Documents: Bill of Lading (B/L), Commercial Invoice, Packing List, Certificate of Origin (e-SKA), Phytosanitary & Fumigation Certificate, and Surveyor Certificate of Weight & Quality (SGS / Sucofindo).${notesBlock}
 
 4. ORDER CONFIRMATION:
-To confirm this quotation and lock in vessel container allocation, please counter-sign the attached quotation document or issue your official Purchase Order (PO). We will immediately issue the binding Proforma Invoice (PI) and Sales Contract.
+To confirm acceptance of this quotation or initiate a formal Proforma Invoice (PI), kindly endorse this document or contact our export desk.${attachmentSection}
+
+We remain at your disposal for any clarifications.
 
 Yours faithfully,
-
-[Digital Seal & Signature Verified]
 ${signatory}
-Head of Commercial & Export Operations
+Commercial Export Manager
 ${exporter}`;
       return { subject, body };
     }
@@ -272,64 +498,49 @@ ${exporter}`;
       const subject = `[COMMERCIAL QUOTATION] Export Price Offer: ${product} (${params.incoterm} ${route}) — Ref: ${params.refNum}`;
       const body = `Dear Purchasing Team at ${buyer}${countrySuffix},
 
-Thank you for your commercial interest in our ${product}. We are pleased to provide our price quotation and commercial terms as detailed below:
+Thank you for your interest in our commodities. We are pleased to provide our formal commercial quotation for ${product} under the following parameters:
 
-COMMERCIAL TERMS:
 • Commodity: ${product}${hs}
-• Order Quantity: ${volStr}
-• Total Indicative Value: ${params.offerValue} (${params.incoterm} ${route})
-• Reference Unit Price: ${unitPrice}
-• Packaging: Export-grade bags with protective hermetic barrier
-• Payment Terms: ${params.paymentTerms || "30% Advance T/T, 70% against full shipping documents copy"}
-• Quotation Validity: 14 business days from date of issuance
+• Order Volume: ${volStr}
+• Total Offer: ${params.offerValue} (${params.incoterm} ${route})
+• Payment Terms: ${params.paymentTerms || "30% Advance T/T, 70% Balance against B/L Copy"}
+• Documentation: B/L, Commercial Invoice, Packing List, e-SKA (COO), Phytosanitary Certificate.${notesBlock}
 
-INCLUDED SHIPPING DOCUMENTATION:
-✓ Commercial Invoice & Itemized Packing List
-✓ Clean on Board Ocean Bill of Lading (B/L)
-✓ Electronic Certificate of Origin (COO) for preferential customs tariff
-✓ Official Phytosanitary Certificate & Quarantine Clearance${notesBlock}${attachmentSection}
+This quotation remains valid for 14 calendar days. Please review the enclosed technical documents below.${attachmentSection}
 
-Please review the attached formal quotation letter. Upon your confirmation, we will reserve shipping space and prepare the formal Proforma Invoice.
+Should you require adjustments to terms or volume, please let us know.
 
 Best regards,
-
 ${signatory}
-Export Sales Management
 ${exporter}`;
       return { subject, body };
     }
 
-    // casual / ringkas
     const subject = `[PRICE QUOTATION] ${product} (${params.incoterm} ${route}) — Indicative Offer & Terms`;
     const body = `Dear ${buyer} Team,
 
-Following your request, here is our commercial quotation summary for ${product}:
-
-• Commodity: ${product}${hs}
+Please find our export pricing for ${product}:
 • Volume: ${volStr}
-• Indicative Total: ${params.offerValue} (${params.incoterm} ${route}) — ${unitPrice}
-• Payment Terms: ${params.paymentTerms || "30% DP T/T, 70% balance vs Draft B/L"}
-• Lead Time: 2–3 weeks to container stuffing
-• Included Docs: Commercial Invoice, Packing List, B/L, COO, Phytosanitary Certificate${notesBlock}${attachmentSection}
+• Offer: ${params.offerValue} (${params.incoterm} ${route})
+• Payment: ${params.paymentTerms || "30% DP T/T, 70% against B/L copy"}
+• Documents: Full export compliance documentation included${notesBlock}${attachmentSection}
 
-Official quotation PDF and technical data sheet are attached for your review. Let us know if this aligns with your target schedule so we can finalize!
+Upon your confirmation, we will promptly issue the formal Proforma Invoice (PI).
 
-Regards,
-${signatory} | ${exporter}`;
+Best regards,
+${signatory} — ${exporter}`;
     return { subject, body };
   }
 
-  // -------------------------------------------------------------
-  // 3. NEGOTIATION (Surat Negosiasi & Penyelarasan Ketentuan Kontrak)
-  // -------------------------------------------------------------
+  // negotiation
   if (params.tone === "formal") {
     const subject = `[COMMERCIAL NEGOTIATION] Terms Alignment & Contract Finalization: ${product} — Ref: ${params.refNum}`;
     const body = `REF NO: ${params.refNum}
-DATE: ${params.formattedDate}
+DATE: ${params.formattedDateEn}
 
 TO: Executive Procurement Directorate
     ${buyer}${countrySuffix}
-FROM: Commercial Negotiations Directorate, ${exporter}
+FROM: Trade Negotiation Desk, ${exporter}
 SUBJECT: ${subject}
 
 Dear Sir / Madam,
@@ -343,20 +554,17 @@ In the interest of fostering a long-term mutually advantageous commercial allian
 • Option B: Re-quoted at FOB Indonesian Main Port, granting your desk the flexibility to nominate your contracted ocean carrier.
 
 2. PAYMENT SAFETY & CASH FLOW ALIGNMENT:
-• Agreed Structure: ${params.paymentTerms || "30% Advance Down Payment upon Sales Contract; 70% Balance payable upon presentation of verified Draft B/L, Commercial Invoice, and Phytosanitary Certificate prior to original surrender"}.
+• Agreed Structure: 30% Advance Down Payment upon Sales Contract; 70% Balance payable upon presentation of verified Draft B/L, Commercial Invoice, and Phytosanitary Certificate prior to original surrender.
 • Optional Instrument: Irrevocable Documentary Letter of Credit (L/C at sight) issued by a top-tier prime international bank.
 
 3. TRANSPARENCY & PRE-SHIPMENT SUPERVISION:
-• Comprehensive digital photo & video reporting during container stuffing and customs gate-in.
-• Pre-departure seal inspection report and Draft B/L cross-validation to guarantee zero documentary discrepancies.${notesBlock}${attachmentSection}
+• Your desk is warmly invited to deputize an independent inspection surveyor (SGS / Sucofindo) for pre-shipment sampling and container stuffing verification.${notesBlock}${attachmentSection}
 
-Kindly confirm which structure best aligns with your financial and logistics calendar so we may proceed to issue the binding Sales Contract (SC).
+Upon your concurrence, we shall immediately issue the bilateral Sales Contract and Proforma Invoice.
 
 Respectfully yours,
-
-[Digital Seal & Signature Verified]
 ${signatory}
-Director of Commercial Negotiations
+Trade Negotiation Desk
 ${exporter}`;
     return { subject, body };
   }
@@ -365,65 +573,68 @@ ${exporter}`;
     const subject = `[TRADE NEGOTIATION] Counter-Offer & Flexible Terms: ${product} — Ref: ${params.refNum}`;
     const body = `Dear Purchasing Team at ${buyer}${countrySuffix},
 
-Thank you for your constructive feedback on our commercial proposal for ${product} (${volStr}).
+Thank you for your feedback regarding our initial commercial quotation for ${product}.
 
-We are eager to accommodate your operational preferences and reach a mutually beneficial agreement. Here is our proposed alignment:
+We appreciate our partnership discussions and would like to propose a flexible middle ground to bring this shipment forward:
 
-1. Logistics & Incoterm: We can proceed with ${params.incoterm} ${route}, or switch to FOB Tanjung Priok if you prefer booking ocean freight via your nominated forwarder.
-2. Payment Terms: ${params.paymentTerms || "30% Advance T/T upon contract confirmation, with remaining 70% paid against scanned copy of Draft B/L, Packing List, and Phyto Certificate"}.
-3. Quality & Cargo Inspection: High-resolution container stuffing photos, seal verification, and independent lab assays will be provided prior to vessel departure.${notesBlock}${attachmentSection}
+1. Pricing/Volume Alignment: ${params.offerValue} for ${volStr} under ${params.incoterm} (${route}).
+2. Payment Terms: 30% T/T Advance to initiate production and secure shipping space; 70% balance upon transmission of the official B/L copy.
+3. Quality Assurance: Full lab analysis and independent pre-shipment surveyor certification.${notesBlock}${attachmentSection}
 
-Please review these adjusted terms and let us know if we can prepare the definitive Proforma Invoice.
+Please review this proposal and let us know if we can proceed with issuing the draft Sales Contract.
 
 Warm regards,
-
 ${signatory}
-Export Operations & Sales
 ${exporter}`;
     return { subject, body };
   }
 
-  // casual / ringkas
   const subject = `[TERMS ALIGNMENT] Final Payment & Delivery Terms: ${product} — Ref: ${params.refNum}`;
-  const body = `Hi ${buyer} Sourcing Desk,
+  const body = `Hi ${buyer} Procurement Team,
 
-Thanks for your counter-notes on our ${product} offer. We are happy to adjust terms to close this deal:
+Following up on our negotiations for ${product} (${volStr}):
+• Final Agreed Value: ${params.offerValue} (${params.incoterm} ${route})
+• Payment: 30% DP T/T, 70% against B/L copy
+• Compliance: Full export documentation (e-SKA, Phyto, COA)${notesBlock}${attachmentSection}
 
-• Incoterm Flexibility: We can stick to ${params.incoterm} ${route} or switch to FOB Indonesia if you have preferential carrier rates.
-• Payment Terms: ${params.paymentTerms || "30% DP T/T, 70% against Draft B/L copy"}.
-• Quality Assurance: Full stuffing photos and surveyor report shared before vessel sail.${notesBlock}${attachmentSection}
-
-Let us know if this works so we can lock in container space!
+Kindly confirm your approval so we can finalize the Proforma Invoice (PI).
 
 Best regards,
-${signatory} | ${exporter}`;
+${signatory} — ${exporter}`;
   return { subject, body };
 }
 
+// =========================================================================
+// MAIN PRE-TRANSACTION MODULE COMPONENT
+// =========================================================================
 export function PreTransactionModule({
   shipment,
   update,
   pricing,
   navigate,
 }: PreTransactionModuleProps) {
-  const draft: PreTransactionDraftData = shipment.preTransactionData || {};
-  const docType = draft.docType || "quotation";
-  const tone = draft.tone || "formal";
+  const draft = shipment.preTransactionData ?? {};
+  const docType = draft.docType ?? "quotation";
+  const tone = draft.tone ?? "formal";
   const prospectCompany = draft.prospectCompany ?? shipment.buyer ?? "";
   const prospectCountry = draft.prospectCountry ?? shipment.buyerCountry ?? "";
   const prospectEmail = draft.prospectEmail ?? shipment.buyerEmail ?? "";
   const customNotes = draft.customNotes ?? "";
   const checklist = draft.buyerVerifiedChecklist ?? [];
 
-  // Modal Review & Edit state
-  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
-  const [reviewTab, setReviewTab] = useState<"letterhead" | "editor">("letterhead");
+  // Active letter language tab: "id" (Indonesian review/edit) or "en" (English export send)
+  const [letterLang, setLetterLang] = useState<"id" | "en">("id");
+  const [isTranslated, setIsTranslated] = useState(false);
 
-  // Custom overrides (if user edited text in review editor)
-  const [editableSubject, setEditableSubject] = useState<string>("");
-  const [editableBody, setEditableBody] = useState<string>("");
+  // Custom user overrides for Indonesian draft
+  const [customSubjectId, setCustomSubjectId] = useState<string>("");
+  const [customBodyId, setCustomBodyId] = useState<string>("");
 
-  // Hidden native file input ref (for Gmail-style attachment input)
+  // Custom user overrides for English draft
+  const [customSubjectEn, setCustomSubjectEn] = useState<string>("");
+  const [customBodyEn, setCustomBodyEn] = useState<string>("");
+
+  // Native file input ref (Gmail-style attachment button)
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Attached files state (Gmail-style list)
@@ -450,7 +661,15 @@ export function PreTransactionModule({
     },
   ]);
 
-  const formattedDate = useMemo(() => {
+  const formattedDateId = useMemo(() => {
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+  }, []);
+
+  const formattedDateEn = useMemo(() => {
     return new Intl.DateTimeFormat("en-US", {
       day: "numeric",
       month: "long",
@@ -478,7 +697,6 @@ export function PreTransactionModule({
     updateDraft({ buyerVerifiedChecklist: next });
   };
 
-  // Gmail-style file selection handler
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -513,33 +731,32 @@ export function PreTransactionModule({
     toast.success(`Berkas "${name}" berhasil dilampirkan`);
   };
 
-  // Extract clean file names for the letter body
   const attachmentsList = useMemo(() => {
     return attachedFiles.map((f) => f.name);
   }, [attachedFiles]);
 
-  const generatedCopy = useMemo(
-    () =>
-      buildDraftCopy({
-        docType,
-        tone,
-        companyName: prospectCompany,
-        country: prospectCountry,
-        exporter: shipment.exporter,
-        signatory: shipment.signatoryName || "",
-        product: shipment.product,
-        hsCode: shipment.hsCode,
-        quantity: shipment.quantity,
-        unit: shipment.unit,
-        offerValue: formatMoney(pricing.active.offer, shipment.currency),
-        incoterm: shipment.incoterm,
-        destination: shipment.destination,
-        paymentTerms: shipment.paymentTerms,
-        customNotes,
-        refNum,
-        formattedDate,
-        attachmentsList,
-      }),
+  const draftParams: DraftParams = useMemo(
+    () => ({
+      docType,
+      tone,
+      companyName: prospectCompany,
+      country: prospectCountry,
+      exporter: shipment.exporter,
+      signatory: shipment.signatoryName || "",
+      product: shipment.product,
+      hsCode: shipment.hsCode,
+      quantity: shipment.quantity,
+      unit: shipment.unit,
+      offerValue: formatMoney(pricing.active.offer, shipment.currency),
+      incoterm: shipment.incoterm,
+      destination: shipment.destination,
+      paymentTerms: shipment.paymentTerms,
+      customNotes,
+      refNum,
+      formattedDateId,
+      formattedDateEn,
+      attachmentsList,
+    }),
     [
       docType,
       tone,
@@ -558,19 +775,51 @@ export function PreTransactionModule({
       shipment.paymentTerms,
       customNotes,
       refNum,
-      formattedDate,
+      formattedDateId,
+      formattedDateEn,
       attachmentsList,
-    ],
+    ]
   );
 
-  // Active Subject & Body (fallback to generatedCopy if not edited)
-  const activeSubject = editableSubject || generatedCopy.subject;
-  const activeBody = editableBody || generatedCopy.body;
+  const generatedCopyId = useMemo(() => buildDraftCopyId(draftParams), [draftParams]);
+  const generatedCopyEn = useMemo(() => buildDraftCopyEn(draftParams), [draftParams]);
+
+  // Active Subject & Body according to language and user overrides
+  const activeSubjectId = customSubjectId || generatedCopyId.subject;
+  const activeBodyId = customBodyId || generatedCopyId.body;
+
+  const activeSubjectEn = customSubjectEn || generatedCopyEn.subject;
+  const activeBodyEn = customBodyEn || generatedCopyEn.body;
+
+  // Active content currently shown in the editor
+  const currentSubject = letterLang === "id" ? activeSubjectId : activeSubjectEn;
+  const currentBody = letterLang === "id" ? activeBodyId : activeBodyEn;
+
+  // Translate Indonesian draft to English
+  const handleTranslateToEnglish = () => {
+    // Generate fresh English export copy
+    const freshEn = buildDraftCopyEn(draftParams);
+    setCustomSubjectEn(freshEn.subject);
+    setCustomBodyEn(freshEn.body);
+    setIsTranslated(true);
+    setLetterLang("en");
+    toast.success("Draf berhasil diterjemahkan ke Bahasa Inggris resmi ekspor! Siap dikirim ke buyer.");
+  };
+
+  const handleResetIndonesianDraft = () => {
+    setCustomSubjectId("");
+    setCustomBodyId("");
+    toast.info("Draf Bahasa Indonesia dikembalikan ke format template awal.");
+  };
 
   const handleCopyDraft = async () => {
     try {
-      await navigator.clipboard.writeText(`Subject: ${activeSubject}\n\n${activeBody}`);
-      toast.success("Draf Surat Penawaran & Lampiran Berhasil Disalin!");
+      await navigator.clipboard.writeText(`Subject: ${currentSubject}\n\n${currentBody}`);
+      toast.success(
+        letterLang === "en"
+          ? "Draf Surat Ekspor (Bahasa Inggris) Berhasil Disalin!"
+          : "Draf Surat (Bahasa Indonesia) Berhasil Disalin!"
+      );
     } catch {
       toast.error("Gagal menyalin ke clipboard.");
     }
@@ -580,29 +829,23 @@ export function PreTransactionModule({
     if (prospectCompany.trim()) update("buyer", prospectCompany.trim());
     if (prospectCountry.trim()) update("buyerCountry", prospectCountry.trim());
     if (prospectEmail.trim()) update("buyerEmail", prospectEmail.trim());
-    toast.success("Data Buyer Disinkronkan ke Transaksi");
-  };
-
-  const handleOpenReviewModal = () => {
-    if (!editableSubject) setEditableSubject(generatedCopy.subject);
-    if (!editableBody) setEditableBody(generatedCopy.body);
-    setIsReviewModalOpen(true);
+    toast.success("Data Buyer Disinkronkan ke Transaksi Aktif");
   };
 
   const handlePrintOrDownloadPDF = () => {
     window.print();
-    toast.success("Membuka dialog cetak / Simpan sebagai PDF resmi");
+    toast.success("Membuka dialog cetak / Simpan sebagai PDF");
   };
 
   const mailtoUrl = `mailto:${encodeURIComponent(prospectEmail)}?subject=${encodeURIComponent(
-    activeSubject,
-  )}&body=${encodeURIComponent(activeBody)}`;
+    activeSubjectEn
+  )}&body=${encodeURIComponent(activeBodyEn)}`;
 
   const verifiedCount = checklist.length;
 
   return (
     <div className="module-stack" style={{ gap: 16 }}>
-      {/* Space DS Clean Module Header */}
+      {/* Space DS Clean Module Hero */}
       <section className="ef-module-hero">
         <div className="ef-module-hero-copy">
           <span className="eyebrow" style={{ color: "var(--navy)" }}>
@@ -610,22 +853,34 @@ export function PreTransactionModule({
           </span>
           <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
           <p className="lead">
-            Penyusunan surat penawaran harga resmi ({shipment.incoterm}), pengelolaan berkas lampiran inputan customer, dan verifikasi profil calon importir.
+            Review dan edit draf surat penawaran dalam Bahasa Indonesia, lalu terjemahkan langsung ke Bahasa Inggris resmi ekspor untuk dikirim ke buyer internasional.
           </p>
           <div className="ef-hero-actions">
-            <button
-              type="button"
-              className="ef-hero-btn-primary"
-              onClick={handleOpenReviewModal}
-              title="Review surat resmi berkop sebelum dikirim ke buyer"
-            >
-              <Eye size={14} /> Review Surat Resmi
-            </button>
+            {letterLang === "id" ? (
+              <button
+                type="button"
+                className="ef-hero-btn-primary"
+                onClick={handleTranslateToEnglish}
+                title="Terjemahkan draf Bahasa Indonesia ke Bahasa Inggris resmi siap kirim"
+              >
+                <Languages size={14} /> Terjemahkan ke Bahasa Inggris
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="ef-hero-btn-primary"
+                onClick={() => setLetterLang("id")}
+                title="Kembali tinjau dan edit dalam Bahasa Indonesia"
+              >
+                <Languages size={14} /> Edit Draf Bahasa Indonesia
+              </button>
+            )}
+
             <button type="button" className="ef-hero-btn-ghost" onClick={handleCopyDraft}>
-              <Copy size={14} /> Salin Surat
+              <Copy size={14} /> Salin Surat ({letterLang.toUpperCase()})
             </button>
             <a href={mailtoUrl} className="ef-hero-btn-ghost">
-              <Mail size={14} /> Buka di Email
+              <Mail size={14} /> Buka di Email (EN)
             </a>
             <button
               type="button"
@@ -655,9 +910,11 @@ export function PreTransactionModule({
         </div>
       </section>
 
-      {/* Grid 2 Kolom: Draf Korespondensi & Checklist Validasi (Symmetrical & Balanced) */}
+      {/* Grid 2 Kolom: Kiri (Draf Editor & Lampiran) & Kanan (Checklist, Parameter & Panduan Aman) */}
       <div className="content-grid pretrans-grid">
-        {/* Kolom Kiri: Formulir & Draf Surat Compose Box (All-in-One seperti Gmail) */}
+        {/* ======================================================== */}
+        {/* KOLOM KIRI: FORMULIR PROSPEK & DRAF SURAT MULTI-BAHASA   */}
+        {/* ======================================================== */}
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
@@ -733,8 +990,10 @@ export function PreTransactionModule({
                     className={`space-segmented-pill ${docType === item.id ? "active" : ""}`}
                     onClick={() => {
                       updateDraft({ docType: item.id });
-                      setEditableSubject("");
-                      setEditableBody("");
+                      setCustomSubjectId("");
+                      setCustomBodyId("");
+                      setCustomSubjectEn("");
+                      setCustomBodyEn("");
                     }}
                   >
                     {item.label}
@@ -761,8 +1020,10 @@ export function PreTransactionModule({
                     className={`space-segmented-pill ${tone === item.id ? "active" : ""}`}
                     onClick={() => {
                       updateDraft({ tone: item.id });
-                      setEditableSubject("");
-                      setEditableBody("");
+                      setCustomSubjectId("");
+                      setCustomBodyId("");
+                      setCustomSubjectEn("");
+                      setCustomBodyEn("");
                     }}
                   >
                     {item.label}
@@ -772,57 +1033,331 @@ export function PreTransactionModule({
             </div>
           </div>
 
-          {/* Letter Compose Box (Gaya Gmail: Subject + Body + Attachment Chips + Action Toolbar) */}
+          {/* ======================================================== */}
+          {/* TAB REVIEW & EDIT DALAM BAHASA INDONESIA / INGGRIS        */}
+          {/* ======================================================== */}
           <div
             style={{
-              background: "#f8fafc",
-              border: "1px solid var(--line-strong)",
+              background: "#F8FAFC",
+              border: "1px solid #CBD5E1",
               borderRadius: "var(--radius)",
               padding: 16,
               marginTop: 14,
             }}
           >
-            {/* Header Subject Strip */}
+            {/* Header Switcher Tab: Bahasa Indonesia vs Bahasa Inggris */}
             <div
               style={{
                 display: "flex",
-                alignItems: "flex-start",
+                alignItems: "center",
                 justifyContent: "space-between",
-                gap: 12,
-                paddingBottom: 12,
-                borderBottom: "1px solid var(--line)",
-                marginBottom: 12,
+                flexWrap: "wrap",
+                gap: 10,
+                marginBottom: 14,
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: "var(--muted)", textTransform: "uppercase", marginBottom: 2 }}>
-                  Subjek Surat ({docType.toUpperCase()} · {tone.toUpperCase()})
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "var(--ink)", lineHeight: 1.4 }}>
-                  {activeSubject}
-                </div>
+              <div
+                style={{
+                  display: "inline-flex",
+                  background: "#E2E8F0",
+                  padding: 3,
+                  borderRadius: 8,
+                  gap: 4,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setLetterLang("id")}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    border: "none",
+                    cursor: "pointer",
+                    background: letterLang === "id" ? "#FFFFFF" : "transparent",
+                    color: letterLang === "id" ? "#0F172A" : "#64748B",
+                    boxShadow: letterLang === "id" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span>🇮🇩</span> Draf Bahasa Indonesia (Tinjau &amp; Edit)
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setLetterLang("en")}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: 6,
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    border: "none",
+                    cursor: "pointer",
+                    background: letterLang === "en" ? "#FFFFFF" : "transparent",
+                    color: letterLang === "en" ? "#0F172A" : "#64748B",
+                    boxShadow: letterLang === "en" ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span>🇬🇧</span> Draf Bahasa Inggris (Siap Kirim)
+                  {isTranslated && (
+                    <span
+                      style={{
+                        fontSize: 10,
+                        background: "#10B981",
+                        color: "#FFFFFF",
+                        padding: "1px 6px",
+                        borderRadius: 4,
+                        fontWeight: 700,
+                      }}
+                    >
+                      Terjemah
+                    </span>
+                  )}
+                </button>
               </div>
-              <StatusPill tone="green">Siap Kirim</StatusPill>
+
+              {letterLang === "id" ? (
+                <StatusPill tone="amber">Mode Tinjau &amp; Edit (ID)</StatusPill>
+              ) : (
+                <StatusPill tone="green">Siap Kirim ke Buyer (EN)</StatusPill>
+              )}
             </div>
 
-            {/* Letter Body Preview */}
-            <pre
-              style={{
-                margin: 0,
-                whiteSpace: "pre-wrap",
-                fontFamily: "var(--font-sans)",
-                fontSize: 12.5,
-                lineHeight: 1.6,
-                color: "var(--ink)",
-                background: "transparent",
-                border: 0,
-                padding: 0,
-                maxHeight: 260,
-                overflowY: "auto",
-              }}
-            >
-              {activeBody}
-            </pre>
+            {/* Banner Alur Terjemahan Cepat saat di Bahasa Indonesia */}
+            {letterLang === "id" && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  background: "linear-gradient(135deg, #EFF6FF 0%, #EEF2FF 100%)",
+                  border: "1px solid #BFDBFE",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 260, flex: 1 }}>
+                  <Sparkles size={18} style={{ color: "#2563EB", flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "#1E40AF" }}>
+                      Tinjau &amp; Edit dalam Bahasa Indonesia
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#3B82F6", lineHeight: 1.4 }}>
+                      Sesuaikan isi surat di bawah. Jika draf sudah aman, klik tombol di sebelah kanan untuk langsung menerjemahkan ke format resmi Bahasa Inggris.
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleTranslateToEnglish}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#2563EB",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: 7,
+                    padding: "8px 14px",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(37, 99, 235, 0.2)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Languages size={15} /> Terjemahkan ke Bahasa Inggris →
+                </button>
+              </div>
+            )}
+
+            {/* Banner Keterangan saat di Bahasa Inggris */}
+            {letterLang === "en" && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  flexWrap: "wrap",
+                  gap: 12,
+                  background: "#ECFDF5",
+                  border: "1px solid #A7F3D0",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  marginBottom: 14,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 260, flex: 1 }}>
+                  <CheckCircle2 size={18} style={{ color: "#059669", flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 12.5, fontWeight: 700, color: "#065F46" }}>
+                      Draf Bahasa Inggris Resmi Siap Kirim
+                    </div>
+                    <div style={{ fontSize: 11.5, color: "#047857", lineHeight: 1.4 }}>
+                      Standar korespondensi dagang internasional dengan nomor ref, terms pembayaran devisa, dan lampiran dokumen resmi.
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setLetterLang("id")}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: "#FFFFFF",
+                      color: "#0F172A",
+                      border: "1px solid #CBD5E1",
+                      borderRadius: 7,
+                      padding: "6px 12px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    ← Edit di Bahasa Indonesia
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleTranslateToEnglish}
+                    title="Sinkronkan ulang draf Bahasa Inggris dengan draf Bahasa Indonesia terbaru"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      background: "#059669",
+                      color: "#FFFFFF",
+                      border: "none",
+                      borderRadius: 7,
+                      padding: "6px 12px",
+                      fontSize: 12,
+                      fontWeight: 600,
+                      cursor: "pointer",
+                    }}
+                  >
+                    <RefreshCw size={12} /> Sinkronkan Ulang
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Input Subjek Surat (Editable) */}
+            <div style={{ marginBottom: 12 }}>
+              <label
+                style={{
+                  display: "block",
+                  fontSize: 11.5,
+                  fontWeight: 600,
+                  color: "#475569",
+                  marginBottom: 4,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.3px",
+                }}
+              >
+                Subjek Surat ({letterLang === "id" ? "Bahasa Indonesia" : "Bahasa Inggris"}):
+              </label>
+              <input
+                type="text"
+                value={letterLang === "id" ? activeSubjectId : activeSubjectEn}
+                onChange={(e) => {
+                  if (letterLang === "id") setCustomSubjectId(e.target.value);
+                  else setCustomSubjectEn(e.target.value);
+                }}
+                className="form-control"
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "#0F172A",
+                  background: "#FFFFFF",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: 6,
+                  padding: "8px 12px",
+                }}
+              />
+            </div>
+
+            {/* Textarea Isi Surat (Editable) */}
+            <div style={{ marginBottom: 14 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 6,
+                }}
+              >
+                <label
+                  style={{
+                    fontSize: 11.5,
+                    fontWeight: 600,
+                    color: "#475569",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.3px",
+                  }}
+                >
+                  Badan Surat ({letterLang === "id" ? "Dapat Diedit Langsung dalam Bahasa Indonesia" : "Versi Terjemahan Bahasa Inggris"}):
+                </label>
+                {letterLang === "id" && (
+                  <button
+                    type="button"
+                    onClick={handleResetIndonesianDraft}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#64748B",
+                      fontSize: 11,
+                      cursor: "pointer",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                    title="Kembalikan isi surat bahasa Indonesia ke template standar"
+                  >
+                    <RefreshCw size={11} /> Reset ke Template Awal
+                  </button>
+                )}
+              </div>
+
+              <textarea
+                value={letterLang === "id" ? activeBodyId : activeBodyEn}
+                onChange={(e) => {
+                  if (letterLang === "id") setCustomBodyId(e.target.value);
+                  else setCustomBodyEn(e.target.value);
+                }}
+                rows={14}
+                style={{
+                  width: "100%",
+                  boxSizing: "border-box",
+                  fontFamily: "var(--font-sans)",
+                  fontSize: 12.5,
+                  lineHeight: 1.6,
+                  color: "#0F172A",
+                  background: "#FFFFFF",
+                  border: "1px solid #CBD5E1",
+                  borderRadius: 8,
+                  padding: "12px 14px",
+                  resize: "vertical",
+                }}
+                placeholder="Ketik atau edit draf surat di sini..."
+              />
+            </div>
 
             {/* ======================================================== */}
             {/* GMAIL-STYLE ATTACHMENTS CHIP SECTION (INSIDE COMPOSE BOX) */}
@@ -850,7 +1385,7 @@ export function PreTransactionModule({
                 </div>
 
                 <div style={{ fontSize: 11, color: "#64748B" }}>
-                  Maks. 25 MB per pengiriman
+                  Maks. 25 MB per pengiriman email
                 </div>
               </div>
 
@@ -1041,37 +1576,61 @@ export function PreTransactionModule({
                 <span>Lampirkan File</span>
               </button>
 
-              <button
-                type="button"
-                className="space-btn-primary"
-                onClick={handleOpenReviewModal}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  background: "#0F172A",
-                  color: "#FFFFFF",
-                  border: "none",
-                  borderRadius: 8,
-                  padding: "7px 14px",
-                  fontSize: 12.5,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                <Eye size={14} /> Review Surat Resmi
-              </button>
+              {letterLang === "id" ? (
+                <button
+                  type="button"
+                  className="space-btn-primary"
+                  onClick={handleTranslateToEnglish}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#2563EB",
+                    color: "#FFFFFF",
+                    border: "none",
+                    borderRadius: 8,
+                    padding: "7px 14px",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  <Languages size={14} /> Terjemahkan ke English
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="space-btn-secondary"
+                  onClick={() => setLetterLang("id")}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#FFFFFF",
+                    color: "#0F172A",
+                    border: "1px solid #CBD5E1",
+                    borderRadius: 8,
+                    padding: "7px 13px",
+                    fontSize: 12.5,
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
+                >
+                  <span>🇮🇩</span> Tinjau Bahasa Indonesia
+                </button>
+              )}
 
               <button type="button" className="save-button" onClick={handleCopyDraft}>
-                <Copy size={14} /> Salin Surat
+                <Copy size={14} /> Salin Surat ({letterLang.toUpperCase()})
               </button>
 
               <a
                 href={mailtoUrl}
                 className="ghost-button"
                 style={{ textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 6 }}
+                title="Buka di aplikasi email dengan draf Bahasa Inggris resmi"
               >
-                <Send size={14} /> Buka di Email
+                <Send size={14} /> Buka di Email (EN)
               </a>
 
               <button
@@ -1086,82 +1645,106 @@ export function PreTransactionModule({
           </div>
         </section>
 
-        {/* Kolom Kanan: Checklist Validasi Legalitas Buyer & Ringkasan Kepatuhan (Balanced Height) */}
-        <section className="panel panel-padding pretrans-check-card" style={{ display: "flex", flexDirection: "column" }}>
-          <div className="panel-head">
-            <div>
-              <span className="eyebrow">Verifikasi buyer</span>
-              <h3>Checklist Legalitas Importir</h3>
+        {/* ======================================================== */}
+        {/* KOLOM KANAN: CHECKLIST, PARAMETER TRANSAKSI & PANDUAN    */}
+        {/* ======================================================== */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Card 1: Checklist Validasi Legalitas Buyer */}
+          <section className="panel panel-padding pretrans-check-card">
+            <div className="panel-head">
+              <div>
+                <span className="eyebrow">Verifikasi buyer</span>
+                <h3>Checklist Legalitas Importir</h3>
+              </div>
+              <StatusPill tone={verifiedCount >= 4 ? "green" : verifiedCount >= 2 ? "amber" : "red"}>
+                {verifiedCount}/{BUYER_VALIDATION_CHECKS.length} Terverifikasi
+              </StatusPill>
             </div>
-            <StatusPill tone={verifiedCount >= 4 ? "green" : verifiedCount >= 2 ? "amber" : "red"}>
-              {verifiedCount}/{BUYER_VALIDATION_CHECKS.length} Terverifikasi
-            </StatusPill>
-          </div>
 
-          <div className="module-stack" style={{ gap: 8, marginTop: 4 }}>
-            {BUYER_VALIDATION_CHECKS.map((item) => {
-              const checked = checklist.includes(item.id);
-              return (
-                <label
-                  key={item.id}
-                  className={`pretrans-check-item ${checked ? "done" : ""}`}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleChecklist(item.id)}
-                  />
-                  <div className="pretrans-check-content">
-                    <div className="pretrans-check-header">
-                      <span className="pretrans-check-title">
-                        {item.label}
-                      </span>
-                      <span className="pretrans-check-tag">
-                        {item.tag}
-                      </span>
+            <div className="module-stack" style={{ gap: 8, marginTop: 4 }}>
+              {BUYER_VALIDATION_CHECKS.map((item) => {
+                const checked = checklist.includes(item.id);
+                return (
+                  <label
+                    key={item.id}
+                    className={`pretrans-check-item ${checked ? "done" : ""}`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleChecklist(item.id)}
+                    />
+                    <div className="pretrans-check-content">
+                      <div className="pretrans-check-header">
+                        <span className="pretrans-check-title">
+                          {item.label}
+                        </span>
+                        <span className="pretrans-check-tag">
+                          {item.tag}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                </label>
-              );
-            })}
-          </div>
+                  </label>
+                );
+              })}
+            </div>
+          </section>
 
-          {/* Symmetrical Card Filler: Status Kepatuhan & Mitigasi Risiko Buyer (Eliminates Right Side Empty Space) */}
-          <div
-            style={{
-              marginTop: 16,
-              background: "#F8FAFC",
-              border: "1px solid #E2E8F0",
-              borderRadius: 8,
-              padding: 14,
-            }}
-          >
+          {/* Card 2: Ringkasan Parameter Komersial & Pembayaran Aman */}
+          <section className="panel panel-padding" style={{ background: "#F8FAFC", border: "1px solid #E2E8F0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <ShieldCheck size={16} style={{ color: verifiedCount >= 4 ? "#10B981" : "#F59E0B" }} />
-              <strong style={{ fontSize: 12.5, color: "#0F172A" }}>
-                Status Kepatuhan Pra-Transaksi
+              <strong style={{ fontSize: 13, color: "#0F172A" }}>
+                Parameter Transaksi &amp; Proteksi Devisa
               </strong>
             </div>
 
-            <p style={{ margin: "0 0 10px", fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>
+            <p style={{ margin: "0 0 12px", fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>
               {verifiedCount >= 4
-                ? "Seluruh parameter legalitas importir dan mitigasi risiko pembayaran aman telah terverifikasi. Transaksi siap dinaikkan ke Proforma Invoice (PI)."
-                : "Harap verifikasi keabsahan izin badan usaha, pelabuhan tujuan, dan komitmen uang muka (DP min. 30%) sebelum menandatangani Sales Contract."}
+                ? "Legalitas importir telah terverifikasi aman. Parameter penawaran di bawah siap dinaikkan ke Sales Contract resmi."
+                : "Pastikan komitmen DP minimal 30% dan pelabuhan tujuan bebas sanksi sebelum menyetujui jadwal muat kargo."}
             </p>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11.5 }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11.5, marginBottom: 12 }}>
               <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                <span style={{ color: "#64748B", display: "block" }}>Proteksi Devisa:</span>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Nilai Penawaran:</span>
+                <strong style={{ color: "#0F172A" }}>{formatMoney(pricing.active.offer, shipment.currency)}</strong>
+              </div>
+              <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Volume Ekspor:</span>
+                <strong style={{ color: "#0F172A" }}>{shipment.quantity > 0 ? `${shipment.quantity} ${shipment.unit || "MT"}` : "19.2 MT (1 FCL)"}</strong>
+              </div>
+              <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Syarat Pembayaran:</span>
                 <strong style={{ color: "#0F172A" }}>DP 30% T/T Wajib</strong>
               </div>
               <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                <span style={{ color: "#64748B", display: "block" }}>Dokumen Ekspor:</span>
-                <strong style={{ color: "#0F172A" }}>e-SKA &amp; Phyto Ready</strong>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Incoterm &amp; Rute:</span>
+                <strong style={{ color: "#0F172A" }}>{shipment.incoterm} ({shipment.destination || "Pelabuhan Tujuan"})</strong>
               </div>
             </div>
-          </div>
 
-          <div className="pretrans-btn-stack" style={{ marginTop: "auto", paddingTop: 16 }}>
+            <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 11 }}>
+              <span style={{ color: "#64748B", display: "block", marginBottom: 2 }}>Dokumen Wajib Ekspor:</span>
+              <span style={{ color: "#0F172A", fontWeight: 600 }}>Commercial Invoice, Packing List, B/L, e-SKA, Fitosanitari &amp; Lab Analisis</span>
+            </div>
+          </section>
+
+          {/* Card 3: Panduan Negosiasi & Mitigasi Risiko Buyer (AI Trade Advisor) */}
+          <section className="panel panel-padding" style={{ background: "#FFFFFF", border: "1px solid #E2E8F0" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+              <Sparkles size={15} style={{ color: "#2563EB" }} />
+              <strong style={{ fontSize: 12.5, color: "#0F172A" }}>Panduan Transaksi Ekspor Aman</strong>
+            </div>
+            <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "#475569", lineHeight: 1.6 }}>
+              <li><strong>Hindari Open Account:</strong> Untuk buyer atau broker baru, jangan pernah menerima terms pelunasan setelah barang tiba tanpa jaminan bank L/C.</li>
+              <li><strong>Kunci Toleransi Mutu:</strong> Cantumkan toleransi mutu maks. 5% pada lembar penawaran untuk mencegah penalti sepihak saat kargo tiba.</li>
+              <li><strong>Verifikasi Dokumen:</strong> Pastikan seluruh berkas lampiran asli telah cocok dengan persyaratan kepabeanan negara buyer.</li>
+            </ul>
+          </section>
+
+          {/* Action Button Stack (Tepat di bawah card tanpa celah kosong) */}
+          <div className="pretrans-btn-stack" style={{ marginTop: 2 }}>
             <button type="button" className="save-button" onClick={() => navigate("documents")}>
               <Building2 size={14} /> Terbitkan PI / Kontrak →
             </button>
@@ -1169,504 +1752,8 @@ export function PreTransactionModule({
               Cek HS &amp; Lartas →
             </button>
           </div>
-        </section>
-      </div>
-
-      {/* ========================================================= */}
-      {/* MODAL REVIEW SURAT RESMI PRA-TRANSAKSI (KOP SURAT EKSPOR) */}
-      {/* ========================================================= */}
-      {isReviewModalOpen && (
-        <div
-          className="modal-overlay"
-          onClick={() => setIsReviewModalOpen(false)}
-          style={{ zIndex: 9999 }}
-        >
-          <div
-            className="clean-po-modal"
-            onClick={(e) => e.stopPropagation()}
-            style={{ maxWidth: 840, width: "95vw", maxHeight: "92vh" }}
-          >
-            {/* Modal Header */}
-            <div className="clean-po-header" style={{ padding: "16px 20px" }}>
-              <div>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <span className="clean-po-badge">
-                    <ShieldCheck size={12} />
-                    {docType === "inquiry" ? "Surat Pengenalan Suplai" : docType === "negotiation" ? "Surat Negosiasi & Ketentuan" : "Surat Penawaran Harga Resmi"}
-                  </span>
-                  <span style={{ fontSize: 11, color: "#64748B" }}>Ref: {refNum}</span>
-                </div>
-                <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-                  Tinjau Surat Resmi Sebelum Dikirim
-                </h3>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: "#64748B" }}>
-                  Periksa format kop surat eksportir, rincian kuantitas, harga, terms pembayaran, dan lampiran berkas asli.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setIsReviewModalOpen(false)}
-                style={{
-                  background: "#F1F5F9",
-                  border: "none",
-                  borderRadius: 6,
-                  padding: 6,
-                  cursor: "pointer",
-                  color: "#64748B",
-                }}
-              >
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Modal View Selector Tabs */}
-            <div
-              style={{
-                display: "flex",
-                background: "#F8FAFC",
-                borderBottom: "1px solid #E2E8F0",
-                padding: "6px 20px 0",
-                gap: 8,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => setReviewTab("letterhead")}
-                style={{
-                  border: "none",
-                  background: reviewTab === "letterhead" ? "#FFFFFF" : "transparent",
-                  borderBottom: reviewTab === "letterhead" ? "2px solid #0F172A" : "2px solid transparent",
-                  fontWeight: reviewTab === "letterhead" ? 700 : 500,
-                  color: reviewTab === "letterhead" ? "#0F172A" : "#64748B",
-                  padding: "8px 14px",
-                  fontSize: 12.5,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <FileText size={14} /> Pratinjau Kop Surat Resmi
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setReviewTab("editor")}
-                style={{
-                  border: "none",
-                  background: reviewTab === "editor" ? "#FFFFFF" : "transparent",
-                  borderBottom: reviewTab === "editor" ? "2px solid #0F172A" : "2px solid transparent",
-                  fontWeight: reviewTab === "editor" ? 700 : 500,
-                  color: reviewTab === "editor" ? "#0F172A" : "#64748B",
-                  padding: "8px 14px",
-                  fontSize: 12.5,
-                  cursor: "pointer",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                }}
-              >
-                <Edit3 size={14} /> Editor Teks &amp; Kustomisasi
-              </button>
-            </div>
-
-            {/* Modal Body */}
-            <div style={{ flex: 1, overflowY: "auto", padding: 20, background: "#F1F5F9" }}>
-              {reviewTab === "letterhead" ? (
-                /* ======================================================== */
-                /* OFFICIAL PRINTABLE EXPORTER LETTERHEAD VIEW              */
-                /* ======================================================== */
-                <div
-                  className="official-letterhead-card"
-                  style={{
-                    background: "#FFFFFF",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 8,
-                    padding: "36px 42px",
-                    maxWidth: 720,
-                    margin: "0 auto",
-                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
-                    fontFamily: "var(--font-sans)",
-                    color: "#0F172A",
-                  }}
-                >
-                  {/* Kop Surat Header */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 16,
-                      paddingBottom: 14,
-                    }}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-                      <div
-                        style={{
-                          width: 52,
-                          height: 52,
-                          borderRadius: 8,
-                          background: "#0F172A",
-                          color: "#F8FAFC",
-                          display: "flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontWeight: 800,
-                          fontSize: 20,
-                          letterSpacing: "0.05em",
-                        }}
-                      >
-                        EF
-                      </div>
-                      <div>
-                        <h2
-                          style={{
-                            margin: 0,
-                            fontSize: 17,
-                            fontWeight: 800,
-                            color: "#0F172A",
-                            letterSpacing: "0.02em",
-                          }}
-                        >
-                          {shipment.exporter || "PT NUSANTARA EKSPOR MANDIRI"}
-                        </h2>
-                        <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#475569" }}>
-                          Export &amp; International Trade Division · General Exporter License
-                        </p>
-                        <p style={{ margin: "2px 0 0", fontSize: 10.5, color: "#64748B" }}>
-                          NIB: 0220108920194 | NPWP: 81.394.201.8-013.000 | Bea Cukai Reg: 0092/BC/2026
-                        </p>
-                      </div>
-                    </div>
-
-                    <div style={{ textAlign: "right", fontSize: 10.5, color: "#64748B", lineHeight: 1.4 }}>
-                      <div>Menara Batavia Lt. 18, Jakarta Pusat</div>
-                      <div>DKI Jakarta 10220, Indonesia</div>
-                      <div>Tel: +62 21 5790 8820</div>
-                      <div style={{ color: "#2563EB", fontWeight: 500 }}>trade@nusantaraekspor.com</div>
-                    </div>
-                  </div>
-
-                  {/* Double Line Kop Surat */}
-                  <div
-                    style={{
-                      borderTop: "3px double #0F172A",
-                      marginBottom: 20,
-                    }}
-                  />
-
-                  {/* Reference & Metadata Grid */}
-                  <div
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: 12,
-                      fontSize: 12,
-                      marginBottom: 20,
-                      background: "#F8FAFC",
-                      padding: "10px 14px",
-                      borderRadius: 6,
-                      border: "1px solid #E2E8F0",
-                    }}
-                  >
-                    <div>
-                      <div>
-                        <span style={{ color: "#64748B" }}>Nomor Surat: </span>
-                        <strong>{refNum}</strong>
-                      </div>
-                      <div style={{ marginTop: 3 }}>
-                        <span style={{ color: "#64748B" }}>Tanggal: </span>
-                        <strong>{formattedDate}</strong>
-                      </div>
-                      <div style={{ marginTop: 3 }}>
-                        <span style={{ color: "#64748B" }}>Lampiran: </span>
-                        <strong>{attachedFiles.length} Berkas Dokumen (PDF)</strong>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div>
-                        <span style={{ color: "#64748B" }}>Kepada Yth: </span>
-                        <strong>{prospectCompany || "Purchasing Directorate"}</strong>
-                      </div>
-                      <div style={{ marginTop: 3 }}>
-                        <span style={{ color: "#64748B" }}>Negara Tujuan: </span>
-                        <strong>{prospectCountry || shipment.destination || "Destination Port"}</strong>
-                      </div>
-                      <div style={{ marginTop: 3 }}>
-                        <span style={{ color: "#64748B" }}>Email Kontak: </span>
-                        <span>{prospectEmail || "procurement@buyer.com"}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Subject Line */}
-                  <div
-                    style={{
-                      padding: "10px 14px",
-                      background: "#EFF6FF",
-                      borderLeft: "4px solid #2563EB",
-                      marginBottom: 18,
-                      borderRadius: "0 6px 6px 0",
-                    }}
-                  >
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "#1D4ED8", textTransform: "uppercase" }}>
-                      Perihal / Subject:
-                    </span>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A", marginTop: 2 }}>
-                      {activeSubject}
-                    </div>
-                  </div>
-
-                  {/* Formatted Letter Body */}
-                  <pre
-                    style={{
-                      whiteSpace: "pre-wrap",
-                      fontFamily: "var(--font-sans)",
-                      fontSize: 12,
-                      lineHeight: 1.7,
-                      color: "#1E293B",
-                      background: "transparent",
-                      border: 0,
-                      padding: 0,
-                      margin: "0 0 24px 0",
-                    }}
-                  >
-                    {activeBody}
-                  </pre>
-
-                  {/* Official Signature & Digital Seal Block */}
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-end",
-                      justifyContent: "space-between",
-                      marginTop: 32,
-                      paddingTop: 16,
-                      borderTop: "1px solid #E2E8F0",
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: 11.5, color: "#475569", marginBottom: 6 }}>
-                        Hormat kami / Yours faithfully,
-                      </div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "#0F172A" }}>
-                        {shipment.exporter || "PT Nusantara Ekspor Mandiri"}
-                      </div>
-
-                      {/* Digital Seal Stamp Graphic */}
-                      <div
-                        style={{
-                          margin: "10px 0",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 8,
-                          padding: "6px 12px",
-                          border: "1.5px solid #2563EB",
-                          borderRadius: 8,
-                          color: "#1D4ED8",
-                          background: "#EFF6FF",
-                        }}
-                      >
-                        <ShieldCheck size={18} />
-                        <div>
-                          <div style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "0.05em" }}>
-                            VERIFIED DIGITAL SEAL
-                          </div>
-                          <div style={{ fontSize: 8.5, color: "#2563EB" }}>
-                            PT NUSANTARA EKSPOR MANDIRI · EXPORT OPERATIONS
-                          </div>
-                        </div>
-                      </div>
-
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#0F172A" }}>
-                        {shipment.signatoryName || "Muhajirin Fatona"}
-                      </div>
-                      <div style={{ fontSize: 11, color: "#64748B" }}>
-                        Director of Commercial Operations &amp; Export
-                      </div>
-                    </div>
-
-                    {/* Attached files summary (Clean Numbered, NO EMOJIS) */}
-                    <div style={{ textAlign: "right", maxWidth: 280 }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: "#64748B", marginBottom: 4 }}>
-                        DOKUMEN LAMPIRAN TERVERIFIKASI:
-                      </div>
-                      {attachedFiles.map((att, idx) => (
-                        <div key={idx} style={{ fontSize: 11, color: "#334155", marginBottom: 2 }}>
-                          {idx + 1}. {att.name}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                /* ======================================================== */
-                /* TAB 2: EDIT TEXT & CUSTOMIZATION                         */
-                /* ======================================================== */
-                <div style={{ background: "#FFFFFF", padding: 20, borderRadius: 8, border: "1px solid #CBD5E1" }}>
-                  <div style={{ marginBottom: 14 }}>
-                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#0F172A", marginBottom: 4 }}>
-                      Edit Subjek Surat:
-                    </label>
-                    <input
-                      type="text"
-                      value={activeSubject}
-                      onChange={(e) => setEditableSubject(e.target.value)}
-                      style={{
-                        width: "100%",
-                        fontSize: 13,
-                        fontWeight: 600,
-                        padding: "8px 12px",
-                        border: "1px solid #CBD5E1",
-                        borderRadius: 6,
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ marginBottom: 14 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-                      <label style={{ fontSize: 12, fontWeight: 600, color: "#0F172A" }}>
-                        Edit Isi Surat (Body):
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditableSubject(generatedCopy.subject);
-                          setEditableBody(generatedCopy.body);
-                          toast.success("Teks dikembalikan ke draf template standar");
-                        }}
-                        style={{
-                          background: "transparent",
-                          border: "none",
-                          color: "#2563EB",
-                          fontSize: 11.5,
-                          cursor: "pointer",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: 4,
-                        }}
-                      >
-                        <RefreshCw size={12} /> Reset ke Template Standar
-                      </button>
-                    </div>
-                    <textarea
-                      rows={14}
-                      value={activeBody}
-                      onChange={(e) => setEditableBody(e.target.value)}
-                      style={{
-                        width: "100%",
-                        fontSize: 12.5,
-                        fontFamily: "var(--font-sans)",
-                        lineHeight: 1.6,
-                        padding: "10px 12px",
-                        border: "1px solid #CBD5E1",
-                        borderRadius: 6,
-                        resize: "vertical",
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Modal Footer Bar */}
-            <div
-              style={{
-                padding: "12px 20px",
-                background: "#FFFFFF",
-                borderTop: "1px solid #E2E8F0",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-              }}
-            >
-              <div style={{ fontSize: 12, color: "#64748B" }}>
-                <span>Lampiran aktif: </span>
-                <strong style={{ color: "#0F172A" }}>{attachedFiles.length} berkas</strong>
-              </div>
-
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  className="space-btn-secondary"
-                  onClick={handlePrintOrDownloadPDF}
-                  style={{
-                    background: "#F1F5F9",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 6,
-                    padding: "7px 14px",
-                    fontSize: 12.5,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Printer size={14} /> Cetak / Unduh PDF
-                </button>
-
-                <button
-                  type="button"
-                  className="space-btn-secondary"
-                  onClick={handleCopyDraft}
-                  style={{
-                    background: "#F1F5F9",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 6,
-                    padding: "7px 14px",
-                    fontSize: 12.5,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Copy size={14} /> Salin Teks
-                </button>
-
-                <a
-                  href={mailtoUrl}
-                  style={{
-                    textDecoration: "none",
-                    background: "#0F172A",
-                    color: "#FFFFFF",
-                    border: "none",
-                    borderRadius: 6,
-                    padding: "7px 16px",
-                    fontSize: 12.5,
-                    fontWeight: 600,
-                    cursor: "pointer",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
-                >
-                  <Send size={14} /> Buka di Email
-                </a>
-
-                <button
-                  type="button"
-                  className="space-btn-secondary"
-                  onClick={() => setIsReviewModalOpen(false)}
-                  style={{
-                    background: "transparent",
-                    border: "1px solid #CBD5E1",
-                    borderRadius: 6,
-                    padding: "7px 12px",
-                    fontSize: 12.5,
-                    cursor: "pointer",
-                  }}
-                >
-                  Tutup
-                </button>
-              </div>
-            </div>
-          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }
