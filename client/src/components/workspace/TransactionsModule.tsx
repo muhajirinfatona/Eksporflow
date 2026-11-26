@@ -42,6 +42,7 @@ import {
   TrendingDown,
   TrendingUp,
   Truck,
+  UserPlus,
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -1924,7 +1925,7 @@ export function TransactionsModule({
                                     }}
                                     title="Kargo telah selesai. Klik untuk buka data buyer di menu Mitra & Kontrak"
                                   >
-                                    <Users size={12} />
+                                    <UserPlus size={13} />
                                     <span>Mitra &amp; Kontrak ↗</span>
                                   </button>
                                 ) : (
