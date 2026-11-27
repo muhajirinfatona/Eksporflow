@@ -314,6 +314,7 @@ export function ExportCalendarModule({
 
   // Filter Period Key
   const [periodFilter, setPeriodFilter] = useState<PeriodFilterKey>("this_month");
+  const [selectedDateFilter, setSelectedDateFilter] = useState<string | null>(null);
   
   // Custom range dates
   const [customStartDate, setCustomStartDate] = useState<string>("2026-11-01");
@@ -446,6 +447,7 @@ export function ExportCalendarModule({
 
   const handleApplyDateRangePicker = () => {
     setPeriodFilter(tempPreset);
+    setSelectedDateFilter(null);
     const finalStart = tempStart <= tempEnd ? tempStart : tempEnd;
     const finalEnd = tempStart <= tempEnd ? tempEnd : tempStart;
     setCustomStartDate(finalStart);
@@ -462,10 +464,10 @@ export function ExportCalendarModule({
       setCurrentYear(2026);
       setSelectedDate("2026-11-24");
     } else {
-      const endParts = finalEnd.split("-");
-      if (endParts.length === 3) {
-        setCurrentMonth(parseInt(endParts[1], 10) - 1);
-        setCurrentYear(parseInt(endParts[0], 10));
+      const parts = finalStart.split("-");
+      if (parts.length === 3) {
+        setCurrentMonth(parseInt(parts[1], 10) - 1);
+        setCurrentYear(parseInt(parts[0], 10));
       }
     }
 
@@ -473,23 +475,47 @@ export function ExportCalendarModule({
     toast.success(`Filter periode diterapkan: ${formatShortDateID(finalStart)} s/d ${formatShortDateID(finalEnd)}`);
   };
 
-  // Navigating months in main calendar
-  const handlePrevMonth = () => {
-    if (currentMonth === 0) {
-      setCurrentMonth(11);
-      setCurrentYear((y) => y - 1);
+  const syncPeriodToMonth = (m: number, y: number) => {
+    setSelectedDateFilter(null);
+    if (m === 10 && y === 2026) {
+      setPeriodFilter("this_month");
+      setCustomStartDate("2026-11-01");
+      setCustomEndDate("2026-11-30");
+    } else if (m === 9 && y === 2026) {
+      setPeriodFilter("last_month");
+      setCustomStartDate("2026-10-01");
+      setCustomEndDate("2026-10-31");
     } else {
-      setCurrentMonth((m) => m - 1);
+      setPeriodFilter("custom");
+      const daysInM = new Date(y, m + 1, 0).getDate();
+      setCustomStartDate(`${y}-${String(m + 1).padStart(2, "0")}-01`);
+      setCustomEndDate(`${y}-${String(m + 1).padStart(2, "0")}-${String(daysInM).padStart(2, "0")}`);
     }
   };
 
-  const handleNextMonth = () => {
-    if (currentMonth === 11) {
-      setCurrentMonth(0);
-      setCurrentYear((y) => y + 1);
-    } else {
-      setCurrentMonth((m) => m + 1);
+  // Navigating months in main calendar (otomatis sinkron dengan rentang waktu periode)
+  const handlePrevMonth = () => {
+    let newM = currentMonth - 1;
+    let newY = currentYear;
+    if (newM < 0) {
+      newM = 11;
+      newY -= 1;
     }
+    setCurrentMonth(newM);
+    setCurrentYear(newY);
+    syncPeriodToMonth(newM, newY);
+  };
+
+  const handleNextMonth = () => {
+    let newM = currentMonth + 1;
+    let newY = currentYear;
+    if (newM > 11) {
+      newM = 0;
+      newY += 1;
+    }
+    setCurrentMonth(newM);
+    setCurrentYear(newY);
+    syncPeriodToMonth(newM, newY);
   };
 
   const renderMiniCalendar = (m: number, y: number, showLeftArrow: boolean, showRightArrow: boolean) => {
@@ -615,9 +641,15 @@ export function ExportCalendarModule({
   // Filtered plans list for the Agenda panel
   const filteredPlans = useMemo(() => {
     return plans.filter((plan) => {
-      // 1. Date range filter
-      if (plan.date < dateRangeBounds.start || plan.date > dateRangeBounds.end) {
-        return false;
+      // 1. Filter by selected date if clicked; otherwise filter by active date range
+      if (selectedDateFilter) {
+        if (plan.date !== selectedDateFilter) {
+          return false;
+        }
+      } else {
+        if (plan.date < dateRangeBounds.start || plan.date > dateRangeBounds.end) {
+          return false;
+        }
       }
       // 2. Status filter
       if (planStatusFilter !== "ALL" && plan.status !== planStatusFilter) {
@@ -634,7 +666,7 @@ export function ExportCalendarModule({
       }
       return true;
     }).sort((a, b) => a.date.localeCompare(b.date));
-  }, [plans, dateRangeBounds, planStatusFilter, planSearchQuery]);
+  }, [plans, dateRangeBounds, selectedDateFilter, planStatusFilter, planSearchQuery]);
 
   // Plan KPI summary
   const planStats = useMemo(() => {
@@ -753,7 +785,7 @@ export function ExportCalendarModule({
         dateStr,
         isCurrentMonth: false,
         isToday: dateStr === "2026-11-24",
-        isSelected: dateStr === selectedDate,
+        isSelected: Boolean(selectedDateFilter && dateStr === selectedDateFilter),
         isInActiveRange: dateStr >= dateRangeBounds.start && dateStr <= dateRangeBounds.end,
         plans: dayPlans,
       });
@@ -768,7 +800,7 @@ export function ExportCalendarModule({
         dateStr,
         isCurrentMonth: true,
         isToday: dateStr === "2026-11-24",
-        isSelected: dateStr === selectedDate,
+        isSelected: Boolean(selectedDateFilter && dateStr === selectedDateFilter),
         isInActiveRange: dateStr >= dateRangeBounds.start && dateStr <= dateRangeBounds.end,
         plans: dayPlans,
       });
@@ -787,14 +819,14 @@ export function ExportCalendarModule({
         dateStr,
         isCurrentMonth: false,
         isToday: dateStr === "2026-11-24",
-        isSelected: dateStr === selectedDate,
+        isSelected: Boolean(selectedDateFilter && dateStr === selectedDateFilter),
         isInActiveRange: dateStr >= dateRangeBounds.start && dateStr <= dateRangeBounds.end,
         plans: dayPlans,
       });
     }
 
     return cells;
-  }, [currentYear, currentMonth, selectedDate, dateRangeBounds, plans]);
+  }, [currentYear, currentMonth, selectedDateFilter, dateRangeBounds, plans]);
 
   return (
     <div className="space-crm-container" style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1256,7 +1288,8 @@ export function ExportCalendarModule({
                   }}
                   onClick={() => {
                     setSelectedDate(cell.dateStr);
-                    toast.info(`Tanggal dipilih: ${cell.dateStr} (${cell.plans.length} plan)`);
+                    setSelectedDateFilter(cell.dateStr);
+                    toast.info(`Tanggal dipilih: ${formatShortDateID(cell.dateStr)} (${cell.plans.length} plan)`);
                   }}
                   onDoubleClick={() => handleOpenAddModalForDate(cell.dateStr)}
                   title={`Klik untuk melihat agenda | Double-click untuk tambah plan (${cell.dateStr})`}
@@ -1319,6 +1352,7 @@ export function ExportCalendarModule({
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedDate(plan.date);
+                            setSelectedDateFilter(plan.date);
                             toast.info(`[${meta.label}] ${plan.title} (${plan.time || ""}) - ${plan.status === "completed" ? "Selesai" : "Terjadwal"}`);
                           }}
                           title={`${meta.label}: ${plan.title}\nBuyer: ${plan.buyerOrPo || "-"}\nLokasi: ${plan.location || "-"}`}
@@ -1410,9 +1444,35 @@ export function ExportCalendarModule({
                   {filteredPlans.length} Rencana
                 </span>
               </div>
-              <p style={{ margin: "3px 0 0 0", fontSize: 12.5, color: "#64748B" }}>
-                Menampilkan rencana untuk: <strong>{dateRangeBounds.label}</strong>
-              </p>
+              <div style={{ margin: "4px 0 0 0", fontSize: 12.5, color: "#64748B", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span>Menampilkan rencana untuk:</span>
+                {selectedDateFilter ? (
+                  <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <strong style={{ color: "#0284C7", background: "#F0F9FF", border: "1px solid #BAE6FD", padding: "2px 8px", borderRadius: 6 }}>
+                      📅 {formatShortDateID(selectedDateFilter)}
+                    </strong>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDateFilter(null)}
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 600,
+                        color: "#0F2942",
+                        background: "#E2E8F0",
+                        border: "none",
+                        borderRadius: 4,
+                        padding: "2px 8px",
+                        cursor: "pointer",
+                      }}
+                      title="Kembali ke semua rencana periode ini"
+                    >
+                      ✕ Tampilkan Semua ({dateRangeBounds.label})
+                    </button>
+                  </span>
+                ) : (
+                  <strong>{dateRangeBounds.label}</strong>
+                )}
+              </div>
             </div>
 
             {/* Filter Status (Semua, Menunggu, Selesai) & Pencarian */}
@@ -1502,19 +1562,34 @@ export function ExportCalendarModule({
             >
               <CalendarIcon size={32} style={{ color: "#94A3B8", margin: "0 auto 8px" }} />
               <h5 style={{ margin: 0, fontSize: 14, color: "#334155" }}>
-                Tidak Ada Jadwal Rencana untuk Periode Ini
+                {selectedDateFilter
+                  ? `Tidak Ada Jadwal Rencana untuk Tanggal ${formatShortDateID(selectedDateFilter)}`
+                  : `Tidak Ada Jadwal Rencana untuk Periode Ini`}
               </h5>
               <p style={{ margin: "4px 0 14px 0", fontSize: 12.5, color: "#64748B" }}>
-                Belum ada rencana yang dijadwalkan pada {dateRangeBounds.label}.
+                {selectedDateFilter
+                  ? "Belum ada rencana kegiatan pada tanggal ini. Klik tombol di bawah untuk membuat jadwal baru atau tampilkan seluruh periode."
+                  : `Belum ada rencana yang dijadwalkan pada ${dateRangeBounds.label}.`}
               </p>
-              <SpaceButton
-                variant="primary"
-                size="sm"
-                icon={<Plus size={14} />}
-                onClick={() => handleOpenAddModalForDate(dateRangeBounds.start)}
-              >
-                + Buat Jadwal Plan untuk Tanggal Ini
-              </SpaceButton>
+              <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <SpaceButton
+                  variant="primary"
+                  size="sm"
+                  icon={<Plus size={14} />}
+                  onClick={() => handleOpenAddModalForDate(selectedDateFilter || dateRangeBounds.start)}
+                >
+                  + Buat Jadwal Plan
+                </SpaceButton>
+                {selectedDateFilter && (
+                  <SpaceButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => setSelectedDateFilter(null)}
+                  >
+                    Tampilkan Semua ({dateRangeBounds.label})
+                  </SpaceButton>
+                )}
+              </div>
             </div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
