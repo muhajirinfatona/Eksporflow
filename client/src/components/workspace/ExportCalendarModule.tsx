@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   Calendar as CalendarIcon,
   ChevronDown,
@@ -255,7 +256,23 @@ const MONTH_NAMES_ID = [
   "Desember",
 ];
 
+const MONTH_NAMES_EN = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
 const DAY_NAMES_ID = ["SEN", "SEL", "RAB", "KAM", "JUM", "SAB", "MIN"];
+const DAY_NAMES_EN = ["MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"];
 
 const CATEGORY_METAS = {
   stuffing: {
@@ -307,6 +324,28 @@ export function ExportCalendarModule({
   onNavigate,
   onSelectBuyer,
 }: ExportCalendarModuleProps) {
+  const { locale } = useLanguage();
+  const isEn = locale === "EN";
+
+  const getPresetLabel = (key: PeriodFilterKey, defaultLabel: string) => {
+    if (!isEn) return defaultLabel;
+    switch (key) {
+      case "today": return "Today";
+      case "yesterday": return "Yesterday";
+      case "today_yesterday": return "Today and yesterday";
+      case "7days": return "Last 7 days";
+      case "14days": return "Last 14 days";
+      case "28days": return "Last 28 days";
+      case "30days": return "Last 30 days";
+      case "this_week": return "This week";
+      case "last_week": return "Last week";
+      case "this_month": return "This month";
+      case "last_month": return "Last month";
+      case "custom": return "Custom range";
+      default: return defaultLabel;
+    }
+  };
+
   // Calendar base reference: November 2026 (today = 24 Nov 2026)
   const [currentYear, setCurrentYear] = useState(2026);
   const [currentMonth, setCurrentMonth] = useState(10); // 10 = November (0-indexed)
@@ -358,9 +397,11 @@ export function ExportCalendarModule({
     const y = parts[0];
     const m = parts[1];
     const d = parts[2];
-    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const monthNamesEn = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const monthNamesId = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
     const mIdx = parseInt(m, 10) - 1;
-    return `${parseInt(d, 10)} ${monthNames[mIdx] || m} ${y}`;
+    const mArr = isEn ? monthNamesEn : monthNamesId;
+    return `${parseInt(d, 10)} ${mArr[mIdx] || m} ${y}`;
   };
 
   // Plan search and status filter
@@ -405,26 +446,27 @@ export function ExportCalendarModule({
   const dateRangeBounds = useMemo(() => {
     const found = DATE_PRESETS.find((p) => p.key === periodFilter);
     if (found && periodFilter !== "custom") {
-      return { start: found.start, end: found.end, label: found.label };
+      return { start: found.start, end: found.end, label: getPresetLabel(found.key, found.label) };
     }
     const s = customStartDate || "2026-11-01";
     const e = customEndDate || "2026-11-30";
     const start = s <= e ? s : e;
     const end = s <= e ? e : s;
     return { start, end, label: `${formatShortDateID(start)} - ${formatShortDateID(end)}` };
-  }, [periodFilter, customStartDate, customEndDate]);
+  }, [periodFilter, customStartDate, customEndDate, isEn]);
 
   const activePeriodLabel = useMemo(() => {
     const found = DATE_PRESETS.find((p) => p.key === periodFilter);
     if (found && periodFilter !== "custom") {
-      if (periodFilter === "today") return "Hari Ini (24 Nov 2026)";
-      if (periodFilter === "yesterday") return "Kemarin (23 Nov 2026)";
-      if (periodFilter === "this_month") return "Bulan Ini (November 2026)";
-      if (periodFilter === "last_month") return "Bulan Lalu (Oktober 2026)";
-      return `${found.label} (${formatShortDateID(dateRangeBounds.start)} - ${formatShortDateID(dateRangeBounds.end)})`;
+      if (periodFilter === "today") return isEn ? "Today (24 Nov 2026)" : "Hari Ini (24 Nov 2026)";
+      if (periodFilter === "yesterday") return isEn ? "Yesterday (23 Nov 2026)" : "Kemarin (23 Nov 2026)";
+      if (periodFilter === "this_month") return isEn ? "This Month (November 2026)" : "Bulan Ini (November 2026)";
+      if (periodFilter === "last_month") return isEn ? "Last Month (October 2026)" : "Bulan Lalu (Oktober 2026)";
+      const pLabel = getPresetLabel(found.key, found.label);
+      return `${pLabel} (${formatShortDateID(dateRangeBounds.start)} - ${formatShortDateID(dateRangeBounds.end)})`;
     }
     return `${formatShortDateID(dateRangeBounds.start)} - ${formatShortDateID(dateRangeBounds.end)}`;
-  }, [periodFilter, dateRangeBounds]);
+  }, [periodFilter, dateRangeBounds, isEn]);
 
   const handleMiniDayClick = (dStr: string) => {
     if (tempStart && tempEnd && tempStart !== tempEnd) {
@@ -848,14 +890,16 @@ export function ExportCalendarModule({
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
-              Kalender Ekspor &amp; Penjadwalan Rencana Operasional
+              {isEn ? "Export Calendar & Operational Scheduling" : "Kalender Ekspor & Penjadwalan Rencana Operasional"}
             </h3>
             <SpaceBadge tone="primary">
-              {plans.length} Total Plan Terjadwal
+              {isEn ? `${plans.length} Total Scheduled Plans` : `${plans.length} Total Plan Terjadwal`}
             </SpaceBadge>
           </div>
           <p style={{ margin: "4px 0 0 0", fontSize: 13, color: "#64748B" }}>
-            Pantau dan jadwalkan kegiatan pengapalan ekspor (Stuffing, Vessel ETD/ETA, Closing PEB DJBC, dan Pelunasan L/C) sesuai periode yang dipilih.
+            {isEn
+              ? "Monitor and schedule export shipping operations (Stuffing, Vessel ETD/ETA, Customs PEB, and L/C Settlement) for the selected period."
+              : "Pantau dan jadwalkan kegiatan pengapalan ekspor (Stuffing, Vessel ETD/ETA, Closing PEB DJBC, dan Pelunasan L/C) sesuai periode yang dipilih."}
           </p>
         </div>
 
@@ -866,7 +910,7 @@ export function ExportCalendarModule({
           icon={<Plus size={16} />}
           onClick={() => handleOpenAddModalForDate(selectedDate || "2026-11-24")}
         >
-          + Buat Jadwal / Tambah Plan
+          {isEn ? "+ Schedule / Add Plan" : "+ Buat Jadwal / Tambah Plan"}
         </SpaceButton>
       </div>
 
@@ -888,13 +932,13 @@ export function ExportCalendarModule({
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
-                {MONTH_NAMES_ID[currentMonth]} {currentYear}
+                {(isEn ? MONTH_NAMES_EN : MONTH_NAMES_ID)[currentMonth]} {currentYear}
               </h3>
               {currentMonth === 10 && currentYear === 2026 && periodFilter === "this_month" && (
-                <SpaceBadge tone="primary">Bulan Ini</SpaceBadge>
+                <SpaceBadge tone="primary">{isEn ? "This Month" : "Bulan Ini"}</SpaceBadge>
               )}
               {currentMonth === 9 && currentYear === 2026 && (periodFilter === "last_month" || periodFilter === "this_month") && (
-                <SpaceBadge tone="neutral">Bulan Lalu</SpaceBadge>
+                <SpaceBadge tone="neutral">{isEn ? "Last Month" : "Bulan Lalu"}</SpaceBadge>
               )}
               {periodFilter !== "this_month" && periodFilter !== "last_month" && (
                 <span
@@ -920,9 +964,9 @@ export function ExportCalendarModule({
                 size="sm"
                 icon={<ChevronLeft size={14} />}
                 onClick={handlePrevMonth}
-                title="Bulan sebelumnya"
+                title={isEn ? "Previous month" : "Bulan sebelumnya"}
               >
-                Sebelumnya
+                {isEn ? "Previous" : "Sebelumnya"}
               </SpaceButton>
 
               {/* TOMBOL PEMILIH PERIODE (DI TENGAH - SESUAI GAMBAR 2) */}
@@ -951,7 +995,7 @@ export function ExportCalendarModule({
                     boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
                     transition: "all 0.15s ease",
                   }}
-                  title="Klik untuk memilih rentang tanggal & periode waktu"
+                  title={isEn ? "Click to select date range & time period" : "Klik untuk memilih rentang tanggal & periode waktu"}
                 >
                   <CalendarIcon size={14} color="#0284C7" />
                   <span>{activePeriodLabel}</span>
@@ -1007,7 +1051,7 @@ export function ExportCalendarModule({
                           }}
                         >
                           <div style={{ fontSize: 11, fontWeight: 700, color: "#1E293B", marginBottom: 8, paddingLeft: 6 }}>
-                            Baru-baru ini digunakan
+                            {isEn ? "Recently used" : "Baru-baru ini digunakan"}
                           </div>
 
                           {DATE_PRESETS.map((p) => {
@@ -1050,7 +1094,7 @@ export function ExportCalendarModule({
                                   }}
                                 />
                                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {p.label}
+                                  {getPresetLabel(p.key, p.label)}
                                 </span>
                               </label>
                             );
@@ -1116,9 +1160,9 @@ export function ExportCalendarModule({
                                 }}
                               >
                                 {DATE_PRESETS.map((p) => (
-                                  <option key={p.key} value={p.key}>{p.label}</option>
+                                  <option key={p.key} value={p.key}>{getPresetLabel(p.key, p.label)}</option>
                                 ))}
-                                <option value="custom">Kustom...</option>
+                                <option value="custom">{isEn ? "Custom..." : "Kustom..."}</option>
                               </select>
 
                               {/* Date Text Inputs */}
@@ -1184,7 +1228,7 @@ export function ExportCalendarModule({
                         }}
                       >
                         <span style={{ fontSize: 11.5, color: "#64748B" }}>
-                          Tanggal ditampilkan dalam Waktu Jakarta (WIB)
+                          {isEn ? "Dates shown in Jakarta Time (WIB)" : "Tanggal ditampilkan dalam Waktu Jakarta (WIB)"}
                         </span>
 
                         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1202,7 +1246,7 @@ export function ExportCalendarModule({
                               cursor: "pointer",
                             }}
                           >
-                            Batal
+                            {isEn ? "Cancel" : "Batal"}
                           </button>
 
                           <button
@@ -1234,16 +1278,16 @@ export function ExportCalendarModule({
                 size="sm"
                 iconRight={<ChevronRight size={14} />}
                 onClick={handleNextMonth}
-                title="Bulan berikutnya"
+                title={isEn ? "Next month" : "Bulan berikutnya"}
               >
-                Berikutnya
+                {isEn ? "Next" : "Berikutnya"}
               </SpaceButton>
             </div>
           </div>
 
           {/* Day Headers (SEN, SEL, RAB, KAM, JUM, SAB, MIN) */}
           <div className="space-calendar-grid" style={{ marginBottom: 4, gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}>
-            {DAY_NAMES_ID.map((day) => (
+            {(isEn ? DAY_NAMES_EN : DAY_NAMES_ID).map((day) => (
               <div
                 key={day}
                 className="space-calendar-day-header"
@@ -1320,7 +1364,7 @@ export function ExportCalendarModule({
                           flexShrink: 0,
                         }}
                       >
-                        HARI INI
+                        {isEn ? "TODAY" : "HARI INI"}
                       </span>
                     )}
                   </div>
@@ -1330,6 +1374,19 @@ export function ExportCalendarModule({
                     {cell.plans.slice(0, 3).map((plan) => {
                       const meta = CATEGORY_METAS[plan.category] || CATEGORY_METAS.stuffing;
                       const isCompleted = plan.status === "completed";
+                      const catLabel = isEn
+                        ? plan.category === "stuffing"
+                          ? "Stuffing & Loading"
+                          : plan.category === "vessel"
+                          ? "Vessel & Shipping"
+                          : plan.category === "peb"
+                          ? "Docs & Customs"
+                          : plan.category === "finance"
+                          ? "Finance & L/C"
+                          : plan.category === "inspection"
+                          ? "Inspection & Quality"
+                          : "Meeting & Negotiation"
+                        : meta.label;
 
                       return (
                         <div
@@ -1353,9 +1410,9 @@ export function ExportCalendarModule({
                             e.stopPropagation();
                             setSelectedDate(plan.date);
                             setSelectedDateFilter(plan.date);
-                            toast.info(`[${meta.label}] ${plan.title} (${plan.time || ""}) - ${plan.status === "completed" ? "Selesai" : "Terjadwal"}`);
+                            toast.info(`[${catLabel}] ${plan.title} (${plan.time || ""}) - ${plan.status === "completed" ? (isEn ? "Completed" : "Selesai") : (isEn ? "Scheduled" : "Terjadwal")}`);
                           }}
-                          title={`${meta.label}: ${plan.title}\nBuyer: ${plan.buyerOrPo || "-"}\nLokasi: ${plan.location || "-"}`}
+                          title={`${catLabel}: ${plan.title}\nBuyer: ${plan.buyerOrPo || "-"}\nLokasi: ${plan.location || "-"}`}
                         >
                           <span style={{ flexShrink: 0 }}>{meta.label.startsWith("Stuffing") ? "📦" : meta.label.startsWith("Kapal") ? "🚢" : meta.label.startsWith("Dokumen") ? "📄" : meta.label.startsWith("Finansial") ? "💵" : meta.label.startsWith("Inspeksi") ? "🔍" : "🤝"}</span>
                           <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -1367,7 +1424,7 @@ export function ExportCalendarModule({
 
                     {cell.plans.length > 3 && (
                       <span style={{ fontSize: 9.5, color: "#64748B", fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                        +{cell.plans.length - 3} kegiatan lainnya
+                        {isEn ? `+${cell.plans.length - 3} more activities` : `+${cell.plans.length - 3} kegiatan lainnya`}
                       </span>
                     )}
                   </div>
@@ -1391,22 +1448,37 @@ export function ExportCalendarModule({
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <span style={{ fontWeight: 600, color: "#334155" }}>Kategori Kegiatan:</span>
-              {Object.entries(CATEGORY_METAS).map(([catKey, meta]) => (
-                <div key={catKey} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                  <span
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: meta.color,
-                    }}
-                  />
-                  <span>{meta.label}</span>
-                </div>
-              ))}
+              <span style={{ fontWeight: 600, color: "#334155" }}>{isEn ? "Activity Categories:" : "Kategori Kegiatan:"}</span>
+              {Object.entries(CATEGORY_METAS).map(([catKey, meta]) => {
+                const label = isEn
+                  ? catKey === "stuffing"
+                    ? "Stuffing & Loading"
+                    : catKey === "vessel"
+                    ? "Vessel & Shipping"
+                    : catKey === "peb"
+                    ? "Docs & Customs"
+                    : catKey === "finance"
+                    ? "Finance & L/C"
+                    : catKey === "inspection"
+                    ? "Inspection & Quality"
+                    : "Meeting & Negotiation"
+                  : meta.label;
+                return (
+                  <div key={catKey} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span
+                      style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: "50%",
+                        background: meta.color,
+                      }}
+                    />
+                    <span>{label}</span>
+                  </div>
+                );
+              })}
             </div>
-            <span>💡 <em>Klik tanggal pada kalender untuk melihat rencana atau klik <strong>+ Buat Jadwal</strong>.</em></span>
+            <span>💡 <em>{isEn ? <>Click on a calendar date to view plans or click <strong>+ Schedule Plan</strong>.</> : <>Klik tanggal pada kalender untuk melihat rencana atau klik <strong>+ Buat Jadwal</strong>.</>}</em></span>
           </div>
         </div>
 
@@ -1429,7 +1501,7 @@ export function ExportCalendarModule({
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <Clock size={18} color="#0F2942" />
                 <h4 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-                  Daftar Rencana &amp; Action Plan Operasional
+                  {isEn ? "Operational Action Plan & Schedule" : "Daftar Rencana & Action Plan Operasional"}
                 </h4>
                 <span
                   style={{
@@ -1441,11 +1513,11 @@ export function ExportCalendarModule({
                     borderRadius: 12,
                   }}
                 >
-                  {filteredPlans.length} Rencana
+                  {filteredPlans.length} {isEn ? "Plans" : "Rencana"}
                 </span>
               </div>
               <div style={{ margin: "4px 0 0 0", fontSize: 12.5, color: "#64748B", display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-                <span>Menampilkan rencana untuk:</span>
+                <span>{isEn ? "Showing plans for:" : "Menampilkan rencana untuk:"}</span>
                 {selectedDateFilter ? (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                     <strong style={{ color: "#0284C7", background: "#F0F9FF", border: "1px solid #BAE6FD", padding: "2px 8px", borderRadius: 6 }}>
@@ -1464,9 +1536,9 @@ export function ExportCalendarModule({
                         padding: "2px 8px",
                         cursor: "pointer",
                       }}
-                      title="Kembali ke semua rencana periode ini"
+                      title={isEn ? "Back to all plans in this period" : "Kembali ke semua rencana periode ini"}
                     >
-                      ✕ Tampilkan Semua ({dateRangeBounds.label})
+                      ✕ {isEn ? "Show All" : "Tampilkan Semua"} ({dateRangeBounds.label})
                     </button>
                   </span>
                 ) : (
@@ -1481,7 +1553,7 @@ export function ExportCalendarModule({
                 <Search size={14} style={{ position: "absolute", left: 10, top: 9, color: "#94A3B8" }} />
                 <input
                   type="text"
-                  placeholder="Cari plan, buyer, lokasi..."
+                  placeholder={isEn ? "Search plan, buyer, location..." : "Cari plan, buyer, lokasi..."}
                   value={planSearchQuery}
                   onChange={(e) => setPlanSearchQuery(e.target.value)}
                   style={{
@@ -1496,9 +1568,9 @@ export function ExportCalendarModule({
 
               <div style={{ display: "flex", background: "#F1F5F9", borderRadius: 6, padding: 2 }}>
                 {[
-                  { key: "ALL" as const, label: "Semua" },
-                  { key: "planned" as const, label: `Harus Dijalankan (${planStats.pending})` },
-                  { key: "completed" as const, label: `Selesai (${planStats.completed})` },
+                  { key: "ALL" as const, label: isEn ? "All" : "Semua" },
+                  { key: "planned" as const, label: isEn ? `Action Pending (${planStats.pending})` : `Harus Dijalankan (${planStats.pending})` },
+                  { key: "completed" as const, label: isEn ? `Completed (${planStats.completed})` : `Selesai (${planStats.completed})` },
                 ].map((st) => (
                   <button
                     key={st.key}
@@ -1536,15 +1608,15 @@ export function ExportCalendarModule({
             }}
           >
             <div>
-              <span style={{ fontSize: 11.5, color: "#64748B", display: "block" }}>Total Rencana Periode Ini</span>
+              <span style={{ fontSize: 11.5, color: "#64748B", display: "block" }}>{isEn ? "Total Plans This Period" : "Total Rencana Periode Ini"}</span>
               <strong style={{ fontSize: 18, color: "#0F172A" }}>{planStats.total}</strong>
             </div>
             <div>
-              <span style={{ fontSize: 11.5, color: "#D97706", display: "block" }}>⏳ Menunggu / Action Pending</span>
+              <span style={{ fontSize: 11.5, color: "#D97706", display: "block" }}>{isEn ? "⏳ Action Pending" : "⏳ Menunggu / Action Pending"}</span>
               <strong style={{ fontSize: 18, color: "#D97706" }}>{planStats.pending}</strong>
             </div>
             <div>
-              <span style={{ fontSize: 11.5, color: "#059669", display: "block" }}>✅ Telah Dilaksanakan</span>
+              <span style={{ fontSize: 11.5, color: "#059669", display: "block" }}>{isEn ? "✅ Completed" : "✅ Telah Dilaksanakan"}</span>
               <strong style={{ fontSize: 18, color: "#059669" }}>{planStats.completed}</strong>
             </div>
           </div>
@@ -1563,13 +1635,13 @@ export function ExportCalendarModule({
               <CalendarIcon size={32} style={{ color: "#94A3B8", margin: "0 auto 8px" }} />
               <h5 style={{ margin: 0, fontSize: 14, color: "#334155" }}>
                 {selectedDateFilter
-                  ? `Tidak Ada Jadwal Rencana untuk Tanggal ${formatShortDateID(selectedDateFilter)}`
-                  : `Tidak Ada Jadwal Rencana untuk Periode Ini`}
+                  ? (isEn ? `No Scheduled Plans for Date ${formatShortDateID(selectedDateFilter)}` : `Tidak Ada Jadwal Rencana untuk Tanggal ${formatShortDateID(selectedDateFilter)}`)
+                  : (isEn ? "No Scheduled Plans for This Period" : `Tidak Ada Jadwal Rencana untuk Periode Ini`)}
               </h5>
               <p style={{ margin: "4px 0 14px 0", fontSize: 12.5, color: "#64748B" }}>
                 {selectedDateFilter
-                  ? "Belum ada rencana kegiatan pada tanggal ini. Klik tombol di bawah untuk membuat jadwal baru atau tampilkan seluruh periode."
-                  : `Belum ada rencana yang dijadwalkan pada ${dateRangeBounds.label}.`}
+                  ? (isEn ? "No activities scheduled for this date. Click below to add a new plan or view the full period." : "Belum ada rencana kegiatan pada tanggal ini. Klik tombol di bawah untuk membuat jadwal baru atau tampilkan seluruh periode.")
+                  : (isEn ? `No plans scheduled for ${dateRangeBounds.label}.` : `Belum ada rencana yang dijadwalkan pada ${dateRangeBounds.label}.`)}
               </p>
               <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
                 <SpaceButton
@@ -1578,7 +1650,7 @@ export function ExportCalendarModule({
                   icon={<Plus size={14} />}
                   onClick={() => handleOpenAddModalForDate(selectedDateFilter || dateRangeBounds.start)}
                 >
-                  + Buat Jadwal Plan
+                  {isEn ? "+ Schedule Plan" : "+ Buat Jadwal Plan"}
                 </SpaceButton>
                 {selectedDateFilter && (
                   <SpaceButton
@@ -1586,7 +1658,7 @@ export function ExportCalendarModule({
                     size="sm"
                     onClick={() => setSelectedDateFilter(null)}
                   >
-                    Tampilkan Semua ({dateRangeBounds.label})
+                    {isEn ? "Show All" : "Tampilkan Semua"} ({dateRangeBounds.label})
                   </SpaceButton>
                 )}
               </div>
@@ -1597,6 +1669,19 @@ export function ExportCalendarModule({
                 const meta = CATEGORY_METAS[plan.category] || CATEGORY_METAS.stuffing;
                 const isCompleted = plan.status === "completed";
                 const isTodayPlan = plan.date === "2026-11-24";
+                const catLabel = isEn
+                  ? plan.category === "stuffing"
+                    ? "Stuffing & Loading"
+                    : plan.category === "vessel"
+                    ? "Vessel & Shipping"
+                    : plan.category === "peb"
+                    ? "Docs & Customs"
+                    : plan.category === "finance"
+                    ? "Finance & L/C"
+                    : plan.category === "inspection"
+                    ? "Inspection & Quality"
+                    : "Meeting & Negotiation"
+                  : meta.label;
 
                 return (
                   <div
@@ -1626,7 +1711,7 @@ export function ExportCalendarModule({
                         marginTop: 2,
                         color: isCompleted ? "#059669" : "#94A3B8",
                       }}
-                      title={isCompleted ? "Tandai belum selesai" : "Tandai telah selesai"}
+                      title={isCompleted ? (isEn ? "Mark as pending" : "Tandai belum selesai") : (isEn ? "Mark as completed" : "Tandai telah selesai")}
                     >
                       {isCompleted ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                     </button>
@@ -1646,7 +1731,7 @@ export function ExportCalendarModule({
                             border: `1px solid ${meta.borderColor}`,
                           }}
                         >
-                          {meta.label}
+                          {catLabel}
                         </span>
 
                         {/* Priority Badge */}
@@ -1661,7 +1746,7 @@ export function ExportCalendarModule({
                               color: "#E11D48",
                             }}
                           >
-                            Prioritas Tinggi
+                            {isEn ? "High Priority" : "Prioritas Tinggi"}
                           </span>
                         )}
 
@@ -1681,7 +1766,7 @@ export function ExportCalendarModule({
                               borderRadius: 4,
                             }}
                           >
-                            HARI INI
+                            {isEn ? "TODAY" : "HARI INI"}
                           </span>
                         )}
                       </div>
@@ -1738,7 +1823,7 @@ export function ExportCalendarModule({
                             borderLeft: "3px solid #CBD5E1",
                           }}
                         >
-                          <strong>Instruksi:</strong> {plan.notes}
+                          <strong>{isEn ? "Instructions:" : "Instruksi:"}</strong> {plan.notes}
                         </p>
                       )}
                     </div>
@@ -1759,7 +1844,7 @@ export function ExportCalendarModule({
                           color: isCompleted ? "#475569" : "#059669",
                         }}
                       >
-                        {isCompleted ? "Batal Selesai" : "✓ Selesai"}
+                        {isCompleted ? (isEn ? "Undo Complete" : "Batal Selesai") : (isEn ? "✓ Complete" : "✓ Selesai")}
                       </button>
 
                       <button
@@ -1774,7 +1859,7 @@ export function ExportCalendarModule({
                           background: "#FFFFFF",
                           color: "#94A3B8",
                         }}
-                        title="Hapus jadwal ini"
+                        title={isEn ? "Delete this plan" : "Hapus jadwal ini"}
                       >
                         <Trash2 size={14} />
                       </button>

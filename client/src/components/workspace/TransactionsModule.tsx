@@ -46,6 +46,7 @@ import {
   Users,
 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { PoIngestionModal } from "./PoIngestionModal";
 import { ExportCalendarModule } from "./ExportCalendarModule";
 import {
@@ -392,6 +393,8 @@ export function TransactionsModule({
   mode?: "active_management" | "new_po_intake";
 }) {
   const isIntakeMode = mode === "new_po_intake";
+  const { locale, t } = useLanguage();
+  const isEn = locale === "EN";
   const [activeTab, setActiveTab] = useState<"list" | "kanban" | "calendar" | "analytics" | "workflow">("list");
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 6;
@@ -1268,33 +1271,33 @@ export function TransactionsModule({
           {/* Space DS Executive KPI Stat Cards */}
           <div className="space-crm-stats-grid" style={{ marginBottom: "20px" }}>
             <SpaceStatCard
-              label="Total pipeline ekspor"
+              label={isEn ? "Total export pipeline" : "Total pipeline ekspor"}
               value={`$${allTransactions.reduce((acc, t) => acc + (t.quantity * 2800 || 45000), 184500).toLocaleString("en-US")}`}
-              subtext={`${allTransactions.length} Kontrak Aktif`}
+              subtext={isEn ? `${allTransactions.length} Active Contracts` : `${allTransactions.length} Kontrak Aktif`}
               trend={{ value: "14.8% MoM", isUp: true }}
               tone="navy"
               icon={<Layers size={16} />}
             />
             <SpaceStatCard
-              label="Penawaran & quotation"
+              label={isEn ? "Quotations & offers" : "Penawaran & quotation"}
               value={`$${(draftCount * 38000 || 72400).toLocaleString("en-US")}`}
-              subtext={`${draftCount} Prospek Buyer`}
+              subtext={isEn ? `${draftCount} Buyer Prospects` : `${draftCount} Prospek Buyer`}
               tone="gold"
               icon={<FileText size={16} />}
             />
             <SpaceStatCard
-              label="Produksi & stuffing"
-              value={`${activeExecutionCount} Kontrak`}
-              subtext="4 Kontainer Siap Muat"
+              label={isEn ? "Production & stuffing" : "Produksi & stuffing"}
+              value={isEn ? `${activeExecutionCount} Contracts` : `${activeExecutionCount} Kontrak`}
+              subtext={isEn ? "4 Containers Ready to Load" : "4 Kontainer Siap Muat"}
               trend={{ value: "On-Track", isUp: true }}
               tone="purple"
               icon={<Package size={16} />}
             />
             <SpaceStatCard
-              label="Pengapalan & pelunasan"
+              label={isEn ? "Shipment & settlement" : "Pengapalan & pelunasan"}
               value={`$${(completedTxCount * 55000 || 165000).toLocaleString("en-US")}`}
-              subtext={`${completedTxCount} Transaksi Selesai`}
-              trend={{ value: "100% Lunas", isUp: true }}
+              subtext={isEn ? `${completedTxCount} Completed Orders` : `${completedTxCount} Transaksi Selesai`}
+              trend={{ value: isEn ? "100% Settled" : "100% Lunas", isUp: true }}
               tone="mint"
               icon={<CheckCircle2 size={16} />}
             />
@@ -1310,11 +1313,11 @@ export function TransactionsModule({
                 setCurrentPage(1);
               }}
               tabs={[
-                { id: "list", label: "Tabel Pesanan (CRM)", icon: <Layers size={14} />, count: allTransactions.length },
-                { id: "kanban", label: "Papan Kanban Pipeline", icon: <LayoutGrid size={14} />, count: kanbanStages.reduce((acc, s) => acc + s.items.length, 0) },
-                { id: "calendar", label: "Kalender Ekspor", icon: <Calendar size={14} />, count: 6 },
+                { id: "list", label: isEn ? "Orders Table (CRM)" : "Tabel Pesanan (CRM)", icon: <Layers size={14} />, count: allTransactions.length },
+                { id: "kanban", label: isEn ? "Kanban Pipeline Board" : "Papan Kanban Pipeline", icon: <LayoutGrid size={14} />, count: kanbanStages.reduce((acc, s) => acc + s.items.length, 0) },
+                { id: "calendar", label: isEn ? "Export Calendar" : "Kalender Ekspor", icon: <Calendar size={14} />, count: 6 },
                 { id: "analytics", label: "Comparison Chart", icon: <BarChart3 size={14} /> },
-                { id: "workflow", label: `Alur: ${displayReference || shipment.buyer || "Pesanan Aktif"}`, icon: <Activity size={14} /> },
+                { id: "workflow", label: isEn ? `Workflow: ${displayReference || shipment.buyer || "Active Order"}` : `Alur: ${displayReference || shipment.buyer || "Pesanan Aktif"}`, icon: <Activity size={14} /> },
               ]}
             />
           </div>
@@ -1349,7 +1352,7 @@ export function TransactionsModule({
                   <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "1 1 360px", minWidth: 260 }}>
                     <div style={{ flex: 1, minWidth: 180 }}>
                       <SpaceInput
-                        placeholder="Cari nomor PO, nama buyer, komoditas, HS Code..."
+                        placeholder={isEn ? "Search PO number, buyer name, commodity, HS Code..." : "Cari nomor PO, nama buyer, komoditas, HS Code..."}
                         value={query}
                         onChange={(e) => {
                           setQuery(e.target.value);
@@ -1366,13 +1369,13 @@ export function TransactionsModule({
                           setCurrentPage(1);
                         }}
                         options={[
-                          { value: "ALL", label: "Semua Negara" },
-                          { value: "Amerika Serikat", label: "Amerika Serikat" },
-                          { value: "Belanda", label: "Belanda" },
-                          { value: "Jepang", label: "Jepang" },
-                          { value: "Korea Selatan", label: "Korea Selatan" },
-                          { value: "Swedia", label: "Swedia" },
-                          { value: "Uni Emirat Arab", label: "Uni Emirat Arab" },
+                          { value: "ALL", label: isEn ? "All Countries" : "Semua Negara" },
+                          { value: "Amerika Serikat", label: isEn ? "United States" : "Amerika Serikat" },
+                          { value: "Belanda", label: isEn ? "Netherlands" : "Belanda" },
+                          { value: "Jepang", label: isEn ? "Japan" : "Jepang" },
+                          { value: "Korea Selatan", label: isEn ? "South Korea" : "Korea Selatan" },
+                          { value: "Swedia", label: isEn ? "Sweden" : "Swedia" },
+                          { value: "Uni Emirat Arab", label: isEn ? "United Arab Emirates" : "Uni Emirat Arab" },
                         ]}
                       />
                     </div>
@@ -1385,7 +1388,7 @@ export function TransactionsModule({
                       icon={<Plus size={14} />}
                       onClick={handleNewTransactionClick}
                     >
-                      Input PO Baru
+                      {isEn ? "New PO Entry" : "Input PO Baru"}
                     </SpaceButton>
                     <SpaceButton
                       variant="secondary"
@@ -1393,7 +1396,7 @@ export function TransactionsModule({
                       icon={<FileText size={14} />}
                       onClick={() => setPoModalOpen(true)}
                     >
-                      Scan PO / OCR
+                      {isEn ? "Scan PO / OCR" : "Scan PO / OCR"}
                     </SpaceButton>
                   </div>
                 </div>
@@ -1441,7 +1444,7 @@ export function TransactionsModule({
                             transition: "all 0.15s ease",
                           }}
                         >
-                          <span>{st === "ALL" ? "Semua Status" : st}</span>
+                          <span>{st === "ALL" ? (isEn ? "All Statuses" : "Semua Status") : st}</span>
                           <span
                             style={{
                               padding: "1px 5px",
@@ -1460,7 +1463,15 @@ export function TransactionsModule({
                   </div>
 
                   <span style={{ fontSize: 11.5, color: "#64748B", fontWeight: 500 }}>
-                    Menampilkan <strong>{filteredTransactions.length}</strong> dari {allTransactions.length} transaksi
+                    {isEn ? (
+                      <>
+                        Showing <strong>{filteredTransactions.length}</strong> of {allTransactions.length} transactions
+                      </>
+                    ) : (
+                      <>
+                        Menampilkan <strong>{filteredTransactions.length}</strong> dari {allTransactions.length} transaksi
+                      </>
+                    )}
                   </span>
                 </div>
               </div>
@@ -1471,10 +1482,10 @@ export function TransactionsModule({
                   <div className="tx-empty-state-icon">
                     <FileSpreadsheet size={24} />
                   </div>
-                  <h4>Belum Ada Transaksi Ekspor</h4>
-                  <p>Mulai dengan memindai dokumen PO atau masukkan pesanan baru secara manual.</p>
+                  <h4>{isEn ? "No Export Transactions Yet" : "Belum Ada Transaksi Ekspor"}</h4>
+                  <p>{isEn ? "Get started by scanning a PO document or entering a new order manually." : "Mulai dengan memindai dokumen PO atau masukkan pesanan baru secara manual."}</p>
                   <SpaceButton variant="primary" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
-                    Input / Scan PO Baru
+                    {isEn ? "Enter / Scan New PO" : "Input / Scan PO Baru"}
                   </SpaceButton>
                 </div>
               ) : (
@@ -1483,11 +1494,11 @@ export function TransactionsModule({
                     <table className="space-table" style={{ width: "100%", tableLayout: "fixed" }}>
                       <colgroup>
                         <col style={{ width: 36 }} />
-                        <col style={{ width: 145 }} />
-                        <col style={{ width: 185 }} />
-                        <col style={{ width: 185 }} />
-                        <col style={{ width: 110 }} />
                         <col style={{ width: 140 }} />
+                        <col style={{ width: 175 }} />
+                        <col style={{ width: 170 }} />
+                        <col style={{ width: 130 }} />
+                        <col style={{ width: 155 }} />
                         <col style={{ width: 95 }} />
                         <col style={{ width: 105 }} />
                       </colgroup>
@@ -1502,13 +1513,13 @@ export function TransactionsModule({
                               }}
                             />
                           </th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>No. PO &amp; Tanggal</th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Buyer &amp; Destinasi</th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Komoditas &amp; HS Code</th>
-                          <th style={{ textAlign: "right", padding: "10px 14px", whiteSpace: "nowrap" }}>Nilai Kontrak</th>
-                          <th style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>Progress Alur</th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "PO No. & Date" : "No. PO & Tanggal"}</th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "Buyer & Destination" : "Buyer & Destinasi"}</th>
+                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "Commodity & HS Code" : "Komoditas & HS Code"}</th>
+                          <th style={{ textAlign: "right", padding: "10px 14px", whiteSpace: "nowrap" }}>{isEn ? "Contract Value" : "Nilai Kontrak"}</th>
+                          <th style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>{isEn ? "Workflow Progress" : "Progress Alur"}</th>
                           <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Status</th>
-                          <th style={{ textAlign: "right", padding: "10px 10px", whiteSpace: "nowrap" }}>Aksi</th>
+                          <th style={{ textAlign: "right", padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "Action" : "Aksi"}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1524,27 +1535,27 @@ export function TransactionsModule({
 
                           // Milestone detail & progress percentage
                           let progressPercent = 35;
-                          let progressDetail = "3/7 · Kesiapan Kargo";
+                          let progressDetail = isEn ? "3/7 · Cargo Readiness" : "3/7 · Kesiapan Kargo";
                           let progressTone: "success" | "primary" | "warning" = "primary";
 
                           if (isCurrent) {
                             progressPercent = percentCompleted;
-                            progressDetail = `${completedCount}/${totalCount} Tahap`;
+                            progressDetail = `${completedCount}/${totalCount} ${isEn ? "Stages" : "Tahap"}`;
                           } else if (row.status === "Completed") {
                             progressPercent = 100;
-                            progressDetail = "7/7 · Selesai & Lunas";
+                            progressDetail = isEn ? "7/7 · Completed & Settled" : "7/7 · Selesai & Lunas";
                             progressTone = "success";
                           } else if (row.status === "In Transit") {
                             progressPercent = 75;
-                            progressDetail = "5/7 · Kapal Berlayar";
+                            progressDetail = isEn ? "5/7 · Vessel Sailing" : "5/7 · Kapal Berlayar";
                             progressTone = "primary";
                           } else if (row.status === "Confirmed") {
                             progressPercent = 45;
-                            progressDetail = "3/7 · Kesiapan Kargo";
+                            progressDetail = isEn ? "3/7 · Cargo Readiness" : "3/7 · Kesiapan Kargo";
                             progressTone = "primary";
                           } else if (row.status === "Draft" || row.status === "Quotation") {
                             progressPercent = 15;
-                            progressDetail = "1/7 · Draf Negosiasi";
+                            progressDetail = isEn ? "1/7 · Draft Negotiation" : "1/7 · Draf Negosiasi";
                             progressTone = "warning";
                           }
 
@@ -1647,7 +1658,7 @@ export function TransactionsModule({
                                   <button
                                     type="button"
                                     onClick={() => void handleSwitchTransaction(row)}
-                                    title="Buka alur operasional transaksi ini"
+                                    title={isEn ? "Open operational workflow for this transaction" : "Buka alur operasional transaksi ini"}
                                     style={{
                                       display: "inline-flex",
                                       alignItems: "center",
@@ -1662,13 +1673,13 @@ export function TransactionsModule({
                                       cursor: "pointer",
                                     }}
                                   >
-                                    <span>Buka</span>
+                                    <span>{isEn ? "Open" : "Buka"}</span>
                                     <ArrowRight size={12} />
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => void handleDeleteTransaction(row)}
-                                    title="Hapus transaksi dari daftar"
+                                    title={isEn ? "Delete transaction from list" : "Hapus transaksi dari daftar"}
                                     style={{
                                       display: "inline-flex",
                                       alignItems: "center",
@@ -1713,22 +1724,41 @@ export function TransactionsModule({
                 <div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                     <h3 style={{ margin: 0, fontSize: 16, color: "var(--space-gray-900)" }}>
-                      Papan Pipeline Ekspor (7 Tahapan Alur Kesamping)
+                      {isEn ? "Export Pipeline Board (7 Horizontal Stages)" : "Papan Pipeline Ekspor (7 Tahapan Alur Kesamping)"}
                     </h3>
-                    <SpaceBadge tone="primary">Scroll Kesamping →</SpaceBadge>
+                    <SpaceBadge tone="primary">{isEn ? "Scroll Horizontally →" : "Scroll Kesamping →"}</SpaceBadge>
                   </div>
                   <small style={{ color: "var(--space-gray-500)", display: "block", marginTop: 2 }}>
-                    Gunakan tombol panah <strong>[ ← ] Mundur</strong> dan <strong>[ → ] Maju</strong> pada setiap kartu untuk memindahkan status order bolak-balik antar tahapan. Pada tahap Kapal Berlayar, klik tombol checklist <strong>[ ✓ ] Selesai</strong> untuk menyelesaikan kargo dan menyimpan ke Data Mitra &amp; Kontrak.
+                    {isEn
+                      ? "Use arrow buttons [ ← ] and [ → ] on each card to shift order statuses across stages. On the Vessel Sailing stage, click [ ✓ ] Complete to finish the shipment and save to Partners & Contacts."
+                      : "Gunakan tombol panah [ ← ] Mundur dan [ → ] Maju pada setiap kartu untuk memindahkan status order bolak-balik antar tahapan. Pada tahap Kapal Berlayar, klik tombol checklist [ ✓ ] Selesai untuk menyelesaikan kargo dan menyimpan ke Data Mitra & Kontrak."}
                   </small>
                 </div>
                 <SpaceButton variant="primary" size="sm" icon={<Plus size={14} />} onClick={handleNewTransactionClick}>
-                  Deal Baru
+                  {isEn ? "New Deal" : "Deal Baru"}
                 </SpaceButton>
               </div>
 
               <div className="space-kanban-board">
                 {kanbanStages.map((col, colIdx) => {
                   const isCompletedCol = col.id === "completed";
+                  const colDisplayTitle = isEn
+                    ? col.id === "inquiry"
+                      ? "1. Buyer Lead & Inquiry"
+                      : col.id === "quotation"
+                      ? "2. Quotation & Pricing"
+                      : col.id === "negotiation"
+                      ? "3. Negotiation & Samples"
+                      : col.id === "contract"
+                      ? "4. Contract & Down Payment"
+                      : col.id === "production"
+                      ? "5. Production & Stuffing"
+                      : col.id === "shipping"
+                      ? "6. Vessel Sailing (In Transit)"
+                      : col.id === "completed"
+                      ? "7. Completed & Delivered"
+                      : col.title
+                    : col.title;
 
                   return (
                     <div
@@ -1760,7 +1790,7 @@ export function TransactionsModule({
                             }}
                           />
                           <span style={{ color: "#0F172A", fontSize: 13, fontWeight: 700 }}>
-                            {col.title}
+                            {colDisplayTitle}
                           </span>
                         </div>
                         <span
@@ -1923,10 +1953,10 @@ export function TransactionsModule({
                                       boxShadow: "0 1px 2px rgba(4, 120, 87, 0.08)",
                                       transition: "all 0.15s ease",
                                     }}
-                                    title="Kargo telah selesai. Klik untuk buka data buyer di menu Mitra & Kontrak"
+                                    title={isEn ? "Cargo completed. Click to view buyer profile in Partners & Contacts" : "Kargo telah selesai. Klik untuk buka data buyer di menu Mitra & Kontrak"}
                                   >
                                     <UserPlus size={13} />
-                                    <span>Mitra ↗</span>
+                                    <span>{isEn ? "Partners ↗" : "Mitra ↗"}</span>
                                   </button>
                                 ) : (
                                   <>
@@ -2019,24 +2049,26 @@ export function TransactionsModule({
                 <div className="space-chart-header" style={{ marginBottom: 12 }}>
                   <div>
                     <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
-                      Perbandingan Realisasi Ekspor vs Target 2026
+                      {isEn ? "Export Realization vs 2026 Target Comparison" : "Perbandingan Realisasi Ekspor vs Target 2026"}
                     </h3>
                     <small style={{ color: "#64748B", fontSize: "12.5px" }}>
-                      Nilai transaksi bulanan per komoditas dalam USD (Periode Mei – Oktober 2026)
+                      {isEn
+                        ? "Monthly transaction value per commodity in USD (May – October 2026 Period)"
+                        : "Nilai transaksi bulanan per komoditas dalam USD (Periode Mei – Oktober 2026)"}
                     </small>
                   </div>
                   <div className="space-chart-legend" style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <div className="space-chart-legend-item" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#334155" }}>
                       <span className="space-chart-legend-dot" style={{ background: "#2563EB", width: 10, height: 10, borderRadius: 3 }} />
-                      <span style={{ fontWeight: 600 }}>Realisasi Ekspor 2026</span>
+                      <span style={{ fontWeight: 600 }}>{isEn ? "2026 Export Realization" : "Realisasi Ekspor 2026"}</span>
                     </div>
                     <div className="space-chart-legend-item" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#334155" }}>
                       <span className="space-chart-legend-dot" style={{ background: "#059669", width: 10, height: 10, borderRadius: 3 }} />
-                      <span style={{ fontWeight: 600 }}>Target Perusahaan</span>
+                      <span style={{ fontWeight: 600 }}>{isEn ? "Company Target" : "Target Perusahaan"}</span>
                     </div>
                     <div className="space-chart-legend-item" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: "12px", color: "#334155" }}>
                       <span className="space-chart-legend-dot" style={{ background: "#94A3B8", width: 10, height: 10, borderRadius: 3 }} />
-                      <span style={{ fontWeight: 600 }}>Tahun Lalu 2025</span>
+                      <span style={{ fontWeight: 600 }}>{isEn ? "Previous Year 2025" : "Tahun Lalu 2025"}</span>
                     </div>
                   </div>
                 </div>
@@ -2062,12 +2094,12 @@ export function TransactionsModule({
 
                     {/* Bars for 6 months */}
                     {[
-                      { m: "Mei", val: 140, tgt: 120, prev: 105, x: 80 },
+                      { m: isEn ? "May" : "Mei", val: 140, tgt: 120, prev: 105, x: 80 },
                       { m: "Jun", val: 165, tgt: 140, prev: 115, x: 185 },
                       { m: "Jul", val: 180, tgt: 160, prev: 130, x: 290 },
-                      { m: "Agu", val: 195, tgt: 180, prev: 145, x: 395 },
+                      { m: isEn ? "Aug" : "Agu", val: 195, tgt: 180, prev: 145, x: 395 },
                       { m: "Sep", val: 210, tgt: 200, prev: 160, x: 500 },
-                      { m: "Okt", val: 245, tgt: 220, prev: 175, x: 605 },
+                      { m: isEn ? "Oct" : "Okt", val: 245, tgt: 220, prev: 175, x: 605 },
                     ].map((bar) => {
                       const hVal = bar.val * 0.65;
                       const hTgt = bar.tgt * 0.65;
@@ -2084,7 +2116,7 @@ export function TransactionsModule({
                             fill="#CBD5E1"
                             rx="3"
                           >
-                            <title>{`Tahun Lalu 2025 (${bar.m}): $${bar.prev},000`}</title>
+                            <title>{isEn ? `Previous Year 2025 (${bar.m}): $${bar.prev},000` : `Tahun Lalu 2025 (${bar.m}): $${bar.prev},000`}</title>
                           </rect>
 
                           {/* Target bar (Emerald Green) */}
@@ -2096,7 +2128,7 @@ export function TransactionsModule({
                             fill="#059669"
                             rx="3"
                           >
-                            <title>{`Target Perusahaan (${bar.m}): $${bar.tgt},000`}</title>
+                            <title>{isEn ? `Company Target (${bar.m}): $${bar.tgt},000` : `Target Perusahaan (${bar.m}): $${bar.tgt},000`}</title>
                           </rect>
 
                           {/* Realization bar (Modern Tech Royal Blue) */}
@@ -2108,7 +2140,7 @@ export function TransactionsModule({
                             fill="#2563EB"
                             rx="3"
                           >
-                            <title>{`Realisasi Ekspor 2026 (${bar.m}): $${bar.val},000`}</title>
+                            <title>{isEn ? `2026 Export Realization (${bar.m}): $${bar.val},000` : `Realisasi Ekspor 2026 (${bar.m}): $${bar.val},000`}</title>
                           </rect>
 
                           {/* Value tag above Realization bar */}
@@ -2143,16 +2175,16 @@ export function TransactionsModule({
                 {/* Commodity Share Breakdown */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14, marginTop: 4 }}>
                   <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
-                    <SpaceProgressBar value={42} label="Kopi Arabika Gayo" detail="$119,490 (42%)" tone="primary" />
+                    <SpaceProgressBar value={42} label={isEn ? "Gayo Arabica Coffee" : "Kopi Arabika Gayo"} detail="$119,490 (42%)" tone="primary" />
                   </div>
                   <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
-                    <SpaceProgressBar value={28} label="Udang Windu Beku" detail="$79,660 (28%)" tone="success" />
+                    <SpaceProgressBar value={28} label={isEn ? "Frozen Black Tiger Shrimp" : "Udang Windu Beku"} detail="$79,660 (28%)" tone="success" />
                   </div>
                   <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
                     <SpaceProgressBar value={18} label="Organic Coconut Sugar" detail="$51,210 (18%)" tone="primary" />
                   </div>
                   <div style={{ background: "#F8FAFC", padding: 14, borderRadius: 8, border: "1px solid #E2E8F0" }}>
-                    <SpaceProgressBar value={12} label="Mebel Kayu & Rotan" detail="$34,140 (12%)" tone="success" />
+                    <SpaceProgressBar value={12} label={isEn ? "Wood & Rattan Furniture" : "Mebel Kayu & Rotan"} detail="$34,140 (12%)" tone="success" />
                   </div>
                 </div>
 
@@ -2173,40 +2205,46 @@ export function TransactionsModule({
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <TrendingUp size={18} color="#2563EB" />
                       <h4 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
-                        Kesimpulan &amp; Analisis Kinerja Realisasi Ekspor 2026
+                        {isEn ? "Summary & Performance Analysis of 2026 Export Realization" : "Kesimpulan & Analisis Kinerja Realisasi Ekspor 2026"}
                       </h4>
                     </div>
-                    <SpaceBadge tone="primary">Evaluasi Semester II (Mei - Oktober 2026)</SpaceBadge>
+                    <SpaceBadge tone="primary">{isEn ? "Semester II Evaluation (May - October 2026)" : "Evaluasi Semester II (Mei - Oktober 2026)"}</SpaceBadge>
                   </div>
 
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
                     {/* Insight 1: Ketercapaian Target */}
                     <div style={{ background: "#FFFFFF", padding: "14px 16px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
                       <span style={{ fontSize: 12.5, fontWeight: 700, color: "#059669", display: "flex", alignItems: "center", gap: 6 }}>
-                        <CheckCircle2 size={15} /> 1. Realisasi Konsisten Melampaui Target (+11.3%)
+                        <CheckCircle2 size={15} /> {isEn ? "1. Consistent Target Outperformance (+11.3%)" : "1. Realisasi Konsisten Melampaui Target (+11.3%)"}
                       </span>
                       <p style={{ margin: "6px 0 0 0", fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
-                        Total realisasi kumulatif mencapai <strong>$1,135,000 USD</strong> melampaui target korporasi ($1,020,000 USD). Bulan Oktober mencatat rekor tertinggi ($245,000 USD) berkat peningkatan volume pesanan dari Marubeni Specialty dan Van Dijk Furniture.
+                        {isEn
+                          ? "Total cumulative realization reached $1,135,000 USD, surpassing the corporate target ($1,020,000 USD). October recorded the highest monthly performance ($245,000 USD) driven by increased order volume from Marubeni Specialty and Van Dijk Furniture."
+                          : "Total realisasi kumulatif mencapai $1,135,000 USD melampaui target korporasi ($1,020,000 USD). Bulan Oktober mencatat rekor tertinggi ($245,000 USD) berkat peningkatan volume pesanan dari Marubeni Specialty dan Van Dijk Furniture."}
                       </p>
                     </div>
 
                     {/* Insight 2: Pertumbuhan YoY */}
                     <div style={{ background: "#FFFFFF", padding: "14px 16px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
                       <span style={{ fontSize: 12.5, fontWeight: 700, color: "#2563EB", display: "flex", alignItems: "center", gap: 6 }}>
-                        <TrendingUp size={15} /> 2. Pertumbuhan Signifikan Tahunan (+36.7% YoY)
+                        <TrendingUp size={15} /> {isEn ? "2. Significant Year-on-Year Growth (+36.7% YoY)" : "2. Pertumbuhan Signifikan Tahunan (+36.7% YoY)"}
                       </span>
                       <p style={{ margin: "6px 0 0 0", fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
-                        Dibandingkan periode yang sama pada tahun 2025 ($830,000 USD), ekspor melonjak <strong>+$305,000 USD</strong> didorong oleh stabilitas pasokan komoditas kopi dan ekspansi rute buyer baru di Belanda dan Korea Selatan.
+                        {isEn
+                          ? "Compared to the same period in 2025 ($830,000 USD), exports surged by +$305,000 USD, propelled by coffee supply stability and new buyer route expansions in the Netherlands and South Korea."
+                          : "Dibandingkan periode yang sama pada tahun 2025 ($830,000 USD), ekspor melonjak +$305,000 USD didorong oleh stabilitas pasokan komoditas kopi dan ekspansi rute buyer baru di Belanda dan Korea Selatan."}
                       </p>
                     </div>
 
                     {/* Insight 3: Rekomendasi Strategis */}
                     <div style={{ background: "#FFFFFF", padding: "14px 16px", borderRadius: 8, border: "1px solid #E2E8F0" }}>
                       <span style={{ fontSize: 12.5, fontWeight: 700, color: "#0284C7", display: "flex", alignItems: "center", gap: 6 }}>
-                        <Package size={15} /> 3. Komoditas Unggulan &amp; Rekomendasi Q4
+                        <Package size={15} /> {isEn ? "3. Leading Commodities & Q4 Recommendations" : "3. Komoditas Unggulan & Rekomendasi Q4"}
                       </span>
                       <p style={{ margin: "6px 0 0 0", fontSize: 12, color: "#475569", lineHeight: 1.5 }}>
-                        Kopi Arabika Gayo (42%) dan Udang Windu Beku (28%) menyumbang 70% total omzet. Disarankan segera mengamankan alokasi kontainer reefer dan 40HC lebih awal guna mengantisipasi kenaikan freight rate akhir tahun.
+                        {isEn
+                          ? "Gayo Arabica Coffee (42%) and Frozen Black Tiger Shrimp (28%) account for 70% of total revenue. Securing early reefer and 40HC container allocations is recommended to hedge against year-end freight rate increases."
+                          : "Kopi Arabika Gayo (42%) dan Udang Windu Beku (28%) menyumbang 70% total omzet. Disarankan segera mengamankan alokasi kontainer reefer dan 40HC lebih awal guna mengantisipasi kenaikan freight rate akhir tahun."}
                       </p>
                     </div>
                   </div>
@@ -2223,7 +2261,7 @@ export function TransactionsModule({
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
                       <span className="active-order-ref-pill">
-                        {displayReference || shipment.poNumber || "Pesanan Aktif"}
+                        {displayReference || shipment.poNumber || (isEn ? "Active Order" : "Pesanan Aktif")}
                       </span>
                       <span className="tab-badge">{shipment.incoterm || "FOB"}</span>
                       <StatusPill tone={statusTone(shipment.shipmentStatus)}>
@@ -2231,22 +2269,22 @@ export function TransactionsModule({
                       </StatusPill>
                     </div>
                     <span className="active-order-buyer-name">
-                      {shipment.buyer || "Buyer Belum Ditentukan"}
+                      {shipment.buyer || (isEn ? "Buyer Not Assigned" : "Buyer Belum Ditentukan")}
                     </span>
                     <span className="active-order-buyer-meta">
-                      {shipment.buyerCountry || "-"} · {shipment.destination || "Pelabuhan Tujuan -"} · {shipment.product || "Komoditas"}
+                      {shipment.buyerCountry || "-"} · {shipment.destination || (isEn ? "Destination Port -" : "Pelabuhan Tujuan -")} · {shipment.product || (isEn ? "Commodity" : "Komoditas")}
                     </span>
                   </div>
                 </div>
 
                 <div className="active-order-summary-stats">
                   <div className="active-order-stat-item">
-                    <span className="active-order-stat-label">Progress Alur Ekspor</span>
+                    <span className="active-order-stat-label">{isEn ? "Export Workflow Progress" : "Progress Alur Ekspor"}</span>
                     <span
                       className="active-order-stat-val"
                       style={{ color: percentCompleted === 100 ? "var(--mint)" : "var(--brand-primary)" }}
                     >
-                      {completedCount}/{totalCount} Tahap ({percentCompleted}%)
+                      {completedCount}/{totalCount} {isEn ? "Stages" : "Tahap"} ({percentCompleted}%)
                     </span>
                   </div>
                   <button
@@ -2254,9 +2292,9 @@ export function TransactionsModule({
                     className="ghost-button"
                     style={{ fontSize: "12px", padding: "6px 12px" }}
                     onClick={() => setIsEditingActiveOrder(!isEditingActiveOrder)}
-                    title="Buka atau tutup form untuk mengubah parameter order aktif"
+                    title={isEn ? "Toggle form to edit active order parameters" : "Buka atau tutup form untuk mengubah parameter order aktif"}
                   >
-                    <Pencil size={13} /> {isEditingActiveOrder ? "Tutup Edit Parameter" : "Ubah Parameter PO"}
+                    <Pencil size={13} /> {isEditingActiveOrder ? (isEn ? "Close Parameter Edit" : "Tutup Edit Parameter") : (isEn ? "Edit PO Parameters" : "Ubah Parameter PO")}
                   </button>
                   <button
                     type="button"
@@ -2264,9 +2302,9 @@ export function TransactionsModule({
                     style={{ fontSize: "12px", padding: "6px 12px" }}
                     onClick={() => void handleSaveShipmentWithLocal()}
                     disabled={saveState === "saving"}
-                    title="Simpan perubahan transaksi ini ke cloud"
+                    title={isEn ? "Save changes to cloud" : "Simpan perubahan transaksi ini ke cloud"}
                   >
-                    <Save size={13} /> {saveState === "saving" ? "Menyimpan..." : "Simpan"}
+                    <Save size={13} /> {saveState === "saving" ? (isEn ? "Saving..." : "Menyimpan...") : (isEn ? "Save" : "Simpan")}
                   </button>
                 </div>
               </div>
@@ -2276,8 +2314,8 @@ export function TransactionsModule({
                 <section className="panel panel-padding active-order-card" style={{ marginBottom: "14px" }}>
                   <div className="panel-head">
                     <div>
-                      <span className="eyebrow">PARAMETER PO AKTIF</span>
-                      <h3>Penyesuaian Data Transaksi</h3>
+                      <span className="eyebrow">{isEn ? "ACTIVE PO PARAMETERS" : "PARAMETER PO AKTIF"}</span>
+                      <h3>{isEn ? "Transaction Data Adjustment" : "Penyesuaian Data Transaksi"}</h3>
                     </div>
 
                     <div className="active-order-header-actions">
@@ -2285,68 +2323,68 @@ export function TransactionsModule({
                         type="button"
                         className="save-button"
                         onClick={() => setPoModalOpen(true)}
-                        title="Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"
+                        title={isEn ? "Scan and extract data automatically from buyer PO or LOI document" : "Pindai dan ekstrak data otomatis dari dokumen PO atau LOI buyer"}
                         style={{ padding: "6px 12px", fontSize: "12px" }}
                       >
-                        <FileSpreadsheet size={13} /> Scan Dokumen
+                        <FileSpreadsheet size={13} /> {isEn ? "Scan Document" : "Scan Dokumen"}
                       </button>
                       <button
                         type="button"
                         className="ghost-button select-partner-btn"
                         onClick={() => navigate("partners")}
-                        title="Pilih dari daftar mitra buyer tersimpan"
+                        title={isEn ? "Select from saved buyer partner directory" : "Pilih dari daftar mitra buyer tersimpan"}
                         style={{ padding: "6px 12px", fontSize: "12px" }}
                       >
-                        <Users size={13} /> Mitra
+                        <Users size={13} /> {isEn ? "Partners" : "Mitra"}
                       </button>
                     </div>
                   </div>
 
                   <div className="profile-grid">
                     <Field
-                      label="Nomor PO / Transaksi"
+                      label={isEn ? "PO / Transaction Number" : "Nomor PO / Transaksi"}
                       value={displayReference}
-                      placeholder="Contoh: PO-001, INV-2026/01"
+                      placeholder={isEn ? "e.g., PO-001, INV-2026/01" : "Contoh: PO-001, INV-2026/01"}
                       onChange={(value) => update("reference", value)}
                     />
 
                     <Field
-                      label="Nama Buyer (Pembeli)"
+                      label={isEn ? "Buyer Name" : "Nama Buyer (Pembeli)"}
                       value={shipment.buyer}
-                      placeholder="Nama perusahaan pembeli luar negeri"
+                      placeholder={isEn ? "Foreign buyer company name" : "Nama perusahaan pembeli luar negeri"}
                       onChange={(value) => update("buyer", value)}
                     />
 
                     <Field
-                      label="Negara Tujuan"
+                      label={isEn ? "Destination Country" : "Negara Tujuan"}
                       value={shipment.buyerCountry}
-                      placeholder="Contoh: Jepang, Jerman, AS"
+                      placeholder={isEn ? "e.g., Japan, Germany, USA" : "Contoh: Jepang, Jerman, AS"}
                       onChange={(value) => update("buyerCountry", value)}
                     />
 
                     <Field
-                      label="Pelabuhan Tujuan"
+                      label={isEn ? "Port of Destination (POD)" : "Pelabuhan Tujuan"}
                       value={shipment.destination}
-                      placeholder="Contoh: Port of Tokyo"
+                      placeholder={isEn ? "e.g., Port of Tokyo, Rotterdam" : "Contoh: Port of Tokyo"}
                       onChange={(value) => update("destination", value)}
                     />
 
                     <Field
-                      label="Nama Eksportir"
+                      label={isEn ? "Exporter Name" : "Nama Eksportir"}
                       value={shipment.exporter}
-                      placeholder="Nama perusahaan Anda"
+                      placeholder={isEn ? "Your company name" : "Nama perusahaan Anda"}
                       onChange={(value) => update("exporter", value)}
                     />
 
                     <Field
                       label="HS Code"
                       value={shipment.hsCode}
-                      placeholder="Contoh: 0901.11"
+                      placeholder={isEn ? "e.g., 0901.11" : "Contoh: 0901.11"}
                       onChange={(value) => update("hsCode", value)}
                     />
 
                     <SelectField
-                      label="Status Siklus Transaksi"
+                      label={isEn ? "Lifecycle Transaction Status" : "Status Siklus Transaksi"}
                       value={shipment.shipmentStatus}
                       onChange={(val) => {
                         const nextStatus = val as ShipmentStatus;
@@ -2354,15 +2392,15 @@ export function TransactionsModule({
                         saveToLocalList({ ...shipment, shipmentStatus: nextStatus }, nextStatus);
                       }}
                     >
-                      <option value="Draft">Draft (Tahap Perencanaan / Draf Awal)</option>
-                      <option value="Quotation">Quotation (Fase Penawaran Resmi ke Buyer)</option>
-                      <option value="Confirmed">Confirmed (PO / Kontrak Disepakati)</option>
-                      <option value="Ready to Ship">Ready to Ship (Kargo Siap di Gudang)</option>
-                      <option value="Booked">Booked (Booking Kapal / Pelayaran Terbit)</option>
-                      <option value="Stuffing">Stuffing (Pemuatan Kargo ke Kontainer)</option>
-                      <option value="Departed">Departed (Kapal Berangkat dari Pelabuhan)</option>
-                      <option value="In Transit">In Transit (Dalam Pelayaran ke Negara Tujuan)</option>
-                      <option value="Completed">Completed (Tiba di Buyer &amp; Transaksi Selesai)</option>
+                      <option value="Draft">{isEn ? "Draft (Initial Planning / Draft Phase)" : "Draft (Tahap Perencanaan / Draf Awal)"}</option>
+                      <option value="Quotation">{isEn ? "Quotation (Official Quotation to Buyer)" : "Quotation (Fase Penawaran Resmi ke Buyer)"}</option>
+                      <option value="Confirmed">{isEn ? "Confirmed (PO / Sales Contract Agreed)" : "Confirmed (PO / Kontrak Disepakati)"}</option>
+                      <option value="Ready to Ship">{isEn ? "Ready to Ship (Cargo Ready in Warehouse)" : "Ready to Ship (Kargo Siap di Gudang)"}</option>
+                      <option value="Booked">{isEn ? "Booked (Vessel / Carrier Booking Confirmed)" : "Booked (Booking Kapal / Pelayaran Terbit)"}</option>
+                      <option value="Stuffing">{isEn ? "Stuffing (Cargo Loading into Container)" : "Stuffing (Pemuatan Kargo ke Kontainer)"}</option>
+                      <option value="Departed">{isEn ? "Departed (Vessel Departed Port)" : "Departed (Kapal Berangkat dari Pelabuhan)"}</option>
+                      <option value="In Transit">{isEn ? "In Transit (Vessel Sailing to Destination)" : "In Transit (Dalam Pelayaran ke Negara Tujuan)"}</option>
+                      <option value="Completed">{isEn ? "Completed (Delivered & Transaction Completed)" : "Completed (Tiba di Buyer & Transaksi Selesai)"}</option>
                     </SelectField>
                   </div>
                 </section>
@@ -2373,34 +2411,42 @@ export function TransactionsModule({
                 <div className="rail-chips">
                   <button type="button" className="rail-chip" onClick={() => navigate("pricing")}>
                     <Calculator size={13} />
-                    <span>Harga &amp; Order</span>
+                    <span>{isEn ? "Pricing & Costing" : "Harga & Order"}</span>
                   </button>
                   <button type="button" className="rail-chip" onClick={() => navigate("documents")}>
                     <FileText size={13} />
-                    <span>Dokumen Ekspor</span>
+                    <span>{isEn ? "Export Documents" : "Dokumen Ekspor"}</span>
                   </button>
                   <button type="button" className="rail-chip" onClick={() => navigate("cargo")}>
                     <Package size={13} />
-                    <span>Rencana Muatan</span>
+                    <span>{isEn ? "Load Plan" : "Rencana Muatan"}</span>
                   </button>
                   <button type="button" className="rail-chip" onClick={() => navigate("risk")}>
                     <ShieldAlert size={13} />
                     <span>Risk Center</span>
                   </button>
                 </div>
-                <span className="rail-status">Sinkron otomatis</span>
+                <span className="rail-status">{isEn ? "Auto sync" : "Sinkron otomatis"}</span>
               </div>
 
               {/* ALUR OPERASIONAL EKSPOR TERINTEGRASI (8 TAHAP) */}
               <section className="panel panel-padding clean-workflow-card">
                 <div className="clean-workflow-head">
                   <div>
-                    <span className="eyebrow">ALUR OPERASIONAL EKSPOR</span>
-                    <h3>Alur Transaksi ({workflow.incoterm})</h3>
+                    <span className="eyebrow">{isEn ? "EXPORT OPERATIONAL WORKFLOW" : "ALUR OPERASIONAL EKSPOR"}</span>
+                    <h3>{isEn ? `Transaction Workflow (${workflow.incoterm})` : `Alur Transaksi (${workflow.incoterm})`}</h3>
                   </div>
                   <div className="clean-workflow-progress">
                     <span className="clean-workflow-count">
-                      <b>{completedCount}</b> dari {totalCount} tahap selesai ({percentCompleted}%)
+                      {isEn ? (
+                        <>
+                          <b>{completedCount}</b> of {totalCount} stages completed ({percentCompleted}%)
+                        </>
+                      ) : (
+                        <>
+                          <b>{completedCount}</b> dari {totalCount} tahap selesai ({percentCompleted}%)
+                        </>
+                      )}
                     </span>
                     <div className="clean-workflow-track">
                       <div
@@ -2416,7 +2462,7 @@ export function TransactionsModule({
                   <div className="clean-buyer-notice">
                     <MessageSquare size={14} />
                     <span>
-                      <strong>Koordinasi Buyer:</strong> {workflow.coordinationTip}
+                      <strong>{isEn ? "Buyer Coordination:" : "Koordinasi Buyer:"}</strong> {workflow.coordinationTip}
                     </span>
                   </div>
                 )}
@@ -2424,25 +2470,63 @@ export function TransactionsModule({
                 {/* Daftar Tahapan Rapi, Bersih & Minimalis */}
                 <div className="clean-stage-list">
                   {workflow.stages.map((stage) => {
+                    const translatedTitle = isEn
+                      ? stage.title === "Kontrak Penjualan & Buyer"
+                        ? "Sales Contract & Buyer Profile"
+                        : stage.title === "Pembayaran Uang Muka (DP)"
+                        ? "Down Payment / Advance Settlement"
+                        : stage.title === "Kesiapan Barang di Gudang"
+                        ? "Warehouse Cargo Readiness"
+                        : stage.title === "Kesiapan Mutu & Kemasan"
+                        ? "Quality & Packaging Readiness"
+                        : stage.title === "Kesiapan Mutu & Sertifikasi"
+                        ? "Quality & Certification Compliance"
+                        : stage.title === "Muatan Kontainer & Truk ke Pelabuhan"
+                        ? "Container Stowage & Port Drayage"
+                        : stage.title === "Kepabeanan (PEB) & Muat ke Kapal"
+                        ? "Customs Export (PEB) & Vessel Load"
+                        : stage.title === "Kepabeanan Ekspor (PEB) & Serah Carrier"
+                        ? "Export Customs & Carrier Handover"
+                        : stage.title === "Booking Kapal Laut (Ocean Freight)"
+                        ? "Ocean Carrier Booking"
+                        : stage.title === "Pengapalan Laut & Asuransi Kargo"
+                        ? "Ocean Freight & Cargo Insurance"
+                        : stage.title === "Pengapalan Laut & Asuransi"
+                        ? "Ocean Shipping & Transit Insurance"
+                        : stage.title === "Pengantaran ke Alamat Buyer"
+                        ? "Delivery to Buyer Destination"
+                        : stage.title === "Kepabeanan Impor & Antar Gudang"
+                        ? "Import Clearance & Final Delivery"
+                        : stage.title === "Dokumen Penyerahan & Invoice"
+                        ? "Handover Documents & Invoice"
+                        : stage.title === "Dokumen Ekspor & e-SKA"
+                        ? "Export Documents & COO (e-SKA)"
+                        : stage.title === "Dokumen Ekspor & Invoice"
+                        ? "Export Documents & Commercial Invoice"
+                        : stage.title === "Pelunasan Pembayaran Akhir"
+                        ? "Final Payment Settlement"
+                        : stage.title
+                      : stage.title;
+
                     return (
                       <div
                         key={stage.id}
                         className="clean-stage-row"
                         onClick={() => navigate(stage.targetScreen)}
-                        title="Klik untuk membuka modul terkait"
+                        title={isEn ? "Click to open relevant module" : "Klik untuk membuka modul terkait"}
                       >
                         <div className={`clean-stage-dot ${stage.isDone ? "done" : ""}`}>
                           {stage.isDone ? <Check size={12} strokeWidth={3} /> : stage.number}
                         </div>
 
                         <div className="clean-stage-info">
-                          <span className="clean-stage-title">{stage.title}</span>
+                          <span className="clean-stage-title">{translatedTitle}</span>
                           <span className="clean-stage-meta">{stage.meta}</span>
                         </div>
 
                         <div className="clean-stage-status">
                           <span className={`clean-stage-pill ${stage.isDone ? "done" : "pending"}`}>
-                            {stage.isDone ? "Selesai" : "Perlu Dilengkapi"}
+                            {stage.isDone ? (isEn ? "Done" : "Selesai") : (isEn ? "Action Needed" : "Perlu Dilengkapi")}
                           </span>
                           <ChevronRight size={15} className="clean-stage-arrow" />
                         </div>
@@ -2591,49 +2675,49 @@ export function TransactionsModule({
           {/* Form Input Rapi & Bersih */}
           <div className="profile-grid">
             <Field
-              label="Nomor PO / Transaksi"
+              label={isEn ? "PO / Transaction Number" : "Nomor PO / Transaksi"}
               value={displayReference}
-              placeholder="Contoh: PO-001, INV-2026/01"
+              placeholder={isEn ? "e.g., PO-001, INV-2026/01" : "Contoh: PO-001, INV-2026/01"}
               onChange={(value) => update("reference", value)}
             />
 
             <Field
-              label="Nama Buyer (Pembeli)"
+              label={isEn ? "Buyer Name" : "Nama Buyer (Pembeli)"}
               value={shipment.buyer}
-              placeholder="Nama perusahaan pembeli luar negeri"
+              placeholder={isEn ? "Foreign buyer company name" : "Nama perusahaan pembeli luar negeri"}
               onChange={(value) => update("buyer", value)}
             />
 
             <Field
-              label="Negara Tujuan"
+              label={isEn ? "Destination Country" : "Negara Tujuan"}
               value={shipment.buyerCountry}
-              placeholder="Contoh: Jepang, Jerman, Uni Emirat Arab"
+              placeholder={isEn ? "e.g., Japan, Germany, UAE" : "Contoh: Jepang, Jerman, Uni Emirat Arab"}
               onChange={(value) => update("buyerCountry", value)}
             />
 
             <Field
-              label="Pelabuhan Tujuan (POD)"
+              label={isEn ? "Port of Destination (POD)" : "Pelabuhan Tujuan (POD)"}
               value={shipment.destination}
-              placeholder="Contoh: Port of Tokyo, Jebel Ali Port"
+              placeholder={isEn ? "e.g., Port of Tokyo, Jebel Ali Port" : "Contoh: Port of Tokyo, Jebel Ali Port"}
               onChange={(value) => update("destination", value)}
             />
 
             <Field
-              label="Nama Eksportir"
+              label={isEn ? "Exporter Name" : "Nama Eksportir"}
               value={shipment.exporter}
-              placeholder="Nama perusahaan Anda"
+              placeholder={isEn ? "Your company name" : "Nama perusahaan Anda"}
               onChange={(value) => update("exporter", value)}
             />
 
             <Field
               label="HS Code"
               value={shipment.hsCode}
-              placeholder="Contoh: 0901.11"
+              placeholder={isEn ? "e.g., 0901.11" : "Contoh: 0901.11"}
               onChange={(value) => update("hsCode", value)}
             />
 
             <SelectField
-              label="Incoterm Yang Disepakati"
+              label={isEn ? "Agreed Incoterm" : "Incoterm Yang Disepakati"}
               value={shipment.incoterm || "FOB"}
               onChange={(val) => update("incoterm", val as Incoterm)}
             >
@@ -2647,14 +2731,14 @@ export function TransactionsModule({
             </SelectField>
 
             <SelectField
-              label="Status Transaksi Awal"
+              label={isEn ? "Initial Transaction Status" : "Status Transaksi Awal"}
               value={shipment.shipmentStatus}
               onChange={(val) => update("shipmentStatus", val as ShipmentStatus)}
             >
-              <option value="Draft">Draft (Tahap Perencanaan / Penjajakan)</option>
-              <option value="Quotation">Quotation (Fase Penawaran Harga)</option>
-              <option value="Confirmed">Confirmed (PO Resmi Diterima dari Buyer)</option>
-              <option value="Booked">Booked (Booking Kapal Sudah Didapat)</option>
+              <option value="Draft">{isEn ? "Draft (Planning / Preliminary Stage)" : "Draft (Tahap Perencanaan / Penjajakan)"}</option>
+              <option value="Quotation">{isEn ? "Quotation (Quotation Pricing Phase)" : "Quotation (Fase Penawaran Harga)"}</option>
+              <option value="Confirmed">{isEn ? "Confirmed (Official PO Received from Buyer)" : "Confirmed (PO Resmi Diterima dari Buyer)"}</option>
+              <option value="Booked">{isEn ? "Booked (Carrier / Vessel Booking Obtained)" : "Booked (Booking Kapal Sudah Didapat)"}</option>
             </SelectField>
           </div>
 
@@ -2663,7 +2747,7 @@ export function TransactionsModule({
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <span className="status-pill status-pill-info">{shipment.shipmentStatus || "Draft"}</span>
               <small style={{ color: "var(--muted)" }}>
-                {displayReference ? `PO: ${displayReference}` : "Nomor PO belum diisi"} · {shipment.buyer || "Nama buyer belum diisi"}
+                {displayReference ? `PO: ${displayReference}` : (isEn ? "PO number not filled" : "Nomor PO belum diisi")} · {shipment.buyer || (isEn ? "Buyer name not filled" : "Nama buyer belum diisi")}
               </small>
             </div>
 
@@ -2672,33 +2756,33 @@ export function TransactionsModule({
                 type="button"
                 className="ghost-button"
                 onClick={handleResetForm}
-                title="Kosongkan formulir"
+                title={isEn ? "Clear form" : "Kosongkan formulir"}
               >
-                <RefreshCw size={13} /> Kosongkan Form
+                <RefreshCw size={13} /> {isEn ? "Clear Form" : "Kosongkan Form"}
               </button>
               <button
                 type="button"
                 className="ghost-button"
                 onClick={() => navigate("transactions")}
               >
-                Batal
+                {isEn ? "Cancel" : "Batal"}
               </button>
               <button
                 type="button"
                 className="ghost-button"
                 onClick={handleSaveDraft}
-                title="Simpan sebagai draft lokal"
+                title={isEn ? "Save as local draft" : "Simpan sebagai draft lokal"}
               >
-                <FileText size={14} /> Simpan Draft
+                <FileText size={14} /> {isEn ? "Save Draft" : "Simpan Draft"}
               </button>
               <button
                 type="button"
                 className="save-button"
                 onClick={() => void handleActivateNewPo()}
-                title="Daftarkan pesanan ini ke daftar pesanan ekspor"
+                title={isEn ? "Register this order to export orders list" : "Daftarkan pesanan ini ke daftar pesanan ekspor"}
                 style={{ padding: "8px 18px", fontSize: "13px" }}
               >
-                <CheckCircle2 size={15} /> Daftarkan Pesanan
+                <CheckCircle2 size={15} /> {isEn ? "Register Order" : "Daftarkan Pesanan"}
               </button>
             </div>
           </div>
