@@ -324,7 +324,6 @@ export function ExportCalendarModule({
   const [tempPreset, setTempPreset] = useState<PeriodFilterKey>("this_month");
   const [tempStart, setTempStart] = useState<string>("2026-11-01");
   const [tempEnd, setTempEnd] = useState<string>("2026-11-30");
-  const [compareEnabled, setCompareEnabled] = useState(false);
 
   // Dual Mini-Calendar View in Popover (right month = pickerNavMonth, left month = leftMiniMonth)
   const [pickerNavMonth, setPickerNavMonth] = useState(10); // November (0-indexed)
@@ -1056,7 +1055,7 @@ export function ExportCalendarModule({
                             {renderMiniCalendar(pickerNavMonth, pickerNavYear, false, true)}
                           </div>
 
-                          {/* Middle Row: Bandingkan Checkbox & Inputs */}
+                          {/* Middle Row: Preset Selector & Date Inputs */}
                           <div
                             style={{
                               marginTop: 14,
@@ -1064,21 +1063,11 @@ export function ExportCalendarModule({
                               borderTop: "1px solid #F1F5F9",
                               display: "flex",
                               alignItems: "center",
-                              justifyContent: "space-between",
+                              justifyContent: "flex-end",
                               flexWrap: "wrap",
                               gap: 10,
                             }}
                           >
-                            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: 12, color: "#334155" }}>
-                              <input
-                                type="checkbox"
-                                checked={compareEnabled}
-                                onChange={(e) => setCompareEnabled(e.target.checked)}
-                                style={{ borderRadius: 4, cursor: "pointer" }}
-                              />
-                              <span>Bandingkan</span>
-                            </label>
-
                             <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                               {/* Dropdown Preset Selector */}
                               <select
