@@ -858,13 +858,13 @@ export function ExportCalendarModule({
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700, color: "#0F172A" }}>
                 {MONTH_NAMES_ID[currentMonth]} {currentYear}
               </h3>
-              {currentMonth === 10 && currentYear === 2026 && (
+              {currentMonth === 10 && currentYear === 2026 && periodFilter === "this_month" && (
                 <SpaceBadge tone="primary">Bulan Ini</SpaceBadge>
               )}
-              {currentMonth === 9 && currentYear === 2026 && (
+              {currentMonth === 9 && currentYear === 2026 && (periodFilter === "last_month" || periodFilter === "this_month") && (
                 <SpaceBadge tone="neutral">Bulan Lalu</SpaceBadge>
               )}
-              {periodFilter !== "this_month" && (
+              {periodFilter !== "this_month" && periodFilter !== "last_month" && (
                 <span
                   style={{
                     fontSize: 11.5,
@@ -881,7 +881,7 @@ export function ExportCalendarModule({
               )}
             </div>
 
-            {/* Navigation buttons: Sebelumnya, Berikutnya + Pemilih Rentang Tanggal (Gambar 2) */}
+            {/* Navigation buttons: Sebelumnya | [ 📅 Bulan ▾ ] | Berikutnya */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", position: "relative" }}>
               <SpaceButton
                 variant="secondary"
@@ -893,17 +893,7 @@ export function ExportCalendarModule({
                 Sebelumnya
               </SpaceButton>
 
-              <SpaceButton
-                variant="secondary"
-                size="sm"
-                iconRight={<ChevronRight size={14} />}
-                onClick={handleNextMonth}
-                title="Bulan berikutnya"
-              >
-                Berikutnya
-              </SpaceButton>
-
-              {/* TOMBOL PEMILIH PERIODE (POPOVER PERSIS GAMBAR 2) */}
+              {/* TOMBOL PEMILIH PERIODE (DI TENGAH - SESUAI GAMBAR 2) */}
               <div style={{ position: "relative" }}>
                 <button
                   type="button"
@@ -955,7 +945,7 @@ export function ExportCalendarModule({
                       style={{
                         position: "absolute",
                         top: "calc(100% + 8px)",
-                        right: 0,
+                        right: -100,
                         zIndex: 999,
                         background: "#FFFFFF",
                         border: "1px solid #CBD5E1",
@@ -1206,6 +1196,16 @@ export function ExportCalendarModule({
                   </>
                 )}
               </div>
+
+              <SpaceButton
+                variant="secondary"
+                size="sm"
+                iconRight={<ChevronRight size={14} />}
+                onClick={handleNextMonth}
+                title="Bulan berikutnya"
+              >
+                Berikutnya
+              </SpaceButton>
             </div>
           </div>
 
