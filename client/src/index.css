@@ -20908,7 +20908,7 @@ table.unlk-items-table th.active-cell {
 }
 .space-calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 6px;
   width: 100%;
 }
@@ -20919,6 +20919,9 @@ table.unlk-items-table th.active-cell {
   text-align: center;
   padding: 6px 0;
   text-transform: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .space-calendar-cell {
   min-height: 85px;
@@ -20930,6 +20933,9 @@ table.unlk-items-table th.active-cell {
   flex-direction: column;
   gap: 4px;
   transition: background 0.15s ease;
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
 }
 .space-calendar-cell:hover {
   background: #FFFFFF;

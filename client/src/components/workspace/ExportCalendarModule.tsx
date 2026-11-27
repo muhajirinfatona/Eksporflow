@@ -1221,16 +1221,27 @@ export function ExportCalendarModule({
           </div>
 
           {/* Day Headers (SEN, SEL, RAB, KAM, JUM, SAB, MIN) */}
-          <div className="space-calendar-grid" style={{ marginBottom: 4 }}>
+          <div className="space-calendar-grid" style={{ marginBottom: 4, gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}>
             {DAY_NAMES_ID.map((day) => (
-              <div key={day} className="space-calendar-day-header" style={{ fontWeight: 700, color: "#475569" }}>
+              <div
+                key={day}
+                className="space-calendar-day-header"
+                style={{
+                  fontWeight: 700,
+                  color: "#475569",
+                  minWidth: 0,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
                 {day}
               </div>
             ))}
           </div>
 
           {/* Calendar Day Cells */}
-          <div className="space-calendar-grid">
+          <div className="space-calendar-grid" style={{ gridTemplateColumns: "repeat(7, minmax(0, 1fr))" }}>
             {calendarCells.map((cell, idx) => {
               const cellClasses = [
                 "space-calendar-cell",
@@ -1250,6 +1261,8 @@ export function ExportCalendarModule({
                     cursor: "pointer",
                     position: "relative",
                     minHeight: 90,
+                    minWidth: 0,
+                    overflow: "hidden",
                     outline: cell.isSelected ? "2px solid #2563EB" : "none",
                   }}
                   onClick={() => {
@@ -1259,7 +1272,7 @@ export function ExportCalendarModule({
                   onDoubleClick={() => handleOpenAddModalForDate(cell.dateStr)}
                   title={`Klik untuk melihat agenda | Double-click untuk tambah plan (${cell.dateStr})`}
                 >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", minWidth: 0 }}>
                     <span
                       className="space-calendar-date-num"
                       style={{
@@ -1282,6 +1295,7 @@ export function ExportCalendarModule({
                           padding: "1px 5px",
                           borderRadius: 4,
                           letterSpacing: 0.5,
+                          flexShrink: 0,
                         }}
                       >
                         HARI INI
@@ -1290,7 +1304,7 @@ export function ExportCalendarModule({
                   </div>
 
                   {/* Render plan chips inside calendar cell */}
-                  <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 2 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 3, marginTop: 2, minWidth: 0, overflow: "hidden" }}>
                     {cell.plans.slice(0, 3).map((plan) => {
                       const meta = CATEGORY_METAS[plan.category] || CATEGORY_METAS.stuffing;
                       const isCompleted = plan.status === "completed";
@@ -1308,6 +1322,10 @@ export function ExportCalendarModule({
                             fontSize: 10,
                             padding: "2px 5px",
                             borderRadius: 4,
+                            minWidth: 0,
+                            maxWidth: "100%",
+                            overflow: "hidden",
+                            boxSizing: "border-box",
                           }}
                           onClick={(e) => {
                             e.stopPropagation();
@@ -1316,8 +1334,8 @@ export function ExportCalendarModule({
                           }}
                           title={`${meta.label}: ${plan.title}\nBuyer: ${plan.buyerOrPo || "-"}\nLokasi: ${plan.location || "-"}`}
                         >
-                          <span>{meta.label.startsWith("Stuffing") ? "📦" : meta.label.startsWith("Kapal") ? "🚢" : meta.label.startsWith("Dokumen") ? "📄" : meta.label.startsWith("Finansial") ? "💵" : meta.label.startsWith("Inspeksi") ? "🔍" : "🤝"}</span>
-                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          <span style={{ flexShrink: 0 }}>{meta.label.startsWith("Stuffing") ? "📦" : meta.label.startsWith("Kapal") ? "🚢" : meta.label.startsWith("Dokumen") ? "📄" : meta.label.startsWith("Finansial") ? "💵" : meta.label.startsWith("Inspeksi") ? "🔍" : "🤝"}</span>
+                          <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {plan.title}
                           </span>
                         </div>
@@ -1325,7 +1343,7 @@ export function ExportCalendarModule({
                     })}
 
                     {cell.plans.length > 3 && (
-                      <span style={{ fontSize: 9.5, color: "#64748B", fontWeight: 600 }}>
+                      <span style={{ fontSize: 9.5, color: "#64748B", fontWeight: 600, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         +{cell.plans.length - 3} kegiatan lainnya
                       </span>
                     )}
