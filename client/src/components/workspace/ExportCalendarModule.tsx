@@ -1306,8 +1306,8 @@ export function ExportCalendarModule({
                             display: "flex",
                             alignItems: "center",
                             gap: 4,
-                            opacity: isCompleted ? 0.65 : 1,
-                            textDecoration: isCompleted ? "line-through" : "none",
+                            opacity: isCompleted ? 0.85 : 1,
+                            textDecoration: "none",
                             fontSize: 10,
                             padding: "2px 5px",
                             borderRadius: 4,
@@ -1617,8 +1617,8 @@ export function ExportCalendarModule({
                           margin: 0,
                           fontSize: 14.5,
                           fontWeight: 700,
-                          color: isCompleted ? "#64748B" : "#0F172A",
-                          textDecoration: isCompleted ? "line-through" : "none",
+                          color: isCompleted ? "#334155" : "#0F172A",
+                          textDecoration: "none",
                         }}
                       >
                         {plan.title}
