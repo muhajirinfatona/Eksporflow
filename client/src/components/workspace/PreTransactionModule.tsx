@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useMemo, useRef, useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface PreTransactionModuleProps {
   shipment: Shipment;
@@ -32,31 +33,41 @@ interface PreTransactionModuleProps {
   navigate: (screen: ScreenId) => void;
 }
 
-const BUYER_VALIDATION_CHECKS: { id: string; label: string; tag: string }[] = [
+const BUYER_VALIDATION_CHECKS: { id: string; labelId: string; labelEn: string; tagId: string; tagEn: string }[] = [
   {
     id: "reg_checked",
-    label: "Registrasi Bisnis / Nomor VAT / EORI Valid",
-    tag: "Legalitas",
+    labelId: "Registrasi Bisnis / Nomor VAT / EORI Valid",
+    labelEn: "Valid Business Registration / VAT / EORI Number",
+    tagId: "Legalitas",
+    tagEn: "Legality",
   },
   {
     id: "domain_checked",
-    label: "Email Domain Resmi Perusahaan",
-    tag: "Kontak",
+    labelId: "Email Domain Resmi Perusahaan",
+    labelEn: "Official Company Domain Email",
+    tagId: "Kontak",
+    tagEn: "Contact",
   },
   {
     id: "port_sanction_checked",
-    label: "Pelabuhan Tujuan Bebas Sanksi & Embargo",
-    tag: "Kepatuhan",
+    labelId: "Pelabuhan Tujuan Bebas Sanksi & Embargo",
+    labelEn: "Destination Port Free of Sanctions & Embargoes",
+    tagId: "Kepatuhan",
+    tagEn: "Compliance",
   },
   {
     id: "dp_guard_checked",
-    label: "Komitmen Pembayaran Aman (DP Min. 30% T/T / L/C)",
-    tag: "Finansial",
+    labelId: "Komitmen Pembayaran Aman (DP Min. 30% T/T / L/C)",
+    labelEn: "Secure Payment Terms (Min. 30% Advance T/T / L/C)",
+    tagId: "Finansial",
+    tagEn: "Financial",
   },
   {
     id: "spec_sample_checked",
-    label: "Spesifikasi Mutu, Grade & Kemasan Disepakati",
-    tag: "Kargo",
+    labelId: "Spesifikasi Mutu, Grade & Kemasan Disepakati",
+    labelEn: "Quality Specs, Grade & Packaging Agreed",
+    tagId: "Kargo",
+    tagEn: "Cargo",
   },
 ];
 
@@ -607,6 +618,9 @@ export function PreTransactionModule({
   pricing,
   navigate,
 }: PreTransactionModuleProps) {
+  const { locale } = useLanguage();
+  const isEn = locale === "EN";
+
   const draft = shipment.preTransactionData ?? {};
   const docType = draft.docType ?? "quotation";
   const tone = draft.tone ?? "formal";
@@ -617,8 +631,16 @@ export function PreTransactionModule({
   const checklist = draft.buyerVerifiedChecklist ?? [];
 
   // Active letter language tab: "id" (Indonesian review/edit) or "en" (English export send)
-  const [letterLang, setLetterLang] = useState<"id" | "en">("id");
+  const [letterLang, setLetterLang] = useState<"id" | "en">(() => (locale === "EN" ? "en" : "id"));
   const [isTranslated, setIsTranslated] = useState(false);
+
+  useEffect(() => {
+    if (locale === "EN") {
+      setLetterLang("en");
+    } else if (locale === "ID") {
+      setLetterLang("id");
+    }
+  }, [locale]);
 
   // Custom user overrides for Indonesian draft
   const [customSubjectId, setCustomSubjectId] = useState<string>("");
@@ -796,25 +818,27 @@ export function PreTransactionModule({
     setCustomBodyEn(freshEn.body);
     setIsTranslated(true);
     setLetterLang("en");
-    toast.success("Draf disimpan dan otomatis diubah ke Bahasa Inggris!");
+    toast.success(isEn ? "Draft saved and switched to official English!" : "Draf disimpan dan otomatis diubah ke Bahasa Inggris!");
   };
 
   const handleResetIndonesianDraft = () => {
     setCustomSubjectId("");
     setCustomBodyId("");
-    toast.info("Draf Bahasa Indonesia dikembalikan ke format template awal.");
+    toast.info(isEn ? "Indonesian template draft reset." : "Draf Bahasa Indonesia dikembalikan ke format template awal.");
   };
 
   const handleCopyDraft = async () => {
     try {
       await navigator.clipboard.writeText(`Subject: ${currentSubject}\n\n${currentBody}`);
       toast.success(
-        letterLang === "en"
+        isEn
+          ? "Letter draft copied to clipboard!"
+          : letterLang === "en"
           ? "Draf Surat Ekspor (Bahasa Inggris) Berhasil Disalin!"
           : "Draf Surat (Bahasa Indonesia) Berhasil Disalin!"
       );
     } catch {
-      toast.error("Gagal menyalin ke clipboard.");
+      toast.error(isEn ? "Failed to copy to clipboard." : "Gagal menyalin ke clipboard.");
     }
   };
 
@@ -822,7 +846,7 @@ export function PreTransactionModule({
     if (prospectCompany.trim()) update("buyer", prospectCompany.trim());
     if (prospectCountry.trim()) update("buyerCountry", prospectCountry.trim());
     if (prospectEmail.trim()) update("buyerEmail", prospectEmail.trim());
-    toast.success("Data Buyer Disinkronkan ke Transaksi Aktif");
+    toast.success(isEn ? "Buyer details synced to active shipment" : "Data Buyer Disinkronkan ke Transaksi Aktif");
   };
 
   // Direktori Data Buyer Tersimpan (CRM Ekspor)
@@ -912,12 +936,16 @@ export function PreTransactionModule({
       update("buyer", buyerItem.companyName);
       update("buyerCountry", buyerItem.country);
     }
-    toast.success(`Data buyer ${buyerItem.companyName} (${buyerItem.country}) berhasil dimuat ke draf!`);
+    toast.success(
+      isEn
+        ? `Loaded profile for ${buyerItem.companyName} (${buyerItem.country}) into draft!`
+        : `Data buyer ${buyerItem.companyName} (${buyerItem.country}) berhasil dimuat ke draf!`
+    );
   };
 
   const handlePrintOrDownloadPDF = () => {
     window.print();
-    toast.success("Membuka dialog cetak / Simpan sebagai PDF");
+    toast.success(isEn ? "Opening print dialog / Save as PDF" : "Membuka dialog cetak / Simpan sebagai PDF");
   };
 
   const mailtoUrl = `mailto:${encodeURIComponent(prospectEmail)}?subject=${encodeURIComponent(
@@ -932,43 +960,53 @@ export function PreTransactionModule({
       <section className="ef-module-hero">
         <div className="ef-module-hero-copy">
           <span className="eyebrow" style={{ color: "var(--navy)" }}>
-            Pra-transaksi &amp; buyer
+            {isEn ? "Pre-Transaction & Buyer" : "Pra-transaksi & buyer"}
           </span>
-          <h2>Penawaran Ekspor &amp; Validasi Buyer</h2>
+          <h2>{isEn ? "Export Quotation & Buyer Verification" : "Penawaran Ekspor & Validasi Buyer"}</h2>
           <p className="lead">
-            Review dan edit surat penawaran dalam Bahasa Indonesia, simpan untuk langsung diubah ke Bahasa Inggris resmi ekspor, dan verifikasi kepatuhan importir.
+            {isEn
+              ? "Draft commercial quotations in official export English, sync to active transactions, and audit importer compliance."
+              : "Review dan edit surat penawaran dalam Bahasa Indonesia, simpan untuk langsung diubah ke Bahasa Inggris resmi ekspor, dan verifikasi kepatuhan importir."}
           </p>
           <div className="ef-hero-actions">
             <button type="button" className="ef-hero-btn-primary" onClick={handleCopyDraft}>
-              <Copy size={14} /> Salin Surat ({letterLang.toUpperCase()})
+              <Copy size={14} /> {isEn ? "Copy Letter" : "Salin Surat"} ({letterLang.toUpperCase()})
             </button>
             <a href={mailtoUrl} className="ef-hero-btn-ghost">
-              <Mail size={14} /> Buka di Email (EN)
+              <Mail size={14} /> {isEn ? "Open in Email (EN)" : "Buka di Email (EN)"}
             </a>
             <button
               type="button"
               className="ef-hero-btn-ghost"
               onClick={() => navigate("pricing")}
             >
-              Sesuaikan Harga {shipment.incoterm} <ArrowRight size={13} />
+              {isEn ? `Adjust ${shipment.incoterm} Price` : `Sesuaikan Harga ${shipment.incoterm}`} <ArrowRight size={13} />
             </button>
           </div>
         </div>
 
         <div className="ef-hero-kpis">
           <div className="ef-hero-kpi-card">
-            <span>Penawaran aktif</span>
+            <span>{isEn ? "Active offer" : "Penawaran aktif"}</span>
             <strong>{formatMoney(pricing.active.offer, shipment.currency)}</strong>
             <small>
               {shipment.incoterm} · {shipment.quantity > 0 ? shipment.quantity.toLocaleString("en-US") : "19.2"} {shipment.unit || "MT"}
             </small>
           </div>
           <div className="ef-hero-kpi-card">
-            <span>Validasi buyer</span>
+            <span>{isEn ? "Buyer validation" : "Validasi buyer"}</span>
             <strong>
-              {verifiedCount} / {BUYER_VALIDATION_CHECKS.length} Kriteria
+              {verifiedCount} / {BUYER_VALIDATION_CHECKS.length} {isEn ? "Criteria" : "Kriteria"}
             </strong>
-            <small>{verifiedCount >= 4 ? "Kriteria Terpenuhi" : "Lengkapi Cek"}</small>
+            <small>
+              {isEn
+                ? verifiedCount >= 4
+                  ? "Criteria Met"
+                  : "Complete Checks"
+                : verifiedCount >= 4
+                ? "Kriteria Terpenuhi"
+                : "Lengkapi Cek"}
+            </small>
           </div>
         </div>
       </section>
@@ -981,16 +1019,16 @@ export function PreTransactionModule({
         <section className="panel panel-padding">
           <div className="panel-head">
             <div>
-              <span className="eyebrow">Korespondensi ekspor</span>
-              <h3>Draf Surat Penawaran &amp; Dokumen</h3>
+              <span className="eyebrow">{isEn ? "Export correspondence" : "Korespondensi ekspor"}</span>
+              <h3>{isEn ? "Quotation Draft & Documents" : "Draf Surat Penawaran & Dokumen"}</h3>
             </div>
             <button
               type="button"
               className="ghost-button"
               onClick={handleSyncToBuyer}
-              title="Salin data prospek ke transaksi aktif"
+              title={isEn ? "Sync prospect data to active transaction" : "Salin data prospek ke transaksi aktif"}
             >
-              <Database size={14} /> Sinkronkan ke Transaksi
+              <Database size={14} /> {isEn ? "Sync to Transaction" : "Sinkronkan ke Transaksi"}
             </button>
           </div>
 
@@ -1011,11 +1049,15 @@ export function PreTransactionModule({
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <Building2 size={14} style={{ color: "#2563EB" }} />
                 <strong style={{ fontSize: "12px", color: "#1E293B" }}>
-                  Data Buyer Tersimpan ({savedBuyersList.length}) · Hasil Selesai Kargo
+                  {isEn
+                    ? `Saved Buyer Profiles (${savedBuyersList.length}) · Completed Shipments`
+                    : `Data Buyer Tersimpan (${savedBuyersList.length}) · Hasil Selesai Kargo`}
                 </strong>
               </div>
               <span style={{ fontSize: "10.5px", color: "#64748B" }}>
-                Klik nama buyer untuk langsung memuat ke formulir penawaran
+                {isEn
+                  ? "Click buyer name to load into quotation form"
+                  : "Klik nama buyer untuk langsung memuat ke formulir penawaran"}
               </span>
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -1041,7 +1083,7 @@ export function PreTransactionModule({
                       boxShadow: "0 1px 2px rgba(0,0,0,0.03)",
                       transition: "all 0.15s ease",
                     }}
-                    title={`Klik untuk memuat profil ${b.companyName} (${b.country})`}
+                    title={isEn ? `Click to load profile for ${b.companyName} (${b.country})` : `Klik untuk memuat profil ${b.companyName} (${b.country})`}
                   >
                     <span>{b.companyName}</span>
                     <span style={{ fontSize: "10px", color: isSelected ? "#2563EB" : "#64748B" }}>
@@ -1058,25 +1100,25 @@ export function PreTransactionModule({
 
           <div className="form-grid two ef-form" style={{ marginBottom: 14 }}>
             <label>
-              <span>Perusahaan Buyer</span>
+              <span>{isEn ? "Buyer Company" : "Perusahaan Buyer"}</span>
               <input
                 type="text"
-                placeholder="Nama perusahaan importir (e.g. Al-Mansoor Coffee Roastery)"
+                placeholder={isEn ? "Importer company name (e.g. Al-Mansoor Coffee Roastery)" : "Nama perusahaan importir (e.g. Al-Mansoor Coffee Roastery)"}
                 value={prospectCompany}
                 onChange={(e) => updateDraft({ prospectCompany: e.target.value })}
               />
             </label>
             <label>
-              <span>Negara / Pelabuhan Tujuan</span>
+              <span>{isEn ? "Destination Country / Port" : "Negara / Pelabuhan Tujuan"}</span>
               <input
                 type="text"
-                placeholder="Negara / pelabuhan (e.g. Jeddah Port, Saudi Arabia)"
+                placeholder={isEn ? "Country / destination port (e.g. Port of Tokyo, Japan)" : "Negara / pelabuhan (e.g. Jeddah Port, Saudi Arabia)"}
                 value={prospectCountry}
                 onChange={(e) => updateDraft({ prospectCountry: e.target.value })}
               />
             </label>
             <label>
-              <span>Email Buyer</span>
+              <span>{isEn ? "Buyer Email" : "Email Buyer"}</span>
               <input
                 type="email"
                 placeholder="procurement@buyer.com"
@@ -1085,10 +1127,10 @@ export function PreTransactionModule({
               />
             </label>
             <label>
-              <span>Catatan Khusus (Opsional)</span>
+              <span>{isEn ? "Special Notes (Optional)" : "Catatan Khusus (Opsional)"}</span>
               <input
                 type="text"
-                placeholder="Ketentuan sampel, MOQ, packing khusus GrainPro"
+                placeholder={isEn ? "Sample terms, MOQ, special packaging specs" : "Ketentuan sampel, MOQ, packing khusus GrainPro"}
                 value={customNotes}
                 onChange={(e) => updateDraft({ customNotes: e.target.value })}
               />
@@ -1099,14 +1141,14 @@ export function PreTransactionModule({
           <div className="pretrans-controls-row">
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
-                Jenis surat
+                {isEn ? "Document type" : "Jenis surat"}
               </span>
               <div className="space-segmented-track">
                 {(
                   [
                     { id: "inquiry", label: "Inquiry" },
                     { id: "quotation", label: "Quotation" },
-                    { id: "negotiation", label: "Negosiasi" },
+                    { id: "negotiation", label: isEn ? "Negotiation" : "Negosiasi" },
                   ] as const
                 ).map((item) => (
                   <button
@@ -1129,14 +1171,14 @@ export function PreTransactionModule({
 
             <div>
               <span className="eyebrow" style={{ display: "block", marginBottom: 6 }}>
-                Format bahasa
+                {isEn ? "Tone / Style" : "Format bahasa"}
               </span>
               <div className="space-segmented-track">
                 {(
                   [
                     { id: "formal", label: "Formal" },
                     { id: "semi_formal", label: "Semi-Formal" },
-                    { id: "casual", label: "Ringkas" },
+                    { id: "casual", label: isEn ? "Casual / Brief" : "Ringkas" },
                   ] as const
                 ).map((item) => (
                   <button
@@ -1211,10 +1253,10 @@ export function PreTransactionModule({
                     gap: 6,
                     transition: "all 0.15s ease",
                   }}
-                  title="Review dan edit draf dalam Bahasa Indonesia"
+                  title={isEn ? "Review draft in Indonesian" : "Review dan edit draf dalam Bahasa Indonesia"}
                 >
                   <Eye size={13} style={{ color: letterLang === "id" ? "#2563EB" : "#64748B" }} />
-                  <span>Review (Bahasa Indonesia)</span>
+                  <span>{isEn ? "Indonesian Draft" : "Review (Bahasa Indonesia)"}</span>
                 </button>
 
                 <button
@@ -1241,10 +1283,10 @@ export function PreTransactionModule({
                     gap: 6,
                     transition: "all 0.15s ease",
                   }}
-                  title="Surat resmi ekspor dalam Bahasa Inggris siap kirim"
+                  title={isEn ? "Official export letter in English ready to send" : "Surat resmi ekspor dalam Bahasa Inggris siap kirim"}
                 >
                   <span>🇬🇧</span>
-                  <span>Bahasa Inggris</span>
+                  <span>{isEn ? "Official English" : "Bahasa Inggris"}</span>
                 </button>
               </div>
 
@@ -1254,7 +1296,7 @@ export function PreTransactionModule({
                 onClick={
                   letterLang === "id"
                     ? handleSaveAndChangeToEnglish
-                    : () => toast.success("Draf surat ekspor Bahasa Inggris tersimpan!")
+                    : () => toast.success(isEn ? "English export letter draft saved!" : "Draf surat ekspor Bahasa Inggris tersimpan!")
                 }
                 style={{
                   display: "inline-flex",
@@ -1272,12 +1314,12 @@ export function PreTransactionModule({
                 }}
                 title={
                   letterLang === "id"
-                    ? "Simpan draf dan ubah ke Bahasa Inggris"
-                    : "Simpan perubahan draf Bahasa Inggris"
+                    ? isEn ? "Save draft and switch to English" : "Simpan draf dan ubah ke Bahasa Inggris"
+                    : isEn ? "Save English draft changes" : "Simpan perubahan draf Bahasa Inggris"
                 }
               >
                 <Save size={13} />
-                <span>Simpan</span>
+                <span>{isEn ? "Save" : "Simpan"}</span>
               </button>
             </div>
 
@@ -1292,7 +1334,9 @@ export function PreTransactionModule({
                   marginBottom: 4,
                 }}
               >
-                Subjek Surat {letterLang === "id" ? "(Review - Bahasa Indonesia)" : "(Resmi Ekspor - Bahasa Inggris)"}:
+                {isEn
+                  ? `Subject: ${letterLang === "id" ? "(Review - Indonesian)" : "(Official Export - English)"}`
+                  : `Subjek Surat ${letterLang === "id" ? "(Review - Bahasa Indonesia)" : "(Resmi Ekspor - Bahasa Inggris)"}:`}
               </label>
               <input
                 type="text"
@@ -1333,7 +1377,9 @@ export function PreTransactionModule({
                     color: "#475569",
                   }}
                 >
-                  Isi Surat {letterLang === "id" ? "(Review & Edit Langsung)" : "(Siap Kirim ke Buyer)"}:
+                  {isEn
+                    ? `Letter Body ${letterLang === "id" ? "(Review & Edit)" : "(Ready to Send to Buyer)"}:`
+                    : `Isi Surat ${letterLang === "id" ? "(Review & Edit Langsung)" : "(Siap Kirim ke Buyer)"}:`}
                 </label>
                 {letterLang === "id" && (
                   <button
@@ -1350,9 +1396,9 @@ export function PreTransactionModule({
                       gap: 4,
                       whiteSpace: "nowrap",
                     }}
-                    title="Kembalikan isi surat ke template awal"
+                    title={isEn ? "Reset letter to default template" : "Kembalikan isi surat ke template awal"}
                   >
-                    <RefreshCw size={11} /> Reset Template
+                    <RefreshCw size={11} /> {isEn ? "Reset Template" : "Reset Template"}
                   </button>
                 )}
               </div>
@@ -1377,7 +1423,7 @@ export function PreTransactionModule({
                   padding: "12px 14px",
                   resize: "vertical",
                 }}
-                placeholder="Ketik atau edit draf surat di sini..."
+                placeholder={isEn ? "Compose or edit quotation draft here..." : "Ketik atau edit draf surat di sini..."}
               />
             </div>
 
@@ -1401,9 +1447,9 @@ export function PreTransactionModule({
               >
                 <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: "#334155" }}>
                   <Paperclip size={13} style={{ color: "#2563EB" }} />
-                  <span>Lampiran Dokumen ({attachedFiles.length}):</span>
+                  <span>{isEn ? `Attached Documents (${attachedFiles.length}):` : `Lampiran Dokumen (${attachedFiles.length}):`}</span>
                 </div>
-                <span style={{ fontSize: 11, color: "#94A3B8" }}>Maks. 25 MB</span>
+                <span style={{ fontSize: 11, color: "#94A3B8" }}>{isEn ? "Max. 25 MB" : "Maks. 25 MB"}</span>
               </div>
 
               {/* Compact horizontal chips */}
@@ -1440,7 +1486,7 @@ export function PreTransactionModule({
                     <button
                       type="button"
                       onClick={() => handleRemoveFile(file.id)}
-                      title="Hapus lampiran"
+                      title={isEn ? "Remove attachment" : "Hapus lampiran"}
                       style={{
                         background: "transparent",
                         border: "none",
@@ -1460,7 +1506,7 @@ export function PreTransactionModule({
 
               {/* Subtle preset links */}
               <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", fontSize: 11, color: "#64748B" }}>
-                <span>Tambah cepat:</span>
+                <span>{isEn ? "Quick add:" : "Tambah cepat:"}</span>
                 <button
                   type="button"
                   onClick={() =>
@@ -1483,7 +1529,7 @@ export function PreTransactionModule({
                     cursor: "pointer",
                   }}
                 >
-                  + Surat Resmi
+                  {isEn ? "+ Official Letter" : "+ Surat Resmi"}
                 </button>
                 <button
                   type="button"
@@ -1503,7 +1549,7 @@ export function PreTransactionModule({
                     cursor: "pointer",
                   }}
                 >
-                  + Spec Mutu
+                  {isEn ? "+ Quality Spec" : "+ Spec Mutu"}
                 </button>
                 <button
                   type="button"
@@ -1567,7 +1613,7 @@ export function PreTransactionModule({
                 }}
               >
                 <Paperclip size={13} style={{ color: "#2563EB" }} />
-                <span>Lampirkan Berkas</span>
+                <span>{isEn ? "Attach Files" : "Lampirkan Berkas"}</span>
               </button>
 
               {/* Kanan: Aksi Ekspor */}
@@ -1578,7 +1624,7 @@ export function PreTransactionModule({
                   onClick={handleCopyDraft}
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}
                 >
-                  <Copy size={13} /> Salin Surat
+                  <Copy size={13} /> {isEn ? "Copy Letter" : "Salin Surat"}
                 </button>
 
                 <a
@@ -1594,9 +1640,9 @@ export function PreTransactionModule({
                     color: "#FFFFFF",
                     border: "none",
                   }}
-                  title="Buka di aplikasi email dengan draf Bahasa Inggris resmi"
+                  title={isEn ? "Open in email client with official English export draft" : "Buka di aplikasi email dengan draf Bahasa Inggris resmi"}
                 >
-                  <Send size={13} /> Buka di Email (EN)
+                  <Send size={13} /> {isEn ? "Open in Email (EN)" : "Buka di Email (EN)"}
                 </a>
 
                 <button
@@ -1604,9 +1650,9 @@ export function PreTransactionModule({
                   className="ghost-button"
                   onClick={handlePrintOrDownloadPDF}
                   style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12 }}
-                  title="Cetak atau Unduh Dokumen Surat sebagai PDF"
+                  title={isEn ? "Print or download document as PDF" : "Cetak atau Unduh Dokumen Surat sebagai PDF"}
                 >
-                  <Printer size={13} /> Cetak / PDF
+                  <Printer size={13} /> {isEn ? "Print / PDF" : "Cetak / PDF"}
                 </button>
               </div>
             </div>
@@ -1621,11 +1667,11 @@ export function PreTransactionModule({
           <section className="panel panel-padding pretrans-check-card">
             <div className="panel-head">
               <div>
-                <span className="eyebrow">Verifikasi buyer</span>
-                <h3>Checklist Legalitas Importir</h3>
+                <span className="eyebrow">{isEn ? "Buyer verification" : "Verifikasi buyer"}</span>
+                <h3>{isEn ? "Importer Legality Checklist" : "Checklist Legalitas Importir"}</h3>
               </div>
               <StatusPill tone={verifiedCount >= 4 ? "green" : verifiedCount >= 2 ? "amber" : "red"}>
-                {verifiedCount}/{BUYER_VALIDATION_CHECKS.length} Terverifikasi
+                {verifiedCount}/{BUYER_VALIDATION_CHECKS.length} {isEn ? "Verified" : "Terverifikasi"}
               </StatusPill>
             </div>
 
@@ -1645,10 +1691,10 @@ export function PreTransactionModule({
                     <div className="pretrans-check-content">
                       <div className="pretrans-check-header">
                         <span className="pretrans-check-title">
-                          {item.label}
+                          {isEn ? item.labelEn : item.labelId}
                         </span>
                         <span className="pretrans-check-tag">
-                          {item.tag}
+                          {isEn ? item.tagEn : item.tagId}
                         </span>
                       </div>
                     </div>
@@ -1663,38 +1709,46 @@ export function PreTransactionModule({
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <ShieldCheck size={16} style={{ color: verifiedCount >= 4 ? "#10B981" : "#F59E0B" }} />
               <strong style={{ fontSize: 13, color: "#0F172A" }}>
-                Parameter Transaksi &amp; Proteksi Devisa
+                {isEn ? "Transaction Parameters & Forex Protection" : "Parameter Transaksi & Proteksi Devisa"}
               </strong>
             </div>
 
             <p style={{ margin: "0 0 12px", fontSize: 11.5, color: "#64748B", lineHeight: 1.5 }}>
-              {verifiedCount >= 4
+              {isEn
+                ? verifiedCount >= 4
+                  ? "Importer legality has been verified safe. The commercial parameters below are ready for an official Sales Contract."
+                  : "Ensure minimum 30% advance payment commitment and sanction-free destination port before confirming cargo stuffing schedule."
+                : verifiedCount >= 4
                 ? "Legalitas importir telah terverifikasi aman. Parameter penawaran di bawah siap dinaikkan ke Sales Contract resmi."
                 : "Pastikan komitmen DP minimal 30% dan pelabuhan tujuan bebas sanksi sebelum menyetujui jadwal muat kargo."}
             </p>
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 11.5, marginBottom: 12 }}>
               <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Nilai Penawaran:</span>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>{isEn ? "Offer Value:" : "Nilai Penawaran:"}</span>
                 <strong style={{ color: "#0F172A" }}>{formatMoney(pricing.active.offer, shipment.currency)}</strong>
               </div>
               <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Volume Ekspor:</span>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>{isEn ? "Export Volume:" : "Volume Ekspor:"}</span>
                 <strong style={{ color: "#0F172A" }}>{shipment.quantity > 0 ? `${shipment.quantity} ${shipment.unit || "MT"}` : "19.2 MT (1 FCL)"}</strong>
               </div>
               <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Syarat Pembayaran:</span>
-                <strong style={{ color: "#0F172A" }}>DP 30% T/T Wajib</strong>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>{isEn ? "Payment Terms:" : "Syarat Pembayaran:"}</span>
+                <strong style={{ color: "#0F172A" }}>{isEn ? "Min. 30% Advance T/T Required" : "DP 30% T/T Wajib"}</strong>
               </div>
               <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0" }}>
-                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>Incoterm &amp; Rute:</span>
-                <strong style={{ color: "#0F172A" }}>{shipment.incoterm} ({shipment.destination || "Pelabuhan Tujuan"})</strong>
+                <span style={{ color: "#64748B", display: "block", fontSize: 10.5 }}>{isEn ? "Incoterm & Route:" : "Incoterm & Rute:"}</span>
+                <strong style={{ color: "#0F172A" }}>{shipment.incoterm} ({shipment.destination || (isEn ? "Destination Port" : "Pelabuhan Tujuan")})</strong>
               </div>
             </div>
 
             <div style={{ background: "#FFFFFF", padding: "8px 10px", borderRadius: 6, border: "1px solid #E2E8F0", fontSize: 11 }}>
-              <span style={{ color: "#64748B", display: "block", marginBottom: 2 }}>Dokumen Wajib Ekspor:</span>
-              <span style={{ color: "#0F172A", fontWeight: 600 }}>Commercial Invoice, Packing List, B/L, e-SKA, Fitosanitari &amp; Lab Analisis</span>
+              <span style={{ color: "#64748B", display: "block", marginBottom: 2 }}>{isEn ? "Mandatory Export Docs:" : "Dokumen Wajib Ekspor:"}</span>
+              <span style={{ color: "#0F172A", fontWeight: 600 }}>
+                {isEn
+                  ? "Commercial Invoice, Packing List, B/L, Certificate of Origin (e-SKA), Phytosanitary & Lab Analysis"
+                  : "Commercial Invoice, Packing List, B/L, e-SKA, Fitosanitari & Lab Analisis"}
+              </span>
             </div>
           </section>
 
@@ -1702,22 +1756,32 @@ export function PreTransactionModule({
           <section className="panel panel-padding" style={{ background: "#FFFFFF", border: "1px solid #E2E8F0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <Sparkles size={15} style={{ color: "#2563EB" }} />
-              <strong style={{ fontSize: 12.5, color: "#0F172A" }}>Panduan Transaksi Ekspor Aman</strong>
+              <strong style={{ fontSize: 12.5, color: "#0F172A" }}>{isEn ? "Safe Export Trade Guidelines" : "Panduan Transaksi Ekspor Aman"}</strong>
             </div>
             <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "#475569", lineHeight: 1.6 }}>
-              <li><strong>Hindari Open Account:</strong> Untuk buyer atau broker baru, jangan pernah menerima terms pelunasan setelah barang tiba tanpa jaminan bank L/C.</li>
-              <li><strong>Kunci Toleransi Mutu:</strong> Cantumkan toleransi mutu maks. 5% pada lembar penawaran untuk mencegah penalti sepihak saat kargo tiba.</li>
-              <li><strong>Verifikasi Dokumen:</strong> Pastikan seluruh berkas lampiran asli telah cocok dengan persyaratan kepabeanan negara buyer.</li>
+              {isEn ? (
+                <>
+                  <li><strong>Avoid Open Account:</strong> For new buyers or brokers, never accept payment-after-arrival terms without an irrevocable bank L/C guarantee.</li>
+                  <li><strong>Lock Quality Tolerance:</strong> State maximum 5% quality tolerance on quotations to prevent unilateral claims upon cargo discharge.</li>
+                  <li><strong>Verify Documentation:</strong> Ensure all original attached files strictly match destination country import compliance.</li>
+                </>
+              ) : (
+                <>
+                  <li><strong>Hindari Open Account:</strong> Untuk buyer atau broker baru, jangan pernah menerima terms pelunasan setelah barang tiba tanpa jaminan bank L/C.</li>
+                  <li><strong>Kunci Toleransi Mutu:</strong> Cantumkan toleransi mutu maks. 5% pada lembar penawaran untuk mencegah penalti sepihak saat kargo tiba.</li>
+                  <li><strong>Verifikasi Dokumen:</strong> Pastikan seluruh berkas lampiran asli telah cocok dengan persyaratan kepabeanan negara buyer.</li>
+                </>
+              )}
             </ul>
           </section>
 
           {/* Action Button Stack */}
           <div className="pretrans-btn-stack" style={{ marginTop: 2 }}>
             <button type="button" className="save-button" onClick={() => navigate("documents")}>
-              <Building2 size={14} /> Terbitkan PI / Kontrak →
+              <Building2 size={14} /> {isEn ? "Issue PI / Contract →" : "Terbitkan PI / Kontrak →"}
             </button>
             <button type="button" className="ghost-button" onClick={() => navigate("compliance")}>
-              Cek HS &amp; Lartas →
+              {isEn ? "Check HS & Compliance →" : "Cek HS & Lartas →"}
             </button>
           </div>
         </div>

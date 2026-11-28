@@ -1,5 +1,6 @@
 import type { PersistenceSaveState } from "@/hooks/useActiveShipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
+import { useLanguage } from "@/contexts/LanguageContext";
 import {
   formatDemoRemainingLabel,
   getDemoRemainingMs,
@@ -121,6 +122,9 @@ export function DashboardView({
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
+  const { locale } = useLanguage();
+  const isEn = locale === "EN";
+
   const [selectedPort, setSelectedPort] = useState<string>("all");
   const [portMenuOpen, setPortMenuOpen] = useState<boolean>(false);
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -141,13 +145,13 @@ export function DashboardView({
   }, [portMenuOpen]);
 
   const portOptions = useMemo(() => [
-    { id: "all", label: "Semua Pelabuhan", code: "Semua" },
+    { id: "all", label: isEn ? "All Ports" : "Semua Pelabuhan", code: isEn ? "All" : "Semua" },
     { id: "IDTPP", label: "Tanjung Priok", code: "IDTPP" },
     { id: "IDPNJ", label: "Panjang", code: "IDPNJ" },
     { id: "IDSUB", label: "Tanjung Perak", code: "IDSUB" },
-  ], []);
+  ], [isEn]);
 
-  const activePortLabel = portOptions.find((p) => p.id === selectedPort)?.label || "Semua Pelabuhan";
+  const activePortLabel = portOptions.find((p) => p.id === selectedPort)?.label || (isEn ? "All Ports" : "Semua Pelabuhan");
 
   const totalContract = pricing.active.offer > 0 ? pricing.active.offer : 24590.43;
   const totalReceived = flow.paidAmount > 0 ? flow.paidAmount : 24590.43;
@@ -160,17 +164,17 @@ export function DashboardView({
       blNumber: "EKL-US2026-0881",
       invNumber: "INV-2026-0881",
       buyer: "Atlantic Roast Corp",
-      buyerLoc: "Boston, USA",
-      commodity: "Kopi Arabika Gayo",
+      buyerLoc: isEn ? "Boston, USA" : "Boston, USA",
+      commodity: isEn ? "Gayo Arabica Coffee" : "Kopi Arabika Gayo",
       stowage: "1×20' FCL · 19.2 MT",
       polCode: "IDTPP",
       podCode: "USLAX",
       polName: "Priok",
       podName: "Los Angeles",
-      etd: "28 Nov",
-      eta: "18 Des 2026",
+      etd: isEn ? "Nov 28" : "28 Nov",
+      eta: isEn ? "Dec 18, 2026" : "18 Des 2026",
       statusPill: "green",
-      statusLabel: "Jalur Hijau (NPE)",
+      statusLabel: isEn ? "Green Channel (NPE)" : "Jalur Hijau (NPE)",
       paymentLabel: "L/C at Sight (Paid)",
       amount: "$24,590.00",
     },
@@ -178,17 +182,17 @@ export function DashboardView({
       blNumber: "EKL-EU2026-0412",
       invNumber: "INV-2026-0412",
       buyer: "Hamburg Coffee GmbH",
-      buyerLoc: "Hamburg, Jerman",
-      commodity: "Kopi Robusta Lampung",
+      buyerLoc: isEn ? "Hamburg, Germany" : "Hamburg, Jerman",
+      commodity: isEn ? "Lampung Robusta Coffee" : "Kopi Robusta Lampung",
       stowage: "1×20' FCL · 18.0 MT",
       polCode: "IDPNJ",
       podCode: "DEHAM",
       polName: "Panjang",
       podName: "Hamburg",
-      etd: "02 Des",
-      eta: "24 Des 2026",
+      etd: isEn ? "Dec 02" : "02 Des",
+      eta: isEn ? "Dec 24, 2026" : "24 Des 2026",
       statusPill: "blue",
-      statusLabel: "In Transit Kapal",
+      statusLabel: isEn ? "Vessel In Transit" : "In Transit Kapal",
       paymentLabel: "T/T 30% DP / 70% B/L",
       amount: "$18,400.00",
     },
@@ -196,18 +200,18 @@ export function DashboardView({
       blNumber: "EKL-JP2026-0199",
       invNumber: "INV-2026-0199",
       buyer: "Tokyo Agro & Spices",
-      buyerLoc: "Tokyo, Jepang",
-      commodity: "Kayu Manis Korintje",
+      buyerLoc: isEn ? "Tokyo, Japan" : "Tokyo, Jepang",
+      commodity: isEn ? "Korintje Cinnamon" : "Kayu Manis Korintje",
       stowage: "1×40' HC · 15.6 MT",
       polCode: "IDSUB",
       podCode: "JPYOK",
       polName: "Perak",
       podName: "Yokohama",
-      etd: "05 Des",
-      eta: "19 Des 2026",
+      etd: isEn ? "Dec 05" : "05 Des",
+      eta: isEn ? "Dec 19, 2026" : "19 Des 2026",
       statusPill: "amber",
-      statusLabel: "Siap Muat Depo",
-      paymentLabel: "DP 30% Masuk (Mandiri)",
+      statusLabel: isEn ? "Depot Ready" : "Siap Muat Depo",
+      paymentLabel: isEn ? "30% DP Received (Mandiri)" : "DP 30% Masuk (Mandiri)",
       amount: "$32,150.00",
     },
     {
@@ -215,16 +219,16 @@ export function DashboardView({
       invNumber: "INV-2026-0920",
       buyer: "Emirates Foodstuff",
       buyerLoc: "Dubai, UAE",
-      commodity: "Briket Arang Kelapa",
+      commodity: isEn ? "Coconut Charcoal Briquettes" : "Briket Arang Kelapa",
       stowage: "1×20' FCL · 14.0 MT",
       polCode: "IDTPP",
       podCode: "AEJEA",
       polName: "Priok",
       podName: "Jebel Ali",
-      etd: "10 Des",
-      eta: "27 Des 2026",
+      etd: isEn ? "Dec 10" : "10 Des",
+      eta: isEn ? "Dec 27, 2026" : "27 Des 2026",
       statusPill: "green",
-      statusLabel: "Jalur Hijau (NPE)",
+      statusLabel: isEn ? "Green Channel (NPE)" : "Jalur Hijau (NPE)",
       paymentLabel: "CAD (Cash Against Docs)",
       amount: "$14,800.00",
     },
@@ -234,16 +238,16 @@ export function DashboardView({
       invNumber: "INV-2026-0551",
       buyer: "Melbourne Bean Merchants",
       buyerLoc: "Melbourne, Australia",
-      commodity: "Kopi Toraja Sapan",
+      commodity: isEn ? "Toraja Sapan Coffee" : "Kopi Toraja Sapan",
       stowage: "1×20' FCL · 19.2 MT",
       polCode: "IDSUB",
       podCode: "AUMEL",
       polName: "Perak",
       podName: "Melbourne",
-      etd: "12 Des",
-      eta: "28 Des 2026",
+      etd: isEn ? "Dec 12" : "12 Des",
+      eta: isEn ? "Dec 28, 2026" : "28 Des 2026",
       statusPill: "blue",
-      statusLabel: "In Transit Kapal",
+      statusLabel: isEn ? "Vessel In Transit" : "In Transit Kapal",
       paymentLabel: "L/C at Sight (Confirmed)",
       amount: "$28,900.00",
     },
@@ -251,17 +255,17 @@ export function DashboardView({
       blNumber: "EKL-NL2026-0318",
       invNumber: "INV-2026-0318",
       buyer: "Rotterdam Cacao Trading",
-      buyerLoc: "Rotterdam, Belanda",
-      commodity: "Biji Kakao Fermentasi",
+      buyerLoc: isEn ? "Rotterdam, Netherlands" : "Rotterdam, Belanda",
+      commodity: isEn ? "Fermented Cocoa Beans" : "Biji Kakao Fermentasi",
       stowage: "1×40' FCL · 25.0 MT",
       polCode: "IDTPP",
       podCode: "NLRTM",
       polName: "Priok",
       podName: "Rotterdam",
-      etd: "15 Des",
-      eta: "08 Jan 2027",
+      etd: isEn ? "Dec 15" : "15 Des",
+      eta: isEn ? "Jan 08, 2027" : "08 Jan 2027",
       statusPill: "green",
-      statusLabel: "Jalur Hijau (NPE)",
+      statusLabel: isEn ? "Green Channel (NPE)" : "Jalur Hijau (NPE)",
       paymentLabel: "T/T 50% DP / 50% B/L",
       amount: "$36,400.00",
     },
@@ -270,16 +274,16 @@ export function DashboardView({
       invNumber: "INV-2026-0773",
       buyer: "Pacific Spices & Herbs",
       buyerLoc: "San Francisco, USA",
-      commodity: "Pala Siau & Fuli Organik",
+      commodity: isEn ? "Siau Nutmeg & Organic Mace" : "Pala Siau & Fuli Organik",
       stowage: "1×20' FCL · 12.5 MT",
       polCode: "IDSUB",
       podCode: "USOAK",
       polName: "Perak",
       podName: "Oakland",
-      etd: "18 Des",
-      eta: "06 Jan 2027",
+      etd: isEn ? "Dec 18" : "18 Des",
+      eta: isEn ? "Jan 06, 2027" : "06 Jan 2027",
       statusPill: "amber",
-      statusLabel: "Siap Muat Depo",
+      statusLabel: isEn ? "Depot Ready" : "Siap Muat Depo",
       paymentLabel: "L/C at Sight (Paid)",
       amount: "$22,750.00",
     },
@@ -288,16 +292,16 @@ export function DashboardView({
       invNumber: "INV-2026-0640",
       buyer: "Singa Agro Commodities",
       buyerLoc: "Singapore, SG",
-      commodity: "Minyak Atsiri Nilam",
+      commodity: isEn ? "Patchouli Essential Oil" : "Minyak Atsiri Nilam",
       stowage: "1×20' FCL · 16.0 MT",
       polCode: "IDPNJ",
       podCode: "SGSIN",
       polName: "Panjang",
       podName: "Singapore",
-      etd: "20 Des",
-      eta: "24 Des 2026",
+      etd: isEn ? "Dec 20" : "20 Des",
+      eta: isEn ? "Dec 24, 2026" : "24 Des 2026",
       statusPill: "green",
-      statusLabel: "Jalur Hijau (NPE)",
+      statusLabel: isEn ? "Green Channel (NPE)" : "Jalur Hijau (NPE)",
       paymentLabel: "T/T 100% Advance",
       amount: "$41,200.00",
     },
@@ -306,17 +310,17 @@ export function DashboardView({
       blNumber: "EKL-EU2026-0805",
       invNumber: "INV-2026-0805",
       buyer: "Antwerp Spice Importers",
-      buyerLoc: "Antwerp, Belgia",
-      commodity: "Lada Putih Muntok",
+      buyerLoc: isEn ? "Antwerp, Belgium" : "Antwerp, Belgia",
+      commodity: isEn ? "Muntok White Pepper" : "Lada Putih Muntok",
       stowage: "1×20' FCL · 15.0 MT",
       polCode: "IDPNJ",
       podCode: "BEANR",
       polName: "Panjang",
       podName: "Antwerp",
-      etd: "22 Des",
-      eta: "16 Jan 2027",
+      etd: isEn ? "Dec 22" : "22 Des",
+      eta: isEn ? "Jan 16, 2027" : "16 Jan 2027",
       statusPill: "amber",
-      statusLabel: "Siap Muat Depo",
+      statusLabel: isEn ? "Depot Ready" : "Siap Muat Depo",
       paymentLabel: "L/C at Sight (Draft)",
       amount: "$27,300.00",
     },
@@ -325,16 +329,16 @@ export function DashboardView({
       invNumber: "INV-2026-0914",
       buyer: "Seattle Artisan Roasters",
       buyerLoc: "Seattle, USA",
-      commodity: "Kopi Mandheling Lintong",
+      commodity: isEn ? "Mandheling Lintong Coffee" : "Kopi Mandheling Lintong",
       stowage: "1×20' FCL · 19.2 MT",
       polCode: "IDTPP",
       podCode: "USSEA",
       polName: "Priok",
       podName: "Seattle",
-      etd: "24 Des",
-      eta: "14 Jan 2027",
+      etd: isEn ? "Dec 24" : "24 Des",
+      eta: isEn ? "Jan 14, 2027" : "14 Jan 2027",
       statusPill: "green",
-      statusLabel: "Jalur Hijau (NPE)",
+      statusLabel: isEn ? "Green Channel (NPE)" : "Jalur Hijau (NPE)",
       paymentLabel: "CAD (Cash Against Docs)",
       amount: "$26,100.00",
     },
@@ -342,17 +346,17 @@ export function DashboardView({
       blNumber: "EKL-KR2026-0233",
       invNumber: "INV-2026-0233",
       buyer: "Busan Bio Energy Corp",
-      buyerLoc: "Busan, Korea Selatan",
-      commodity: "Cangkang Sawit (PKS)",
+      buyerLoc: isEn ? "Busan, South Korea" : "Busan, Korea Selatan",
+      commodity: isEn ? "Palm Kernel Shell (PKS)" : "Cangkang Sawit (PKS)",
       stowage: "1×40' HC · 26.0 MT",
       polCode: "IDPNJ",
       podCode: "KRPUS",
       polName: "Panjang",
       podName: "Busan",
-      etd: "27 Des",
-      eta: "09 Jan 2027",
+      etd: isEn ? "Dec 27" : "27 Des",
+      eta: isEn ? "Jan 09, 2027" : "09 Jan 2027",
       statusPill: "amber",
-      statusLabel: "Siap Muat Depo",
+      statusLabel: isEn ? "Depot Ready" : "Siap Muat Depo",
       paymentLabel: "T/T 30% DP / 70% B/L",
       amount: "$19,650.00",
     },
@@ -360,21 +364,21 @@ export function DashboardView({
       blNumber: "EKL-JP2026-0487",
       invNumber: "INV-2026-0487",
       buyer: "Kobe Gourmet Spices Co",
-      buyerLoc: "Kobe, Jepang",
-      commodity: "Cengkeh Zanzibar Super",
+      buyerLoc: isEn ? "Kobe, Japan" : "Kobe, Jepang",
+      commodity: isEn ? "Zanzibar Super Cloves" : "Cengkeh Zanzibar Super",
       stowage: "1×20' FCL · 11.0 MT",
       polCode: "IDSUB",
       podCode: "JPUKB",
       polName: "Perak",
       podName: "Kobe",
-      etd: "30 Des",
-      eta: "15 Jan 2027",
+      etd: isEn ? "Dec 30" : "30 Des",
+      eta: isEn ? "Jan 15, 2027" : "15 Jan 2027",
       statusPill: "green",
-      statusLabel: "Jalur Hijau (NPE)",
+      statusLabel: isEn ? "Green Channel (NPE)" : "Jalur Hijau (NPE)",
       paymentLabel: "L/C at Sight (Paid)",
       amount: "$31,500.00",
     },
-  ], []);
+  ], [isEn]);
 
   const filteredShipments = useMemo(() => {
     if (selectedPort === "all") return allShipments;
@@ -399,7 +403,7 @@ export function DashboardView({
         {/* Card 1: Nilai Kontrak Ekspor */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Nilai Kontrak Ekspor</span>
+            <span className="space-stat-v2-title">{isEn ? "Export Contract Value" : "Nilai Kontrak Ekspor"}</span>
             <div className="space-stat-v2-icon blue">
               <Briefcase size={16} />
             </div>
@@ -411,14 +415,14 @@ export function DashboardView({
             <span className="space-kpi-badge positive">
               <ArrowUpRight size={13} /> +2.9%
             </span>
-            <span className="space-kpi-meta">FOB Tanjung Priok</span>
+            <span className="space-kpi-meta">{isEn ? "FOB Tanjung Priok Port" : "FOB Tanjung Priok"}</span>
           </div>
         </div>
 
         {/* Card 2: Devisa Ekspor Masuk */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Realisasi Devisa (DHE)</span>
+            <span className="space-stat-v2-title">{isEn ? "Export FX Inflow (DHE)" : "Realisasi Devisa (DHE)"}</span>
             <div className="space-stat-v2-icon purple">
               <Landmark size={16} />
             </div>
@@ -430,8 +434,8 @@ export function DashboardView({
             <span className="space-kpi-badge neutral">
               Mandiri
             </span>
-            <span className="space-kpi-meta" title="Rekening Khusus DHE SDA">
-              Rek. Khusus DHE SDA
+            <span className="space-kpi-meta" title={isEn ? "Special DHE Natural Resources Account" : "Rekening Khusus DHE SDA"}>
+              {isEn ? "Special DHE SDA Acct" : "Rek. Khusus DHE SDA"}
             </span>
           </div>
         </div>
@@ -439,26 +443,26 @@ export function DashboardView({
         {/* Card 3: Kepatuhan DHE SDA */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Kepatuhan DHE SDA</span>
+            <span className="space-stat-v2-title">{isEn ? "Export FX Compliance" : "Kepatuhan DHE SDA"}</span>
             <div className="space-stat-v2-icon mint">
               <ShieldCheck size={16} />
             </div>
           </div>
           <div className="space-stat-v2-value">
-            100% Patuh
+            {isEn ? "100% Compliant" : "100% Patuh"}
           </div>
           <div className="space-stat-v2-foot">
             <span className="space-kpi-badge positive">
               <Check size={11} /> PP 36
             </span>
-            <span className="space-kpi-meta">Retensi 30% · 90 Hari</span>
+            <span className="space-kpi-meta">{isEn ? "30% Retention · 90 Days" : "Retensi 30% · 90 Hari"}</span>
           </div>
         </div>
 
         {/* Card 4: Volume & Muatan Kontainer */}
         <div className="space-stat-card-v2">
           <div className="space-stat-v2-header">
-            <span className="space-stat-v2-title">Muatan & Kontainer</span>
+            <span className="space-stat-v2-title">{isEn ? "Cargo & Container Load" : "Muatan & Kontainer"}</span>
             <div className="space-stat-v2-icon blue">
               <Package size={16} />
             </div>
@@ -470,7 +474,7 @@ export function DashboardView({
             <span className="space-kpi-badge info">
               87.2% CBM
             </span>
-            <span className="space-kpi-meta">320 Karung Kopi ICO</span>
+            <span className="space-kpi-meta">{isEn ? "320 Bags ICO Coffee" : "320 Karung Kopi ICO"}</span>
           </div>
         </div>
       </div>
@@ -482,21 +486,21 @@ export function DashboardView({
           <div className="space-chart-v2-head">
             <div>
               <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-                Pelacakan Pengapalan Samudera
+                {isEn ? "Ocean Freight Vessel Tracking" : "Pelacakan Pengapalan Samudera"}
               </h3>
               <p style={{ margin: "2px 0 0 0", fontSize: 12.5, color: "#64748B" }}>
-                Pemantauan rute kargo maritim aktif &amp; status izin kepabeanan
+                {isEn ? "Real-time maritime cargo tracking & customs clearance status" : "Pemantauan rute kargo maritim aktif & status izin kepabeanan"}
               </p>
             </div>
             <button
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("tracking")}
-              title="Buka Pelacakan Kontainer Lengkap"
+              title={isEn ? "Open Complete Container Tracking" : "Buka Pelacakan Kontainer Lengkap"}
               style={{ padding: "6px 14px", fontSize: 12 }}
             >
               <Ship size={13} />
-              <span>Detail Kapal</span>
+              <span>{isEn ? "Vessel Details" : "Detail Kapal"}</span>
             </button>
           </div>
 
@@ -524,12 +528,12 @@ export function DashboardView({
             <div className="space-vessel-etd-eta">
               <div className="space-vessel-etd-item">
                 <span>ETD (PRIOK)</span>
-                <strong>28 Nov 2026</strong>
+                <strong>{isEn ? "Nov 28, 2026" : "28 Nov 2026"}</strong>
               </div>
               <div style={{ color: "rgba(255,255,255,0.35)", fontWeight: 300 }}>|</div>
               <div className="space-vessel-etd-item eta">
                 <span>ETA (LOS ANGELES)</span>
-                <strong>18 Des 2026</strong>
+                <strong>{isEn ? "Dec 18, 2026" : "18 Des 2026"}</strong>
               </div>
             </div>
           </div>
@@ -550,7 +554,7 @@ export function DashboardView({
                 <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
                 <div className="space-step-line done" />
               </div>
-              <span className="space-step-label">Karantina</span>
+              <span className="space-step-label">{isEn ? "Quarantine" : "Karantina"}</span>
               <span className="space-step-sub">Phyto OK</span>
             </div>
 
@@ -559,8 +563,8 @@ export function DashboardView({
                 <div className="space-step-dot done"><Check size={12} strokeWidth={2.8} /></div>
                 <div className="space-step-line done" />
               </div>
-              <span className="space-step-label">Bea Cukai</span>
-              <span className="space-step-sub">Jalur Hijau</span>
+              <span className="space-step-label">{isEn ? "Customs" : "Bea Cukai"}</span>
+              <span className="space-step-sub">{isEn ? "Green Lane" : "Jalur Hijau"}</span>
             </div>
 
             <div className="space-export-step-item">
@@ -577,7 +581,7 @@ export function DashboardView({
                 <div className="space-step-dot active"><Ship size={12} strokeWidth={2.2} /></div>
                 <div className="space-step-line" />
               </div>
-              <span className="space-step-label active">Pelayaran</span>
+              <span className="space-step-label active">{isEn ? "Sailing" : "Pelayaran"}</span>
               <span className="space-step-sub active">In Transit</span>
             </div>
 
@@ -585,7 +589,7 @@ export function DashboardView({
               <div className="space-step-head">
                 <div className="space-step-dot pending">6</div>
               </div>
-              <span className="space-step-label pending">POD (Tujuan)</span>
+              <span className="space-step-label pending">{isEn ? "POD (Dest.)" : "POD (Tujuan)"}</span>
               <span className="space-step-sub pending">Los Angeles</span>
             </div>
           </div>
@@ -612,9 +616,9 @@ export function DashboardView({
                 </strong>
               </div>
               <div style={{ fontSize: 12.5, lineHeight: 1.3 }}>
-                <span style={{ color: "#64748B", fontSize: 12 }}>Muatan: </span>
+                <span style={{ color: "#64748B", fontSize: 12 }}>{isEn ? "Cargo: " : "Muatan: "}</span>
                 <strong style={{ color: "#0F172A", fontSize: 12.5, fontWeight: 600 }}>
-                  Kopi Arabika Gayo (19.2 MT · 1x20' FCL)
+                  {isEn ? "Gayo Arabica Coffee (19.2 MT · 1x20' FCL)" : "Kopi Arabika Gayo (19.2 MT · 1x20' FCL)"}
                 </strong>
               </div>
             </div>
@@ -622,11 +626,11 @@ export function DashboardView({
               type="button"
               className="space-btn-secondary"
               onClick={() => navigate("documents")}
-              title="Buka Dokumen Bill of Lading"
+              title={isEn ? "Open Bill of Lading Document" : "Buka Dokumen Bill of Lading"}
               style={{ padding: "6px 14px", fontSize: 12, flexShrink: 0 }}
             >
               <FileText size={13} />
-              <span>Lihat B/L Dokumen</span>
+              <span>{isEn ? "View B/L Doc" : "Lihat B/L Dokumen"}</span>
             </button>
           </div>
         </div>
@@ -638,9 +642,9 @@ export function DashboardView({
             <div className="space-payment-v2-head" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
-                  Pangsa Pasar Ekspor
+                  {isEn ? "Export Market Share" : "Pangsa Pasar Ekspor"}
                 </h3>
-                <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>Distribusi Pengapalan (FOB &amp; CIF)</span>
+                <span style={{ fontSize: 12, color: "#64748B", fontWeight: 500 }}>{isEn ? "Shipment Distribution (FOB & CIF)" : "Distribusi Pengapalan (FOB & CIF)"}</span>
               </div>
               <span className="space-kpi-badge neutral">18 TEUs</span>
             </div>
@@ -690,7 +694,7 @@ export function DashboardView({
                   18 TEUs
                 </text>
                 <text x="85" y="99" textAnchor="middle" style={{ fontSize: "11px", fontWeight: 500, fill: "#64748B", fontFamily: "inherit" }}>
-                  Total Ekspor
+                  {isEn ? "Total Export" : "Total Ekspor"}
                 </text>
               </svg>
             </div>
@@ -711,7 +715,7 @@ export function DashboardView({
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#8B5CF6" }} />
-                  <span style={{ color: "#334155", fontWeight: 500 }}>Eropa (Rotterdam)</span>
+                  <span style={{ color: "#334155", fontWeight: 500 }}>{isEn ? "Europe (Rotterdam)" : "Eropa (Rotterdam)"}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ color: "#64748B", fontSize: 11.5 }}>6 TEUs</span>
@@ -722,7 +726,7 @@ export function DashboardView({
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 12.5 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                   <span style={{ width: 9, height: 9, borderRadius: "50%", background: "#10B981" }} />
-                  <span style={{ color: "#334155", fontWeight: 500 }}>Jepang (Kobe / Tokyo)</span>
+                  <span style={{ color: "#334155", fontWeight: 500 }}>{isEn ? "Japan (Kobe / Tokyo)" : "Jepang (Kobe / Tokyo)"}</span>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   <span style={{ color: "#64748B", fontSize: 11.5 }}>4 TEUs</span>
@@ -736,18 +740,18 @@ export function DashboardView({
           <div className="space-export-matrix-card">
             <div className="space-matrix-header">
               <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#0F172A" }}>
-                Dokumen Wajib Ekspor
+                {isEn ? "Mandatory Export Documents" : "Dokumen Wajib Ekspor"}
               </h3>
-              <span className="status-pill green">6/6 Valid</span>
+              <span className="status-pill green">{isEn ? "6/6 Valid" : "6/6 Valid"}</span>
             </div>
 
             <div className="space-checklist-items">
               <div className="space-check-row">
                 <span className="space-check-name">
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
-                  PEB & NPE (Kepabeanan)
+                  {isEn ? "PEB & NPE (Customs)" : "PEB & NPE (Kepabeanan)"}
                 </span>
-                <span className="space-check-status green">Jalur Hijau</span>
+                <span className="space-check-status green">{isEn ? "Green Lane" : "Jalur Hijau"}</span>
               </div>
 
               <div className="space-check-row">
@@ -763,15 +767,15 @@ export function DashboardView({
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
                   Certificate of Origin (COO)
                 </span>
-                <span className="space-check-status green">Kemendag</span>
+                <span className="space-check-status green">{isEn ? "Ministry of Trade" : "Kemendag"}</span>
               </div>
 
               <div className="space-check-row">
                 <span className="space-check-name">
                   <CheckCircle2 size={15} style={{ color: "#10B981" }} />
-                  Karantina & Fumigasi
+                  {isEn ? "Quarantine & Fumigation" : "Karantina & Fumigasi"}
                 </span>
-                <span className="space-check-status green">Lolos</span>
+                <span className="space-check-status green">{isEn ? "Passed" : "Lolos"}</span>
               </div>
             </div>
           </div>
@@ -783,10 +787,10 @@ export function DashboardView({
         <div className="space-invoices-v2-head">
           <div>
             <h3 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#0F172A" }}>
-              Pengapalan Ekspor Aktif
+              {isEn ? "Active Export Shipments" : "Pengapalan Ekspor Aktif"}
             </h3>
             <p style={{ margin: "2px 0 0 0", fontSize: 12, color: "#64748B" }}>
-              Manifest pengapalan maritim aktif &amp; status kepabeanan kontainer
+              {isEn ? "Active maritime shipment manifests & container customs status" : "Manifest pengapalan maritim aktif & status kepabeanan kontainer"}
             </p>
           </div>
           <div className="space-invoices-v2-actions">
@@ -796,7 +800,7 @@ export function DashboardView({
                 type="button"
                 className="space-port-filter-btn"
                 onClick={() => setPortMenuOpen((prev) => !prev)}
-                title="Filter Pelabuhan Muat"
+                title={isEn ? "Filter Loading Port" : "Filter Pelabuhan Muat"}
               >
                 <Filter size={13} style={{ color: selectedPort !== "all" ? "#2563EB" : "#64748B" }} />
                 <span>{activePortLabel}</span>
@@ -813,7 +817,7 @@ export function DashboardView({
               {portMenuOpen && (
                 <div className="space-port-dropdown-menu">
                   <div style={{ padding: "6px 8px 4px 8px", fontSize: 11, fontWeight: 600, color: "#64748B", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                    Filter Pelabuhan Muat
+                    {isEn ? "Filter Loading Port" : "Filter Pelabuhan Muat"}
                   </div>
                   {portOptions.map((p) => {
                     const isSelected = selectedPort === p.id;
@@ -850,7 +854,7 @@ export function DashboardView({
               onClick={() => navigate("transactions")}
               style={{ padding: "6px 14px", fontSize: 12 }}
             >
-              <span>Semua Transaksi</span>
+              <span>{isEn ? "All Transactions" : "Semua Transaksi"}</span>
               <ChevronRight size={13} />
             </button>
           </div>
@@ -860,14 +864,14 @@ export function DashboardView({
           <table className="space-invoices-table-v2">
             <thead>
               <tr>
-                <th style={{ minWidth: 140 }}>No. B/L &amp; Kontrak</th>
-                <th style={{ minWidth: 175 }}>Buyer &amp; Destinasi</th>
-                <th style={{ minWidth: 175 }}>Komoditas &amp; Kontainer</th>
-                <th style={{ minWidth: 150 }}>Rute Pelayaran</th>
-                <th style={{ minWidth: 135 }}>Jadwal Kapal</th>
-                <th style={{ minWidth: 160 }}>Status Kepabeanan</th>
-                <th style={{ minWidth: 115, textAlign: "right" }}>Nilai Ekspor</th>
-                <th style={{ minWidth: 250, textAlign: "right" }}>Aksi Cepat</th>
+                <th style={{ minWidth: 140 }}>{isEn ? "B/L No. & Contract" : "No. B/L & Kontrak"}</th>
+                <th style={{ minWidth: 175 }}>{isEn ? "Buyer & Destination" : "Buyer & Destinasi"}</th>
+                <th style={{ minWidth: 175 }}>{isEn ? "Commodity & Container" : "Komoditas & Kontainer"}</th>
+                <th style={{ minWidth: 150 }}>{isEn ? "Shipping Route" : "Rute Pelayaran"}</th>
+                <th style={{ minWidth: 135 }}>{isEn ? "Vessel Schedule" : "Jadwal Kapal"}</th>
+                <th style={{ minWidth: 160 }}>{isEn ? "Customs Status" : "Status Kepabeanan"}</th>
+                <th style={{ minWidth: 115, textAlign: "right" }}>{isEn ? "Export Value" : "Nilai Ekspor"}</th>
+                <th style={{ minWidth: 250, textAlign: "right" }}>{isEn ? "Quick Actions" : "Aksi Cepat"}</th>
               </tr>
             </thead>
             <tbody>
@@ -875,7 +879,7 @@ export function DashboardView({
                 <tr key={s.blNumber}>
                   <td>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                      <span className="space-invoice-code" onClick={() => navigate("documents")} title="Lihat Dokumen B/L">
+                      <span className="space-invoice-code" onClick={() => navigate("documents")} title={isEn ? "View B/L Document" : "Lihat Dokumen B/L"}>
                         {s.blNumber}
                       </span>
                       <span style={{ color: "#64748B", fontSize: 11.5 }}>
@@ -937,7 +941,7 @@ export function DashboardView({
                   <td style={{ textAlign: "right" }}>
                     <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
                       <span className="space-table-amount">{s.amount}</span>
-                      <span style={{ fontSize: 11, color: "#64748B" }}>FOB Pelabuhan</span>
+                      <span style={{ fontSize: 11, color: "#64748B" }}>{isEn ? "FOB Port" : "FOB Pelabuhan"}</span>
                     </div>
                   </td>
                   <td style={{ textAlign: "right" }}>
@@ -946,28 +950,28 @@ export function DashboardView({
                         type="button"
                         className="space-btn-table-ghost"
                         onClick={() => navigate("documents")}
-                        title="Lihat Dokumen Ekspor (PEB, B/L, COO)"
+                        title={isEn ? "View Export Documents (PEB, B/L, COO)" : "Lihat Dokumen Ekspor (PEB, B/L, COO)"}
                       >
                         <FileText size={11.5} />
-                        <span>Dokumen</span>
+                        <span>{isEn ? "Docs" : "Dokumen"}</span>
                       </button>
                       <button
                         type="button"
                         className="space-btn-table-ghost"
                         onClick={() => navigate("cargo")}
-                        title="Rencana Muatan & Kontainer"
+                        title={isEn ? "Cargo & Container Plan" : "Rencana Muatan & Kontainer"}
                       >
                         <Package size={11.5} />
-                        <span>Muatan</span>
+                        <span>{isEn ? "Cargo" : "Muatan"}</span>
                       </button>
                       <button
                         type="button"
                         className="space-btn-table-primary"
                         onClick={() => navigate("tracking")}
-                        title="Lacak Posisi Kapal di Laut"
+                        title={isEn ? "Track Vessel Live Position" : "Lacak Posisi Kapal di Laut"}
                       >
                         <Compass size={11.5} />
-                        <span>Lacak</span>
+                        <span>{isEn ? "Track" : "Lacak"}</span>
                       </button>
                     </div>
                   </td>
@@ -980,7 +984,11 @@ export function DashboardView({
         {/* Functional Clean Pagination Bar */}
         <div className="space-invoices-pagination">
           <div style={{ fontSize: 12.5, color: "#64748B" }}>
-            Menampilkan <strong style={{ color: "#0F172A" }}>{startRecord}–{endRecord}</strong> dari <strong style={{ color: "#0F172A" }}>{filteredShipments.length}</strong> pengapalan aktif
+            {isEn ? (
+              <>Showing <strong style={{ color: "#0F172A" }}>{startRecord}–{endRecord}</strong> of <strong style={{ color: "#0F172A" }}>{filteredShipments.length}</strong> active shipments</>
+            ) : (
+              <>Menampilkan <strong style={{ color: "#0F172A" }}>{startRecord}–{endRecord}</strong> dari <strong style={{ color: "#0F172A" }}>{filteredShipments.length}</strong> pengapalan aktif</>
+            )}
           </div>
           <div className="space-page-controls">
             <button
@@ -990,7 +998,7 @@ export function DashboardView({
               onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
             >
               <ChevronLeft size={13} />
-              <span>Sebelumnya</span>
+              <span>{isEn ? "Previous" : "Sebelumnya"}</span>
             </button>
             <div className="space-page-numbers">
               {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
@@ -1010,7 +1018,7 @@ export function DashboardView({
               disabled={safeCurrentPage >= totalPages}
               onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
             >
-              <span>Berikutnya</span>
+              <span>{isEn ? "Next" : "Berikutnya"}</span>
               <ChevronRight size={13} />
             </button>
           </div>
