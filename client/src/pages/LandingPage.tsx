@@ -296,72 +296,355 @@ export function LandingPage({
               </div>
             </div>
 
-            {/* Kanan: Whitepace Visual Container Showcase (#C4DEFD Frame) */}
-            <div className="lg:col-span-6">
-              <div className="relative rounded-2xl bg-[#C4DEFD] p-4 sm:p-6 shadow-2xl border border-white/40 overflow-hidden">
-                {/* Header Mockup */}
-                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#043873]/15">
+            {/* Kanan: Ilustrasi Editorial Maritim EksporFlow (Bespoke Maritime Trade Artwork) */}
+            <div className="lg:col-span-6 flex justify-center">
+              <div className="w-full max-w-[560px] relative rounded-2xl bg-[#031C3C]/80 border border-white/15 shadow-2xl overflow-hidden backdrop-blur-xs">
+                {/* Visual Telemetry Bar (Technical Nautical Chart Header) */}
+                <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/10 bg-[#02152E]/90 text-[11px] font-mono text-white/70">
                   <div className="flex items-center gap-2">
-                    <span className="w-3 h-3 rounded-full bg-[#ef4444]" />
-                    <span className="w-3 h-3 rounded-full bg-[#f59e0b]" />
-                    <span className="w-3 h-3 rounded-full bg-[#10b981]" />
-                    <span className="text-xs font-mono font-bold text-[#043873] ml-2">
-                      EksporFlow Trade OS · EXP-2026-0881
+                    <span className="w-2 h-2 rounded-full bg-[#FFE492]" />
+                    <span className="font-semibold text-white/90">
+                      CHART REF: IDJKT-NLRTM // UN/CEFACT
                     </span>
                   </div>
-                  <span className="text-[11px] font-semibold bg-[#043873] text-white px-2.5 py-0.5 rounded-full font-mono">
-                    Kargo Aktif Siap Sandar
+                  <span className="text-[10px] text-white/60">
+                    LAT 06°06&apos;S · LON 106°53&apos;E
                   </span>
                 </div>
 
-                {/* Body Mockup */}
-                <div className="space-y-4 text-[#043873]">
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white/90 rounded-xl p-3.5 shadow-xs border border-white/70">
-                      <div className="text-[11px] font-medium text-slate-600">Pelabuhan Muat (POL)</div>
-                      <div className="text-sm font-bold text-[#043873]">Tanjung Priok (JICT), ID</div>
-                      <div className="text-[11px] font-mono text-emerald-700 font-semibold mt-1">Gate-In JICT Aman</div>
-                    </div>
-                    <div className="bg-white/90 rounded-xl p-3.5 shadow-xs border border-white/70">
-                      <div className="text-[11px] font-medium text-slate-600">Pelabuhan Bongkar (POD)</div>
-                      <div className="text-sm font-bold text-[#043873]">Port of Rotterdam, NL</div>
-                      <div className="text-[11px] font-mono text-blue-700 font-semibold mt-1">ETA: 18 Des 2026</div>
-                    </div>
-                  </div>
+                {/* SVG Bespoke Maritime Artwork */}
+                <svg
+                  viewBox="0 0 560 380"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="w-full h-auto select-none block"
+                  aria-label="Ilustrasi Kapal Kontainer Samudera EksporFlow dan Rute Perdagangan Maritim Global"
+                >
+                  <defs>
+                    {/* Sky Gradient */}
+                    <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="240" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#02142B" />
+                      <stop offset="60%" stopColor="#05254A" />
+                      <stop offset="100%" stopColor="#0B3766" />
+                    </linearGradient>
 
-                  {/* Kesiapan 6 Dokumen Standar UN/CEFACT */}
-                  <div className="bg-white rounded-xl p-4 shadow-xs border border-white/70">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-[#043873]">Kesiapan 6 Dokumen UN/CEFACT</span>
-                      <span className="text-xs font-mono font-semibold text-emerald-600">6 / 6 Terverifikasi</span>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-[11px] font-medium font-mono">
-                      <div className="p-2 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 text-center">
-                        Proforma Inv.
-                      </div>
-                      <div className="p-2 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 text-center">
-                        Packing List
-                      </div>
-                      <div className="p-2 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 text-center">
-                        COO e-SKA
-                      </div>
-                    </div>
-                  </div>
+                    {/* Ocean Depth Gradient */}
+                    <linearGradient id="oceanGrad" x1="0" y1="240" x2="0" y2="380" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#072A52" />
+                      <stop offset="35%" stopColor="#041E3D" />
+                      <stop offset="100%" stopColor="#010D1D" />
+                    </linearGradient>
 
-                  {/* Free-Time Demurrage Meter */}
-                  <div className="bg-[#043873] text-white rounded-xl p-4 shadow-md flex items-center justify-between">
-                    <div>
-                      <div className="text-xs text-white/75">Demurrage Free-Time di POD</div>
-                      <div className="text-lg font-bold text-[#FFE492] font-mono">5 Hari Bebas Denda Tersedia</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={onStartDemo}
-                      className="bg-[#4F9CF9] hover:bg-[#3d8ceb] text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors flex items-center gap-1"
-                    >
-                      Buka Demo
-                      <ChevronRight size={13} />
-                    </button>
+                    {/* Container Shading Gradients */}
+                    <linearGradient id="cntGold" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#FFE492" />
+                      <stop offset="100%" stopColor="#D97706" />
+                    </linearGradient>
+
+                    <linearGradient id="cntEmerald" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#6EE7B7" />
+                      <stop offset="100%" stopColor="#047857" />
+                    </linearGradient>
+
+                    <linearGradient id="cntAzure" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#93C5FD" />
+                      <stop offset="100%" stopColor="#1D4ED8" />
+                    </linearGradient>
+
+                    <linearGradient id="cntNavy" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#475569" />
+                      <stop offset="100%" stopColor="#0F172A" />
+                    </linearGradient>
+
+                    {/* Hull Gradient */}
+                    <linearGradient id="hullBodyGrad" x1="0" y1="230" x2="0" y2="300" gradientUnits="userSpaceOnUse">
+                      <stop offset="0%" stopColor="#1E3E62" />
+                      <stop offset="50%" stopColor="#0E2338" />
+                      <stop offset="100%" stopColor="#05101C" />
+                    </linearGradient>
+
+                    {/* Glow filter for route lines */}
+                    <filter id="routeGlow" x="-20%" y="-20%" width="140%" height="140%">
+                      <feGaussianBlur stdDeviation="2.5" result="blur" />
+                      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                    </filter>
+                  </defs>
+
+                  {/* 1. Latar Langit Maritim & Garis Kisi Kartografi */}
+                  <rect x="0" y="0" width="560" height="240" fill="url(#skyGrad)" />
+                  
+                  {/* Garis Lintang & Bujur Kartografi Laut */}
+                  <g opacity="0.22" stroke="#4F9CF9" strokeWidth="0.75" strokeDasharray="3 5">
+                    <line x1="0" y1="45" x2="560" y2="45" />
+                    <line x1="0" y1="105" x2="560" y2="105" />
+                    <line x1="0" y1="165" x2="560" y2="165" />
+                    <line x1="0" y1="225" x2="560" y2="225" />
+                    <line x1="140" y1="0" x2="140" y2="240" />
+                    <line x1="280" y1="0" x2="280" y2="240" />
+                    <line x1="420" y1="0" x2="420" y2="240" />
+                  </g>
+
+                  {/* Koordinat Tepi Kartografi */}
+                  <text x="14" y="49" fill="#93C5FD" opacity="0.45" fontSize="8" fontFamily="monospace">10°00&apos;N</text>
+                  <text x="14" y="109" fill="#93C5FD" opacity="0.45" fontSize="8" fontFamily="monospace">05°00&apos;N</text>
+                  <text x="14" y="169" fill="#93C5FD" opacity="0.45" fontSize="8" fontFamily="monospace">00°00&apos; EQ</text>
+                  <text x="14" y="229" fill="#93C5FD" opacity="0.45" fontSize="8" fontFamily="monospace">05°00&apos;S</text>
+
+                  {/* Mawar Kompas (Compass Rose Nautical Marking) Kanan Atas */}
+                  <g transform="translate(485, 55)" opacity="0.55">
+                    <circle cx="0" cy="0" r="28" stroke="#FFE492" strokeWidth="0.75" fill="none" strokeDasharray="2 2" />
+                    <circle cx="0" cy="0" r="20" stroke="#4F9CF9" strokeWidth="0.5" fill="none" />
+                    <circle cx="0" cy="0" r="2.5" fill="#FFE492" />
+                    {/* Jarum Kompas 4 Arah Mata Angin */}
+                    <polygon points="0,-24 3,-5 0,0 -3,-5" fill="#FFE492" />
+                    <polygon points="0,24 3,5 0,0 -3,5" fill="#4F9CF9" />
+                    <polygon points="24,0 5,3 0,0 5,-3" fill="#4F9CF9" />
+                    <polygon points="-24,0 -5,3 0,0 -5,-3" fill="#4F9CF9" />
+                    <text x="0" y="-27" fill="#FFE492" fontSize="7.5" fontWeight="bold" textAnchor="middle" fontFamily="monospace">N</text>
+                  </g>
+
+                  {/* Derek Pelabuhan Siluet (Tanjung Priok JICT STS Cranes) di Horison Kiri */}
+                  <g opacity="0.3" transform="translate(25, 110)">
+                    {/* Crane 1 */}
+                    <line x1="30" y1="130" x2="48" y2="35" stroke="#93C5FD" strokeWidth="2" />
+                    <line x1="68" y1="130" x2="52" y2="35" stroke="#93C5FD" strokeWidth="2" />
+                    <line x1="32" y1="35" x2="115" y2="35" stroke="#93C5FD" strokeWidth="2.5" />
+                    <line x1="40" y1="35" x2="105" y2="52" stroke="#93C5FD" strokeWidth="1" />
+                    <line x1="45" y1="35" x2="38" y2="85" stroke="#93C5FD" strokeWidth="1" />
+                    <line x1="55" y1="35" x2="65" y2="85" stroke="#93C5FD" strokeWidth="1" />
+                    <rect x="75" y="38" width="14" height="8" rx="1.5" fill="#FFE492" />
+                    <line x1="82" y1="46" x2="82" y2="70" stroke="#FFE492" strokeWidth="0.75" />
+                    <rect x="77" y="70" width="10" height="5" rx="1" fill="#34D399" />
+
+                    {/* Crane 2 (Latar Belakang Lebih Kecil) */}
+                    <g transform="translate(60, 15) scale(0.85)" opacity="0.7">
+                      <line x1="30" y1="130" x2="48" y2="35" stroke="#93C5FD" strokeWidth="2" />
+                      <line x1="68" y1="130" x2="52" y2="35" stroke="#93C5FD" strokeWidth="2" />
+                      <line x1="32" y1="35" x2="115" y2="35" stroke="#93C5FD" strokeWidth="2.5" />
+                      <rect x="72" y="38" width="14" height="8" rx="1.5" fill="#FFE492" />
+                    </g>
+                  </g>
+
+                  {/* Busur Lintasan Pelayaran Global (Jakarta ➔ Rotterdam) */}
+                  <path
+                    d="M 75 185 C 160 50, 360 40, 480 145"
+                    stroke="#FFE492"
+                    strokeWidth="2.2"
+                    strokeDasharray="5 5"
+                    strokeLinecap="round"
+                    filter="url(#routeGlow)"
+                  />
+                  {/* Waypoint Jakarta */}
+                  <circle cx="75" cy="185" r="4.5" fill="#34D399" stroke="#ffffff" strokeWidth="1.5" />
+                  <circle cx="75" cy="185" r="8" stroke="#34D399" strokeWidth="0.75" opacity="0.6" />
+                  
+                  {/* Waypoint Rotterdam */}
+                  <circle cx="480" cy="145" r="4.5" fill="#FFE492" stroke="#ffffff" strokeWidth="1.5" />
+                  <circle cx="480" cy="145" r="8" stroke="#FFE492" strokeWidth="0.75" opacity="0.6" />
+
+                  {/* Waypoint Labels */}
+                  <g transform="translate(42, 198)">
+                    <rect width="66" height="17" rx="3.5" fill="#01152C" stroke="#34D399" strokeWidth="0.8" />
+                    <text x="33" y="12" fill="#E2E8F0" fontSize="8.5" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                      POL: JKT
+                    </text>
+                  </g>
+                  <g transform="translate(447, 158)">
+                    <rect width="66" height="17" rx="3.5" fill="#01152C" stroke="#FFE492" strokeWidth="0.8" />
+                    <text x="33" y="12" fill="#FFE492" fontSize="8.5" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                      POD: RTM
+                    </text>
+                  </g>
+
+                  {/* 2. Samudera & Lapisan Ombak */}
+                  <rect x="0" y="240" width="560" height="140" fill="url(#oceanGrad)" />
+                  <line x1="0" y1="240" x2="560" y2="240" stroke="#FFE492" strokeWidth="0.75" opacity="0.4" />
+
+                  {/* Garis Aliran Air Samudera Dinamis */}
+                  <path
+                    d="M0 258 C 70 252, 140 264, 210 257 C 280 250, 350 262, 420 256 C 480 251, 520 260, 560 257"
+                    stroke="#38BDF8"
+                    strokeWidth="1.2"
+                    opacity="0.35"
+                    fill="none"
+                  />
+                  <path
+                    d="M0 278 C 60 272, 130 284, 200 277 C 270 270, 360 283, 440 276 C 500 271, 535 280, 560 277"
+                    stroke="#34D399"
+                    strokeWidth="0.9"
+                    opacity="0.25"
+                    fill="none"
+                  />
+                  <path
+                    d="M0 310 C 80 304, 180 318, 270 310 C 360 302, 450 316, 560 309"
+                    stroke="#4F9CF9"
+                    strokeWidth="0.8"
+                    opacity="0.2"
+                    fill="none"
+                  />
+
+                  {/* 3. Kapal Kontainer Samudera (Main Oceanic Container Ship) */}
+                  <g transform="translate(75, 115)">
+                    
+                    {/* Anjungan & Bangunan Atas (Superstructure & Bridge) */}
+                    {/* Gedung Akomodasi Utama */}
+                    <rect x="36" y="60" width="48" height="66" rx="3.5" fill="#F8FAFC" stroke="#041E3A" strokeWidth="1.8" />
+                    
+                    {/* Dek Anjungan Navigasi (Top Nav Bridge) */}
+                    <path d="M30 68 H90 V60 H30 Z" fill="#E2E8F0" stroke="#041E3A" strokeWidth="1.5" />
+                    {/* Jendela Anjungan Kaca Gelap */}
+                    <rect x="34" y="62" width="52" height="5.5" rx="1.5" fill="#0A2647" />
+                    <circle cx="42" cy="65" r="1.2" fill="#FFE492" />
+                    <circle cx="52" cy="65" r="1.2" fill="#FFE492" />
+                    <circle cx="62" cy="65" r="1.2" fill="#FFE492" />
+                    <circle cx="72" cy="65" r="1.2" fill="#FFE492" />
+                    <circle cx="80" cy="65" r="1.2" fill="#FFE492" />
+
+                    {/* Dek Tengah & Jendela Kabin */}
+                    <rect x="42" y="76" width="36" height="5" rx="1" fill="#CBD5E1" />
+                    <rect x="42" y="88" width="36" height="5" rx="1" fill="#CBD5E1" />
+                    <rect x="42" y="100" width="36" height="5" rx="1" fill="#CBD5E1" />
+
+                    {/* Cerobong Asap (Funnel) dengan Logo Chevron EksporFlow */}
+                    <rect x="48" y="38" width="22" height="22" rx="3" fill="#D97706" stroke="#041E3A" strokeWidth="1.6" />
+                    <path d="M48 45H70" stroke="#041E3A" strokeWidth="2.5" />
+                    {/* Skewed Dual Bar Logo pada Cerobong */}
+                    <line x1="54" y1="52" x2="62" y2="50" stroke="#FFE492" strokeWidth="2" strokeLinecap="round" />
+                    <line x1="56" y1="56" x2="64" y2="54" stroke="#34D399" strokeWidth="2" strokeLinecap="round" />
+
+                    {/* Tiang Radar Navigasi & Komunikasi */}
+                    <line x1="59" y1="38" x2="59" y2="20" stroke="#E2E8F0" strokeWidth="2" />
+                    <line x1="50" y1="26" x2="68" y2="26" stroke="#E2E8F0" strokeWidth="1.5" />
+                    <line x1="53" y1="31" x2="65" y2="31" stroke="#E2E8F0" strokeWidth="1.2" />
+                    <circle cx="59" cy="20" r="2.2" fill="#EF4444" />
+                    {/* Radar Scanner Berputar (Rotary Bar) */}
+                    <line x1="52" y1="23" x2="66" y2="23" stroke="#FFE492" strokeWidth="1.8" strokeLinecap="round" />
+
+                    {/* Tumpukan Kontainer Berwarna Berdasarkan Komoditas Ekspor */}
+                    {/* Tier 1 (Paling Bawah - Row Bay 1 sampai 5) */}
+                    <g stroke="#041E3A" strokeWidth="1.4">
+                      <rect x="94" y="105" width="52" height="21" rx="2.5" fill="url(#cntNavy)" />
+                      <rect x="150" y="105" width="52" height="21" rx="2.5" fill="url(#cntGold)" />
+                      <rect x="206" y="105" width="52" height="21" rx="2.5" fill="url(#cntEmerald)" />
+                      <rect x="262" y="105" width="52" height="21" rx="2.5" fill="url(#cntAzure)" />
+                      <rect x="318" y="105" width="46" height="21" rx="2.5" fill="url(#cntGold)" />
+
+                      {/* Tier 2 (Tengah) */}
+                      <rect x="98" y="82" width="52" height="21" rx="2.5" fill="url(#cntEmerald)" />
+                      <rect x="154" y="82" width="52" height="21" rx="2.5" fill="url(#cntAzure)" />
+                      <rect x="210" y="82" width="52" height="21" rx="2.5" fill="url(#cntGold)" />
+                      <rect x="266" y="82" width="52" height="21" rx="2.5" fill="url(#cntNavy)" />
+                      <rect x="322" y="82" width="42" height="21" rx="2.5" fill="url(#cntEmerald)" />
+
+                      {/* Tier 3 (Paling Atas) */}
+                      <rect x="158" y="59" width="52" height="21" rx="2.5" fill="url(#cntGold)" />
+                      <rect x="214" y="59" width="52" height="21" rx="2.5" fill="url(#cntEmerald)" />
+                      <rect x="270" y="59" width="50" height="21" rx="2.5" fill="url(#cntAzure)" />
+                    </g>
+
+                    {/* Garis Corrugation Rusuk Kontainer (Nautical Realism) */}
+                    <g stroke="#041E3A" strokeWidth="0.9" opacity="0.45">
+                      {/* Tier 1 Ribs */}
+                      <line x1="110" y1="108" x2="110" y2="123" />
+                      <line x1="126" y1="108" x2="126" y2="123" />
+                      <line x1="166" y1="108" x2="166" y2="123" />
+                      <line x1="182" y1="108" x2="182" y2="123" />
+                      <line x1="222" y1="108" x2="222" y2="123" />
+                      <line x1="238" y1="108" x2="238" y2="123" />
+                      <line x1="278" y1="108" x2="278" y2="123" />
+                      <line x1="294" y1="108" x2="294" y2="123" />
+                      <line x1="334" y1="108" x2="334" y2="123" />
+
+                      {/* Tier 2 Ribs */}
+                      <line x1="114" y1="85" x2="114" y2="100" />
+                      <line x1="130" y1="85" x2="130" y2="100" />
+                      <line x1="170" y1="85" x2="170" y2="100" />
+                      <line x1="186" y1="85" x2="186" y2="100" />
+                      <line x1="226" y1="85" x2="226" y2="100" />
+                      <line x1="242" y1="85" x2="242" y2="100" />
+                      <line x1="282" y1="85" x2="282" y2="100" />
+                      <line x1="298" y1="85" x2="298" y2="100" />
+
+                      {/* Tier 3 Ribs */}
+                      <line x1="174" y1="62" x2="174" y2="77" />
+                      <line x1="190" y1="62" x2="190" y2="77" />
+                      <line x1="230" y1="62" x2="230" y2="77" />
+                      <line x1="246" y1="62" x2="246" y2="77" />
+                      <line x1="286" y1="62" x2="286" y2="77" />
+                    </g>
+
+                    {/* Corner Castings Twistlocks (Titik Pengait Sudut ISO) */}
+                    <g fill="#041E3A" opacity="0.65">
+                      <circle cx="97" cy="108" r="1.2" />
+                      <circle cx="143" cy="108" r="1.2" />
+                      <circle cx="153" cy="108" r="1.2" />
+                      <circle cx="199" cy="108" r="1.2" />
+                      <circle cx="209" cy="108" r="1.2" />
+                      <circle cx="255" cy="108" r="1.2" />
+                      <circle cx="265" cy="108" r="1.2" />
+                      <circle cx="311" cy="108" r="1.2" />
+                    </g>
+
+                    {/* Lambung Baja Kapal Samudera (Container Vessel Hull) */}
+                    <path
+                      d="M14 126 H388 L356 172 H38 L14 126 Z"
+                      fill="url(#hullBodyGrad)"
+                      stroke="#4F9CF9"
+                      strokeWidth="2.2"
+                      strokeLinejoin="round"
+                    />
+
+                    {/* Garis Plimsoll (Plimsoll Waterline Emas Kunyit & Penandaan Draft) */}
+                    <path d="M30 154 H368" stroke="#FFE492" strokeWidth="3" strokeLinecap="round" />
+                    
+                    {/* Lambang & Identitas Kapal di Haluan */}
+                    <circle cx="350" cy="140" r="4.5" fill="#021326" stroke="#4F9CF9" strokeWidth="1" />
+                    <text x="350" y="143" fill="#FFE492" fontSize="6.5" fontWeight="bold" textAnchor="middle" fontFamily="monospace">
+                      EF
+                    </text>
+                    <text x="325" y="142" fill="#E2E8F0" fontSize="7" fontWeight="bold" fontFamily="monospace" opacity="0.8">
+                      EKSPORFLOW NUSANTARA
+                    </text>
+
+                    {/* Haluan Pemecah Ombak (Bulbous Bow Wake & Water Spray) */}
+                    <path
+                      d="M368 158 C 390 156, 420 168, 444 163"
+                      stroke="#38BDF8"
+                      strokeWidth="3.2"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    <path
+                      d="M356 166 C 382 164, 412 174, 432 171"
+                      stroke="#34D399"
+                      strokeWidth="2.4"
+                      strokeLinecap="round"
+                      fill="none"
+                    />
+                    {/* Ombak Buritan (Stern Wake Trail) */}
+                    <path
+                      d="M6 162 C 22 156, 40 166, 62 162"
+                      stroke="#38BDF8"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      opacity="0.65"
+                      fill="none"
+                    />
+                  </g>
+                </svg>
+
+                {/* Footer Strip Kartografi Maritim (Quiet Editorial Meta Bar) */}
+                <div className="flex flex-wrap items-center justify-between px-4 py-2 bg-[#02152E]/95 border-t border-white/10 text-[10.5px] font-mono text-white/65">
+                  <div className="flex items-center gap-3">
+                    <span className="text-white/90 font-semibold">MV EKSPORFLOW NUSANTARA</span>
+                    <span className="text-white/40">·</span>
+                    <span>IMO 9872140</span>
+                    <span className="text-white/40">·</span>
+                    <span className="text-[#34D399]">14,800 TEU</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-white/80">
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#FFE492]" />
+                    <span>RUTE: JKT (ID) ➔ RTM (NL)</span>
                   </div>
                 </div>
               </div>
