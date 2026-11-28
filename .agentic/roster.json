@@ -64,7 +64,7 @@
     {
       "id": "ui-ux-engineer",
       "name": "Frontend & UX Craftsman",
-      "skills": ["ui-ux-pro-max", "frontend-design", "frontend-developer", "ux-researcher"],
+      "skills": ["ui-ux-pro-max", "frontend-design", "frontend-developer", "ux-researcher", "unslop"],
       "owns": [
         "client/src/components/workspace/",
         "client/src/pages/",
