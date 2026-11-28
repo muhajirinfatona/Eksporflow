@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 
-export type SupportedLocale = "ID" | "EN" | "AR";
+export type SupportedLocale = "ID" | "EN";
 
 interface LanguageDropdownProps {
   currentLocale: SupportedLocale;
@@ -18,29 +18,19 @@ function FlagIcon({ code }: { code: SupportedLocale }) {
       </svg>
     );
   }
-  if (code === "EN") {
-    return (
-      <svg width="18" height="13" viewBox="0 0 18 13" style={{ borderRadius: 2, flexShrink: 0, boxShadow: "0 0 1px rgba(0,0,0,0.3)" }}>
-        <rect width="18" height="13" fill="#B91C1C" />
-        <rect y="2" width="18" height="2" fill="#FFFFFF" />
-        <rect y="6" width="18" height="2" fill="#FFFFFF" />
-        <rect y="10" width="18" height="2" fill="#FFFFFF" />
-        <rect width="8" height="7" fill="#1D4ED8" />
-        <circle cx="2" cy="2" r="0.6" fill="#FFFFFF" />
-        <circle cx="5" cy="2" r="0.6" fill="#FFFFFF" />
-        <circle cx="3.5" cy="4" r="0.6" fill="#FFFFFF" />
-        <circle cx="2" cy="5.5" r="0.6" fill="#FFFFFF" />
-        <circle cx="5" cy="5.5" r="0.6" fill="#FFFFFF" />
-      </svg>
-    );
-  }
-  // Saudi Arabia flag (green with white script/sword)
+  // US Flag for EN
   return (
     <svg width="18" height="13" viewBox="0 0 18 13" style={{ borderRadius: 2, flexShrink: 0, boxShadow: "0 0 1px rgba(0,0,0,0.3)" }}>
-      <rect width="18" height="13" fill="#15803D" />
-      <path d="M 3 6.5 L 15 6.5" stroke="#FFFFFF" strokeWidth="1.2" strokeLinecap="round" />
-      <path d="M 5 5 L 13 5" stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round" />
-      <path d="M 4 8 L 14 8" stroke="#FFFFFF" strokeWidth="0.8" strokeLinecap="round" />
+      <rect width="18" height="13" fill="#B91C1C" />
+      <rect y="2" width="18" height="2" fill="#FFFFFF" />
+      <rect y="6" width="18" height="2" fill="#FFFFFF" />
+      <rect y="10" width="18" height="2" fill="#FFFFFF" />
+      <rect width="8" height="7" fill="#1D4ED8" />
+      <circle cx="2" cy="2" r="0.6" fill="#FFFFFF" />
+      <circle cx="5" cy="2" r="0.6" fill="#FFFFFF" />
+      <circle cx="3.5" cy="4" r="0.6" fill="#FFFFFF" />
+      <circle cx="2" cy="5.5" r="0.6" fill="#FFFFFF" />
+      <circle cx="5" cy="5.5" r="0.6" fill="#FFFFFF" />
     </svg>
   );
 }
@@ -66,7 +56,6 @@ export function LanguageDropdown({ currentLocale, onSelectLocale }: LanguageDrop
   const languages = [
     { code: "ID" as SupportedLocale, name: "Bahasa Indonesia", short: "ID" },
     { code: "EN" as SupportedLocale, name: "English (US)", short: "EN" },
-    { code: "AR" as SupportedLocale, name: "العربية (Arabic)", short: "AR" },
   ];
 
   const current = languages.find((l) => l.code === currentLocale) || languages[0];
@@ -78,7 +67,7 @@ export function LanguageDropdown({ currentLocale, onSelectLocale }: LanguageDrop
         type="button"
         className="space-btn-secondary"
         onClick={() => setIsOpen((prev) => !prev)}
-        title="Pilih Bahasa Sistem (ID / EN / AR)"
+        title="Pilih Bahasa Sistem (ID / EN)"
         style={{
           display: "inline-flex",
           alignItems: "center",

@@ -105,16 +105,16 @@ export function LandingPage({
       <section className="pt-16 pb-20 border-b border-[#EAEFF5] bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#F0F6FC] border border-[#CBD5E1] text-[#0F2942] text-xs font-semibold mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-[#F1F5F9] border border-[#CBD5E1] text-[#0F2942] text-xs font-medium mb-6">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#D97706]" />
               Sistem Operasional Ekspor Terstandarisasi
             </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1B2533] tracking-tight leading-[1.15] mb-5">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-semibold text-[#0F172A] tracking-tight leading-[1.2] mb-5">
               Otomatisasi Dokumen Ekspor &amp; Pencegahan Denda Demurrage.
             </h1>
 
-            <p className="text-base sm:text-lg text-[#445164] leading-relaxed mb-8 max-w-2xl">
+            <p className="text-base sm:text-lg text-[#475569] leading-relaxed mb-8 max-w-2xl">
               Platform terpadu untuk eksportir dan UMKM Indonesia. Dari simulasi kontainer dan kepatuhan HS Code hingga penerbitan dokumen resmi (COO, PI, SC, CI, PL, SI) dengan audit trail Bea Cukai.
             </p>
 
@@ -165,8 +165,8 @@ export function LandingPage({
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             
             <div className="lg:col-span-5 space-y-4">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-amber-400">
-                KALKULATOR RISIKO PELABUHAN
+              <span className="text-xs font-mono font-medium text-amber-400">
+                Kalkulator Risiko Pelabuhan
               </span>
               <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white leading-tight">
                 Berapa Biaya Typo Dokumen di Pelabuhan Tujuan?
@@ -256,13 +256,13 @@ export function LandingPage({
 
               <div className="p-4 rounded-xl bg-[#131B26] border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                  <span className="text-[11px] font-mono uppercase tracking-wider text-rose-400 font-semibold block">
-                    POTENSI DENDA DEMURRAGE
+                  <span className="text-[11px] font-mono text-rose-400 font-medium block">
+                    Potensi Denda Demurrage
                   </span>
-                  <div className="text-2xl font-extrabold font-mono text-white tracking-tight">
+                  <div className="text-2xl font-semibold font-mono text-white tracking-tight tabular-nums">
                     USD ${demurrage.totalLossUsd.toLocaleString("en-US")}
                   </div>
-                  <span className="text-xs text-slate-400 font-mono">
+                  <span className="text-xs text-slate-400 font-mono tabular-nums">
                     ≈ {formatIdr(demurrage.totalLossIdr)} per kejadian
                   </span>
                 </div>
@@ -287,8 +287,8 @@ export function LandingPage({
       <section id="fitur" className="py-20 border-b border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="max-w-xl mb-12">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F2942]">
-              MODUL OPERASIONAL
+            <span className="text-xs font-mono font-medium text-slate-600">
+              Modul Operasional
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-3">
               Fasilitas Utama Pengelolaan Ekspor
@@ -358,8 +358,8 @@ export function LandingPage({
       <section id="harga" className="py-20 bg-slate-50 border-b border-slate-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
           <div className="text-center max-w-xl mx-auto mb-12">
-            <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#0F2942]">
-              TRANSPARANSI BIAYA
+            <span className="text-xs font-mono font-medium text-slate-600">
+              Transparansi Biaya
             </span>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 tracking-tight mt-1 mb-2">
               Paket Sederhana Sesuai Volume Ekspor
@@ -405,8 +405,8 @@ export function LandingPage({
                 >
                   <div>
                     {isHighlight && (
-                      <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[#92400E] bg-[#FEF3C7] px-2.5 py-0.5 rounded-full border border-[#FDE68A] inline-block mb-3">
-                        Paling Banyak Digunakan
+                      <span className="text-[11px] font-medium text-[#92400E] bg-[#FEF3C7] px-2 py-0.5 rounded-md border border-[#FDE68A] inline-block mb-3">
+                        Paling banyak digunakan
                       </span>
                     )}
                     <h3 className="text-base font-bold text-[#1B2533]">{plan.name}</h3>
@@ -414,7 +414,7 @@ export function LandingPage({
 
                     <div className="mb-5 pb-5 border-b border-[#EAEFF5]">
                       <div className="flex items-baseline gap-1">
-                        <span className="text-2xl sm:text-3xl font-extrabold text-[#1B2533] font-mono tracking-tight">
+                        <span className="text-2xl sm:text-3xl font-semibold text-[#1B2533] font-mono tabular-nums tracking-tight">
                           {formatIdr(calc.effectiveMonthlyIdr)}
                         </span>
                         <span className="text-xs text-[#697483] font-medium">/bln</span>

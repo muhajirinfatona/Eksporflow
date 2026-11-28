@@ -1387,7 +1387,7 @@ export function DocumentsModule({
               {shipment.documentReviewed ? "✓ Terverifikasi" : "Draft"}
             </span>
             {latestSnapshotForDoc && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 <Lock size={11} className="text-emerald-600" />
                 Rev {latestSnapshotForDoc.revision} · {latestSnapshotForDoc.contentHashSha256.substring(0, 8)}
               </span>

@@ -204,24 +204,24 @@ export function TrackingModule({
             <h3 className="font-bold text-sm text-foreground">
               Visualisasi Peta Maritim Samudra (Mid-Sea AIS Telemetry)
             </h3>
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1 animate-pulse">
-              <Radio size={10} /> SATELIT AIS AKTIF
+            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+              <Radio size={10} /> Satelit AIS aktif
             </span>
           </div>
 
           <div className="text-xs text-muted-foreground">
-            Progress Pelayaran: <b>{progressPercent}% Selesai</b>
+            Progress Pelayaran: <b className="font-mono tabular-nums">{progressPercent}% Selesai</b>
           </div>
         </div>
 
         {/* Nautical SVG Map Presentation */}
-        <div className="relative w-full h-[340px] bg-slate-950 rounded-xl overflow-hidden border border-cyan-500/30 shadow-2xl flex flex-col justify-between p-4 select-none">
+        <div className="relative w-full h-[340px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 shadow-sm flex flex-col justify-between p-4 select-none">
           {/* Wave background pattern */}
           <div className="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#06b6d4_1px,transparent_1px)] [background-size:24px_24px]" />
 
           {/* Header overlay on map */}
           <div className="relative z-10 flex items-center justify-between">
-            <div className="bg-slate-900/80 backdrop-blur border border-cyan-500/30 px-3 py-1.5 rounded-lg text-xs">
+            <div className="bg-slate-900/80 backdrop-blur border border-slate-800 px-3 py-1.5 rounded-lg text-xs">
               <span className="text-muted-foreground block text-[10px]">Kapal Pengangkut Kontainer:</span>
               <b className="text-cyan-300 font-mono">{vesselName}</b> · Voyage {voyageNumber}
             </div>
@@ -237,7 +237,7 @@ export function TrackingModule({
             <div className="relative flex items-center justify-between">
               {/* Origin Port */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-8 h-8 rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 shadow-lg shadow-emerald-500/20">
+                <div className="w-8 h-8 rounded-full bg-emerald-500/10 border border-emerald-400 flex items-center justify-center text-emerald-400">
                   <Anchor size={14} />
                 </div>
                 <b className="text-xs text-foreground mt-1.5">Tanjung Priok</b>
@@ -247,38 +247,35 @@ export function TrackingModule({
 
               {/* Waypoint 1: Malacca Strait */}
               <div className="hidden md:flex flex-col items-center text-center opacity-70">
-                <div className="w-4 h-4 rounded-full bg-cyan-400/30 border border-cyan-400" />
+                <div className="w-3.5 h-3.5 rounded-full bg-cyan-400/20 border border-cyan-400" />
                 <span className="text-[10px] text-muted-foreground mt-1">Selat Malaka</span>
                 <span className="text-[9px] text-muted-foreground">Passed</span>
               </div>
 
               {/* Current Mid-Sea Ship Location */}
               <div className="flex flex-col items-center text-center relative">
-                {/* Ping rings */}
-                <span className="absolute -top-1 w-12 h-12 rounded-full bg-cyan-400/20 animate-ping" />
-                
-                <div className="w-10 h-10 rounded-full bg-cyan-500 border-2 border-white flex items-center justify-center text-slate-950 shadow-xl shadow-cyan-500/50 relative z-10 transform -rotate-12">
-                  <Ship size={18} />
+                <div className="w-9 h-9 rounded-full bg-cyan-500 border-2 border-white flex items-center justify-center text-slate-950 shadow-md relative z-10 transform -rotate-12">
+                  <Ship size={17} />
                 </div>
 
-                <div className="bg-cyan-950/90 border border-cyan-400/50 px-2.5 py-1 rounded text-center mt-2 shadow-lg">
-                  <span className="text-[9px] font-bold text-cyan-300 uppercase tracking-widest block">
-                    POSISI TENGAH LAUT (MID-SEA)
+                <div className="bg-slate-900 border border-slate-800 px-2.5 py-1 rounded text-center mt-2 shadow-sm">
+                  <span className="text-[9px] font-medium text-slate-400 block mb-0.5">
+                    Posisi tengah laut (mid-sea)
                   </span>
-                  <b className="text-xs text-white font-mono">{coordinates}</b>
+                  <b className="text-xs text-white font-mono tabular-nums">{coordinates}</b>
                 </div>
               </div>
 
               {/* Waypoint 2: Suez Canal */}
               <div className="hidden md:flex flex-col items-center text-center opacity-70">
-                <div className="w-4 h-4 rounded-full bg-slate-700 border border-slate-500" />
+                <div className="w-3.5 h-3.5 rounded-full bg-slate-700 border border-slate-500" />
                 <span className="text-[10px] text-muted-foreground mt-1">Terusan Suez</span>
                 <span className="text-[9px] text-muted-foreground">Est. 23 Nov</span>
               </div>
 
               {/* Destination Port */}
               <div className="flex flex-col items-center text-center">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 border-2 border-blue-400 flex items-center justify-center text-blue-400 shadow-lg shadow-blue-500/20">
+                <div className="w-8 h-8 rounded-full bg-blue-500/10 border border-blue-400 flex items-center justify-center text-blue-400">
                   <MapPin size={14} />
                 </div>
                 <b className="text-xs text-foreground mt-1.5">Rotterdam</b>
@@ -290,7 +287,7 @@ export function TrackingModule({
             {/* Connecting Sea Route Line */}
             <div className="absolute top-4 left-14 right-14 h-0.5 -z-0 bg-slate-800">
               <div
-                className="h-full bg-gradient-to-r from-emerald-400 via-cyan-400 to-cyan-300 shadow-lg shadow-cyan-500"
+                className="h-full bg-cyan-500"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>

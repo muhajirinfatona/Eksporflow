@@ -875,7 +875,7 @@ export function WorkspaceShell({
               )}
             </div>
 
-            {/* 4. Language Selector Dropdown (ID 🇮🇩 / EN 🇺🇸 / AR 🇸🇦) */}
+            {/* 4. Language Selector Dropdown (ID 🇮🇩 / EN 🇺🇸) */}
             <LanguageDropdown
               currentLocale={locale}
               onSelectLocale={(loc) => {
@@ -883,7 +883,6 @@ export function WorkspaceShell({
                 const labels: Record<string, string> = {
                   ID: "Bahasa Indonesia",
                   EN: "English (US)",
-                  AR: "العربية (Arabic)",
                 };
                 toast.success(`${t("topbar.language_changed", "Bahasa sistem diubah ke")}: ${labels[loc]}`);
               }}

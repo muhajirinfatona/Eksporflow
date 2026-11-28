@@ -2396,35 +2396,34 @@ textarea:focus-visible {
 }
 
 /* ==========================================================================
-   Floating AI Advisor Popup Widget (Sleek Enterprise AI Flyout)
+   Floating AI Advisor Popup Widget (Unslop Refined Industrial Interface)
    ========================================================================== */
 .ai-float-trigger-btn {
   position: fixed;
   bottom: 24px;
   right: 24px;
-  padding: 0 18px;
-  height: 44px;
-  border-radius: var(--space-radius-full);
-  background: linear-gradient(135deg, var(--space-navy-900) 0%, var(--space-navy-800) 100%);
+  padding: 0 16px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--space-navy-900);
   color: #ffffff;
-  border: 1px solid rgba(245, 158, 11, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0px 10px 30px -4px rgba(11, 25, 44, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 14px rgba(11, 25, 44, 0.25);
   cursor: pointer;
   z-index: 9999 !important;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 0.01em;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.15s ease;
 }
 
 .ai-float-trigger-btn:hover {
-  transform: translateY(-2px);
-  background: linear-gradient(135deg, var(--space-navy-800) 0%, var(--space-navy-700) 100%);
-  border-color: rgba(245, 158, 11, 0.8);
-  box-shadow: 0px 14px 34px -4px rgba(11, 25, 44, 0.55), 0 0 14px rgba(245, 158, 11, 0.25);
+  background: var(--space-navy-800);
+  border-color: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 6px 18px rgba(11, 25, 44, 0.35);
 }
 
 .ai-float-trigger-label {
@@ -2435,8 +2434,8 @@ textarea:focus-visible {
   position: absolute;
   top: 1px;
   right: 1px;
-  width: 11px;
-  height: 11px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
   background: #10b981;
   border: 2px solid #0f172a;
@@ -2454,10 +2453,10 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 11px;
-  border-radius: 999px;
+  padding: 4px 9px;
+  border-radius: 6px;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   border: 1px solid transparent;
   line-height: 1;
   transition: all 0.15s ease;
@@ -2579,8 +2578,8 @@ textarea:focus-visible {
   color: #0369a1;
   background: #f0f9ff;
   border: 1px solid #bae6fd;
-  padding: 5px 12px;
-  border-radius: 999px;
+  padding: 4px 8px;
+  border-radius: 6px;
   text-align: left;
 }
 
@@ -2725,12 +2724,12 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 3px 10px;
+  padding: 3px 8px;
   background: rgba(255, 255, 255, 0.12);
   color: #e2e8f0;
   font-size: 11px;
   font-weight: 600;
-  border-radius: 999px;
+  border-radius: 6px;
   border: 1px solid rgba(255, 255, 255, 0.15);
 }
 

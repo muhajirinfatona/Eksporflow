@@ -28,7 +28,7 @@ import {
   Wallet,
 } from "lucide-react";
 
-export type SupportedLocale = "ID" | "EN" | "AR";
+export type SupportedLocale = "ID" | "EN";
 
 export type ScreenMeta = {
   id: ScreenId;
@@ -319,146 +319,18 @@ const TRANSLATIONS: Record<SupportedLocale, Record<string, string>> = {
     "screen.settings.title": "Workspace Settings",
     "screen.settings.desc": "Manage auth sessions, Supabase PostgreSQL sync status, RLS policies, and data portability exports.",
   },
-
-  AR: {
-    // Topbar
-    "topbar.search_placeholder": "البحث عن شحنة، بوليصة...",
-    "topbar.search_mobile_placeholder": "البحث عن شحنة، بوليصة، مستند...",
-    "topbar.help": "المساعدة",
-    "topbar.notifications": "الإشعارات",
-    "topbar.notifications_empty": "لا توجد إشعارات جديدة حتى الآن",
-    "topbar.notifications_empty_desc": "ستظهر هنا كافة تحديثات النظام ومستندات التخليص الجمركي ومواعيد السفن.",
-    "topbar.mark_all_read": "تحديد الكل كمقروء",
-    "topbar.save_shipment": "حفظ الشحنة",
-    "topbar.download_summary": "تنزيل التقرير",
-    "topbar.new_shipment": "شحنة جديدة",
-    "topbar.filter_range": "تحديد الفترة",
-    "topbar.conflict_detected": "تم اكتشاف تعارض في الإصدار:",
-    "topbar.conflict_desc": "تم تحديث الشحنة من جلسة أخرى. أعد تحميل أحدث إصدار قبل الحفظ لتجنب استبدال بيانات الفريق.",
-    "topbar.reload_latest": "تحميل أحدث إصدار",
-    "topbar.support_title": "مركز المساعدة والاستشارات التصديرية",
-    "topbar.language_changed": "تم تغيير لغة النظام إلى",
-
-    // Sidebar footer & auth
-    "sidebar.cloud_active": "اتصال السحابة نشط",
-    "sidebar.cloud_active_sub": "السحابة نشطة · مساحة التصدير",
-    "sidebar.logout": "تسجيل الخروج",
-    "sidebar.login": "تسجيل الدخول",
-
-    // Navigation Groups
-    "nav.group.summary": "نظرة عامة",
-    "nav.group.sales": "المبيعات والطلبات",
-    "nav.group.operations": "عمليات التصدير",
-    "nav.group.knowledge": "المستشار والمعرفة",
-    "nav.group.master_data": "البيانات الأساسية",
-    "nav.group.finance": "المالية والتحليلات",
-    "nav.group.admin": "الإدارة والنظام",
-
-    // Screens
-    "screen.dashboard.label": "لوحة القيادة",
-    "screen.dashboard.title": "لوحة متابعة التصدير",
-    "screen.dashboard.desc": "ملخص العمليات التصديرية النشطة والامتثال المالي للعملات الأجنبية",
-
-    "screen.readiness.label": "تقييم الجاهزية",
-    "screen.readiness.title": "تقييم الجاهزية للتصدير",
-    "screen.readiness.desc": "تقييم الجوانب القانونية للشركة وتراخيص وشهادات التصدير للمنتجات.",
-
-    "screen.pre_transaction.label": "ما قبل الصفقة",
-    "screen.pre_transaction.title": "استقطاب المشترين والمراسلات",
-    "screen.pre_transaction.desc": "إعداد عروض الأسعار الرسمية وخطابات الاستفسار والتحقق من المشترين.",
-
-    "screen.transactions.label": "طلبات التصدير",
-    "screen.transactions.title": "إدارة طلبات التصدير",
-    "screen.transactions.desc": "قائمة عقود التصدير، وتتبع الفواتير، ومراحل الشحن البحري.",
-
-    "screen.po_intake.label": "أمر الشراء",
-    "screen.po_intake.title": "تسجيل أمر الشراء (PO)",
-    "screen.po_intake.desc": "تسجيل طلبات الشراء الجديدة ومسح مستندات المشتري.",
-
-    "screen.pricing.label": "التسعير والتكلفة",
-    "screen.pricing.title": "حاسبة تكلفة وأسعار التصدير",
-    "screen.pricing.desc": "حساب هيكل تكلفة البضاعة المباعة، ونوالين الشحن، وأسعار الإنكوتيرمز (FOB, CIF).",
-
-    "screen.approvals.label": "الموافقات",
-    "screen.approvals.title": "الموافقات والاعتمادات",
-    "screen.approvals.desc": "مراجعة واعتماد هوامش الربح وشروط التسليم قبل إرسال العرض للعميل.",
-
-    "screen.compliance.label": "رمز HS واللوائح",
-    "screen.compliance.title": "رمز النظام المنسق والامتثال الجمركي",
-    "screen.compliance.desc": "التحقق من التعرفة الجمركية واتفاقيات التجارة الحرة والقيود الحكومية.",
-
-    "screen.documents.label": "مستندات التصدير",
-    "screen.documents.title": "مكتب وثائق التصدير الدولية",
-    "screen.documents.desc": "إصدار 6 وثائق تصدير رسمية (PI, SC, CI, PL, SI, COO) وفق المعايير العالمية.",
-
-    "screen.cargo.label": "خطة الحاوية",
-    "screen.cargo.title": "تخطيط حمولة الحاويات",
-    "screen.cargo.desc": "حساب حجم CBM وسعة الحاويات 20/40 قدم ومعدلات النقصان.",
-
-    "screen.tracking.label": "تتبع الحاويات",
-    "screen.tracking.title": "التتبع البحري للحاويات",
-    "screen.tracking.desc": "مراقبة موقع السفن والحاويات عبر الأقمار الصناعية ومواعيد الوصول.",
-
-    "screen.shipment.label": "اللوجستيات والشحن",
-    "screen.shipment.title": "إدارة الشحن واللوجستيات",
-    "screen.shipment.desc": "حالة حجز السفينة، وأرقام الحاويات، وقوائم التسليم النهائي.",
-
-    "screen.scrutiny.label": "تدقيق B/L",
-    "screen.scrutiny.title": "المطابقة الثلاثية لبوليصة الشحن",
-    "screen.scrutiny.desc": "فحص آلي متقدم بين مسودة B/L والفاتورة التجارية وقائمة التعبئة.",
-
-    "screen.risk.label": "مركز المخاطر",
-    "screen.risk.title": "مركز مراقبة المخاطر الجمركية",
-    "screen.risk.desc": "مراقبة الامتثال قبل الشحن والعد التنازلي لإقرار الصادرات الجمركي.",
-
-    "screen.audit_vault.label": "أرشيف الجمارك",
-    "screen.audit_vault.title": "الأرشيف الرقمي للتفتيش الجمركي",
-    "screen.audit_vault.desc": "أرشيف معاملات منظم من 5 مجلدات جاهز لتدقيق هيئة الجمارك.",
-
-    "screen.advisor.label": "المستشار الذكي",
-    "screen.advisor.title": "مستشار الذكاء الاصطناعي",
-    "screen.advisor.desc": "استفسر عن مخاطر التصدير، سيناريوهات الإنكوتيرمز، واكتمال المستندات في الوقت الفعلي.",
-
-    "screen.knowledge.label": "معرفة الفريق",
-    "screen.knowledge.title": "دليل إجراءات الفريق (SOP)",
-    "screen.knowledge.desc": "إدارة إجراءات العمل القياسية ودلائل الأسواق الدولية المعتمدة.",
-
-    "screen.partners.label": "الشركاء والجهات",
-    "screen.partners.title": "دليل المشترين والشركاء",
-    "screen.partners.desc": "إدارة ملفات المستوردين الدوليين، ووكلاء الشحن، وشركات المعاينة.",
-
-    "screen.products.label": "كتالوج المنتجات",
-    "screen.products.title": "كتالوج السلع التصديرية",
-    "screen.products.desc": "قائمة السلع الجاهزة للتصدير ومواصفات التعبئة ورموز النظام المنسق.",
-
-    "screen.finance.label": "المالية",
-    "screen.finance.title": "المالية (المدينون والدائنون)",
-    "screen.finance.desc": "متابعة جداول المقبوضات والتحصيلات وفصل المستندات التجارية عن القيود المحاسبية.",
-
-    "screen.bank.label": "التسوية البنكية",
-    "screen.bank.title": "التسوية المصرفية",
-    "screen.bank.desc": "مطابقة الدفعات المقدمة والنهائية وحساب فروق أسعار الصرف المحققة.",
-
-    "screen.journals.label": "القيود وشجرة الحسابات",
-    "screen.journals.title": "دفتر اليومية وشجرة الحسابات",
-    "screen.journals.desc": "معاينة قيود اليومية المزدوجة المتوازنة مع مسار التدقيق وسياسات قيود الإقفال والتسوية.",
-
-    "screen.reports.label": "التقارير والتحليلات",
-    "screen.reports.title": "التقارير والتحليلات المالية",
-    "screen.reports.desc": "تقييم هيكل التكاليف وهوامش الربح لكل شحنة والمقارنة بين التقديرات والواقع الفعلي.",
-
-    "screen.settings.label": "إعدادات مساحة العمل",
-    "screen.settings.title": "إعدادات مساحة العمل",
-    "screen.settings.desc": "إدارة جلسات الدخول، واتصال قاعدة بيانات Supabase، وسياسات الأمان وتصدير البيانات.",
-  },
 };
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<SupportedLocale>(() => {
     try {
-      const saved = localStorage.getItem("eksporflow_locale") as SupportedLocale;
-      if (saved && (saved === "ID" || saved === "EN" || saved === "AR")) {
+      const saved = localStorage.getItem("eksporflow_locale");
+      if (saved === "EN" || saved === "ID") {
         return saved;
+      }
+      // If legacy AR was saved in user's browser, reset it to ID and fix dir
+      if (saved === "AR") {
+        localStorage.setItem("eksporflow_locale", "ID");
       }
     } catch {
       // ignore
@@ -471,11 +343,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem("eksporflow_locale", newLocale);
       document.documentElement.lang = newLocale.toLowerCase();
-      if (newLocale === "AR") {
-        document.documentElement.dir = "rtl";
-      } else {
-        document.documentElement.dir = "ltr";
-      }
+      document.documentElement.dir = "ltr";
     } catch {
       // ignore
     }
@@ -483,11 +351,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     document.documentElement.lang = locale.toLowerCase();
-    if (locale === "AR") {
-      document.documentElement.dir = "rtl";
-    } else {
-      document.documentElement.dir = "ltr";
-    }
+    document.documentElement.dir = "ltr";
   }, [locale]);
 
   const t = (key: string, fallback?: string): string => {

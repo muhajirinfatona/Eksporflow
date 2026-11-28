@@ -91,7 +91,7 @@ export function AssistantModule({
         pricing,
         container,
       });
-      const footnote = "\n\n---\n*💡 Tips: Anda sedang menggunakan Mode Demo (Bantuan Cepat). Masuk akun untuk konsultasi live AI cloud.*";
+      const footnote = "\n\n---\n*Catatan: Anda sedang menggunakan Mode Demo (Bantuan Cepat). Masuk akun untuk konsultasi live AI cloud.*";
       setMessages((current) => [
         ...current,
         {

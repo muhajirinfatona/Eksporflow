@@ -6930,7 +6930,7 @@ export function DocWordRibbon({
         <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center z-[9999] p-4 no-print animate-in fade-in duration-150">
           <div className="bg-white rounded-xl shadow-2xl border border-slate-200 max-w-lg w-full overflow-hidden flex flex-col">
             {/* Header */}
-            <div className="px-5 py-3.5 bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white flex items-center justify-between">
+            <div className="px-5 py-3.5 bg-[#0F172A] border-b border-slate-800 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <SlidersHorizontal size={18} className="text-blue-300" />
                 <div>
@@ -6951,7 +6951,7 @@ export function DocWordRibbon({
             <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
               {/* Presets Grid */}
               <div>
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
+                <label className="text-xs font-semibold text-slate-700 mb-2 block">
                   Pilihan Cepat Standar Margin Word
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -6997,7 +6997,7 @@ export function DocWordRibbon({
 
               {/* Custom Inputs with Diagram */}
               <div className="pt-3 border-t border-slate-200">
-                <label className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-2 block">
+                <label className="text-xs font-semibold text-slate-700 mb-2 block">
                   Batas Margin Kustom (cm / mm)
                 </label>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
@@ -7081,7 +7081,7 @@ export function DocWordRibbon({
 
               {/* Mini Diagram Visualizer */}
               <div className="bg-slate-100 p-3 rounded-lg border border-slate-200 flex flex-col items-center">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                <span className="text-[10px] font-semibold text-slate-600 mb-2">
                   Pratinjau Kertas ({shipment.paperSize || "A4"} · {shipment.documentOrientation || "Portrait"})
                 </span>
                 <div
@@ -7156,7 +7156,7 @@ export function DocWordRibbon({
             <div className="p-4 space-y-3.5">
               {/* Quick Presets Pills */}
               <div>
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">
+                <label className="text-[11px] font-semibold text-slate-700 mb-1.5 block">
                   Preset Standar
                 </label>
                 <div className="grid grid-cols-5 gap-1.5">
@@ -7179,7 +7179,7 @@ export function DocWordRibbon({
 
               {/* Numeric Input with +/- buttons */}
               <div>
-                <label className="text-[11px] font-bold text-slate-600 uppercase tracking-wider mb-1.5 block">
+                <label className="text-[11px] font-semibold text-slate-700 mb-1.5 block">
                   Kelipatan Kustom
                 </label>
                 <div className="flex items-center gap-2">
@@ -7211,7 +7211,7 @@ export function DocWordRibbon({
 
               {/* Live Preview Box */}
               <div className="bg-slate-50 p-3 rounded-lg border border-slate-200">
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1.5">
+                <span className="text-[10px] font-semibold text-slate-600 block mb-1.5">
                   Pratinjau ({customLineHeightInput.toFixed(2)}x)
                 </span>
                 <div
@@ -7356,7 +7356,7 @@ export function DocWordRibbon({
                 <>
                   {/* Mode Selector: Standard vs Full Banner Image */}
                   <div>
-                    <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">
+                    <label className="text-[11px] font-semibold text-slate-700 mb-2 block">
                       Mode Kop Surat
                     </label>
                     <div className="grid grid-cols-2 gap-3">
@@ -7377,7 +7377,7 @@ export function DocWordRibbon({
                               <span className="text-xs font-bold text-slate-900">Teks & Logo</span>
                             </div>
                             {(shipment.letterheadMode || "standard") === "standard" && (
-                              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-medium bg-[#0f2942] text-white px-2 py-0.5 rounded-md">
                                 Aktif
                               </span>
                             )}
@@ -7436,7 +7436,7 @@ export function DocWordRibbon({
                               <span className="text-xs font-bold text-slate-900">Gambar Banner Utuh</span>
                             </div>
                             {shipment.letterheadMode === "banner" && (
-                              <span className="text-[10px] font-semibold bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                              <span className="text-[10px] font-medium bg-[#0f2942] text-white px-2 py-0.5 rounded-md">
                                 Aktif
                               </span>
                             )}
@@ -7526,7 +7526,7 @@ export function DocWordRibbon({
                   {/* Saved Company Profiles (Multi-Company Letterhead Templates) */}
                   <div className="border border-slate-200 rounded-xl bg-slate-50/50 overflow-hidden">
                     <div className="px-3.5 py-2.5 border-b border-slate-200 bg-white flex items-center justify-between gap-2">
-                      <span className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                      <span className="text-[11px] font-semibold text-slate-700">
                         Profil Kop Tersimpan ({savedKopProfiles.length})
                       </span>
                       <button
@@ -7609,7 +7609,7 @@ export function DocWordRibbon({
                 <>
                   {/* Tab 2: Layout, Divider Style & Spacing */}
                   <div>
-                    <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                    <label className="block text-[11px] font-semibold text-slate-700 mb-2">
                       Tata Letak Kop Surat
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
@@ -7649,7 +7649,7 @@ export function DocWordRibbon({
                     {shipment.letterheadLayout === "geometric" && (
                       <div className="mt-3 p-3 rounded-xl border border-teal-200 bg-teal-50/40">
                         <div className="flex items-center justify-between mb-2">
-                          <label className="text-[11px] font-bold text-teal-900 uppercase tracking-wider">
+                          <label className="text-[11px] font-semibold text-teal-900">
                             Pilih Desain Geometris (Invoice Pinterest)
                           </label>
                           <span className="text-[10px] font-bold text-teal-700 bg-teal-100 px-2 py-0.5 rounded">
@@ -7715,7 +7715,7 @@ export function DocWordRibbon({
                   {/* Gaya & Warna Garis Pembatas */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-2">
                         Gaya Garis Pembatas
                       </label>
                       <div className="grid grid-cols-2 gap-1.5">
@@ -7751,7 +7751,7 @@ export function DocWordRibbon({
                     </div>
 
                     <div className="p-3 rounded-xl border border-slate-200 bg-white">
-                      <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">
+                      <label className="block text-[11px] font-semibold text-slate-700 mb-2">
                         Warna Garis & Aksen Kop
                       </label>
                       <div className="flex items-center gap-2 pt-1">

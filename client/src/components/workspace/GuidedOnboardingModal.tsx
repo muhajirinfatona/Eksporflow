@@ -442,8 +442,8 @@ export function GuidedOnboardingModal({
                       <span>Kapasitas Volume ({totalVolumeCbm.toFixed(2)} / {spec.volume} CBM)</span>
                       <span className="font-semibold text-slate-800 tabular-nums">{volumeUtilization.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-blue-600 h-full rounded-full" style={{ width: `${volumeUtilization}%` }} />
+                    <div className="w-full bg-slate-200 h-1.5 rounded-sm overflow-hidden">
+                      <div className="bg-blue-600 h-full rounded-sm" style={{ width: `${volumeUtilization}%` }} />
                     </div>
                   </div>
 
@@ -452,8 +452,8 @@ export function GuidedOnboardingModal({
                       <span>Kapasitas Berat ({(totalWeightKgs / 1000).toFixed(2)} / {(spec.weight / 1000).toFixed(1)} Ton)</span>
                       <span className="font-semibold text-slate-800 tabular-nums">{weightUtilization.toFixed(1)}%</span>
                     </div>
-                    <div className="w-full bg-slate-200 h-1.5 rounded-full overflow-hidden">
-                      <div className="bg-emerald-600 h-full rounded-full" style={{ width: `${weightUtilization}%` }} />
+                    <div className="w-full bg-slate-200 h-1.5 rounded-sm overflow-hidden">
+                      <div className="bg-emerald-600 h-full rounded-sm" style={{ width: `${weightUtilization}%` }} />
                     </div>
                   </div>
                 </div>
