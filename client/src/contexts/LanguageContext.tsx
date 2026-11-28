@@ -23,7 +23,6 @@ import {
   Settings2,
   ShieldAlert,
   Ship,
-  Sparkles,
   Truck,
   Users,
   Wallet,

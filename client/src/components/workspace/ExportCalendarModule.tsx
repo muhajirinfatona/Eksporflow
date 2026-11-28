@@ -957,7 +957,7 @@ export function ExportCalendarModule({
               )}
             </div>
 
-            {/* Navigation buttons: Sebelumnya | [ 📅 Bulan ▾ ] | Berikutnya */}
+            {/* Navigation buttons: Sebelumnya | [ Bulan ▾ ] | Berikutnya */}
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap", position: "relative" }}>
               <SpaceButton
                 variant="secondary"
@@ -1521,7 +1521,7 @@ export function ExportCalendarModule({
                 {selectedDateFilter ? (
                   <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
                     <strong style={{ color: "#0284C7", background: "#F0F9FF", border: "1px solid #BAE6FD", padding: "2px 8px", borderRadius: 6 }}>
-                      📅 {formatShortDateID(selectedDateFilter)}
+                      {formatShortDateID(selectedDateFilter)}
                     </strong>
                     <button
                       type="button"
@@ -1612,11 +1612,11 @@ export function ExportCalendarModule({
               <strong style={{ fontSize: 18, color: "#0F172A" }}>{planStats.total}</strong>
             </div>
             <div>
-              <span style={{ fontSize: 11.5, color: "#D97706", display: "block" }}>{isEn ? "⏳ Action Pending" : "⏳ Menunggu / Action Pending"}</span>
+              <span style={{ fontSize: 11.5, color: "#D97706", display: "block" }}>{isEn ? "Action Pending" : "Menunggu Tindakan"}</span>
               <strong style={{ fontSize: 18, color: "#D97706" }}>{planStats.pending}</strong>
             </div>
             <div>
-              <span style={{ fontSize: 11.5, color: "#059669", display: "block" }}>{isEn ? "✅ Completed" : "✅ Telah Dilaksanakan"}</span>
+              <span style={{ fontSize: 11.5, color: "#059669", display: "block" }}>{isEn ? "Completed" : "Telah Dilaksanakan"}</span>
               <strong style={{ fontSize: 18, color: "#059669" }}>{planStats.completed}</strong>
             </div>
           </div>
@@ -1752,7 +1752,7 @@ export function ExportCalendarModule({
 
                         {/* Date & Time */}
                         <span style={{ fontSize: 12, fontWeight: 600, color: "#475569" }}>
-                          📅 {plan.date} {plan.time && `• ⏰ ${plan.time}`}
+                          {plan.date} {plan.time && `• ${plan.time}`}
                         </span>
 
                         {isTodayPlan && (

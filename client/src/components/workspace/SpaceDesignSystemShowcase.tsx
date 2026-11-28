@@ -44,7 +44,6 @@ import {
   Search,
   ShieldCheck,
   Ship,
-  Sparkles,
   TrendingUp,
   Truck,
   User,
@@ -196,7 +195,7 @@ export function SpaceDesignSystemShowcase({
               <SpaceButton variant="primary" icon={<Plus size={14} />}>
                 Primary Navy
               </SpaceButton>
-              <SpaceButton variant="accent" icon={<Sparkles size={14} />}>
+              <SpaceButton variant="accent" icon={<Compass size={14} />}>
                 Accent Gold
               </SpaceButton>
               <SpaceButton variant="secondary" icon={<Filter size={14} />}>

@@ -28,7 +28,6 @@ import {
   Edit3,
   Heading,
   SlidersHorizontal,
-  Sparkles,
   Table,
   Plus,
   Minus,
@@ -5179,11 +5178,8 @@ export function DocWordRibbon({
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontSize: "9px",
                       }}
-                    >
-                      🎨
-                    </div>
+                    />
                   </label>
                 </div>
 

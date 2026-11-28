@@ -16,7 +16,6 @@ import {
   RefreshCw,
   Send,
   ShieldAlert,
-  Sparkles,
   Stamp,
   UploadCloud,
 } from "lucide-react";

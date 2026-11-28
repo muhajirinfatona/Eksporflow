@@ -7,6 +7,7 @@ import {
   Calculator,
   Check,
   ChevronRight,
+  Compass,
   Copy,
   FileSearch,
   FileText,
@@ -16,7 +17,6 @@ import {
   ShieldAlert,
   Truck,
   Users,
-  WandSparkles,
   X,
 } from "lucide-react";
 import type React from "react";
@@ -701,7 +701,7 @@ export function recommendationIcon(kind: string) {
     case "margin":
       return <ArrowDownRight size={15} />;
     default:
-      return <WandSparkles size={15} />;
+      return <Compass size={15} />;
   }
 }
 

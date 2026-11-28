@@ -37,7 +37,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   Ship,
-  Sparkles,
   Trash2,
   TrendingDown,
   TrendingUp,

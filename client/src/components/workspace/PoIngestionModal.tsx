@@ -23,7 +23,6 @@ import {
   Phone,
   RefreshCw,
   ShieldCheck,
-  Sparkles,
   UploadCloud,
   X,
 } from "lucide-react";

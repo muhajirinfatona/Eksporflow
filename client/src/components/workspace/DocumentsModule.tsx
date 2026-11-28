@@ -46,7 +46,6 @@ import {
   ShieldCheck,
   Ship,
   SlidersHorizontal,
-  Sparkles,
   Stamp,
   FileSearch,
   Trash2,
@@ -374,8 +373,8 @@ export function DocumentsModule({
       pill.style.top = `${Math.max(10, rect.top + window.scrollY - 36)}px`;
       pill.style.left = `${rect.left + window.scrollX}px`;
       pill.innerHTML = `
-        <span style="display:flex;align-items:center;gap:4px;">🔀 <b>${selected.length} Sel Terpilih</b></span>
-        <button type="button" class="btn-merge-action" style="background:#0284c7;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-weight:700;cursor:pointer;">Gabung Sel</button>
+        <span style="display:flex;align-items:center;gap:4px;"><b>${selected.length} Sel Terpilih</b></span>
+        <button type="button" class="btn-merge-action" style="background:#0f172a;color:#fff;border:none;padding:2px 8px;border-radius:4px;font-weight:600;font-size:11px;cursor:pointer;">Gabung Sel</button>
         <button type="button" class="btn-merge-cancel" style="background:transparent;color:#94a3b8;border:none;padding:2px 6px;cursor:pointer;">✕</button>
       `;
       pill.querySelector(".btn-merge-action")?.addEventListener("mousedown", (ev) => {
@@ -468,7 +467,7 @@ export function DocumentsModule({
           finalBase.classList.add("active-cell");
           (window as any).__eksporflow_active_cell = finalBase;
         }
-        toast.success(`🎉 Berhasil menggabungkan ${totalMerged + 1} sel tabel! (Colspan: ${finalBase?.colSpan || 1})`);
+        toast.success(`Berhasil menggabungkan ${totalMerged + 1} sel tabel! (Colspan: ${finalBase?.colSpan || 1})`);
         return;
       }
 
@@ -493,7 +492,7 @@ export function DocumentsModule({
           clearCellSelection();
           targetBase.classList.add("active-cell");
           (window as any).__eksporflow_active_cell = targetBase;
-          toast.success(`🎉 Sel berhasil digabungkan (Colspan: ${targetBase.colSpan})!`);
+          toast.success(`Sel berhasil digabungkan (Colspan: ${targetBase.colSpan})!`);
           return;
         }
       }

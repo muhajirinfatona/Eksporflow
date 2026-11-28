@@ -19,7 +19,6 @@ import {
   Save,
   Send,
   ShieldCheck,
-  Sparkles,
   X,
 } from "lucide-react";
 import { useMemo, useRef, useState, useEffect } from "react";

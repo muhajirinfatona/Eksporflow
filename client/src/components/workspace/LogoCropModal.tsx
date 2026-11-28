@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Crop, RotateCcw, Check, Sparkles, Image as ImageIcon, Sliders, Eye } from "lucide-react";
+import { Crop, RotateCcw, Check, Image as ImageIcon, Sliders, Eye } from "lucide-react";
 import { toast } from "sonner";
 import { DEFAULT_INDICO_LOGO, type Shipment } from "@shared/shipment";
 
@@ -190,7 +190,7 @@ export function LogoCropModal({ isOpen, onClose, shipment, update }: LogoCropMod
                     : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
                 }`}
               >
-                <div className="text-xs font-bold">🌱 Utuh / Lengkap</div>
+                <div className="text-xs font-bold">Utuh / Lengkap</div>
                 <div className="text-[10px] text-slate-500">Logo + Teks lengkap</div>
               </button>
 
@@ -203,7 +203,7 @@ export function LogoCropModal({ isOpen, onClose, shipment, update }: LogoCropMod
                     : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
                 }`}
               >
-                <div className="text-xs font-bold">🥥 Hanya Lambang</div>
+                <div className="text-xs font-bold">Hanya Lambang</div>
                 <div className="text-[10px] text-slate-500">Pohon & Kelapa saja</div>
               </button>
 
@@ -216,7 +216,7 @@ export function LogoCropModal({ isOpen, onClose, shipment, update }: LogoCropMod
                     : "border-slate-200 hover:border-slate-300 bg-white text-slate-700"
                 }`}
               >
-                <div className="text-xs font-bold">🔤 Hanya Teks</div>
+                <div className="text-xs font-bold">Hanya Teks</div>
                 <div className="text-[10px] text-slate-500">Indico Export Indonesia</div>
               </button>
 
@@ -225,7 +225,7 @@ export function LogoCropModal({ isOpen, onClose, shipment, update }: LogoCropMod
                 onClick={() => applyPreset("square")}
                 className="py-2 px-3 rounded-lg border border-slate-200 hover:border-slate-300 bg-white text-slate-700 text-left transition-all"
               >
-                <div className="text-xs font-bold">✂️ Rapi Simetris</div>
+                <div className="text-xs font-bold">Rapi Simetris</div>
                 <div className="text-[10px] text-slate-500">Pangkas tepi luar</div>
               </button>
             </div>

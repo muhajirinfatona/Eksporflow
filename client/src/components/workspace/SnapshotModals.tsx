@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type { Shipment, DocumentType } from "@shared/shipment";
-import { Lock, History, Copy, X } from "lucide-react";
+import { Lock, History, Copy, X, CheckCircle2, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import {
   buildDocumentSnapshotPayload,
@@ -172,12 +172,12 @@ export function SnapshotHistoryModal({
                       Rev {item.revision}
                     </span>
                     {item.isIntegrityValid ? (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
-                        ✓ Integritas SHA-256 Valid
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <CheckCircle2 size={11} /> Integritas SHA-256 Valid
                       </span>
                     ) : (
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800 border border-red-300">
-                        ⚠ Hash Mismatch
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-800 border border-red-300">
+                        <AlertTriangle size={11} /> Hash Mismatch
                       </span>
                     )}
                   </div>

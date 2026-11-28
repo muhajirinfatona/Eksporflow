@@ -847,7 +847,7 @@ export function getCustomerSupportAnswer(
     q.includes("bi") ||
     q.includes("bank indonesia")
   ) {
-    return `### 🏦 Regulasi Devisa Hasil Ekspor (DHE SDA - PP 36/2023)
+    return `### Regulasi Devisa Hasil Ekspor (DHE SDA - PP 36/2023)
 
 1. **Kewajiban Penempatan DHE SDA:**
    - Berdasarkan **PP No. 36 Tahun 2023**, eksportir barang Sumber Daya Alam (Pertambangan, Perkebunan, Kehutanan, Perikanan) dengan nilai ekspor pada PEB **minimal USD 250,000** (atau ekuivalennya) wajib menempatkan devisanya ke dalam Sistem Keuangan Indonesia.
@@ -871,7 +871,7 @@ export function getCustomerSupportAnswer(
     q.includes("form ak") ||
     q.includes("form ico")
   ) {
-    return `### 📜 Panduan Surat Keterangan Asal (e-SKA / Certificate of Origin)
+    return `### Panduan Surat Keterangan Asal (e-SKA / Certificate of Origin)
 
 1. **Fungsi e-SKA:**
    - Membuktikan bahwa barang berasal/diproduksi di Indonesia (Rules of Origin).
@@ -897,7 +897,7 @@ export function getCustomerSupportAnswer(
     q.includes("fumigasi") ||
     q.includes("ispm")
   ) {
-    return `### 🌱 Karantina Tumbuhan, Fitosanitari & Fumigasi ISPM-15
+    return `### Karantina Tumbuhan, Fitosanitari & Fumigasi ISPM-15
 
 1. **Phytosanitary Certificate (PC):**
    - Diterbitkan oleh **Badan Karantina Indonesia (Barantin)** untuk membuktikan produk pertanian/tumbuhan (kopi, rempah, buah, kayu) bebas dari hama dan penyakit target karantina.
@@ -917,7 +917,7 @@ export function getCustomerSupportAnswer(
     q.includes("pembayaran") ||
     q.includes("metode bayar")
   ) {
-    return `### 💳 Metode Pembayaran Ekspor & Manajemen Risiko Finansial
+    return `### Metode Pembayaran Ekspor & Manajemen Risiko Finansial
 
 1. **Irrevocable L/C At Sight (Paling Aman):**
    - Jaminan pembayaran dari bank pembeli (Issuing Bank) kepada bank eksportir (Advising/Confirming Bank) saat seluruh dokumen ekspor yang disyaratkan dinyatakan *complying presentation*.
@@ -941,7 +941,7 @@ export function getCustomerSupportAnswer(
     q.includes("refresh") ||
     q.includes("muat ulang")
   ) {
-    return `### 💾 Panduan Penyimpanan Data di EksporFlow
+    return `### Panduan Penyimpanan Data di EksporFlow
 
 1. **Koneksi Cloud Supabase Aktif:**
    - Semua transaksi otomatis tersinkronisasi dengan database PostgreSQL Cloud Supabase.
@@ -960,7 +960,7 @@ export function getCustomerSupportAnswer(
     q.includes("timpa") ||
     q.includes("sinkron")
   ) {
-    return `### ⚠️ Penanganan Banner Konflik Versi
+    return `### Penanganan Banner Konflik Versi
 
 Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan data transaksi dari tab lain atau perangkat anggota tim Anda:
 
@@ -1028,7 +1028,7 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("invoice") ||
     q.includes("packing list")
   ) {
-    return `### 📑 Cara Download & Cetak Dokumen Ekspor
+    return `### Cara Download & Cetak Dokumen Ekspor
 
 1. Buka menu **Operasional Ekspor > Dokumen Ekspor**.
 2. Pilih tab dokumen yang ingin Anda proses:
@@ -1071,15 +1071,15 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("eori") ||
     q.includes("vat")
   ) {
-    return `### 🛡️ Verifikasi Legalitas & Anti-Fraud Buyer
+    return `### Verifikasi Legalitas & Anti-Fraud Buyer
 
 1. Buka menu **Penjualan > Pra-Transaksi & Buyer**.
 2. Evaluasi 5 kriteria verifikasi untuk **${shipment.buyer || "Buyer"}**:
-   - ✅ Nomor Registrasi Bisnis / VAT / EORI valid.
-   - ✅ Domain email resmi perusahaan (bukan email gratisan).
-   - ✅ Pelabuhan tujuan (${shipment.destination || "Tujuan"}) bebas sanksi & embargo.
-   - ✅ Metode pembayaran aman (Letter of Credit L/C At Sight atau DP minimal 30%).
-   - ✅ Rekam jejak transaksi dan reputasi bisnis terverifikasi.`;
+   - Nomor Registrasi Bisnis / VAT / EORI valid.
+   - Domain email resmi perusahaan (bukan email gratisan).
+   - Pelabuhan tujuan (${shipment.destination || "Tujuan"}) bebas sanksi & embargo.
+   - Metode pembayaran aman (Letter of Credit L/C At Sight atau DP minimal 30%).
+   - Rekam jejak transaksi dan reputasi bisnis terverifikasi.`;
   }
 
   // 8. Tampilan Layar / Terpotong / Zoom / UI
@@ -1092,7 +1092,7 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("sidebar") ||
     q.includes("lebar")
   ) {
-    return `### 🖥️ Penyesuaian Tampilan & Tata Letak Layar
+    return `### Penyesuaian Tampilan & Tata Letak Layar
 
 1. **Resolusi & Skala Layar:**
    - Jika tabel atau panel samping terasa terpotong di laptop, tekan tombol keyboard **Ctrl + 0** untuk mereset zoom browser ke standar 100%.
@@ -1115,7 +1115,7 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("berbayar") ||
     q.includes("gratis")
   ) {
-    return `### 👤 Informasi Akun Demo & Pendaftaran
+    return `### Informasi Akun Demo & Pendaftaran
 
 1. **Fitur Mode Demo (3 Hari):**
    - Anda dapat mencoba seluruh modul EksporFlow secara gratis tanpa kartu kredit.
@@ -1141,13 +1141,13 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("email") ||
     q.includes("kendala")
   ) {
-    return `### 📞 Layanan Bantuan & Customer Support EksporFlow
+    return `### Layanan Bantuan & Customer Support EksporFlow
 
 Jika Anda mengalami kendala pada sistem atau butuh panduan langsung dari tim spesialis ekspor kami:
 
-- 💬 **WhatsApp Priority Support:** +62 812-9800-3344 *(Senin – Jumat, 08.00 – 18.00 WIB)*
-- ✉️ **Email Dukungan Teknis:** support@eksporflow.com
-- 🌐 **Pusat Panduan SOP:** Buka menu **Bantuan & Panduan** di navigasi samping.
+- **WhatsApp Priority Support:** +62 812-9800-3344 *(Senin – Jumat, 08.00 – 18.00 WIB)*
+- **Email Dukungan Teknis:** support@eksporflow.com
+- **Pusat Panduan SOP:** Buka menu **Bantuan & Panduan** di navigasi samping.
 
 Silakan sampaikan pesan error atau kendala yang dialami, tim kami akan merespons dengan cepat!`;
   }
@@ -1719,7 +1719,7 @@ export function ScreenAIFloatingWidget({
         ...prev,
         {
           role: "assistant",
-          content: `📍 **Beralih ke Layar ${screenTitle}**\n\n${insight.welcomeGreeting}`,
+          content: `**Beralih ke Layar ${screenTitle}**\n\n${insight.welcomeGreeting}`,
         },
       ]);
     }

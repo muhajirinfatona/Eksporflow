@@ -18,6 +18,7 @@ import type { ScreenId } from "@shared/risk";
 import type { ContainerCalc, Incoterm, LineItem, Shipment } from "@shared/shipment";
 import {
   AlertCircle,
+  AlertTriangle,
   ArrowRight,
   ArrowUpRight,
   BarChart3,
@@ -28,6 +29,7 @@ import {
   Building2,
   Calculator,
   Compass,
+  CreditCard,
   FileText,
   Calendar,
   Filter,
@@ -40,7 +42,9 @@ import {
   Download,
   FileCheck2,
   FileSpreadsheet,
+  Globe,
   History,
+  Info,
   Landmark,
   Mail,
   MoreVertical,
@@ -52,7 +56,6 @@ import {
   ShieldAlert,
   ShieldCheck,
   Ship,
-  Sparkles,
   Trash2,
   TrendingDown,
   TrendingUp,
@@ -2457,7 +2460,8 @@ export function ApprovalsView({
                           {item.buyer}
                         </b>
                         <span style={{ fontSize: 11.5, color: "#64748b" }}>
-                          🌍 {item.buyerCountry} · {item.destination}
+                          <Globe size={11} className="inline mr-1 text-slate-400" />
+                          {item.buyerCountry} · {item.destination}
                         </span>
                       </td>
 
@@ -2576,8 +2580,8 @@ export function ApprovalsView({
           {/* 4 Kartu Divisi */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ fontSize: 18 }}>👔</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <UserCheck size={18} className="text-sky-700" />
                 <b style={{ fontSize: 13, color: "#0f172a" }}>Pimpinan / Direktur</b>
               </div>
               <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
@@ -2589,8 +2593,8 @@ export function ApprovalsView({
             </div>
 
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ fontSize: 18 }}>💼</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <Briefcase size={18} className="text-emerald-700" />
                 <b style={{ fontSize: 13, color: "#0f172a" }}>Sales &amp; Marketing</b>
               </div>
               <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
@@ -2602,7 +2606,7 @@ export function ApprovalsView({
             </div>
 
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
                 <Box size={16} className="text-slate-600" />
                 <b style={{ fontSize: 13, color: "#0f172a" }}>Operasional &amp; Dokumen</b>
               </div>
@@ -2615,8 +2619,8 @@ export function ApprovalsView({
             </div>
 
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ fontSize: 18 }}>💳</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                <CreditCard size={18} className="text-purple-700" />
                 <b style={{ fontSize: 13, color: "#0f172a" }}>Keuangan &amp; Akuntansi</b>
               </div>
               <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
@@ -2975,7 +2979,7 @@ export function ApprovalsView({
                   {reviewModalItem.margin}%
                 </div>
                 <div style={{ fontSize: 11, color: reviewModalItem.margin < 20 ? "#b45309" : "#166534" }}>
-                  {reviewModalItem.margin < 20 ? "⚠️ Butuh Dispensasi" : "✓ Memenuhi Target"}
+                  {reviewModalItem.margin < 20 ? "Dispensasi Diperlukan" : "Memenuhi Target"}
                 </div>
               </div>
             </div>
@@ -2991,7 +2995,7 @@ export function ApprovalsView({
             >
               <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                 <b style={{ fontSize: 12, color: "#0f172a", display: "block", marginBottom: 8 }}>
-                  📋 Spesifikasi Kontrak
+                  Spesifikasi Kontrak
                 </b>
                 <div className="clean-kv">
                   <span>Komoditas</span>
@@ -3013,7 +3017,7 @@ export function ApprovalsView({
 
               <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 12 }}>
                 <b style={{ fontSize: 12, color: "#0f172a", display: "block", marginBottom: 8 }}>
-                  🛡️ Pemohon &amp; Tata Kelola (SoD)
+                  Pemohon &amp; Tata Kelola (SoD)
                 </b>
                 <div className="clean-kv">
                   <span>Sales PIC (Pemohon)</span>
@@ -3025,7 +3029,7 @@ export function ApprovalsView({
                 </div>
                 <div className="clean-kv">
                   <span>Screening Legal AI</span>
-                  <b style={{ color: "#16a34a" }}>✓ Lolos Bebas Sanksi Dagang</b>
+                  <b style={{ color: "#16a34a" }}><CheckCircle2 size={12} className="inline mr-1" /> Lolos Bebas Sanksi Dagang</b>
                 </div>
                 <div className="clean-kv">
                   <span>Status Verifikasi</span>
@@ -3047,7 +3051,7 @@ export function ApprovalsView({
                   marginBottom: 16,
                 }}
               >
-                <b>⚠️ Pemicu Otorisasi Direksi:</b> Estimasi margin bersih ({reviewModalItem.margin}%) berada di bawah target kuartal (20%). Otorisasi Direktur diperlukan untuk memberikan dispensasi harga kepada buyer.
+                <b>Pemicu Otorisasi Direksi:</b> Estimasi margin bersih ({reviewModalItem.margin}%) berada di bawah target kuartal (20%). Otorisasi Direktur diperlukan untuk memberikan dispensasi harga kepada buyer.
               </div>
             )}
 
@@ -3509,7 +3513,7 @@ export function PartnersView({
                   Daftarkan buyer luar negeri, forwarder rekanan, atau surveyor independen pada formulir di sebelah kanan untuk mempercepat pembuatan Sales Contract dan validasi 3-way match.
                 </p>
                 <div className="empty-state-tip">
-                  <Sparkles size={13} className="text-amber-500" />
+                  <Info size={13} className="text-slate-500" />
                   <span>Tip: Anda juga dapat menggunakan <b>Panduan Ekspor</b> di bilah atas untuk memuat profil buyer instan.</span>
                 </div>
               </div>
@@ -3629,7 +3633,7 @@ export function ProductsView({
                   Tambahkan data komoditas beserta HS Code 8-10 digit, dimensi kemasan (PxLxT), dan estimasi susut muatan untuk otomasi kalkulasi kontainer dan dokumen ekspor.
                 </p>
                 <div className="empty-state-tip">
-                  <Sparkles size={13} className="text-amber-500" />
+                  <Info size={13} className="text-slate-500" />
                   <span>Tip: Sektor komoditas umum (Kopi, Perikanan, Rempah, Furnitur) dapat diisi otomatis via tombol <b>Panduan Ekspor</b>.</span>
                 </div>
               </div>

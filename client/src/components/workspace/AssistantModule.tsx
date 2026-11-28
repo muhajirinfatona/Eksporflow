@@ -5,7 +5,7 @@ import { formatMoney } from "@shared/format";
 import type { Pricing } from "@shared/pricing";
 import { computeRecommendations, type ScreenId } from "@shared/risk";
 import type { ContainerCalc, Shipment } from "@shared/shipment";
-import { BookOpen, Bot, ChevronRight, Lock, ShieldCheck, WandSparkles } from "lucide-react";
+import { BookOpen, Bot, ChevronRight, Compass, Lock, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { recommendationIcon, StatusPill } from "./Primitives";
 import { getCustomerSupportAnswer } from "./ScreenAIAdvisor";
@@ -209,7 +209,7 @@ export function AssistantModule({
               <span className="eyebrow">REKOMENDASI AKTIF</span>
               <h3>Tindakan prioritas</h3>
             </div>
-            <WandSparkles size={17} className="panel-spark" />
+            <Compass size={17} className="panel-spark text-slate-500" />
           </div>
           <div className="copilot-recommendations">
             {recommendations.map((rec) => (

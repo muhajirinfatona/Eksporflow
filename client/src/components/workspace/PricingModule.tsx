@@ -32,7 +32,6 @@ import {
   Plus,
   RefreshCw,
   RotateCcw,
-  Sparkles,
   Trash2,
   Zap,
 } from "lucide-react";
@@ -928,7 +927,7 @@ export function PricingModule({
                           {/* Inline Yield Setting khusus baris bahan baku */}
                           {item.applyYield && (
                             <div className="calc-yield-inline-pill">
-                              <span>🌾 Hasil Jadi (Yield):</span>
+                              <span>Hasil Jadi (Yield):</span>
                               <input
                                 type="number"
                                 value={yieldPercent}

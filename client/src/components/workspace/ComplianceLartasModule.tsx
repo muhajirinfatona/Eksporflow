@@ -16,7 +16,6 @@ import {
   FolderArchive,
   Scale,
   ShieldCheck,
-  Sparkles,
 } from "lucide-react";
 import { useMemo } from "react";
 import { toast } from "sonner";
