@@ -6,26 +6,34 @@ import {
 } from "@shared/exportCompliance";
 import {
   ArrowRight,
+  ArrowUpRight,
+  Building2,
+  Calendar,
   Check,
   CheckCircle2,
-  ChevronRight,
   ChevronLeft,
+  ChevronRight,
+  Clock,
+  Compass,
+  CreditCard,
+  Database,
+  FileCheck2,
+  FileSearch,
   FileText,
   FolderArchive,
   Globe,
+  Layers,
   Lock,
+  Package,
   Play,
   Scale,
+  ShieldAlert,
   ShieldCheck,
   Ship,
-  Sparkles,
-  Star,
-  Users,
   Smartphone,
-  Layers,
-  Database,
-  Building2,
-  ArrowUpRight,
+  Star,
+  Truck,
+  Users,
 } from "lucide-react";
 import React, { useMemo, useState } from "react";
 
@@ -39,7 +47,34 @@ function formatIdr(amount: number): string {
   return `Rp ${Math.round(amount).toLocaleString("id-ID")}`;
 }
 
-// Komponen Brush Highlight khas Whitepace (garis kuas kuning di bawah teks)
+// Logo Resmi EksporFlow yang diselaraskan dengan identitas desain sistem
+function EksporFlowLogo({ light = false }: { light?: boolean }) {
+  return (
+    <div className="flex items-center gap-3">
+      {/* Mark Geometris Dua Bilah Skewed (Saffron Gold & Customs Emerald) */}
+      <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#0B2545] to-[#043873] border border-white/20 flex items-center justify-center p-2 shadow-sm">
+        <div className="flex flex-col gap-1 w-5 h-4 justify-center">
+          <span className="block h-1.5 w-full rounded-[2px] bg-[#FFE492] -skew-x-[22deg]" />
+          <span className="block h-1.5 w-3 rounded-[2px] bg-[#34D399] -skew-x-[22deg] ml-2" />
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <span
+          className={`font-extrabold text-xl tracking-tight leading-none ${
+            light ? "text-white" : "text-[#212529]"
+          }`}
+        >
+          Ekspor<span className="text-[#FFE492]">Flow</span>
+        </span>
+        <span className="text-[10px] text-white/70 font-semibold tracking-wider uppercase mt-0.5">
+          Export Operations
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Garis Kuas Kuning Khas Desain Figma Whitepace di Bawah Teks Kunci
 function BrushHighlight({
   children,
   color = "#FFE492",
@@ -70,7 +105,7 @@ function BrushHighlight({
   );
 }
 
-// Background garis kontur gelombang khas Whitepace
+// Garis Kontur Gelombang Maritim Elegan Khas Desain Figma Whitepace
 function WaveContourBackground({ className = "" }: { className?: string }) {
   return (
     <div
@@ -84,41 +119,13 @@ function WaveContourBackground({ className = "" }: { className?: string }) {
         xmlns="http://www.w3.org/2000/svg"
         preserveAspectRatio="none"
       >
-        <path
-          d="M-200 150C200 400 800 -100 1600 300"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-200 200C200 450 800 -50 1600 350"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-200 250C200 500 800 0 1600 400"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-200 300C200 550 800 50 1600 450"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-200 350C200 600 800 100 1600 500"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-200 400C200 650 800 150 1600 550"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
-        <path
-          d="M-200 450C200 700 800 200 1600 600"
-          stroke="#4F9CF9"
-          strokeWidth="1.5"
-        />
+        <path d="M-200 150C200 400 800 -100 1600 300" stroke="#4F9CF9" strokeWidth="1.5" />
+        <path d="M-200 200C200 450 800 -50 1600 350" stroke="#4F9CF9" strokeWidth="1.5" />
+        <path d="M-200 250C200 500 800 0 1600 400" stroke="#4F9CF9" strokeWidth="1.5" />
+        <path d="M-200 300C200 550 800 50 1600 450" stroke="#4F9CF9" strokeWidth="1.5" />
+        <path d="M-200 350C200 600 800 100 1600 500" stroke="#4F9CF9" strokeWidth="1.5" />
+        <path d="M-200 400C200 650 800 150 1600 550" stroke="#4F9CF9" strokeWidth="1.5" />
+        <path d="M-200 450C200 700 800 200 1600 600" stroke="#4F9CF9" strokeWidth="1.5" />
       </svg>
     </div>
   );
@@ -138,7 +145,6 @@ export function LandingPage({
 
   // Kalkulator Langganan
   const [billingCycle, setBillingCycle] = useState<"monthly" | "annual">("monthly");
-  const [activeTestimonialIdx, setActiveTestimonialIdx] = useState(0);
 
   const demurrage = useMemo(
     () =>
@@ -156,30 +162,33 @@ export function LandingPage({
     {
       id: 1,
       quote:
-        "Sebelumnya kami sempat menanggung denda demurrage $1,800 di Port of Los Angeles karena salah ketik nomor kontainer di B/L dan Packing List. Dengan EksporFlow, seluruh dokumen sinkron otomatis tanpa selisih sepeser pun!",
+        "Sebelumnya kami sempat menanggung denda demurrage USD 1,800 di Port of Los Angeles karena salah ketik nomor kontainer di B/L dan Packing List. Dengan EksporFlow, seluruh dokumen sinkron otomatis tanpa selisih sepeser pun.",
       author: "Hendra Wijaya",
       role: "Direktur Operasional",
       company: "PT Nusantara Kopi Gayo",
+      sector: "Kopi Arabika Ekspor",
       avatar: "HW",
       highlight: false,
     },
     {
       id: 2,
       quote:
-        "Penerbitan COO e-SKA dan Health Certificate karantina udang jadi 5x lebih cepat. Buyer kami di Gothenburg Swedia sangat puas dengan kecepatan validasi draft sebelum kapal sandar.",
+        "Penerbitan COO e-SKA dan Health Certificate karantina udang jadi 5x lebih cepat. Buyer kami di Gothenburg Swedia sangat puas dengan kecepatan validasi draft sebelum kapal sandar di pelabuhan tujuan.",
       author: "Siti Rahmawati",
       role: "Head of Export Compliance",
       company: "CV Celebes Seafood Mandiri",
+      sector: "Perikanan & Hasil Laut",
       avatar: "SR",
       highlight: true,
     },
     {
       id: 3,
       quote:
-        "Kalkulator kontainer 20ft dan 40HC sangat presisi menghitung batas susut bobot kayu jati dan rotan. Tim gudang stuffing kami langsung bekerja berdasarkan lembar instruksi resmi.",
+        "Kalkulator kontainer 20ft dan 40HC sangat presisi menghitung batas susut bobot kayu jati dan rotan. Tim gudang stuffing kami langsung bekerja berdasarkan lembar instruksi resmi yang diterbitkan sistem.",
       author: "Budi Santoso",
       role: "Managing Director",
       company: "PT Jepara Furniture Global",
+      sector: "Furnitur & Kerajinan Kayu",
       avatar: "BS",
       highlight: true,
     },
@@ -188,48 +197,35 @@ export function LandingPage({
   return (
     <div className="min-h-screen bg-white text-[#212529] font-sans antialiased selection:bg-[#4F9CF9] selection:text-white">
       {/* =========================================================
-          1. HEADER (Whitepace Deep Navy Style: #043873)
+          1. HEADER (Figma Whitepace Deep Navy: #043873)
          ========================================================= */}
       <header className="sticky top-0 z-50 bg-[#043873] border-b border-[#0f4d96]/60 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 h-20 flex items-center justify-between">
-          {/* Logo EksporFlow */}
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-[#4F9CF9] to-[#043873] flex items-center justify-center text-white font-bold text-sm shadow-md border border-white/20">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 7L12 3L20 7L12 11L4 7Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M4 12L12 16L20 12" stroke="#FFE492" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M4 17L12 21L20 17" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            <div className="flex items-center">
-              <span className="font-extrabold text-white text-xl tracking-tight">
-                Ekspor<span className="text-[#FFE492]">Flow</span>
-              </span>
-            </div>
-          </div>
+          {/* Logo Resmi EksporFlow */}
+          <EksporFlowLogo light />
 
           {/* Navigasi Utama */}
           <nav className="hidden lg:flex items-center gap-8 text-sm font-medium text-white/90">
-            <a href="#fitur" className="hover:text-[#FFE492] transition-colors flex items-center gap-1">
-              Produk &amp; Fitur
+            <a href="#dokumen" className="hover:text-[#FFE492] transition-colors">
+              Dokumen UN/CEFACT
             </a>
-            <a href="#solusi" className="hover:text-[#FFE492] transition-colors flex items-center gap-1">
-              Solusi Ekspor
+            <a href="#solusi" className="hover:text-[#FFE492] transition-colors">
+              Solusi Ekosistem
             </a>
-            <a href="#kalkulator" className="hover:text-[#FFE492] transition-colors flex items-center gap-1">
-              Simulasi Biaya
+            <a href="#kalkulator" className="hover:text-[#FFE492] transition-colors">
+              Simulasi Demurrage
             </a>
-            <a href="#harga" className="hover:text-[#FFE492] transition-colors flex items-center gap-1">
+            <a href="#harga" className="hover:text-[#FFE492] transition-colors">
               Paket Harga
             </a>
           </nav>
 
-          {/* Tombol Aksi Kanan (Masuk warna Kuning #FFE492, Coba Demo Biru #4F9CF9) */}
+          {/* Tombol Aksi Kanan (Masuk #FFE492, Coba Demo #4F9CF9) */}
           <div className="flex items-center gap-3.5">
             <button
               type="button"
               onClick={() => onOpenAuth("login")}
-              className="bg-[#FFE492] hover:bg-[#fed668] text-[#043873] text-sm font-semibold px-5 py-2.5 rounded-lg transition-all shadow-sm"
+              className="bg-[#FFE492] hover:bg-[#fed668] text-[#043873] text-sm font-semibold px-5 py-2.5 rounded-lg transition-all shadow-xs"
             >
               Masuk
             </button>
@@ -246,7 +242,7 @@ export function LandingPage({
       </header>
 
       {/* =========================================================
-          2. HERO SECTION (Whitepace Navy #043873 + Vector Waves)
+          2. HERO SECTION (Whitepace Deep Navy #043873 + Vector Waves)
          ========================================================= */}
       <section className="relative bg-[#043873] text-white pt-16 pb-24 overflow-hidden border-b border-[#0f4d96]/40">
         <WaveContourBackground />
@@ -254,7 +250,7 @@ export function LandingPage({
         <div className="relative max-w-7xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
-            {/* Kiri: Copy Headline & Call-To-Action */}
+            {/* Kiri: Headline & Call-To-Action */}
             <div className="lg:col-span-6 space-y-6">
               <h1 className="text-4xl sm:text-5xl lg:text-[54px] font-extrabold tracking-tight leading-[1.15]">
                 Tuntaskan Operasional Ekspor Bersama{" "}
@@ -262,7 +258,7 @@ export function LandingPage({
               </h1>
 
               <p className="text-base sm:text-lg text-white/85 leading-relaxed max-w-xl">
-                Platform SaaS operasional ekspor terpadu untuk eksportir dan UMKM Indonesia. Otomatisasi dokumen resmi (COO, Invoice, Packing List, PEB), kalkulasi kontainer akurat, dan cegah denda demurrage pelabuhan.
+                Satu workspace terintegrasi untuk eksportir dan UMKM Indonesia: otomatisasi 6 dokumen ekspor berstandar UN/CEFACT (COO e-SKA, Invoice, Packing List, PEB), kalkulasi stuffing kontainer 3D, verifikasi buyer anti-fraud, dan pencegahan denda demurrage pelabuhan.
               </p>
 
               <div className="pt-2 flex flex-wrap items-center gap-4">
@@ -283,7 +279,8 @@ export function LandingPage({
                 </a>
               </div>
 
-              <div className="pt-6 border-t border-white/15 flex items-center gap-6 text-xs text-white/70">
+              {/* Tiga Pilar Kepatuhan Ekspor */}
+              <div className="pt-6 border-t border-white/15 flex flex-wrap items-center gap-6 text-xs text-white/70">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={16} className="text-[#FFE492]" />
                   <span>Format COO e-SKA Resmi</span>
@@ -292,10 +289,14 @@ export function LandingPage({
                   <CheckCircle2 size={16} className="text-[#FFE492]" />
                   <span>Kepatuhan Bea Cukai DJBC</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 size={16} className="text-[#FFE492]" />
+                  <span>Devisa DHE SDA PP 36/2023</span>
+                </div>
               </div>
             </div>
 
-            {/* Kanan: Whitepace Light-Blue Showcase Box (#C4DEFD Container) */}
+            {/* Kanan: Whitepace Visual Container Showcase (#C4DEFD Frame) */}
             <div className="lg:col-span-6">
               <div className="relative rounded-2xl bg-[#C4DEFD] p-4 sm:p-6 shadow-2xl border border-white/40 overflow-hidden">
                 {/* Header Mockup */}
@@ -305,43 +306,44 @@ export function LandingPage({
                     <span className="w-3 h-3 rounded-full bg-[#f59e0b]" />
                     <span className="w-3 h-3 rounded-full bg-[#10b981]" />
                     <span className="text-xs font-mono font-bold text-[#043873] ml-2">
-                      EksporFlow Trade OS · Live Workspace
+                      EksporFlow Trade OS · EXP-2026-0881
                     </span>
                   </div>
-                  <span className="text-[11px] font-semibold bg-[#043873] text-white px-2.5 py-0.5 rounded-full">
-                    Kargo Aktif #EXP-2026-0881
+                  <span className="text-[11px] font-semibold bg-[#043873] text-white px-2.5 py-0.5 rounded-full font-mono">
+                    Kargo Aktif Siap Sandar
                   </span>
                 </div>
 
                 {/* Body Mockup */}
                 <div className="space-y-4 text-[#043873]">
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-white/85 rounded-xl p-3.5 shadow-sm border border-white/70">
+                    <div className="bg-white/90 rounded-xl p-3.5 shadow-xs border border-white/70">
                       <div className="text-[11px] font-medium text-slate-600">Pelabuhan Muat (POL)</div>
-                      <div className="text-sm font-bold text-[#043873]">Tanjung Priok, ID</div>
-                      <div className="text-[11px] font-mono text-emerald-700 font-semibold mt-1">✓ Gate-In JICT Aman</div>
+                      <div className="text-sm font-bold text-[#043873]">Tanjung Priok (JICT), ID</div>
+                      <div className="text-[11px] font-mono text-emerald-700 font-semibold mt-1">Gate-In JICT Aman</div>
                     </div>
-                    <div className="bg-white/85 rounded-xl p-3.5 shadow-sm border border-white/70">
+                    <div className="bg-white/90 rounded-xl p-3.5 shadow-xs border border-white/70">
                       <div className="text-[11px] font-medium text-slate-600">Pelabuhan Bongkar (POD)</div>
                       <div className="text-sm font-bold text-[#043873]">Port of Rotterdam, NL</div>
                       <div className="text-[11px] font-mono text-blue-700 font-semibold mt-1">ETA: 18 Des 2026</div>
                     </div>
                   </div>
 
-                  <div className="bg-white rounded-xl p-4 shadow-sm border border-white/70">
+                  {/* Kesiapan 6 Dokumen Standar UN/CEFACT */}
+                  <div className="bg-white rounded-xl p-4 shadow-xs border border-white/70">
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-bold text-[#043873]">Status Kesiapan 6 Dokumen Kunci</span>
+                      <span className="text-xs font-bold text-[#043873]">Kesiapan 6 Dokumen UN/CEFACT</span>
                       <span className="text-xs font-mono font-semibold text-emerald-600">6 / 6 Terverifikasi</span>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 text-[11px] font-medium">
+                    <div className="grid grid-cols-3 gap-2 text-[11px] font-medium font-mono">
                       <div className="p-2 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 text-center">
-                        ✓ Proforma Inv.
+                        Proforma Inv.
                       </div>
                       <div className="p-2 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 text-center">
-                        ✓ Packing List
+                        Packing List
                       </div>
                       <div className="p-2 bg-emerald-50 text-emerald-800 rounded-md border border-emerald-200 text-center">
-                        ✓ COO e-SKA
+                        COO e-SKA
                       </div>
                     </div>
                   </div>
@@ -370,9 +372,9 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          3. SECTION: PROJECT / WORK MANAGEMENT (White Background)
+          3. SECTION: DOKUMEN & OPERASIONAL (White Background)
          ========================================================= */}
-      <section id="fitur" className="py-24 bg-white">
+      <section id="dokumen" className="py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
@@ -380,12 +382,27 @@ export function LandingPage({
             <div className="lg:col-span-6 space-y-6">
               <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-extrabold text-[#212529] tracking-tight leading-[1.2]">
                 Manajemen Dokumen &amp;{" "}
-                <BrushHighlight color="#FFE492">Operasional</BrushHighlight>
+                <BrushHighlight color="#FFE492">Operasional Ekspor</BrushHighlight>
               </h2>
 
               <p className="text-base text-[#4F5D75] leading-relaxed">
-                Terbitkan dokumen ekspor resmi seperti Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, Shipping Instruction, hingga Certificate of Origin (COO e-SKA) secara otomatis. Tidak ada lagi salah ketik nomor segel kontainer atau salah konversi bobot kargo.
+                Terbitkan dokumen ekspor resmi berstandar UN/CEFACT seperti Proforma Invoice, Sales Contract, Commercial Invoice, Packing List, Shipping Instruction, hingga Certificate of Origin (COO e-SKA) secara otomatis. Tidak ada lagi salah ketik nomor segel kontainer atau salah konversi bobot kargo.
               </p>
+
+              <div className="space-y-3 pt-1 text-sm text-slate-700">
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={17} className="text-[#043873] shrink-0 mt-0.5" />
+                  <span><b>Editor Dokumen A4:</b> Pengaturan kop surat perusahaan resmi, stempel basah digital, dan tanda tangan sah.</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={17} className="text-[#043873] shrink-0 mt-0.5" />
+                  <span><b>Ekspor PDF &amp; DOCX:</b> Siap cetak dan siap kirim ke buyer maupun pihak perbankan L/C.</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 size={17} className="text-[#043873] shrink-0 mt-0.5" />
+                  <span><b>Audit Trail SHA-256:</b> Setiap berkas disegel sidik jari digital untuk kepatuhan audit devisa.</span>
+                </div>
+              </div>
 
               <div className="pt-2">
                 <button
@@ -393,14 +410,14 @@ export function LandingPage({
                   onClick={onStartDemo}
                   className="inline-flex items-center gap-2 bg-[#4F9CF9] hover:bg-[#3d8ceb] text-white font-semibold text-base px-6 py-3.5 rounded-lg shadow-md transition-all group"
                 >
-                  <span>Mulai Sekarang</span>
+                  <span>Mulai Terbitkan Dokumen</span>
                   <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
             </div>
 
             {/* Kanan: Whitepace Visual Container (#C4DEFD) dengan Kalkulator Demurrage Interaktif */}
-            <div className="lg:col-span-6">
+            <div id="kalkulator" className="lg:col-span-6">
               <div className="rounded-2xl bg-[#F0F6FC] p-6 sm:p-8 border border-[#C4DEFD] shadow-lg space-y-6">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-200">
                   <div className="flex items-center gap-2">
@@ -418,7 +435,7 @@ export function LandingPage({
                   <div>
                     <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1.5">
                       <span>Jumlah Kontainer</span>
-                      <span className="font-mono text-[#043873] font-bold">{containerCount} Kontainer</span>
+                      <span className="font-mono text-[#043873] font-bold tabular-nums">{containerCount} Kontainer</span>
                     </div>
                     <input
                       type="range"
@@ -433,7 +450,7 @@ export function LandingPage({
                   <div>
                     <div className="flex justify-between text-xs font-semibold text-slate-700 mb-1.5">
                       <span>Hari Tertahan (Revisi Dokumen)</span>
-                      <span className="font-mono text-[#043873] font-bold">{delayedDays} Hari</span>
+                      <span className="font-mono text-[#043873] font-bold tabular-nums">{delayedDays} Hari</span>
                     </div>
                     <input
                       type="range"
@@ -446,25 +463,25 @@ export function LandingPage({
                   </div>
                 </div>
 
-                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-4 rounded-xl bg-white border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div>
                     <span className="text-[11px] font-mono text-rose-600 font-semibold block uppercase">
                       Estimasi Denda Tertahan di POD
                     </span>
-                    <div className="text-2xl font-bold font-mono text-[#043873] tracking-tight">
+                    <div className="text-2xl font-bold font-mono text-[#043873] tracking-tight tabular-nums">
                       USD ${demurrage.totalLossUsd.toLocaleString("en-US")}
                     </div>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="text-xs text-slate-500 font-mono tabular-nums">
                       ≈ {formatIdr(demurrage.totalLossIdr)} per kejadian
                     </span>
                   </div>
 
                   <div className="border-t sm:border-t-0 sm:border-l border-slate-200 pt-3 sm:pt-0 sm:pl-5 text-left sm:text-right">
                     <span className="text-[11px] text-slate-500 block">Proteksi Otomatisasi EksporFlow</span>
-                    <div className="text-base font-bold font-mono text-emerald-600">
+                    <div className="text-base font-bold font-mono text-emerald-600 tabular-nums">
                       Hemat hingga {demurrage.roiMultiple}x Biaya
                     </div>
-                    <span className="text-[11px] text-slate-400">100% Bebas Typo Sebelum Kapal Berlayar</span>
+                    <span className="text-[11px] text-slate-400">100% Bebas Diskrepansi Sebelum Sandar</span>
                   </div>
                 </div>
               </div>
@@ -475,7 +492,7 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          4. SECTION: WORK TOGETHER (Circular Orbit Graphic + Copy)
+          4. SECTION: WORK TOGETHER / ORBIT JARINGAN EKSPOR
          ========================================================= */}
       <section id="solusi" className="py-24 bg-[#F8FAFC] border-t border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
@@ -485,9 +502,15 @@ export function LandingPage({
             <div className="lg:col-span-6 flex justify-center">
               <div className="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
                 {/* Lingkaran Orbit Terluar */}
-                <div className="absolute inset-0 rounded-full border border-dashed border-[#4F9CF9]/40 animate-spin" style={{ animationDuration: "40s" }} />
+                <div
+                  className="absolute inset-0 rounded-full border border-dashed border-[#4F9CF9]/40 animate-spin"
+                  style={{ animationDuration: "40s" }}
+                />
                 {/* Lingkaran Orbit Tengah */}
-                <div className="absolute inset-8 rounded-full border border-dashed border-[#FFE492]/70 animate-spin" style={{ animationDuration: "25s", animationDirection: "reverse" }} />
+                <div
+                  className="absolute inset-8 rounded-full border border-dashed border-[#FFE492]/70 animate-spin"
+                  style={{ animationDuration: "25s", animationDirection: "reverse" }}
+                />
                 {/* Lingkaran Orbit Terdalam */}
                 <div className="absolute inset-16 rounded-full border border-slate-200" />
 
@@ -521,7 +544,7 @@ export function LandingPage({
               </h2>
 
               <p className="text-base text-[#4F5D75] leading-relaxed">
-                Bagikan status pengapalan langsung ke buyer internasional, koordinasikan stuffing kontainer bersama freight forwarder, dan pantau masa kedaluwarsa izin karantina dalam satu workspace terpadu. Tak ada lagi berkas tercecer di riwayat obrolan WhatsApp.
+                Bagikan status pengapalan langsung ke buyer internasional, koordinasikan stuffing kontainer bersama freight forwarder, dan pantau masa kedaluwarsa izin karantina dalam satu workspace terpadu. Tak ada lagi berkas tercecer di riwayat obrolan pesan instan.
               </p>
 
               <div className="pt-2">
@@ -541,9 +564,9 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          5. SECTION: CUSTOMISE IT TO YOUR NEEDS (White Background)
+          5. SECTION: KUSTOMISASI KOMODITAS (White Background)
          ========================================================= */}
-      <section className="py-24 bg-white">
+      <section className="py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-center">
             
@@ -551,7 +574,7 @@ export function LandingPage({
             <div className="lg:col-span-6 space-y-6">
               <h2 className="text-3xl sm:text-4xl lg:text-[46px] font-extrabold text-[#212529] tracking-tight leading-[1.2]">
                 Disesuaikan untuk{" "}
-                <BrushHighlight color="#FFE492">Kebutuhan Anda</BrushHighlight>
+                <BrushHighlight color="#FFE492">Komoditas Anda</BrushHighlight>
               </h2>
 
               <p className="text-base text-[#4F5D75] leading-relaxed">
@@ -570,32 +593,32 @@ export function LandingPage({
               </div>
             </div>
 
-            {/* Kanan: Whitepace Placeholder Container (#C4DEFD) */}
+            {/* Kanan: Whitepace Visual Box (#C4DEFD) */}
             <div className="lg:col-span-6">
               <div className="rounded-2xl bg-[#C4DEFD] p-6 sm:p-8 border border-white/60 shadow-xl space-y-4">
-                <div className="bg-white rounded-xl p-5 shadow-sm space-y-4 text-slate-800">
+                <div className="bg-white rounded-xl p-5 shadow-xs space-y-4 text-slate-800">
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="font-bold text-[#043873] text-sm">
                       Kustomisasi Komoditas &amp; Dokumen
                     </span>
-                    <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full">
-                      ✓ Auto-Calculate
+                    <span className="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2.5 py-1 rounded-full font-mono">
+                      Auto-Calculate
                     </span>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="font-bold text-[#043873]">Kopi Arabika Gayo</div>
-                      <div className="text-slate-500 mt-0.5">HS: 0901.11.10 · 20ft FCL</div>
+                      <div className="text-slate-500 mt-0.5 font-mono">HS: 0901.11.10 · 20ft FCL</div>
                     </div>
                     <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                       <div className="font-bold text-[#043873]">Udang Windu Beku</div>
-                      <div className="text-slate-500 mt-0.5">HS: 0306.17.00 · Reefer 40ft</div>
+                      <div className="text-slate-500 mt-0.5 font-mono">HS: 0306.17.00 · Reefer 40ft</div>
                     </div>
                   </div>
 
                   <div className="p-3.5 bg-blue-50/80 rounded-lg border border-blue-200 text-xs text-blue-900 leading-relaxed">
-                    💡 <b>Fitur Word &amp; PDF Editor:</b> Kustomisasi font resmi, margin cetak A4, stempel digital eksportir, dan klausul pembayaran L/C maupun T/T sesuai permintaan buyer.
+                    <b>Standar Editor Dokumen:</b> Kustomisasi font resmi, margin cetak A4, stempel digital eksportir, dan klausul pembayaran L/C maupun T/T sesuai kesepakatan dengan buyer.
                   </div>
                 </div>
               </div>
@@ -606,9 +629,9 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          6. SECTION: PRICING ("Choose Your Plan" - Figma Layout)
+          6. SECTION: PRICING (Whitepace Layout: Free, Growth, Corp)
          ========================================================= */}
-      <section id="harga" className="py-24 bg-[#F8FAFC] border-t border-b border-slate-200">
+      <section id="harga" className="py-24 bg-[#F8FAFC] border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-8">
           {/* Header Pricing */}
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-4">
@@ -620,13 +643,13 @@ export function LandingPage({
             </p>
 
             {/* Toggle Billing Bulanan / Tahunan */}
-            <div className="inline-flex p-1 bg-white rounded-lg border border-slate-300 shadow-sm mt-4">
+            <div className="inline-flex p-1 bg-white rounded-lg border border-slate-300 shadow-2xs mt-4">
               <button
                 type="button"
                 onClick={() => setBillingCycle("monthly")}
                 className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
                   billingCycle === "monthly"
-                    ? "bg-[#043873] text-white shadow"
+                    ? "bg-[#043873] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -637,7 +660,7 @@ export function LandingPage({
                 onClick={() => setBillingCycle("annual")}
                 className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
                   billingCycle === "annual"
-                    ? "bg-[#043873] text-white shadow"
+                    ? "bg-[#043873] text-white shadow-xs"
                     : "text-slate-600 hover:text-slate-900"
                 }`}
               >
@@ -646,7 +669,7 @@ export function LandingPage({
             </div>
           </div>
 
-          {/* 3 Kartu Pricing ala Whitepace (Tengah Kartu Navy Highlight) */}
+          {/* 3 Kartu Pricing Whitepace (Tengah Kartu Navy Highlight) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch max-w-6xl mx-auto">
             
             {/* Card 1: Free Trial / Starter */}
@@ -654,11 +677,11 @@ export function LandingPage({
               <div className="space-y-6">
                 <div>
                   <h3 className="text-xl font-bold text-[#212529]">Free Trial Demo</h3>
-                  <p className="text-xs text-[#4F5D75] mt-1">Uji coba komprehensif tanpa komitmen</p>
+                  <p className="text-xs text-[#4F5D75] mt-1">Uji coba komprehensif tanpa komitmen kartu kredit</p>
                 </div>
 
                 <div className="pb-6 border-b border-slate-100">
-                  <div className="text-4xl font-extrabold text-[#212529] font-mono">Rp 0</div>
+                  <div className="text-4xl font-extrabold text-[#212529] font-mono tabular-nums">Rp 0</div>
                   <span className="text-xs text-slate-500 font-medium">Akses penuh 3 hari kerja</span>
                 </div>
 
@@ -677,7 +700,7 @@ export function LandingPage({
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Simulasi denda demurrage</span>
+                    <span>Simulasi denda demurrage pelabuhan</span>
                   </li>
                 </ul>
               </div>
@@ -705,7 +728,7 @@ export function LandingPage({
                 </div>
 
                 <div className="pb-6 border-b border-white/15">
-                  <div className="text-4xl font-extrabold text-[#FFE492] font-mono">
+                  <div className="text-4xl font-extrabold text-[#FFE492] font-mono tabular-nums">
                     {billingCycle === "annual" ? "Rp 449.000" : "Rp 499.000"}
                   </div>
                   <span className="text-xs text-white/70 font-medium">per bulan</span>
@@ -718,19 +741,19 @@ export function LandingPage({
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Multi-kontainer stuffing simulator</span>
+                    <span>Multi-kontainer stuffing simulator 3D</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Deteksi lartas HS Code &amp; karantina</span>
+                    <span>Deteksi lartas HS Code &amp; karantina Barantin</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Brankas arsip digital audit Bea Cukai</span>
+                    <span>Brankas arsip digital audit Bea Cukai (SHA-256)</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Sinkronisasi DHE SDA (PP 36/2023)</span>
+                    <span>Pemantauan kepatuhan DHE SDA PP 36/2023</span>
                   </li>
                 </ul>
               </div>
@@ -755,7 +778,7 @@ export function LandingPage({
                 </div>
 
                 <div className="pb-6 border-b border-slate-100">
-                  <div className="text-4xl font-extrabold text-[#212529] font-mono">
+                  <div className="text-4xl font-extrabold text-[#212529] font-mono tabular-nums">
                     {billingCycle === "annual" ? "Rp 1.799.000" : "Rp 1.999.000"}
                   </div>
                   <span className="text-xs text-slate-500 font-medium">per bulan</span>
@@ -768,15 +791,15 @@ export function LandingPage({
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Integrasi API CEISA &amp; INSW</span>
+                    <span>Multi-user &amp; akses hak staf divisi tim</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Multi-user &amp; akses hak staf operasional</span>
+                    <span>Integrasi API CEISA Bea Cukai &amp; INSW</span>
                   </li>
                   <li className="flex items-center gap-2.5">
                     <Check size={16} className="text-[#4F9CF9] shrink-0" />
-                    <span>Dedicated Export Compliance Manager</span>
+                    <span>Dedicated Export Compliance Specialist</span>
                   </li>
                 </ul>
               </div>
@@ -866,7 +889,7 @@ export function LandingPage({
                     Setiap dokumen final ditandatangani dengan fingerprint kriptografi unik yang siap diaudit oleh DJBC dan perbankan devisa.
                   </p>
                   <span className="text-[11px] font-mono font-semibold bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full">
-                    ✓ Standar ISO 27001 &amp; PP 36/2023
+                    Standar ISO 27001 &amp; PP 36/2023
                   </span>
                 </div>
               </div>
@@ -877,7 +900,7 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          9. SECTION: OUR SPONSORS / MITRA EKOSISTEM
+          9. SECTION: DIDUKUNG & TERHUBUNG REGULASI EKSPOR RI
          ========================================================= */}
       <section className="py-20 bg-[#F8FAFC]">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 text-center space-y-10">
@@ -886,25 +909,25 @@ export function LandingPage({
             <BrushHighlight color="#FFE492">Ekosistem Ekspor</BrushHighlight>
           </h2>
 
-          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-80 grayscale hover:grayscale-0 transition-all">
-            <div className="flex items-center gap-2 font-bold text-slate-700 text-lg">
-              <span className="w-4 h-4 bg-red-600 rounded-sm" />
+          <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-14 opacity-85">
+            <div className="flex items-center gap-2.5 font-bold text-slate-700 text-base">
+              <Building2 size={18} className="text-[#043873]" />
               INSW (Indonesia Single Window)
             </div>
-            <div className="flex items-center gap-2 font-bold text-slate-700 text-lg">
-              <span className="w-4 h-4 bg-blue-700 rounded-sm" />
-              Bea Cukai DJBC RI
+            <div className="flex items-center gap-2.5 font-bold text-slate-700 text-base">
+              <ShieldCheck size={18} className="text-[#043873]" />
+              Bea Cukai DJBC RI (CEISA 4.0)
             </div>
-            <div className="flex items-center gap-2 font-bold text-slate-700 text-lg">
-              <span className="w-4 h-4 bg-emerald-600 rounded-sm" />
-              Kementerian Perdagangan
+            <div className="flex items-center gap-2.5 font-bold text-slate-700 text-base">
+              <FileCheck2 size={18} className="text-[#043873]" />
+              Kementerian Perdagangan (e-SKA)
             </div>
-            <div className="flex items-center gap-2 font-bold text-slate-700 text-lg">
-              <span className="w-4 h-4 bg-sky-600 rounded-sm" />
+            <div className="flex items-center gap-2.5 font-bold text-slate-700 text-base">
+              <Ship size={18} className="text-[#043873]" />
               Pelindo (Terminal Petikemas)
             </div>
-            <div className="flex items-center gap-2 font-bold text-slate-700 text-lg">
-              <span className="w-4 h-4 bg-amber-600 rounded-sm" />
+            <div className="flex items-center gap-2.5 font-bold text-slate-700 text-base">
+              <CreditCard size={18} className="text-[#043873]" />
               Bank Devisa DHE SDA
             </div>
           </div>
@@ -923,7 +946,10 @@ export function LandingPage({
             {/* Kiri: Diagram Integrasi Apps */}
             <div className="lg:col-span-6 flex justify-center">
               <div className="relative w-80 h-80 sm:w-96 sm:h-96 flex items-center justify-center">
-                <div className="absolute inset-4 rounded-full border border-dashed border-white/20 animate-spin" style={{ animationDuration: "35s" }} />
+                <div
+                  className="absolute inset-4 rounded-full border border-dashed border-white/20 animate-spin"
+                  style={{ animationDuration: "35s" }}
+                />
                 
                 {/* Logo Tengah */}
                 <div className="w-20 h-20 rounded-2xl bg-[#4F9CF9] text-white flex items-center justify-center shadow-2xl border-2 border-white">
@@ -935,7 +961,7 @@ export function LandingPage({
                   <span>CEISA 4.0</span>
                 </div>
                 <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-white text-[#043873] text-xs font-bold px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5">
-                  <span>WhatsApp Notifikasi</span>
+                  <span>Notifikasi Ekspor</span>
                 </div>
                 <div className="absolute left-2 top-1/2 -translate-y-1/2 bg-white text-[#043873] text-xs font-bold px-3 py-1.5 rounded-xl shadow-lg flex items-center gap-1.5">
                   <span>Excel / CSV</span>
@@ -954,7 +980,7 @@ export function LandingPage({
               </h2>
 
               <p className="text-base text-white/80 leading-relaxed">
-                Sinkronkan draf dokumen langsung ke format pelaporan CEISA Bea Cukai, kirimkan notifikasi kedatangan kapal dan deadline closing PEB via WhatsApp, serta ekspor rekap realisasi penjualan ke spreadsheet akuntansi Anda.
+                Sinkronkan draf dokumen langsung ke format pelaporan CEISA Bea Cukai, pantau deadline closing PEB, dan ekspor rekapitulasi realisasi pengapalan ke spreadsheet akuntansi Anda.
               </p>
 
               <div className="pt-2">
@@ -974,7 +1000,7 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          11. SECTION: TESTIMONIALS ("See what our trusted users Say")
+          11. SECTION: TESTIMONIALS (3 Cards: 1 Putih + 2 Biru)
          ========================================================= */}
       <section className="py-24 bg-white border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-14">
@@ -987,7 +1013,7 @@ export function LandingPage({
             </p>
           </div>
 
-          {/* Grid 3 Testimonial Cards (1 Putih + 2 Biru persis Figma!) */}
+          {/* Grid 3 Testimonial Cards Khas Desain Figma Whitepace (1 Putih + 2 Biru) */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
             {testimonials.map((item) => (
               <div
@@ -1005,12 +1031,20 @@ export function LandingPage({
                       <Star
                         key={i}
                         size={16}
-                        className={item.highlight ? "fill-[#FFE492] text-[#FFE492]" : "fill-[#F59E0B] text-[#F59E0B]"}
+                        className={
+                          item.highlight
+                            ? "fill-[#FFE492] text-[#FFE492]"
+                            : "fill-[#F59E0B] text-[#F59E0B]"
+                        }
                       />
                     ))}
                   </div>
 
-                  <p className={`text-sm leading-relaxed ${item.highlight ? "text-white/95" : "text-[#4F5D75]"}`}>
+                  <p
+                    className={`text-sm leading-relaxed ${
+                      item.highlight ? "text-white/95" : "text-[#4F5D75]"
+                    }`}
+                  >
                     "{item.quote}"
                   </p>
                 </div>
@@ -1025,7 +1059,11 @@ export function LandingPage({
                   </div>
                   <div>
                     <div className="font-bold text-sm">{item.author}</div>
-                    <div className={`text-xs ${item.highlight ? "text-white/80" : "text-slate-500"}`}>
+                    <div
+                      className={`text-xs ${
+                        item.highlight ? "text-white/80" : "text-slate-500"
+                      }`}
+                    >
                       {item.role} · {item.company}
                     </div>
                   </div>
@@ -1037,23 +1075,16 @@ export function LandingPage({
       </section>
 
       {/* =========================================================
-          12. FOOTER (Whitepace Deep Navy #043873)
+          12. FOOTER (Figma Whitepace Deep Navy #043873)
          ========================================================= */}
       <footer className="bg-[#043873] text-white pt-20 pb-12">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 space-y-16">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-10">
             {/* Kolom 1: Logo & Deskripsi */}
             <div className="md:col-span-4 space-y-4">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#4F9CF9] flex items-center justify-center text-white font-bold text-sm">
-                  <Ship size={18} />
-                </div>
-                <span className="font-extrabold text-white text-xl tracking-tight">
-                  Ekspor<span className="text-[#FFE492]">Flow</span>
-                </span>
-              </div>
-              <p className="text-xs text-white/75 leading-relaxed max-w-sm">
-                Sistem Operasional Ekspor Terstandarisasi untuk Eksportir &amp; UMKM Indonesia. Mencegah denda demurrage, otomatisasi dokumen resmi (COO, B/L, PEB), dan menjamin kepatuhan devisa.
+              <EksporFlowLogo light />
+              <p className="text-xs text-white/75 leading-relaxed max-w-sm mt-3">
+                Sistem Operasional Ekspor Terstandarisasi untuk Eksportir &amp; UMKM Indonesia. Mencegah denda demurrage, otomatisasi dokumen resmi berstandar UN/CEFACT (COO, B/L, PEB), dan menjamin kepatuhan devisa PP 36/2023.
               </p>
             </div>
 
@@ -1061,14 +1092,14 @@ export function LandingPage({
             <div className="md:col-span-2 space-y-3">
               <h4 className="text-xs font-bold text-[#FFE492] tracking-wider uppercase">Produk</h4>
               <ul className="space-y-2 text-xs text-white/80">
-                <li><a href="#fitur" className="hover:text-white transition-colors">Dokumen Multi-Item</a></li>
+                <li><a href="#dokumen" className="hover:text-white transition-colors">Dokumen Multi-Item</a></li>
                 <li><a href="#kalkulator" className="hover:text-white transition-colors">Simulasi Demurrage</a></li>
                 <li><a href="#solusi" className="hover:text-white transition-colors">Kepatuhan HS Code</a></li>
                 <li><a href="#solusi" className="hover:text-white transition-colors">Kalkulator Kontainer</a></li>
               </ul>
             </div>
 
-            {/* Kolom 3: Sumber Daya */}
+            {/* Kolom 3: Regulasi */}
             <div className="md:col-span-2 space-y-3">
               <h4 className="text-xs font-bold text-[#FFE492] tracking-wider uppercase">Regulasi</h4>
               <ul className="space-y-2 text-xs text-white/80">
@@ -1108,7 +1139,7 @@ export function LandingPage({
             </div>
 
             <div>
-              © 2026 EksporFlow · Platform SaaS Operasional &amp; Anti-Demurrage Ekspor.
+              © 2026 EksporFlow · Platform SaaS Operasional &amp; Anti-Demurrage Ekspor Indonesia.
             </div>
           </div>
         </div>
