@@ -1,0 +1,88 @@
+{
+  "title": "Proposal Bisnis EksporFlow",
+  "author": "Muhajirin Fatona & Ariadi Ahmad",
+  "created_at": 1764120000,
+  "canvas_mode": "paged",
+  "page_config": {
+    "width": 595000,
+    "height": 842000,
+    "margin": [42000, 44000, 42000, 44000]
+  },
+  "engine_version": "0.1.0",
+  "running_blocks": [
+    {
+      "position": "header",
+      "node": {
+        "id": "doc.running.header",
+        "role": "running_header",
+        "content": {
+          "type": "container",
+          "value": {
+            "children": [
+              {
+                "id": "doc.running.header.left",
+                "role": "running_header",
+                "content": {
+                  "type": "text",
+                  "value": "EKSPORFLOW  |  Proposal Bisnis & Rencana Inkubasi (v2.0)"
+                }
+              },
+              {
+                "id": "doc.running.header.right",
+                "role": "running_header",
+                "variant": "end",
+                "content": {
+                  "type": "text",
+                  "value": "Tahap MVP Terbangun (Pre-Pilot)"
+                }
+              }
+            ]
+          }
+        },
+        "layout": {
+          "type": "grid",
+          "columns": [{ "fr": 1 }, { "auto": true }],
+          "column_gap": 12000,
+          "cell_align": { "x": "stretch", "y": "center" }
+        }
+      }
+    },
+    {
+      "position": "footer",
+      "node": {
+        "id": "doc.running.footer",
+        "role": "running_footer",
+        "content": {
+          "type": "container",
+          "value": {
+            "children": [
+              {
+                "id": "doc.running.footer.left",
+                "role": "running_footer",
+                "content": {
+                  "type": "text",
+                  "value": "Untuk Evaluasi RIIM Startup BRIN/LPDP, DSC Founders' Arena & Investor Tahap Awal"
+                }
+              },
+              {
+                "id": "doc.running.footer.right",
+                "role": "running_footer",
+                "variant": "end",
+                "content": {
+                  "type": "text",
+                  "value": "Halaman {{page_current}} dari {{page_total}}"
+                }
+              }
+            ]
+          }
+        },
+        "layout": {
+          "type": "grid",
+          "columns": [{ "fr": 1 }, { "auto": true }],
+          "column_gap": 12000,
+          "cell_align": { "x": "stretch", "y": "center" }
+        }
+      }
+    }
+  ]
+}
