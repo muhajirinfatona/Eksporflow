@@ -1142,6 +1142,9 @@ export function ReadinessView({
   navigate: (screen: ScreenId) => void;
   flow: WorkspaceFlow;
 }) {
+  const { locale } = useLanguage();
+  const isEn = locale === "EN";
+
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
   const { readiness, readinessScore, setReadiness } = flow;
   const [newCustomDoc, setNewCustomDoc] = useState("");
@@ -1164,7 +1167,7 @@ export function ReadinessView({
     const val = (nameToAdd || newCustomDoc).trim();
     if (!val) return;
     if (activeCustomDocs.includes(val)) {
-      toast.info(`Dokumen "${val}" sudah ada di daftar.`);
+      toast.info(isEn ? `Document "${val}" is already in list.` : `Dokumen "${val}" sudah ada di daftar.`);
       return;
     }
     const next = [...activeCustomDocs, val];
@@ -1173,7 +1176,7 @@ export function ReadinessView({
       certReady: true,
     });
     setNewCustomDoc("");
-    toast.success(`Dokumen khusus buyer "${val}" berhasil ditambahkan.`);
+    toast.success(isEn ? `Buyer special doc "${val}" added.` : `Dokumen khusus buyer "${val}" berhasil ditambahkan.`);
   };
 
   const handleRemoveCustomDoc = (val: string) => {
@@ -1182,7 +1185,7 @@ export function ReadinessView({
       customDocs: next,
       certReady: activeSpecialDocs.length > 0 || next.length > 0,
     });
-    toast.info(`Dokumen "${val}" dihapus.`);
+    toast.info(isEn ? `Document "${val}" removed.` : `Dokumen "${val}" dihapus.`);
   };
 
   return (
@@ -1190,10 +1193,10 @@ export function ReadinessView({
       <section className="panel panel-padding">
         <div className="clean-tabs">
           {[
-            [1, "1 · Produk & HS Code"],
-            [2, "2 · Buyer & Pasar Tujuan"],
-            [3, "3 · Kemasan & Sertifikasi"],
-            [4, "4 · Ringkasan Kesiapan"],
+            [1, isEn ? "1 · Product & HS Code" : "1 · Produk & HS Code"],
+            [2, isEn ? "2 · Buyer & Target Market" : "2 · Buyer & Pasar Tujuan"],
+            [3, isEn ? "3 · Packaging & Certification" : "3 · Kemasan & Sertifikasi"],
+            [4, isEn ? "4 · Readiness Summary" : "4 · Ringkasan Kesiapan"],
           ].map(([num, label]) => (
             <button
               key={num}
@@ -1211,44 +1214,44 @@ export function ReadinessView({
             {step === 1 && (
               <div className="form-grid two">
                 <Field
-                  label="Produk utama yang diekspor"
+                  label={isEn ? "Main export product" : "Produk utama yang diekspor"}
                   value={shipment.product}
                   onChange={(v) => update("product", v)}
                 />
                 <Field
-                  label="HS Code referensi"
+                  label={isEn ? "Reference HS Code" : "HS Code referensi"}
                   value={shipment.hsCode}
                   onChange={(v) => update("hsCode", v)}
                 />
                 <SelectField
-                  label="Satuan jual"
+                  label={isEn ? "Sales unit" : "Satuan jual"}
                   value={shipment.unit || "carton"}
                   onChange={(v) => update("unit", v)}
                 >
-                  <option value="carton">Carton / Karton (Box)</option>
-                  <option value="karung">Bag / Karung (Jute / Gunny Bag)</option>
+                  <option value="carton">{isEn ? "Carton / Box" : "Carton / Karton (Box)"}</option>
+                  <option value="karung">{isEn ? "Bag / Gunny Bag" : "Bag / Karung (Jute / Gunny Bag)"}</option>
                   <option value="kg">Kilogram (KG)</option>
                   <option value="MT">Metric Ton (MT / Ton)</option>
-                  <option value="drum">Drum / Barel (Minyak / Cairan)</option>
+                  <option value="drum">{isEn ? "Drum / Barrel" : "Drum / Barel (Minyak / Cairan)"}</option>
                   <option value="pallet">Pallet (PLT)</option>
-                  <option value="pcs">Pieces / Buah (Pcs)</option>
-                  <option value="bale">Bale / Bal (Tekstil / Tembakau)</option>
-                  <option value="crate">Crate / Peti Kayu</option>
+                  <option value="pcs">{isEn ? "Pieces (Pcs)" : "Pieces / Buah (Pcs)"}</option>
+                  <option value="bale">{isEn ? "Bale" : "Bale / Bal (Tekstil / Tembakau)"}</option>
+                  <option value="crate">{isEn ? "Crate / Wooden Box" : "Crate / Peti Kayu"}</option>
                   <option value="liter">Liter (LTR)</option>
-                  <option value="set">Set / Paket</option>
+                  <option value="set">{isEn ? "Set / Package" : "Set / Paket"}</option>
                   {!["carton", "karung", "kg", "MT", "drum", "pallet", "pcs", "bale", "crate", "liter", "set"].includes(shipment.unit) && shipment.unit && (
                     <option value={shipment.unit}>{shipment.unit}</option>
                   )}
                 </SelectField>
                 <SelectField
-                  label="Pengalaman ekspor tim"
+                  label={isEn ? "Team export experience" : "Pengalaman ekspor tim"}
                   value={readiness.experience || "Eksportir Pemula (Pengapalan Perdana)"}
                   onChange={(v) => setReadiness({ experience: v })}
                 >
-                  <option value="Eksportir Pemula (Pengapalan Perdana)">Eksportir Pemula (Pengapalan Perdana)</option>
-                  <option value="1–3 Kali Pengapalan (Tahap Rintisan)">1–3 Kali Pengapalan (Tahap Rintisan)</option>
-                  <option value="Rutin / Berpengalaman (>3 Kontainer/Tahun)">Rutin / Berpengalaman (&gt;3 Kontainer/Tahun)</option>
-                  <option value="Eksportir Mahir & Terakreditasi (AEO)">Eksportir Mahir &amp; Terakreditasi (AEO)</option>
+                  <option value="Eksportir Pemula (Pengapalan Perdana)">{isEn ? "First-time Exporter (Maiden Shipment)" : "Eksportir Pemula (Pengapalan Perdana)"}</option>
+                  <option value="1–3 Kali Pengapalan (Tahap Rintisan)">{isEn ? "1–3 Shipments (Early Stage)" : "1–3 Kali Pengapalan (Tahap Rintisan)"}</option>
+                  <option value="Rutin / Berpengalaman (>3 Kontainer/Tahun)">{isEn ? "Regular / Experienced (>3 Containers/Year)" : "Rutin / Berpengalaman (>3 Kontainer/Tahun)"}</option>
+                  <option value="Eksportir Mahir & Terakreditasi (AEO)">{isEn ? "Advanced & AEO Accredited" : "Eksportir Mahir & Terakreditasi (AEO)"}</option>
                   {readiness.experience && ![
                     "Eksportir Pemula (Pengapalan Perdana)",
                     "1–3 Kali Pengapalan (Tahap Rintisan)",
@@ -1260,10 +1263,10 @@ export function ReadinessView({
                 </SelectField>
                 <div className="row-actions" style={{ gridColumn: "1 / -1", marginTop: 4 }}>
                   <button type="button" className="ghost-button" onClick={() => navigate("products")}>
-                    <Package size={14} /> Ambil dari Katalog Produk
+                    <Package size={14} /> {isEn ? "Select from Product Catalog" : "Ambil dari Katalog Produk"}
                   </button>
                   <button type="button" className="save-button" onClick={() => setStep(2)}>
-                    Lanjut ke Pasar Tujuan →
+                    {isEn ? "Continue to Target Market →" : "Lanjut ke Pasar Tujuan →"}
                   </button>
                 </div>
               </div>
@@ -1272,12 +1275,12 @@ export function ReadinessView({
             {step === 2 && (
               <div className="form-grid two">
                 <Field
-                  label="Nama perusahaan buyer"
+                  label={isEn ? "Buyer company name" : "Nama perusahaan buyer"}
                   value={shipment.buyer}
                   onChange={(v) => update("buyer", v)}
                 />
                 <SelectField
-                  label="Negara tujuan"
+                  label={isEn ? "Destination country" : "Negara tujuan"}
                   value={shipment.buyerCountry || "United States (USA)"}
                   onChange={(v) => update("buyerCountry", v)}
                 >
@@ -1292,12 +1295,12 @@ export function ReadinessView({
                     )}
                 </SelectField>
                 <Field
-                  label="Pelabuhan / kota tujuan"
+                  label={isEn ? "Destination port / city" : "Pelabuhan / kota tujuan"}
                   value={shipment.destination}
                   onChange={(v) => update("destination", v)}
                 />
                 <SelectField
-                  label="Terms pembayaran"
+                  label={isEn ? "Payment terms" : "Terms pembayaran"}
                   value={shipment.paymentTerms || "T/T 30% Advance, 70% against Copy B/L (Standar Ekspor)"}
                   onChange={(v) => update("paymentTerms", v)}
                 >
@@ -1313,10 +1316,10 @@ export function ReadinessView({
                 </SelectField>
                 <div className="row-actions" style={{ gridColumn: "1 / -1", marginTop: 4 }}>
                   <button type="button" className="ghost-button" onClick={() => navigate("partners")}>
-                    <UserRound size={14} /> Pilih dari Direktori Mitra
+                    <UserRound size={14} /> {isEn ? "Choose from Partner Directory" : "Pilih dari Direktori Mitra"}
                   </button>
                   <button type="button" className="save-button" onClick={() => setStep(3)}>
-                    Lanjut ke Kemasan &amp; Sertifikasi →
+                    {isEn ? "Continue to Packaging & Certification →" : "Lanjut ke Kemasan & Sertifikasi →"}
                   </button>
                 </div>
               </div>
@@ -1325,12 +1328,12 @@ export function ReadinessView({
             {step === 3 && (
               <div className="form-grid two">
                 <Field
-                  label="Kemasan standar ekspor"
+                  label={isEn ? "Standard export packaging" : "Kemasan standar ekspor"}
                   value={shipment.packageType}
                   onChange={(v) => update("packageType", v)}
                 />
                 <SelectField
-                  label="Rencana Incoterm"
+                  label={isEn ? "Planned Incoterm" : "Rencana Incoterm"}
                   value={shipment.incoterm}
                   onChange={(v) => update("incoterm", v as Incoterm)}
                 >
@@ -1347,14 +1350,16 @@ export function ReadinessView({
                         <FileCheck2 size={18} />
                       </div>
                       <div>
-                        <h4>Sertifikasi &amp; Dokumen Khusus Permintaan Buyer</h4>
+                        <h4>{isEn ? "Certification & Buyer-Requested Documents" : "Sertifikasi & Dokumen Khusus Permintaan Buyer"}</h4>
                         <p>
-                          Tandai dokumen wajib dari instansi penerbit atau tambahkan persyaratan khusus sesuai Sales Contract / L/C buyer.
+                          {isEn
+                            ? "Mark required export certificates or add custom requirements as per Sales Contract / buyer L/C."
+                            : "Tandai dokumen wajib dari instansi penerbit atau tambahkan persyaratan khusus sesuai Sales Contract / L/C buyer."}
                         </p>
                       </div>
                     </div>
                     <StatusPill tone={totalMappedDocs > 0 ? "green" : "amber"}>
-                      {totalMappedDocs} Dokumen Terpetakan
+                      {totalMappedDocs} {isEn ? "Documents Mapped" : "Dokumen Terpetakan"}
                     </StatusPill>
                   </div>
 
@@ -1389,13 +1394,13 @@ export function ReadinessView({
                   <div className="custom-docs-box">
                     <div className="custom-docs-title">
                       <ShieldCheck size={15} style={{ color: "#D97706" }} />
-                      <span>Dokumen Khusus Tambahan dari Buyer (Custom Request)</span>
+                      <span>{isEn ? "Additional Buyer Documents (Custom Request)" : "Dokumen Khusus Tambahan dari Buyer (Custom Request)"}</span>
                     </div>
                     <div className="custom-doc-input-row">
                       <input
                         type="text"
                         className="custom-doc-input"
-                        placeholder="Ketik nama sertifikat khusus (contoh: Fairtrade, FDA Prior Notice, Kosher)..."
+                        placeholder={isEn ? "Type custom certificate name (e.g. Fairtrade, FDA Prior Notice, Kosher)..." : "Ketik nama sertifikat khusus (contoh: Fairtrade, FDA Prior Notice, Kosher)..."}
                         value={newCustomDoc}
                         onChange={(e) => setNewCustomDoc(e.target.value)}
                         onKeyDown={(e) => {
@@ -1410,13 +1415,13 @@ export function ReadinessView({
                         className="custom-doc-add-btn"
                         onClick={() => handleAddCustomDoc()}
                       >
-                        <Plus size={14} /> Tambah Dokumen
+                        <Plus size={14} /> {isEn ? "Add Document" : "Tambah Dokumen"}
                       </button>
                     </div>
 
                     {/* Quick Recommendations */}
                     <div className="quick-buyer-docs">
-                      <span className="quick-buyer-docs-label">Saran Cepat:</span>
+                      <span className="quick-buyer-docs-label">{isEn ? "Quick Suggestions:" : "Saran Cepat:"}</span>
                       {QUICK_BUYER_DOCS.map((quickDoc) => (
                         <button
                           key={quickDoc}
@@ -1437,7 +1442,7 @@ export function ReadinessView({
                             <span>📄 {docName}</span>
                             <button
                               type="button"
-                              title="Hapus dokumen ini"
+                              title={isEn ? "Remove this document" : "Hapus dokumen ini"}
                               onClick={() => handleRemoveCustomDoc(docName)}
                             >
                               <X size={12} />
@@ -1451,10 +1456,10 @@ export function ReadinessView({
 
                 <div className="row-actions" style={{ gridColumn: "1 / -1", marginTop: 4 }}>
                   <button type="button" className="ghost-button" onClick={() => navigate("cargo")}>
-                    <Box size={14} /> Atur Dimensi Kontainer 3D
+                    <Box size={14} /> {isEn ? "Configure 3D Container Dimensions" : "Atur Dimensi Kontainer 3D"}
                   </button>
                   <button type="button" className="save-button" onClick={() => setStep(4)}>
-                    Lihat Ringkasan Kesiapan ({totalMappedDocs} Dokumen) →
+                    {isEn ? `View Readiness Summary (${totalMappedDocs} Docs) →` : `Lihat Ringkasan Kesiapan (${totalMappedDocs} Dokumen) →`}
                   </button>
                 </div>
               </div>
@@ -1467,37 +1472,47 @@ export function ReadinessView({
                     <CheckCircle2 size={16} />
                   </div>
                   <div style={{ fontSize: 13, color: "#1E3A8A", lineHeight: 1.5, flex: 1 }}>
-                    Seluruh data asesmen ini otomatis tersinkronisasi ke modul <b>Kalkulator Harga</b>, <b>Dokumen Ekspor</b>, dan <b>Risk Center</b> untuk transaksi {shipment.reference ? (
-                      <span style={{ fontWeight: 700, background: "#DBEAFE", color: "#1E40AF", padding: "2px 8px", borderRadius: 6, letterSpacing: 0.2 }}>
-                        {shipment.reference}
-                      </span>
+                    {isEn ? (
+                      <>All assessment data is automatically synchronized to <b>Pricing Calculator</b>, <b>Export Documents</b>, and <b>Risk Center</b> for transaction {shipment.reference ? (
+                        <span style={{ fontWeight: 700, background: "#DBEAFE", color: "#1E40AF", padding: "2px 8px", borderRadius: 6, letterSpacing: 0.2 }}>
+                          {shipment.reference}
+                        </span>
+                      ) : (
+                        <b>this active export</b>
+                      )}.</>
                     ) : (
-                      <b>ekspor aktif ini</b>
-                    )}.
+                      <>Seluruh data asesmen ini otomatis tersinkronisasi ke modul <b>Kalkulator Harga</b>, <b>Dokumen Ekspor</b>, dan <b>Risk Center</b> untuk transaksi {shipment.reference ? (
+                        <span style={{ fontWeight: 700, background: "#DBEAFE", color: "#1E40AF", padding: "2px 8px", borderRadius: 6, letterSpacing: 0.2 }}>
+                          {shipment.reference}
+                        </span>
+                      ) : (
+                        <b>ekspor aktif ini</b>
+                      )}.</>
+                    )}
                   </div>
                 </div>
 
                 <div className="panel panel-padding" style={{ background: "#F8FAFC", borderRadius: 12 }}>
-                  <span className="eyebrow" style={{ marginBottom: 6 }}>RINGKASAN DOKUMEN &amp; KEPATUHAN TERPETAKAN</span>
+                  <span className="eyebrow" style={{ marginBottom: 6 }}>{isEn ? "MAPPED DOCUMENTS & COMPLIANCE SUMMARY" : "RINGKASAN DOKUMEN & KEPATUHAN TERPETAKAN"}</span>
                   <div className="readiness-docs-summary-list">
                     {activeSpecialDocs.map((id) => {
                       const found = STANDARD_EXPORT_DOCS.find((d) => d.id === id);
                       return (
                         <div key={id} className="readiness-doc-item">
                           <span><b>{found?.label || id}</b></span>
-                          <StatusPill tone="green">{found?.issuer || "Standar"}</StatusPill>
+                          <StatusPill tone="green">{found?.issuer || (isEn ? "Standard" : "Standar")}</StatusPill>
                         </div>
                       );
                     })}
                     {activeCustomDocs.map((cd) => (
                       <div key={cd} className="readiness-doc-item" style={{ background: "#FEF3C7", borderColor: "#FDE68A" }}>
                         <span><b>{cd}</b></span>
-                        <StatusPill tone="amber">Permintaan Buyer</StatusPill>
+                        <StatusPill tone="amber">{isEn ? "Buyer Request" : "Permintaan Buyer"}</StatusPill>
                       </div>
                     ))}
                     {totalMappedDocs === 0 && (
                       <div style={{ color: "#94A3B8", fontSize: 13, fontStyle: "italic" }}>
-                        Belum ada dokumen atau sertifikat khusus yang ditandai.
+                        {isEn ? "No custom documents or certificates marked yet." : "Belum ada dokumen atau sertifikat khusus yang ditandai."}
                       </div>
                     )}
                   </div>
@@ -1505,13 +1520,13 @@ export function ReadinessView({
 
                 <div className="row-actions">
                   <button type="button" className="save-button" onClick={() => navigate("pricing")}>
-                    <Calculator size={14} /> Lanjut Susun Harga &amp; Order
+                    <Calculator size={14} /> {isEn ? "Continue to Pricing & Order" : "Lanjut Susun Harga & Order"}
                   </button>
                   <button type="button" className="ghost-button" onClick={() => navigate("documents")}>
-                    <FileCheck2 size={14} /> Buka Dokumen Ekspor
+                    <FileCheck2 size={14} /> {isEn ? "Open Export Documents" : "Buka Dokumen Ekspor"}
                   </button>
                   <button type="button" className="ghost-button" onClick={() => navigate("advisor")}>
-                    Tanya AI Advisor
+                    {isEn ? "Ask AI Advisor" : "Tanya AI Advisor"}
                   </button>
                 </div>
               </div>
@@ -1519,30 +1534,30 @@ export function ReadinessView({
           </div>
 
           <div className="panel panel-padding subtle-subpanel">
-            <span className="eyebrow">SKOR KESIAPAN AWAL</span>
+            <span className="eyebrow">{isEn ? "INITIAL READINESS SCORE" : "SKOR KESIAPAN AWAL"}</span>
             <div className="score-headline">
               <strong>{readinessScore}</strong>
-              <small>/ 100 · indikatif</small>
+              <small>{isEn ? "/ 100 · indicative" : "/ 100 · indikatif"}</small>
             </div>
             <div className="progress-track">
               <i style={{ width: `${readinessScore}%` }} />
             </div>
             <div className="clean-kv">
-              <span>Produk &amp; HS Code</span>
+              <span>{isEn ? "Product & HS Code" : "Produk & HS Code"}</span>
               <StatusPill tone={shipment.product && shipment.hsCode ? "green" : "amber"}>
-                {shipment.product && shipment.hsCode ? "Terisi" : "Lengkapi"}
+                {shipment.product && shipment.hsCode ? (isEn ? "Completed" : "Terisi") : (isEn ? "Complete" : "Lengkapi")}
               </StatusPill>
             </div>
             <div className="clean-kv">
-              <span>Buyer &amp; negara tujuan</span>
+              <span>{isEn ? "Buyer & destination" : "Buyer & negara tujuan"}</span>
               <StatusPill tone={shipment.buyerCountry ? "green" : "amber"}>
-                {shipment.buyerCountry || "Perlu isi"}
+                {shipment.buyerCountry || (isEn ? "Needs input" : "Perlu isi")}
               </StatusPill>
             </div>
             <div className="clean-kv">
-              <span>Pemetaan COO / sertifikat</span>
+              <span>{isEn ? "COO / certificates mapping" : "Pemetaan COO / sertifikat"}</span>
               <StatusPill tone={totalMappedDocs > 0 ? "green" : "amber"}>
-                {totalMappedDocs > 0 ? `${totalMappedDocs} Dokumen Terpetakan` : "Belum ditandai"}
+                {totalMappedDocs > 0 ? `${totalMappedDocs} ${isEn ? "Docs Mapped" : "Dokumen Terpetakan"}` : (isEn ? "Not marked" : "Belum ditandai")}
               </StatusPill>
             </div>
           </div>
@@ -1552,84 +1567,84 @@ export function ReadinessView({
       <section className="panel panel-padding">
         <div className="panel-head">
           <div>
-            <span className="eyebrow">RENCANA KERJA TERHUBUNG</span>
-            <h3>Tindak lanjut per divisi</h3>
+            <span className="eyebrow">{isEn ? "LINKED ACTION PLANS" : "RENCANA KERJA TERHUBUNG"}</span>
+            <h3>{isEn ? "Follow-up by division" : "Tindak lanjut per divisi"}</h3>
           </div>
         </div>
         <div className="clean-table-wrap">
           <table className="clean-table">
             <thead>
               <tr>
-                <th>Langkah Persiapan</th>
-                <th>Divisi</th>
+                <th>{isEn ? "Preparation Step" : "Langkah Persiapan"}</th>
+                <th>{isEn ? "Division" : "Divisi"}</th>
                 <th>Status</th>
-                <th>Tindakan</th>
+                <th>{isEn ? "Action" : "Tindakan"}</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td>
-                  <b>Verifikasi dimensi koli &amp; kapasitas {shipment.containerType}</b>
+                  <b>{isEn ? `Verify package dimensions & ${shipment.containerType} capacity` : `Verifikasi dimensi koli & kapasitas ${shipment.containerType}`}</b>
                 </td>
-                <td>Operasional</td>
+                <td>{isEn ? "Operations" : "Operasional"}</td>
                 <td>
                   <StatusPill tone={shipment.cartonLength > 0 ? "green" : "amber"}>
-                    {shipment.cartonLength > 0 ? "Terukur" : "Perlu isi"}
+                    {shipment.cartonLength > 0 ? (isEn ? "Measured" : "Terukur") : (isEn ? "Needs input" : "Perlu isi")}
                   </StatusPill>
                 </td>
                 <td>
                   <button type="button" className="table-inline-btn" onClick={() => navigate("cargo")}>
-                    Buka Muatan →
+                    {isEn ? "Open Cargo →" : "Buka Muatan →"}
                   </button>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <b>Konfirmasi HS Code {shipment.hsCode || "—"} dengan PPJK / bea cukai</b>
+                  <b>{isEn ? `Confirm HS Code ${shipment.hsCode || "—"} with Customs Broker` : `Konfirmasi HS Code ${shipment.hsCode || "—"} dengan PPJK / bea cukai`}</b>
                 </td>
                 <td>Compliance</td>
                 <td>
                   <StatusPill tone={flow.legalChecklist.hsCodeReviewed ? "green" : "amber"}>
-                    {flow.legalChecklist.hsCodeReviewed ? "Terkonfirmasi" : "Verifikasi ahli"}
+                    {flow.legalChecklist.hsCodeReviewed ? (isEn ? "Confirmed" : "Terkonfirmasi") : (isEn ? "Expert verification" : "Verifikasi ahli")}
                   </StatusPill>
                 </td>
                 <td>
                   <button type="button" className="table-inline-btn" onClick={() => navigate("risk")}>
-                    Buka Risk Center →
+                    {isEn ? "Open Risk Center →" : "Buka Risk Center →"}
                   </button>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <b>Hitung biaya &amp; margin penawaran {shipment.incoterm}</b>
+                  <b>{isEn ? `Calculate ${shipment.incoterm} quotation cost & margin` : `Hitung biaya & margin penawaran ${shipment.incoterm}`}</b>
                 </td>
                 <td>Sales</td>
                 <td>
                   <StatusPill
                     tone={flow.effectiveApprovalStatus === "Tercatat direview" ? "green" : "blue"}
                   >
-                    {flow.effectiveApprovalStatus}
+                    {flow.effectiveApprovalStatus === "Tercatat direview" ? (isEn ? "Recorded in Review" : "Tercatat direview") : flow.effectiveApprovalStatus}
                   </StatusPill>
                 </td>
                 <td>
                   <button type="button" className="table-inline-btn" onClick={() => navigate("pricing")}>
-                    Buka Harga →
+                    {isEn ? "Open Pricing →" : "Buka Harga →"}
                   </button>
                 </td>
               </tr>
               <tr>
                 <td>
-                  <b>Penerbitan COO &amp; sertifikat khusus buyer ({totalMappedDocs} dokumen terpetakan)</b>
+                  <b>{isEn ? `Issuance of COO & special certificates (${totalMappedDocs} mapped docs)` : `Penerbitan COO & sertifikat khusus buyer (${totalMappedDocs} dokumen terpetakan)`}</b>
                 </td>
-                <td>Legal &amp; Mutu</td>
+                <td>{isEn ? "Legal & Quality" : "Legal & Mutu"}</td>
                 <td>
                   <StatusPill tone={totalMappedDocs > 0 ? "green" : "amber"}>
-                    {totalMappedDocs > 0 ? "Terpetakan" : "Perlu Pemetaan"}
+                    {totalMappedDocs > 0 ? (isEn ? "Mapped" : "Terpetakan") : (isEn ? "Needs Mapping" : "Perlu Pemetaan")}
                   </StatusPill>
                 </td>
                 <td>
                   <button type="button" className="table-inline-btn" onClick={() => navigate("documents")}>
-                    Buka Dokumen Ekspor →
+                    {isEn ? "Open Export Docs →" : "Buka Dokumen Ekspor →"}
                   </button>
                 </td>
               </tr>

@@ -925,20 +925,40 @@ export function PreTransactionModule({
     return () => window.removeEventListener("eksporflow_buyer_saved", handleSyncEvent);
   }, []);
 
+  const getLocalizedCountry = (countryStr: string) => {
+    if (!isEn) return countryStr;
+    const countryMap: Record<string, string> = {
+      "Uni Emirat Arab": "United Arab Emirates",
+      "Belanda": "Netherlands",
+      "Jepang": "Japan",
+      "Singapura": "Singapore",
+      "Jerman": "Germany",
+      "Amerika Serikat": "United States",
+      "Korea Selatan": "South Korea",
+      "Tiongkok": "China",
+      "Inggris": "United Kingdom",
+      "Australia": "Australia",
+    };
+    return countryMap[countryStr] || countryStr;
+  };
+
   const handleSelectSavedBuyer = (buyerItem: any) => {
+    const mappedCountry = isEn ? getLocalizedCountry(buyerItem.country) : buyerItem.country;
     updateDraft({
       prospectCompany: buyerItem.companyName,
-      prospectCountry: buyerItem.country,
+      prospectCountry: mappedCountry,
       prospectEmail: buyerItem.email || `procurement@${buyerItem.companyName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com`,
-      customNotes: `Repeat order / follow up: ${buyerItem.product} (${buyerItem.container || "1 x 40HC"}). Ref PO kargo: ${buyerItem.lastPoRef || "-"}`,
+      customNotes: isEn
+        ? `Repeat order / follow up: ${buyerItem.product} (${buyerItem.container || "1 x 40HC"}). Ref PO: ${buyerItem.lastPoRef || "-"}`
+        : `Repeat order / follow up: ${buyerItem.product} (${buyerItem.container || "1 x 40HC"}). Ref PO kargo: ${buyerItem.lastPoRef || "-"}`,
     });
     if (update) {
       update("buyer", buyerItem.companyName);
-      update("buyerCountry", buyerItem.country);
+      update("buyerCountry", mappedCountry);
     }
     toast.success(
       isEn
-        ? `Loaded profile for ${buyerItem.companyName} (${buyerItem.country}) into draft!`
+        ? `Loaded profile for ${buyerItem.companyName} (${mappedCountry}) into draft!`
         : `Data buyer ${buyerItem.companyName} (${buyerItem.country}) berhasil dimuat ke draf!`
     );
   };
@@ -1087,7 +1107,7 @@ export function PreTransactionModule({
                   >
                     <span>{b.companyName}</span>
                     <span style={{ fontSize: "10px", color: isSelected ? "#2563EB" : "#64748B" }}>
-                      · {b.country}
+                      · {getLocalizedCountry(b.country)}
                     </span>
                     {b.status?.includes("Selesai") && (
                       <span style={{ color: "#10B981", fontSize: "11px", fontWeight: 700 }}>✓</span>
