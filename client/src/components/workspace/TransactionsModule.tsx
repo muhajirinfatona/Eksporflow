@@ -1490,20 +1490,20 @@ export function TransactionsModule({
               ) : (
                 <div className="space-card-table-container">
                   <div className="space-table-wrap">
-                    <table className="space-table" style={{ width: "100%", tableLayout: "fixed" }}>
+                    <table className="space-table" style={{ width: "100%", minWidth: 1000, tableLayout: "fixed" }}>
                       <colgroup>
                         <col style={{ width: 36 }} />
-                        <col style={{ width: 140 }} />
-                        <col style={{ width: 175 }} />
-                        <col style={{ width: 170 }} />
-                        <col style={{ width: 130 }} />
                         <col style={{ width: 155 }} />
+                        <col style={{ width: 200 }} />
+                        <col style={{ width: 195 }} />
+                        <col style={{ width: 125 }} />
+                        <col style={{ width: 135 }} />
                         <col style={{ width: 95 }} />
-                        <col style={{ width: 105 }} />
+                        <col style={{ width: 85 }} />
                       </colgroup>
                       <thead>
                         <tr>
-                          <th style={{ width: 36, textAlign: "center", padding: "10px 4px" }}>
+                          <th style={{ width: 40, textAlign: "center", padding: "11px 4px" }}>
                             <SpaceCheckbox
                               label=""
                               checked={selectedIds.length > 0 && selectedIds.length === filteredTransactions.length}
@@ -1512,13 +1512,13 @@ export function TransactionsModule({
                               }}
                             />
                           </th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "PO No. & Date" : "No. PO & Tanggal"}</th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "Buyer & Destination" : "Buyer & Destinasi"}</th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "Commodity & HS Code" : "Komoditas & HS Code"}</th>
-                          <th style={{ textAlign: "right", padding: "10px 14px", whiteSpace: "nowrap" }}>{isEn ? "Contract Value" : "Nilai Kontrak"}</th>
-                          <th style={{ padding: "10px 12px", whiteSpace: "nowrap" }}>{isEn ? "Workflow Progress" : "Progress Alur"}</th>
-                          <th style={{ padding: "10px 10px", whiteSpace: "nowrap" }}>Status</th>
-                          <th style={{ textAlign: "right", padding: "10px 10px", whiteSpace: "nowrap" }}>{isEn ? "Action" : "Aksi"}</th>
+                          <th style={{ padding: "11px 12px", whiteSpace: "nowrap" }}>{isEn ? "PO No. & Date" : "No. PO & Tanggal"}</th>
+                          <th style={{ padding: "11px 12px", whiteSpace: "nowrap" }}>{isEn ? "Buyer & Destination" : "Buyer & Destinasi"}</th>
+                          <th style={{ padding: "11px 12px", whiteSpace: "nowrap" }}>{isEn ? "Commodity & HS Code" : "Komoditas & HS Code"}</th>
+                          <th style={{ textAlign: "right", padding: "11px 14px", whiteSpace: "nowrap" }}>{isEn ? "Contract Value" : "Nilai Kontrak"}</th>
+                          <th style={{ padding: "11px 12px", whiteSpace: "nowrap" }}>{isEn ? "Workflow Progress" : "Progress Alur"}</th>
+                          <th style={{ padding: "11px 10px", whiteSpace: "nowrap" }}>Status</th>
+                          <th style={{ textAlign: "right", padding: "11px 12px", whiteSpace: "nowrap" }}>{isEn ? "Action" : "Aksi"}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1560,7 +1560,7 @@ export function TransactionsModule({
 
                           return (
                             <tr key={row.id} style={{ background: isCurrent ? "rgba(15, 41, 66, 0.03)" : undefined }}>
-                              <td style={{ textAlign: "center", padding: "10px 6px" }}>
+                              <td style={{ textAlign: "center", padding: "12px 4px" }}>
                                 <SpaceCheckbox
                                   label=""
                                   checked={isChecked}
@@ -1569,34 +1569,70 @@ export function TransactionsModule({
                                   }}
                                 />
                               </td>
-                              <td style={{ padding: "10px 10px" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                              <td style={{ padding: "12px 12px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+                                  <strong style={{ color: "#0F172A", fontSize: 13, letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
+                                    {row.reference || "(Tanpa nomor)"}
+                                  </strong>
                                   <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "nowrap" }}>
-                                    <strong style={{ color: "#0F172A", fontSize: 13, letterSpacing: "-0.01em", whiteSpace: "nowrap" }}>
-                                      {row.reference || "(Tanpa nomor)"}
-                                    </strong>
-                                    {isCurrent && <SpaceBadge tone="primary" showDot>Aktif</SpaceBadge>}
+                                    <small style={{ color: "#64748B", fontSize: "11px", whiteSpace: "nowrap" }}>
+                                      {formatShortDate(row.updatedAt)}
+                                    </small>
+                                    {isCurrent && (
+                                      <span
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: 3.5,
+                                          fontSize: "10.5px",
+                                          fontWeight: 600,
+                                          color: "#1D4ED8",
+                                          background: "#EFF6FF",
+                                          border: "1px solid #BFDBFE",
+                                          padding: "0.5px 6px",
+                                          borderRadius: 999,
+                                          lineHeight: 1.2,
+                                          whiteSpace: "nowrap",
+                                          flexShrink: 0,
+                                        }}
+                                      >
+                                        <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#2563EB" }} />
+                                        Aktif
+                                      </span>
+                                    )}
                                   </div>
-                                  <small style={{ color: "#64748B", fontSize: "11px", whiteSpace: "nowrap" }}>
-                                    {formatShortDate(row.updatedAt)}
-                                  </small>
                                 </div>
                               </td>
-                              <td style={{ padding: "10px 10px" }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                                  <SpaceAvatar name={row.buyer || "Buyer"} size="sm" />
-                                  <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                    <span style={{ fontWeight: 600, color: "#0F172A", fontSize: 13 }}>{row.buyer}</span>
-                                    <span style={{ color: "#64748B", fontSize: "11.5px" }}>
+                              <td style={{ padding: "12px 12px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
+                                  <div style={{ flexShrink: 0 }}>
+                                    <SpaceAvatar name={row.buyer || "Buyer"} size="sm" />
+                                  </div>
+                                  <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, overflow: "hidden" }}>
+                                    <span
+                                      title={row.buyer}
+                                      style={{ fontWeight: 600, color: "#0F172A", fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                                    >
+                                      {row.buyer}
+                                    </span>
+                                    <span
+                                      title={`${row.contactPerson ? `${row.contactPerson} · ` : ""}${row.buyerCountry}`}
+                                      style={{ color: "#64748B", fontSize: "11.5px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                                    >
                                       {row.contactPerson ? `${row.contactPerson} · ` : ""}{row.buyerCountry}
                                     </span>
                                   </div>
                                 </div>
                               </td>
-                              <td style={{ padding: "10px 10px" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                  <span style={{ fontWeight: 600, color: "#1E293B", fontSize: 13 }}>{row.product}</span>
-                                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                              <td style={{ padding: "12px 12px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
+                                  <span
+                                    title={row.product}
+                                    style={{ fontWeight: 600, color: "#1E293B", fontSize: 13, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                                  >
+                                    {row.product}
+                                  </span>
+                                  <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "nowrap", minWidth: 0 }}>
                                     <span
                                       style={{
                                         background: "#F1F5F9",
@@ -1605,14 +1641,17 @@ export function TransactionsModule({
                                         borderRadius: 4,
                                         fontSize: 11,
                                         fontWeight: 600,
+                                        flexShrink: 0,
                                       }}
                                     >
                                       {row.incoterm || "FOB"}
                                     </span>
-                                    <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#475569" }}>
+                                    <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#475569", flexShrink: 0 }}>
                                       HS {row.hsCode || "0901.11.10"}
                                     </span>
-                                    <span style={{ fontSize: "11px", color: "#64748B" }}>
+                                    <span
+                                      style={{ fontSize: "11px", color: "#64748B", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}
+                                    >
                                       · {row.quantity} {row.unit}
                                     </span>
                                   </div>

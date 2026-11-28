@@ -20713,6 +20713,38 @@ table.unlk-items-table th.active-cell {
   border: none;
   border-radius: 0;
   box-shadow: none;
+  scrollbar-width: thin;
+  scrollbar-color: #E2E8F0 transparent;
+}
+.space-card-table-container .space-table-wrap::-webkit-scrollbar {
+  height: 6px;
+}
+.space-card-table-container .space-table-wrap::-webkit-scrollbar-track {
+  background: transparent;
+}
+.space-card-table-container .space-table-wrap::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 999px;
+}
+.space-card-table-container .space-table-wrap::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+.space-card-table-container .space-table th {
+  padding: 11px 12px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.03em !important;
+  color: #64748B !important;
+  background: #F8FAFC !important;
+  border-bottom: 1px solid #E2E8F0 !important;
+}
+
+.space-card-table-container .space-table td {
+  padding: 11px 12px !important;
+  font-size: 13px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #F1F5F9 !important;
 }
 
 /* Space DS Table */
