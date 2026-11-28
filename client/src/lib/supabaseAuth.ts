@@ -44,25 +44,27 @@ async function hashPassword(password: string): Promise<string> {
 export function getCurrentUser(): UserSession | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PRODUCTION_USER));
-      return DEFAULT_PRODUCTION_USER;
-    }
+    if (!raw) return null;
     const parsed = JSON.parse(raw) as UserSession;
     if (parsed && typeof parsed.email === "string") {
-      // Pastikan status akun adalah production cloud aktif, bukan demo/prototype
-      if (parsed.isDemo) {
-        parsed.isDemo = false;
-        parsed.role = "admin";
-        delete parsed.demoExpiresAt;
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
+      // Jika tersimpan sesi mock lawas 'supabase_workspace_admin', bersihkan agar Landing Page dapat tampil
+      if (parsed.openId === "supabase_workspace_admin") {
+        localStorage.removeItem(STORAGE_KEY);
+        return null;
+      }
+      if (parsed.isDemo && parsed.demoExpiresAt) {
+        const expMs = new Date(parsed.demoExpiresAt).getTime();
+        if (!Number.isNaN(expMs) && expMs <= Date.now()) {
+          localStorage.removeItem(STORAGE_KEY);
+          return null;
+        }
       }
       return parsed;
     }
   } catch {
     // Abaikan
   }
-  return DEFAULT_PRODUCTION_USER;
+  return null;
 }
 
 export function setCurrentUser(user: UserSession | null): void {
@@ -78,15 +80,66 @@ export function setCurrentUser(user: UserSession | null): void {
 }
 
 export function getDemoRemainingMs(user?: Partial<UserSession> | null, nowMs: number = Date.now()): number {
-  return 0; // Mode production aktif
+  const expiresAt = user?.demoExpiresAt || (() => {
+    try {
+      return localStorage.getItem(DEMO_EXPIRES_STORAGE_KEY) || "";
+    } catch {
+      return "";
+    }
+  })();
+  if (!expiresAt) return 0;
+  const diff = new Date(expiresAt).getTime() - nowMs;
+  return Math.max(0, diff);
 }
 
 export function formatDemoRemainingLabel(remainingMs: number): string {
-  return "Cloud Supabase Aktif";
+  if (remainingMs <= 0) return "Masa Demo Berakhir";
+  const totalMinutes = Math.floor(remainingMs / 60000);
+  const days = Math.floor(totalMinutes / (60 * 24));
+  const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+  const mins = totalMinutes % 60;
+  if (days > 0) return `${days} Hari ${hours} Jam`;
+  if (hours > 0) return `${hours} Jam ${mins} Menit`;
+  return `${Math.max(1, mins)} Menit`;
 }
 
 export function startDemoSession(companyName = "PT Nusantara Ekspor Mandiri"): UserSession {
-  return DEFAULT_PRODUCTION_USER;
+  const now = new Date();
+  let expiresAt = "";
+  try {
+    const existingExp = localStorage.getItem(DEMO_EXPIRES_STORAGE_KEY);
+    if (existingExp && new Date(existingExp).getTime() > now.getTime()) {
+      expiresAt = existingExp;
+    }
+  } catch {
+    // Abaikan
+  }
+  if (!expiresAt) {
+    expiresAt = new Date(now.getTime() + DEMO_DURATION_MS).toISOString();
+    try {
+      localStorage.setItem(DEMO_EXPIRES_STORAGE_KEY, expiresAt);
+    } catch {
+      // Abaikan
+    }
+  }
+
+  const nowIso = now.toISOString();
+  const demoSession: UserSession = {
+    id: -999,
+    openId: "demo_trial_3d",
+    name: "Pengunjung Demo UMKM",
+    email: "demo-3hari@eksporflow.id",
+    companyName,
+    role: "demo",
+    emailVerifiedAt: nowIso,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    lastSignedIn: nowIso,
+    isDemo: true,
+    demoExpiresAt: expiresAt,
+  };
+  setCurrentUser(demoSession);
+  return demoSession;
 }
 
 export async function registerWithSupabase(params: {

@@ -6,6 +6,7 @@ import type { ContainerCalc, Shipment } from "@shared/shipment";
 import type { WorkspaceFlow } from "@/hooks/useWorkspaceFlow";
 import {
   AlertTriangle,
+  Bot,
   CheckCircle2,
   ChevronRight,
   ExternalLink,
@@ -17,7 +18,6 @@ import {
   Send,
   ShieldAlert,
   ShieldCheck,
-  Sparkles,
   ThumbsDown,
   ThumbsUp,
   User,
@@ -622,7 +622,7 @@ export function getScreenExplanation(
 ): string {
   switch (screen) {
     case "dashboard":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Dashboard adalah pusat komando operasional ekspor real-time untuk memantau indikator kunci (KPI), kepatuhan devisa negara (DHE SDA), pelacakan pengapalan kontainer samudera, sebaran pasar ekspor, dan kesiapan dokumen kepabeanan.
@@ -633,12 +633,12 @@ Dashboard adalah pusat komando operasional ekspor real-time untuk memantau indik
 - **Langkah 3:** Gunakan Filter Rentang Waktu (di sebelah tombol 'Unduh Laporan') untuk menganalisis data periode tertentu layaknya Meta Ads Manager.
 - **Langkah 4:** Pastikan indikator Dokumen Wajib Ekspor berstatus **6/6 Valid** sebelum kargo masuk pelabuhan.
 
-**3. 💡 Rekomendasi AI Advisor untuk Transaksi (${shipment.reference || "EksporFlow"}):**
+**3. Rekomendasi Mitigasi Risiko untuk Transaksi (${shipment.reference || "EksporFlow"}):**
 - Komoditas **${shipment.product}** ke **${shipment.destination}** saat ini memiliki estimasi margin **${shipment.margin}%** (${shipment.incoterm || "FOB"}).
 - Pastikan jadwal closing kargo dengan shipping line terkonfirmasi minimal 3 hari sebelum ETD untuk menghindari biaya rollover kargo.`;
 
     case "readiness":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Asesmen Kesiapan Ekspor digunakan untuk mengaudit kesiapan legalitas perusahaan (NIB, NPWP, Kepabeanan), sertifikasi mutu/karantina komoditas, serta kelayakan kemasan internasional sebelum menerima pesanan luar negeri.
@@ -648,11 +648,11 @@ Asesmen Kesiapan Ekspor digunakan untuk mengaudit kesiapan legalitas perusahaan 
 - **Langkah 2:** Cek persyaratan teknis komoditas ${shipment.product} (Sertifikat Fitosanitari, Uji Lab Kontaminan, sertifikat Halal/Organik jika diminta buyer).
 - **Langkah 3:** Pastikan standar packaging ekspor (perlakuan panas kayu ISPM-15, palleting, dan marka label tahan air).
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Selesaikan seluruh uji mutu dan pengajuan perizinan karantina minimal 14 hari sebelum proses pemuatan (stuffing) agar tidak terjadi hambatan di jalur Bea Cukai.`;
 
     case "pre_transaction":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Pra-Transaksi & Buyer adalah modul intelijen dagang untuk memverifikasi keabsahan profil calon buyer luar negeri, validasi identitas pajak/usaha (VAT/EORI), mitigasi sanksi negara tujuan, dan evaluasi keamanan metode pembayaran.
@@ -663,11 +663,11 @@ Pra-Transaksi & Buyer adalah modul intelijen dagang untuk memverifikasi keabsaha
 - **Langkah 3:** Tinjau skor risiko negara tujuan (${shipment.buyerCountry || "Tujuan"}) terhadap risiko politik, pembatasan devisa, atau embargo internasional.
 - **Langkah 4:** Tentukan syarat pembayaran yang aman sebelum menerbitkan Proforma Invoice resmi.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Untuk buyer baru (${shipment.buyer || "Calon Buyer"}), wajibkan minimal Down Payment (DP) 30% T/T di awal dan pelunasan 70% terhadap salinan Bill of Lading (Copy of B/L), atau gunakan Irrevocable Letter of Credit (L/C) At Sight yang diterbitkan bank tier-1 internasional.`;
 
     case "transactions":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Pesanan Ekspor adalah ruang kerja untuk mengelola seluruh siklus pemenuhan kontrak dagang dari status Draft, Dikonfirmasi, Produksi/Pengadaan, Muat Kapal, hingga Selesai.
@@ -677,11 +677,11 @@ Pesanan Ekspor adalah ruang kerja untuk mengelola seluruh siklus pemenuhan kontr
 - **Langkah 2:** Perbarui status tahapan transaksi sesuai kemajuan di lapangan.
 - **Langkah 3:** Tautkan nomor referensi Sales Contract, PO Buyer, dan Commercial Invoice untuk menjaga jejak audit yang terintegrasi.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Kunci (lock) spesifikasi pesanan dan nilai penawaran begitu Sales Contract ditandatangani. Amandemen pesanan wajib dicatat tertulis melalui addendum resmi.`;
 
     case "po_intake":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Input PO adalah gerbang digital untuk mengekstrak dan memvalidasi berkas Purchase Order (PO) atau Letter of Intent (LOI) dari buyer luar negeri secara cepat dan akurat.
@@ -691,11 +691,11 @@ Input PO adalah gerbang digital untuk mengekstrak dan memvalidasi berkas Purchas
 - **Langkah 2:** AI akan membaca dan mengekstrak nomor PO, nama buyer, komoditas, volume, harga satuan, dan port tujuan.
 - **Langkah 3:** Tinjau hasil ekstraksi pada formulir pratinjau, lalu klik 'Simpan & Sinkronkan ke Transaksi'.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Waspadai inkonsistensi antara port tujuan pada PO buyer dengan penawaran awal Anda, karena perbedaan port akan berdampak langsung pada biaya ocean freight dan asuransi laut.`;
 
     case "pricing":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Harga & Order adalah kalkulator matematis presisi tinggi untuk membedah struktur biaya ekspor (HPP, trucking, THC, freight, asuransi) dan menyimulasikan penawaran harga pada 7 skenario Incoterms® 2020 (EXW, FOB, CFR, CIF, CPT, CIP, DDP).
@@ -706,11 +706,11 @@ Harga & Order adalah kalkulator matematis presisi tinggi untuk membedah struktur
 - **Langkah 3:** Bandingkan penawaran pada matriks 7 Incoterms®. Klik 'Pilih' pada term yang diinginkan (term aktif saat ini: **${shipment.incoterm}** senilai **${formatMoney(pricing.active.offer, shipment.currency)}**).
 - **Langkah 4:** Pantau margin laba bersih (${shipment.margin}%) agar tetap memenuhi target profitabilitas perusahaan.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Sertakan buffer kontinjensi minimal 3-5% dari nilai penawaran untuk memproteksi margin dari fluktuasi tarif freight dan demurrage pelabuhan.`;
 
     case "approvals":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Persetujuan adalah modul tata kelola internal (Segregation of Duties) di mana direksi atau manajer mengevaluasi kelayakan kontrak, kepatuhan margin harga, dan syarat pembayaran sebelum Sales Contract diterbitkan resmi ke buyer.
@@ -720,11 +720,11 @@ Persetujuan adalah modul tata kelola internal (Segregation of Duties) di mana di
 - **Langkah 2:** Cek catatan kepatuhan atau dispensasi harga jika margin di bawah target perusahaan.
 - **Langkah 3:** Berikan keputusan resmi: 'Setujui Kontrak' atau 'Minta Revisi' disertai catatan perbaikan.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Jangan menyetujui kontrak dengan syarat pembayaran Open Account (pembayaran setelah barang tiba) untuk buyer baru tanpa jaminan asuransi kredit ekspor (Askrindo/Indonesia Eximbank).`;
 
     case "documents":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Dokumen Ekspor adalah pusat pembuatan, verifikasi 3-way match, pengunduhan, dan pencetakan dokumen ekspor internasional (Commercial Invoice, Packing List, Sales Contract, Shipping Instruction).
@@ -734,11 +734,11 @@ Dokumen Ekspor adalah pusat pembuatan, verifikasi 3-way match, pengunduhan, dan 
 - **Langkah 2:** Pastikan nomor invoice, nomor kontainer, segel pelayaran, dan kode HS sama persis di seluruh lembar dokumen.
 - **Langkah 3:** Klik 'Download PDF' atau 'Cetak Dokumen' untuk menghasilkan dokumen berstandar kepabeanan siap tandatangan.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Periksa konsistensi 3-Way Match antara Invoice, Packing List, dan Bill of Lading. Perbedaan 1 huruf pada nama buyer atau 1 kg berat kotor dapat menyebabkan kontainer tertahan (*Customs Hold*) di negara tujuan.`;
 
     case "cargo":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Rencana Muatan adalah simulator 3D kontainer (Stuffing Optimizer) untuk memaksimalkan kapasitas kubikasi (CBM), distribusi berat, dan stabilitas susunan kargo di dalam kontainer 20GP, 40GP, atau 40HC.
@@ -748,11 +748,11 @@ Rencana Muatan adalah simulator 3D kontainer (Stuffing Optimizer) untuk memaksim
 - **Langkah 2:** Masukkan dimensi dan berat per koli muatan.
 - **Langkah 3:** Amati visualisasi sebaran muatan 3D dan cek tingkat utilisasi volume (${container.volumeUtilization}%) dan berat (${container.weightUtilization}%).
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Usahakan utilisasi kontainer mencapai minimal 75-85% untuk menekan beban biaya pengangkutan per satuan berat/unit komoditas.`;
 
     case "shipment":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Pelacakan Kontainer digunakan untuk memantau pergerakan fisik kargo maritim secara real-time dari pelabuhan muat (POL Tanjung Priok/Tanjung Perak) hingga pelabuhan tujuan (POD).
@@ -762,11 +762,11 @@ Pelacakan Kontainer digunakan untuk memantau pergerakan fisik kargo maritim seca
 - **Langkah 2:** Pantau jadwal Estimated Time of Departure (ETD) dan Estimated Time of Arrival (ETA).
 - **Langkah 3:** Koordinasikan dengan freight forwarder untuk rilis dokumen Original B/L atau Telex Release segera setelah pembayaran buyer dilunasi.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Jangan melepaskan instruksi rilis kargo (Telex Release / Surrendered B/L) ke agen pelayaran sebelum konfirmasi dana pelunasan dari buyer masuk ke rekening devisa Anda.`;
 
     case "compliance":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 HS Code & Lartas adalah modul kepatuhan kepabeanan untuk memverifikasi kode klasifikasi barang 8-digit BTKI 2022, aturan Larangan dan Pembatasan (Lartas) INSW, ketentuan Surat Keterangan Asal (e-SKA), dan kepatuhan devisa Bank Indonesia (PP 36/2023).
@@ -776,11 +776,11 @@ HS Code & Lartas adalah modul kepatuhan kepabeanan untuk memverifikasi kode klas
 - **Langkah 2:** Identifikasi perizinan ekspor khusus (misal: Laporan Surveyor, Eksportir Terdaftar, atau sertifikat fitosanitari karantina tumbuhan).
 - **Langkah 3:** Pastikan kepatuhan retensi 30% devisa DHE SDA selama minimal 90 hari di bank devisa Indonesia jika nilai PEB mencapai minimal USD 250,000.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Siapkan permohonan e-SKA (Form D / Form AK / Form ICO) segera setelah NPE diterbitkan oleh Bea Cukai untuk membantu buyer mendapatkan keringanan bea masuk di negara tujuan.`;
 
     case "finance":
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Keuangan & Devisa adalah modul kontrol arus kas ekspor untuk memantau penerimaan devisa hasil ekspor (DHE), pembayaran vendor operasional (freight, karantina, trucking, broker), dan analisis laba bersih realisasi.
@@ -790,11 +790,11 @@ Keuangan & Devisa adalah modul kontrol arus kas ekspor untuk memantau penerimaan
 - **Langkah 2:** Input realisasi biaya logistik riil untuk dibandingkan dengan estimasi penawaran awal.
 - **Langkah 3:** Cek kepatuhan pelaporan devisa DHE ke Sistem Informasi Devisa Hasil Ekspor (SiMoDIS) Bank Indonesia.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Gunakan rekening khusus DHE SDA pada bank devisa nasional agar terhindar dari sanksi administratif dan penangguhan layanan kepabeanan oleh DJBC.`;
 
     default:
-      return `### 🧭 Panduan & Rekomendasi Layar ${screenTitle}
+      return `### Panduan & Rekomendasi Layar ${screenTitle}
 
 **1. Fungsi & Tujuan Layar:**
 Layar ini adalah bagian dari ekosistem operasional terpadu EksporFlow yang membantu mengelola parameter transaksi, kepatuhan, dan alur ekspor Anda secara terstruktur.
@@ -804,7 +804,7 @@ Layar ini adalah bagian dari ekosistem operasional terpadu EksporFlow yang memba
 - **Langkah 2:** Lakukan penyesuaian data atau input parameter yang dibutuhkan untuk transaksi ${shipment.reference || "ekspor"}.
 - **Langkah 3:** Data yang Anda masukkan otomatis tersinkronisasi dan aman di sistem.
 
-**3. 💡 Rekomendasi AI Advisor:**
+**3. Rekomendasi Mitigasi Risiko:**
 - Jika ada istilah ekspor atau alur sistem yang membingungkan, Anda dapat langsung mengetikkan pertanyaan pada kolom chat di bawah!`;
   }
 }
@@ -978,7 +978,7 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("unggah") ||
     q.includes("ekstrak")
   ) {
-    return `### 📄 Panduan Fitur Scan PO & Input Order
+    return `### Panduan Fitur Scan PO & Input Order
 
 1. **Cara Menggunakan AI Scan PO:**
    - Masuk ke menu **Penjualan > Input PO**.
@@ -1002,7 +1002,7 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("kalkulator") ||
     q.includes("penawaran")
   ) {
-    return `### 🚢 Panduan Incoterms® 2020 & Matriks Harga
+    return `### Panduan Incoterms® 2020 & Matriks Harga
 
 1. **Cara Mengubah Skenario Incoterm:**
    - Buka menu **Penjualan > Harga & Order**.
@@ -1050,7 +1050,7 @@ Banner **"Konflik versi terdeteksi"** muncul saat sistem mendeteksi pembaruan da
     q.includes("muatan") ||
     q.includes("kubikasi")
   ) {
-    return `### 📦 Optimasi Muatan Kontainer 3D
+    return `### Optimasi Muatan Kontainer 3D
 
 1. Buka menu **Operasional Ekspor > Muatan Kontainer 3D**.
 2. Status kalkulasi saat ini:
@@ -1153,7 +1153,7 @@ Silakan sampaikan pesan error atau kendala yang dialami, tim kami akan merespons
   }
 
   // 11. Fallback Respons Cerdas Kontekstual
-  return `### 💡 Panduan Cerdas EksporFlow untuk ${screenTitle}
+  return `### Panduan Terverifikasi EksporFlow untuk ${screenTitle}
 
 Pertanyaan Anda mengenai **"${question}"** dianalisis berdasarkan konteks transaksi **${shipment.reference}**:
 
@@ -1201,7 +1201,7 @@ export function ScreenAIAdvisorBanner({
       case "success":
         return <CheckCircle2 size={15} />;
       default:
-        return <Sparkles size={15} />;
+        return <Bot size={15} />;
     }
   }, [insight.riskLevel]);
 
@@ -1210,9 +1210,9 @@ export function ScreenAIAdvisorBanner({
       <div className="screen-ai-banner-left">
         <div className="screen-ai-banner-eyebrow">
           <span className="screen-ai-spark-icon">
-            <Sparkles size={12} />
+            <Bot size={12} />
           </span>
-          <span className="eyebrow-text">AI ADVISOR · MITIGASI RISIKO</span>
+          <span className="eyebrow-text">AI Advisor · Mitigasi Risiko</span>
           <span className={`screen-ai-risk-tag ${insight.riskLevel}`}>
             {riskIcon}
             <span>{insight.badgeText}</span>
@@ -1229,8 +1229,8 @@ export function ScreenAIAdvisorBanner({
           onClick={() => onOpenConsultation(insight.initialPrompt)}
           title="Buka konsultasi mendalam dengan AI Advisor"
         >
-          <Sparkles size={14} />
-          <span>Tanya AI Advisor</span>
+          <Bot size={14} />
+          <span>Konsultasi Risiko</span>
           <ChevronRight size={13} />
         </button>
       </div>
@@ -1398,7 +1398,7 @@ export function ScreenAIAdvisorDrawer({
         container,
         flow,
       });
-      const footnote = "\n\n---\n*💡 Tips: Anda sedang menggunakan Mode Demo (Bantuan Sistem Cepat). Masuk akun untuk sinkronisasi cloud.*";
+      const footnote = "\n\n---\n*Catatan: Anda sedang menggunakan Mode Demo (Bantuan Sistem Cepat). Masuk akun untuk sinkronisasi cloud.*";
       setMessages((prev) => [
         ...prev,
         {
@@ -1436,7 +1436,7 @@ export function ScreenAIAdvisorDrawer({
         <header className="ai-drawer-header">
           <div className="ai-drawer-header-brand">
             <div className="ai-drawer-icon-wrap">
-              <Sparkles size={18} />
+              <Bot size={18} />
             </div>
             <div>
               <h3>Konsultasi AI Advisor</h3>
@@ -1468,7 +1468,7 @@ export function ScreenAIAdvisorDrawer({
         {/* Kartu Ringkasan Rekomendasi Modul Aktif */}
         <div className={`ai-drawer-insight-card ${insight.riskLevel}`}>
           <div className="ai-drawer-card-head">
-            <Sparkles size={13} />
+            <ShieldCheck size={13} />
             <span>{insight.badgeText}</span>
           </div>
           <strong>{insight.title}</strong>
@@ -1498,7 +1498,7 @@ export function ScreenAIAdvisorDrawer({
           {messages.map((m, index) => (
             <div key={index} className={`ai-drawer-bubble ${m.role}`}>
               <div className="bubble-avatar">
-                {m.role === "assistant" ? <Sparkles size={12} strokeWidth={2.4} /> : <User size={12} strokeWidth={2.4} />}
+                {m.role === "assistant" ? <Bot size={12} strokeWidth={2} /> : <User size={12} strokeWidth={2} />}
               </div>
               <div className="bubble-text">
                 {m.role === "assistant" ? (
@@ -1544,7 +1544,7 @@ export function ScreenAIAdvisorDrawer({
           {(assistantMutation.isPending || isAnsweringLocal) && (
             <div className="ai-drawer-bubble assistant loading">
               <div className="bubble-avatar">
-                <Sparkles size={12} strokeWidth={2.4} />
+                <Bot size={12} strokeWidth={2} />
               </div>
               <div className="bubble-text">
                 <span className="ai-typing-indicator">
@@ -1800,7 +1800,7 @@ export function ScreenAIFloatingWidget({
         container,
         flow,
       });
-      const footnote = "\n\n---\n*💡 Tips: Anda sedang menggunakan Mode Demo (Bantuan Cepat). Masuk akun untuk konsultasi live AI cloud.*";
+      const footnote = "\n\n---\n*Catatan: Anda sedang menggunakan Mode Demo (Bantuan Cepat). Masuk akun untuk konsultasi live AI cloud.*";
       setMessages((prev) => [
         ...prev,
         {
@@ -1840,7 +1840,7 @@ export function ScreenAIFloatingWidget({
           aria-label="AI Advisor Ekspor"
           title="AI Advisor Ekspor - Tanya Regulasi Ekspor & Rekomendasi Layar"
         >
-          <Sparkles size={16} />
+          <Bot size={15} />
           <span className="ai-float-trigger-label">AI Advisor</span>
           <span
             className={`ai-float-trigger-badge ${
@@ -1861,7 +1861,7 @@ export function ScreenAIFloatingWidget({
             <div className="ai-float-header-top">
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span className="ai-float-pill-btn">
-                  <Sparkles size={12} strokeWidth={2.4} /> AI Advisor
+                  <Bot size={12} strokeWidth={2} /> AI Advisor
                 </span>
                 <span className="ai-float-screen-tag">{screenTitle}</span>
               </div>
@@ -1922,14 +1922,14 @@ export function ScreenAIFloatingWidget({
                   onClick={() => handleSend(`Jelaskan rekomendasi dan langkah mitigasi untuk Layar ${screenTitle}: "${insight.title}"`)}
                   disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
-                  💡 Pelajari / Bahas Rekomendasi Ini
+                  Pelajari Rekomendasi Ini
                 </button>
               </div>
             </div>
 
-            {/* 2. Pilihan: Bingung di Layar Ini? (Panduan Langkah & Alur) */}
+            {/* 2. Pilihan: Panduan Alur Layar */}
             <div className="ai-float-chips-wrap">
-              <span className="ai-float-chips-title">BINGUNG DI LAYAR INI?</span>
+              <span className="ai-float-chips-title">PANDUAN ALUR LAYAR</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 <button
                   type="button"
@@ -1937,7 +1937,7 @@ export function ScreenAIFloatingWidget({
                   onClick={() => handleSend(`Apa fungsi dan tujuan utama Layar ${screenTitle}?`)}
                   disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
-                  🧭 Apa fungsi layar ini?
+                  Fungsi layar ini
                 </button>
                 <button
                   type="button"
@@ -1945,7 +1945,7 @@ export function ScreenAIFloatingWidget({
                   onClick={() => handleSend(`Langkah apa yang harus saya lakukan di Layar ${screenTitle}?`)}
                   disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
-                  🚀 Langkah apa yang harus saya lakukan?
+                  Langkah yang harus dilakukan
                 </button>
                 <button
                   type="button"
@@ -1953,7 +1953,7 @@ export function ScreenAIFloatingWidget({
                   onClick={() => handleSend("Bagaimana cara simpan data transaksi agar tidak hilang?")}
                   disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
-                  💾 Simpan Data
+                  Simpan data transaksi
                 </button>
                 <button
                   type="button"
@@ -1961,14 +1961,14 @@ export function ScreenAIFloatingWidget({
                   onClick={() => handleSend("Bagaimana cara cetak atau download dokumen ekspor PDF?")}
                   disabled={assistantMutation.isPending || isAnsweringLocal}
                 >
-                  📄 Cetak Dokumen
+                  Cetak dokumen PDF
                 </button>
               </div>
             </div>
 
             {/* 3. Pilihan: Tanya Regulasi & Praktik Ekspor */}
             <div className="ai-float-chips-wrap" style={{ marginTop: "4px" }}>
-              <span className="ai-float-chips-title">TANYA REGULASI &amp; PRAKTIK EKSPOR:</span>
+              <span className="ai-float-chips-title">REGULASI &amp; PRAKTIK EKSPOR</span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                 {insight.suggestedQuestions.map((q, idx) => (
                   <button
@@ -1988,7 +1988,7 @@ export function ScreenAIFloatingWidget({
             {messages.map((m, index) => (
               <div key={index} className={`ai-drawer-bubble ${m.role}`}>
                 <div className="bubble-avatar">
-                  {m.role === "assistant" ? <Sparkles size={12} strokeWidth={2.4} /> : <User size={12} strokeWidth={2.4} />}
+                  {m.role === "assistant" ? <Bot size={12} strokeWidth={2} /> : <User size={12} strokeWidth={2} />}
                 </div>
                 <div className="bubble-text">
                   {m.role === "assistant" ? (
@@ -2034,7 +2034,7 @@ export function ScreenAIFloatingWidget({
             {(assistantMutation.isPending || isAnsweringLocal) && (
               <div className="ai-drawer-bubble assistant loading">
                 <div className="bubble-avatar">
-                  <Sparkles size={12} strokeWidth={2.4} />
+                  <Bot size={12} strokeWidth={2} />
                 </div>
                 <div className="bubble-text">
                   <span className="ai-typing-indicator">

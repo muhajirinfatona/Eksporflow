@@ -345,7 +345,7 @@ export function DocumentScrutinyModule({
                   onClick={() => handleRunOcrScrutiny(true)}
                   className="save-button"
                 >
-                  <Sparkles size={13} /> Verifikasi Draf Revisi (Lolos 100%)
+                  <CheckCircle2 size={13} /> Verifikasi Draf Revisi (Lolos 100%)
                 </button>
               </div>
             </div>

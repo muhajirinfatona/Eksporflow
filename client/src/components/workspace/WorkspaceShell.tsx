@@ -20,6 +20,7 @@ import {
   BookOpen,
   Bot,
   Box,
+  Briefcase,
   Building2,
   Calculator,
   Calendar,
@@ -122,7 +123,7 @@ export const NAV_GROUPS: { group: string; items: ScreenMeta[] }[] = [
         title: "Akuisisi Buyer & Pra-Transaksi",
         description:
           "Penyusunan penawaran harga (Quotation), surat minat (Inquiry), dan verifikasi buyer.",
-        icon: <Sparkles size={16} />,
+        icon: <Briefcase size={16} />,
       },
       {
         id: "po_intake",

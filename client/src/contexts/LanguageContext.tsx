@@ -5,6 +5,7 @@ import {
   BookOpen,
   Bot,
   Box,
+  Briefcase,
   Building2,
   Calculator,
   CheckCircle2,
@@ -393,7 +394,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
             phase: t("nav.group.sales", "Penjualan"),
             title: t("screen.pre_transaction.title", "Akuisisi Buyer & Pra-Transaksi"),
             description: t("screen.pre_transaction.desc", "Penyusunan penawaran harga (Quotation), surat minat (Inquiry), dan verifikasi buyer."),
-            icon: <Sparkles size={16} />,
+            icon: <Briefcase size={16} />,
           },
           {
             id: "po_intake",

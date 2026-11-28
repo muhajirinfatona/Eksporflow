@@ -176,9 +176,9 @@ export function LogoCropModal({ isOpen, onClose, shipment, update }: LogoCropMod
         <div className="p-6 space-y-5 max-h-[75vh] overflow-y-auto">
           {/* Quick Preset Buttons */}
           <div>
-            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2 flex items-center gap-1.5">
-              <Sparkles size={13} className="text-amber-500" />
-              <span>Pilihan Cepat / Preset Pemotongan:</span>
+            <div className="text-xs font-semibold text-slate-700 mb-2 flex items-center gap-1.5">
+              <Crop size={13} className="text-slate-500" />
+              <span>Pilihan Preset Pemotongan:</span>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <button

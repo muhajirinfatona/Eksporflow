@@ -15,7 +15,7 @@ export const GEOMETRIC_STYLES: GeometricStyleDefinition[] = [
   {
     id: "teal-slant",
     label: "Prisma Slant",
-    tagline: "Canva Indico Klasik",
+    tagline: "Format Geometris Korporat",
     positionDesc: "Sudut Kanan Atas & Kiri Bawah",
     desc: "Trapezoid miring toska & cyan elegan dengan logo bersih di kiri",
     primaryColor: "#005f73",

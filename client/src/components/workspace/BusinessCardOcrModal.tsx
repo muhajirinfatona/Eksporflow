@@ -403,8 +403,8 @@ export function BusinessCardOcrModal({
         <div className="ocr-modal-header">
           <div className="ocr-header-left">
             <div className="ocr-badge">
-              <Sparkles size={16} />
-              <span>OCR SCANNER KARTU NAMA BUYER</span>
+              <CreditCard size={14} className="text-slate-600" />
+              <span>Pindai OCR Kartu Nama Buyer</span>
             </div>
             <h3 className="ocr-modal-title">
               Ubah Gambar Kartu Nama ke Format Teks Surat Ekspor

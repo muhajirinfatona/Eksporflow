@@ -1469,7 +1469,7 @@ export function DocumentsModule({
               onClick={() => setIsAiScreeningOpen(true)}
               title="Pemeriksaan Kelengkapan & Validitas Dokumen"
             >
-              <Sparkles size={14} className="icon-sparkle-amber" />
+              <FileCheck2 size={14} className="text-slate-600" />
               <span>Audit Dokumen</span>
             </button>
 
@@ -3152,7 +3152,7 @@ function OfficialLetterhead({
                     }}
                     title="Gunakan Logo Resmi Indico Export Indonesia"
                   >
-                    🌿 Logo Indico
+                    Logo Indico Standar
                   </button>
                 )}
               </div>
@@ -7293,7 +7293,7 @@ function DocumentSettings({
                 onChange={(value) => update("namedPlace", value)}
               />
               <div className="doc-settings-note">
-                💡 <b>Sinkronisasi Otomatis:</b> Setiap penyesuaian data buyer, PO, syarat pembayaran, kapal, dan kontainer langsung terhubung dan terbit di ke-5 dokumen ekspor secara serempak.
+                <b>Sinkronisasi Otomatis:</b> Setiap penyesuaian data buyer, PO, syarat pembayaran, kapal, dan kontainer langsung terhubung dan terbit di ke-5 dokumen ekspor secara serempak.
               </div>
             </div>
           </div>

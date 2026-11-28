@@ -1439,7 +1439,10 @@ export function ReadinessView({
                       <div className="custom-docs-tag-list">
                         {activeCustomDocs.map((docName) => (
                           <span key={docName} className="custom-doc-badge-tag">
-                            <span>📄 {docName}</span>
+                            <span className="inline-flex items-center gap-1">
+                              <FileText size={11} className="text-slate-500" />
+                              <span>{docName}</span>
+                            </span>
                             <button
                               type="button"
                               title={isEn ? "Remove this document" : "Hapus dokumen ini"}
@@ -2600,7 +2603,7 @@ export function ApprovalsView({
 
             <div style={{ background: "#ffffff", border: "1px solid #e2e8f0", borderRadius: 8, padding: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                <span style={{ fontSize: 18 }}>📦</span>
+                <Box size={16} className="text-slate-600" />
                 <b style={{ fontSize: 13, color: "#0f172a" }}>Operasional &amp; Dokumen</b>
               </div>
               <div style={{ fontSize: 11.5, color: "#64748b", lineHeight: 1.4, marginBottom: 10 }}>
@@ -3223,10 +3226,10 @@ export function ApprovalsView({
                       color: "#0f172a",
                     }}
                   >
-                    <option value="sales">💼 Sales &amp; Marketing Ekspor (Input &amp; Ajukan Penawaran)</option>
-                    <option value="ops">📦 Operasional &amp; Dokumen Ekspor (PEB, SKA, Kontainer)</option>
-                    <option value="finance">💳 Keuangan &amp; Akuntansi (Verifikasi DP, LC, &amp; Devisa)</option>
-                    <option value="pimpinan">👔 Pimpinan / Direktur (Otorisasi &amp; Dispensasi Margin)</option>
+                    <option value="sales">Sales &amp; Marketing Ekspor (Input &amp; Ajukan Penawaran)</option>
+                    <option value="ops">Operasional &amp; Dokumen Ekspor (PEB, SKA, Kontainer)</option>
+                    <option value="finance">Keuangan &amp; Akuntansi (Verifikasi DP, LC, &amp; Devisa)</option>
+                    <option value="pimpinan">Pimpinan / Direktur (Otorisasi &amp; Dispensasi Margin)</option>
                   </select>
                 </div>
 
@@ -3240,7 +3243,7 @@ export function ApprovalsView({
                     color: "#64748b",
                   }}
                 >
-                  💡 Sistem akan mengirimkan undangan ke email anggota dengan batasan hak akses sesuai peran di atas.
+                  Sistem akan mengirimkan undangan ke email anggota dengan batasan hak akses sesuai peran di atas.
                 </div>
               </div>
 

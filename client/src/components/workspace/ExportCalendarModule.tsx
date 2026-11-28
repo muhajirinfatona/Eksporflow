@@ -1414,7 +1414,7 @@ export function ExportCalendarModule({
                           }}
                           title={`${catLabel}: ${plan.title}\nBuyer: ${plan.buyerOrPo || "-"}\nLokasi: ${plan.location || "-"}`}
                         >
-                          <span style={{ flexShrink: 0 }}>{meta.label.startsWith("Stuffing") ? "📦" : meta.label.startsWith("Kapal") ? "🚢" : meta.label.startsWith("Dokumen") ? "📄" : meta.label.startsWith("Finansial") ? "💵" : meta.label.startsWith("Inspeksi") ? "🔍" : "🤝"}</span>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: meta.color, flexShrink: 0, marginTop: 4 }} />
                           <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {plan.title}
                           </span>
@@ -1478,7 +1478,7 @@ export function ExportCalendarModule({
                 );
               })}
             </div>
-            <span>💡 <em>{isEn ? <>Click on a calendar date to view plans or click <strong>+ Schedule Plan</strong>.</> : <>Klik tanggal pada kalender untuk melihat rencana atau klik <strong>+ Buat Jadwal</strong>.</>}</em></span>
+            <span><em>{isEn ? <>Click on a calendar date to view plans or click <strong>+ Schedule Plan</strong>.</> : <>Klik tanggal pada kalender untuk melihat rencana atau klik <strong>+ Buat Jadwal</strong>.</>}</em></span>
           </div>
         </div>
 

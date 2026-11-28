@@ -14,6 +14,8 @@ import {
   Eye,
   EyeOff,
   FileText,
+  FileSearch,
+  FileCheck2,
   Globe,
   Info,
   Loader2,
@@ -148,8 +150,8 @@ export function PoIngestionModal({
         <div className="clean-po-header">
           <div>
             <div className="clean-po-badge">
-              <Sparkles size={13} />
-              <span>AI SCAN &amp; EKSTRAKSI PO / LOI</span>
+              <FileSearch size={13} />
+              <span>Ekstraksi OCR Dokumen PO / LOI</span>
             </div>
             <h2>Impor Dokumen PO atau LOI Buyer</h2>
             <p>
@@ -476,7 +478,7 @@ export function PoIngestionModal({
                   onClick={() => runValidation(poText)}
                   disabled={!poText.trim() || isAnalyzing}
                 >
-                  <Sparkles size={14} /> Validasi Dokumen PO
+                  <FileCheck2 size={14} /> Validasi Dokumen PO
                 </button>
                 <button
                   type="button"

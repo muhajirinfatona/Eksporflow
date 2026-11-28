@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import {
+  AlertCircle,
   ShieldAlert,
   ShieldCheck,
   AlertTriangle,
   CheckCircle2,
   X,
-  Sparkles,
   RefreshCw,
   SpellCheck,
   Building,
@@ -92,8 +92,8 @@ export function DocumentAiScreeningModal({
         <div className="doc-screening-modal-header">
           <div className="header-left">
             <div className="screening-ai-badge">
-              <Sparkles size={16} />
-              <span>AI ADVISOR SCREENING & AUDIT</span>
+              <ShieldCheck size={14} className="text-slate-600" />
+              <span>Audit Kepatuhan &amp; Validitas Dokumen</span>
             </div>
             <h3 className="screening-modal-title">
               Pemeriksaan Kepatuhan & Deteksi Kesalahan: {selectedDocument}
@@ -187,21 +187,24 @@ export function DocumentAiScreeningModal({
             className={`filter-btn error ${filterSeverity === "error" ? "active" : ""}`}
             onClick={() => setFilterSeverity("error")}
           >
-            🔴 Kesalahan Kritis ({report.errorCount})
+            <AlertCircle size={12} className="inline mr-1 text-rose-600" />
+            Kesalahan Kritis ({report.errorCount})
           </button>
           <button
             type="button"
             className={`filter-btn warning ${filterSeverity === "warning" ? "active" : ""}`}
             onClick={() => setFilterSeverity("warning")}
           >
-            🟡 Peringatan & Typo ({report.warningCount})
+            <AlertTriangle size={12} className="inline mr-1 text-amber-600" />
+            Peringatan & Typo ({report.warningCount})
           </button>
           <button
             type="button"
             className={`filter-btn pass ${filterSeverity === "pass" ? "active" : ""}`}
             onClick={() => setFilterSeverity("pass")}
           >
-            🟢 Terverifikasi Valid ({report.passedCount})
+            <CheckCircle2 size={12} className="inline mr-1 text-emerald-600" />
+            Terverifikasi Valid ({report.passedCount})
           </button>
         </div>
 
@@ -249,7 +252,7 @@ export function DocumentAiScreeningModal({
         {/* Footer */}
         <div className="doc-screening-modal-footer">
           <span className="screening-footer-note">
-            💡 <b>Tips Eksportir:</b> Screening otomatis memeriksa kepatuhan ICC UCP 600, Incoterms 2020, dan protokol keamanan perbankan sebelum Anda menandatangani dan menerbitkan dokumen.
+            <b>Panduan Kepatuhan:</b> Screening otomatis memeriksa kepatuhan ICC UCP 600, Incoterms 2020, dan protokol keamanan perbankan sebelum Anda menandatangani dan menerbitkan dokumen.
           </span>
           <button
             type="button"

@@ -1775,7 +1775,7 @@ export function PreTransactionModule({
           {/* Card 3: Panduan Negosiasi & Mitigasi Risiko Buyer (AI Trade Advisor) */}
           <section className="panel panel-padding" style={{ background: "#FFFFFF", border: "1px solid #E2E8F0" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-              <Sparkles size={15} style={{ color: "#2563EB" }} />
+              <ShieldCheck size={15} className="text-slate-700" />
               <strong style={{ fontSize: 12.5, color: "#0F172A" }}>{isEn ? "Safe Export Trade Guidelines" : "Panduan Transaksi Ekspor Aman"}</strong>
             </div>
             <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11.5, color: "#475569", lineHeight: 1.6 }}>

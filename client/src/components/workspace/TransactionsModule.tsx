@@ -2541,7 +2541,7 @@ export function TransactionsModule({
                 <div className="trans-compliance-box" style={{ marginTop: "14px" }}>
                   <div className="trans-compliance-head">
                     <div className="trans-compliance-title">
-                      <Sparkles size={14} />
+                      <FileText size={14} className="text-slate-600" />
                       <span>Dokumen &amp; Sertifikat Ekspor ({shipment.buyerCountry || "Internasional"})</span>
                       <span className="compliance-tag-scanned">
                         <CheckCircle2 size={11} /> Rekomendasi Dokumen Ketentuan Buyer

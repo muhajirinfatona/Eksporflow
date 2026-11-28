@@ -246,7 +246,7 @@ export function useActiveShipment() {
       setSupabaseList([]);
       setVersion(1);
       setSaveState("local-draft");
-      setStatusNote("Produksi Cloud Supabase Aktif");
+      setStatusNote("Mode Sandbox Demo (3 Hari)");
       return;
     }
 
@@ -573,6 +573,11 @@ export function useActiveShipment() {
         } catch {
           // Abaikan
         }
+      }
+      if (typeof window !== "undefined" && window.history?.replaceState) {
+        const url = new URL(window.location.href);
+        url.search = "";
+        window.history.replaceState({}, "", url.pathname);
       }
       toast(wasDemo ? "Anda keluar dari Mode Demo EksporFlow" : "Anda telah keluar dari akun EksporFlow");
     } catch {

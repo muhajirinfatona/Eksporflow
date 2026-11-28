@@ -233,7 +233,7 @@ export function ComplianceLartasModule({
               >
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                   <b style={{ fontSize: 13, color: "#14532d", display: "flex", alignItems: "center", gap: 6 }}>
-                    <Sparkles size={14} /> Tinjauan Klasifikasi Alternatif Legal ({hsVerification.alternativeHsCode})
+                    <Scale size={14} /> Tinjauan Klasifikasi Alternatif Legal ({hsVerification.alternativeHsCode})
                   </b>
                   {shipment.hsCode !== hsVerification.alternativeHsCode && (
                     <button

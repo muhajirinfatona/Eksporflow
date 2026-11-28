@@ -37,6 +37,7 @@ import {
   Rows,
   ChevronDown,
   FileText,
+  FileCheck2,
   Layout,
   Ruler,
   PanelTop,
@@ -2072,8 +2073,11 @@ export function DocWordRibbon({
       {/* 1. Ribbon Title Bar */}
       <div className="doc-ribbon-top-bar">
         <div className="doc-ribbon-brand">
-          <div className="doc-word-icon-badge">W</div>
-          <span className="doc-ribbon-title">Word Editor</span>
+          <div className="doc-word-icon-badge">
+            <FileText size={12} />
+          </div>
+          <span className="doc-ribbon-title">Editor Dokumen Ekspor</span>
+          <span className="doc-ribbon-subtitle">Standar UN/CEFACT</span>
         </div>
 
         <div className="doc-ribbon-top-actions">
@@ -2085,25 +2089,26 @@ export function DocWordRibbon({
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: "5px",
+                gap: "6px",
                 padding: "3px 9px",
                 borderRadius: "5px",
-                background: shipment.letterheadLayout === "geometric" ? "#ccfbf1" : "#f1f5f9",
-                color: shipment.letterheadLayout === "geometric" ? "#0f766e" : "#0f172a",
-                border: shipment.letterheadLayout === "geometric" ? "1px solid #14b8a6" : "1px solid #cbd5e1",
+                background: "rgba(255, 255, 255, 0.08)",
+                color: "#f8fafc",
+                border: "1px solid rgba(255, 255, 255, 0.15)",
                 fontSize: "11px",
-                fontWeight: 600,
+                fontWeight: 500,
                 cursor: "pointer",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                transition: "all 0.12s ease",
               }}
-              title="Ganti Model Kop Surat (Geometris atau Standar)"
+              title="Ganti Model Kop Surat Dokumen Ekspor"
             >
+              <Layout size={11} className="opacity-70" />
               <span>
                 {shipment.letterheadLayout === "geometric"
-                  ? `💎 Geometris (${GEOMETRIC_STYLES.find((s) => s.id === normalizeGeometricStyle(shipment.letterheadGeometricStyle))?.label || "Prisma"})`
-                  : "🌿 Standar"}
+                  ? `Kop Geometris (${GEOMETRIC_STYLES.find((s) => s.id === normalizeGeometricStyle(shipment.letterheadGeometricStyle))?.label || "Prisma"})`
+                  : "Kop Standar Resmi"}
               </span>
-              <ChevronDown size={12} style={{ opacity: 0.8 }} />
+              <ChevronDown size={11} style={{ opacity: 0.7 }} />
             </button>
             {showLetterheadMenu && (
               <div
@@ -2121,9 +2126,9 @@ export function DocWordRibbon({
                   textAlign: "left",
                 }}
               >
-                <div style={{ padding: "4px 12px", fontSize: "10px", fontWeight: 700, color: "#0f766e", textTransform: "uppercase", letterSpacing: "0.05em", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <span>Desain Geometris (Invoice)</span>
-                  <span style={{ fontSize: "9px", background: "#ccfbf1", color: "#0f766e", padding: "1px 5px", borderRadius: "3px", fontWeight: 700 }}>6 Varian</span>
+                <div style={{ padding: "4px 12px", fontSize: "10px", fontWeight: 600, color: "#64748b", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span>Desain Kop Geometris</span>
+                  <span style={{ fontSize: "9px", background: "#f1f5f9", color: "#475569", padding: "1px 5px", borderRadius: "3px", fontWeight: 600 }}>6 Varian</span>
                 </div>
                 {GEOMETRIC_STYLES.map((st) => {
                   const isCur = shipment.letterheadLayout === "geometric" && (shipment.letterheadGeometricStyle || "teal-slant") === st.id;
@@ -2142,7 +2147,7 @@ export function DocWordRibbon({
                         justifyContent: "space-between",
                         padding: "6px 12px",
                         border: "none",
-                        background: isCur ? "#f0fdfa" : "transparent",
+                        background: isCur ? "#f8fafc" : "transparent",
                         cursor: "pointer",
                         textAlign: "left",
                         borderLeft: isCur ? `3px solid ${st.primaryColor}` : "3px solid transparent",
@@ -2151,8 +2156,8 @@ export function DocWordRibbon({
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <span
                           style={{
-                            width: "10px",
-                            height: "10px",
+                            width: "8px",
+                            height: "8px",
                             borderRadius: "50%",
                             backgroundColor: st.primaryColor,
                             display: "inline-block",
@@ -2160,13 +2165,13 @@ export function DocWordRibbon({
                           }}
                         />
                         <div>
-                          <div style={{ fontSize: "11px", fontWeight: isCur ? 700 : 600, color: isCur ? "#0f766e" : "#1e293b" }}>
+                          <div style={{ fontSize: "11px", fontWeight: isCur ? 600 : 500, color: isCur ? "#0f172a" : "#334155" }}>
                             {st.label}
                           </div>
                           <div style={{ fontSize: "9px", color: "#64748b" }}>{st.positionDesc}</div>
                         </div>
                       </div>
-                      {isCur && <Check size={13} color="#0d9488" />}
+                      {isCur && <Check size={13} color="#0f172a" />}
                     </button>
                   );
                 })}
@@ -2186,20 +2191,20 @@ export function DocWordRibbon({
                     justifyContent: "space-between",
                     padding: "7px 12px",
                     border: "none",
-                    background: shipment.letterheadLayout !== "geometric" ? "#eff6ff" : "transparent",
+                    background: shipment.letterheadLayout !== "geometric" ? "#f8fafc" : "transparent",
                     cursor: "pointer",
                     textAlign: "left",
-                    borderLeft: shipment.letterheadLayout !== "geometric" ? "3px solid #2563eb" : "3px solid transparent",
+                    borderLeft: shipment.letterheadLayout !== "geometric" ? "3px solid #0f172a" : "3px solid transparent",
                   }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <span style={{ fontSize: "14px" }}>🌿</span>
+                    <Building2 size={13} className="text-slate-600" />
                     <div>
                       <div style={{ fontSize: "11px", fontWeight: 600, color: "#1e293b" }}>Standar Resmi (Garis Ganda)</div>
                       <div style={{ fontSize: "9.5px", color: "#64748b" }}>Format teks & pembatas garis ganda</div>
                     </div>
                   </div>
-                  {shipment.letterheadLayout !== "geometric" && <Check size={13} color="#2563eb" />}
+                  {shipment.letterheadLayout !== "geometric" && <Check size={13} color="#0f172a" />}
                 </button>
               </div>
             )}
@@ -2214,15 +2219,15 @@ export function DocWordRibbon({
               setIsEditMode(next);
               update("docEditorMode", next);
               if (next) {
-                toast.success("Mode Edit Aktif");
+                toast.success("Mode Pengetikan Aktif");
               } else {
                 toast.info("Mode Pratinjau Terkunci");
               }
             }}
             title="Aktifkan atau kunci mode pengetikan langsung di kertas"
           >
-            <Edit3 size={12} />
-            <span>{isEditMode ? "Mode Edit" : "Pratinjau"}</span>
+            <Edit3 size={11} />
+            <span>{isEditMode ? "Mode Edit Aktif" : "Pratinjau"}</span>
             <div className={`doc-mode-dot ${isEditMode ? "on" : "off"}`} />
           </button>
 
@@ -2268,8 +2273,8 @@ export function DocWordRibbon({
             onClick={() => setActiveRibbonTab("table")}
             title="Alat Tabel: Baris, Kolom, Lebar, Garis & Warna"
           >
-            <TableProperties size={13} className="mr-1 inline" />
-            <span>Tabel {isTableSelected && "●"}</span>
+            <TableProperties size={13} className="mr-1 inline text-slate-500" />
+            <span>Tabel</span>
           </button>
           <button
             type="button"
@@ -2277,30 +2282,30 @@ export function DocWordRibbon({
             onClick={() => setActiveRibbonTab("picture")}
             title="Format Gambar: Posisi, Bungkus Teks, Opasitas, Rotasi & Bingkai"
           >
-            <ImageIcon size={13} className="mr-1 inline" />
-            <span>Format Gambar {isImageSelected && "●"}</span>
+            <ImageIcon size={13} className="mr-1 inline text-slate-500" />
+            <span>Format Gambar</span>
           </button>
 
-          {/* Tab Format Bentuk (Shape Format - MS Word) */}
+          {/* Tab Format Bentuk (Shape Format) */}
           <button
             type="button"
             className={`doc-ribbon-tab-btn doc-ribbon-tab-shape ${activeRibbonTab === "shape" ? "active" : ""} ${isShapeSelected ? "highlighted" : ""}`}
             onClick={() => setActiveRibbonTab("shape")}
-            title="Format Bentuk: Ubah Bentuk, Warna Isi, Garis Luar & Teks (MS Word)"
+            title="Format Bentuk: Ubah Bentuk, Warna Isi, Garis Luar & Teks"
           >
-            <Square size={13} className="mr-1 inline text-amber-600" />
-            <span>Format Bentuk {isShapeSelected && "●"}</span>
+            <Square size={13} className="mr-1 inline text-slate-500" />
+            <span>Format Bentuk</span>
           </button>
 
-          {/* Tab Format Garis & Kop (Word Letterhead & Divider Rules) */}
+          {/* Tab Format Garis & Kop (Letterhead & Divider Rules) */}
           <button
             type="button"
             className={`doc-ribbon-tab-btn doc-ribbon-tab-line ${activeRibbonTab === "line" ? "active" : ""} ${isLineSelected ? "highlighted" : ""}`}
             onClick={() => setActiveRibbonTab("line")}
-            title="Format Garis & Kop: Atur Ketebalan (1,5 pt), Jarak Garis Ganda & Spasi Kop"
+            title="Format Garis & Kop: Atur Ketebalan, Jarak Garis Ganda & Spasi Kop"
           >
-            <SlidersHorizontal size={13} className="mr-1 inline text-blue-600" />
-            <span>Format Garis & Kop {isLineSelected && "●"}</span>
+            <SlidersHorizontal size={13} className="mr-1 inline text-slate-500" />
+            <span>Format Garis & Kop</span>
           </button>
         </div>
       )}
@@ -2743,16 +2748,16 @@ export function DocWordRibbon({
                       color: shipment.letterheadLayout === "geometric" ? "#0f766e" : "#334155",
                       background: shipment.letterheadLayout === "geometric" ? "#ccfbf1" : "#f1f5f9",
                       border: shipment.letterheadLayout === "geometric" ? "1px solid #14b8a6" : "1px solid #cbd5e1",
-                      borderRadius: "3px",
+                      borderRadius: "4px",
                       cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       gap: "4px",
                     }}
-                    title="Pilih Desain Kop Geometris (Pilihan Beragam Sesuai Invoice Pinterest)"
+                    title="Pilih Desain Kop Geometris"
                   >
-                    <span>💎 Geometris</span>
-                    <ChevronDown size={11} style={{ opacity: 0.8 }} />
+                    <span>Geometris</span>
+                    <ChevronDown size={11} style={{ opacity: 0.7 }} />
                   </button>
                   <button
                     type="button"
@@ -2765,16 +2770,16 @@ export function DocWordRibbon({
                       height: "22px",
                       padding: "0 6px",
                       fontSize: "11px",
-                      fontWeight: 600,
-                      color: shipment.letterheadLayout !== "geometric" ? "#1e40af" : "#64748b",
-                      background: shipment.letterheadLayout !== "geometric" ? "#eff6ff" : "transparent",
-                      border: shipment.letterheadLayout !== "geometric" ? "1px solid #93c5fd" : "1px solid transparent",
-                      borderRadius: "3px",
+                      fontWeight: 500,
+                      color: shipment.letterheadLayout !== "geometric" ? "#0f172a" : "#64748b",
+                      background: shipment.letterheadLayout !== "geometric" ? "#f1f5f9" : "transparent",
+                      border: shipment.letterheadLayout !== "geometric" ? "1px solid #cbd5e1" : "1px solid transparent",
+                      borderRadius: "4px",
                       cursor: "pointer",
                     }}
                     title="Kembali ke Kop Standar Resmi Garis Ganda"
                   >
-                    🌿 Standar
+                    Standar
                   </button>
                 </div>
                 <span className="doc-ribbon-group-label">Model Kop</span>
@@ -3703,7 +3708,7 @@ export function DocWordRibbon({
                     style={{ fontSize: "10.5px", height: "22px", padding: "1px 5px", fontWeight: 600, border: "1px solid #cbd5e1", borderRadius: "3px", background: "#f8fafc", color: "#1e293b", cursor: "pointer" }}
                     title="Pilih Tata Letak Kop Surat (Geometris Modern, Grid Eksekutif, Split Korporat, Simetris)"
                   >
-                    <option value="geometric">💎 Geometris</option>
+                    <option value="geometric">Geometris Modern</option>
                     <option value="left">Grid Eksekutif</option>
                     <option value="split">Split Korporat</option>
                     <option value="center">Simetris (Tengah)</option>
@@ -3840,7 +3845,7 @@ export function DocWordRibbon({
                         }}
                         title="Pasang Logo Resmi Indico Export Indonesia"
                       >
-                        <span>🌿 Indico</span>
+                        <span>Indico Export</span>
                       </button>
                     </div>
                   )}
@@ -4686,10 +4691,10 @@ export function DocWordRibbon({
                       type="button"
                       className="doc-ribbon-table-subbtn"
                       onClick={onOpenAiScreening}
-                      title="AI Audit & Deteksi Kesalahan Dokumen"
+                      title="Audit & Deteksi Kesalahan Dokumen"
                     >
-                      <Sparkles size={12} />
-                      <span>AI Audit</span>
+                      <FileCheck2 size={12} className="text-slate-600" />
+                      <span>Audit Dokumen</span>
                     </button>
                   )}
                 </div>
@@ -7463,8 +7468,8 @@ export function DocWordRibbon({
                     <div className="mt-3 p-3 rounded-xl border border-slate-200 bg-slate-50/60 flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-md bg-teal-100 text-teal-700 flex items-center justify-center shrink-0">
-                            <Sparkles size={13} />
+                          <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center shrink-0">
+                            <PanelBottom size={13} />
                           </div>
                           <div>
                             <span className="text-xs font-bold text-slate-900">Kop Surat Bawah (Footer Grafis)</span>
@@ -7614,7 +7619,7 @@ export function DocWordRibbon({
                     </label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5">
                       {[
-                        { id: "geometric", label: "💎 Geometris", desc: "Varian poligon modern & invoice Pinterest" },
+                        { id: "geometric", label: "Geometris Modern", desc: "Varian poligon modern & invoice Pinterest" },
                         { id: "left", label: "Rata Kiri", desc: "Logo kiri, teks rata kiri" },
                         { id: "center", label: "Simetris Tengah", desc: "Teks terpusat di tengah" },
                         { id: "split", label: "Split Kiri-Kanan", desc: "Nama kiri, alamat kanan" },
